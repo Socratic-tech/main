@@ -13,35 +13,23 @@
         <div class="container">
             <h1>🛠️ Our AI-Powered Toolkit 🤖</h1>
             <p class="subtitle">A collection of useful tools, utilities, and experiments built collaboratively.</p>
+            <a href="#" id="manager-toggle" class="btn secondary toggle-btn">Site Manager (Admin)</a>
         </div>
     </header>
 
     <main class="container">
         
-        <section class="tools-grid">
-            
-            <div class="tool-card">
-                <h2>Text Summarizer</h2>
-                <p>Quickly distill long articles, reports, or documents into concise summaries. Great for saving time on research.</p>
-                <a href="#" class="btn primary">Launch Tool</a>
-                <a href="#" class="btn secondary">View Source</a>
-            </div>
+        <section class="tools-grid" id="tools-container"></section>
 
-            <div class="tool-card">
-                <h2>Code Generator</h2>
-                <p>Generate boilerplates, snippets, or entire functions in various programming languages based on your prompts.</p>
-                <a href="#" class="btn primary">Launch Tool</a>
-                <a href="#" class="btn secondary">View Source</a>
-            </div>
-
-            <div class="tool-card">
-                <h2>Recipe Converter</h2>
-                <p>Adjust ingredient quantities for different serving sizes, or convert between metric and imperial measurements.</p>
-                <a href="#" class="btn primary">Launch Tool</a>
-                <a href="#" class="btn secondary">View Source</a>
-            </div>
-
-            </section>
+        <section class="site-manager" id="site-manager">
+            <h2><span id="manager-title">Site Manager (Tools Config)</span></h2>
+            <p>Edit the <code>tools.json</code> file and click **Refresh Tools** to update the homepage.</p>
+            <textarea id="json-editor" rows="15" cols="80"></textarea>
+            <button id="save-tools" class="btn primary">Refresh Tools</button>
+            <p class="help-text">
+                Note: Saving here will only update the display *locally*. To permanently change the live site, you must **manually commit the updated <code>tools.json</code> file** back to GitHub.
+            </p>
+        </section>
 
         <section class="about-section">
             <h2>About This Collaboration</h2>
@@ -57,5 +45,6 @@
         </div>
     </footer>
 
+    <script src="siteManager.js"></script>
 </body>
 </html>
