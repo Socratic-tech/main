@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Manager | Tools Config</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Specific styles for the Manager page */
+        .manager-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .manager-container h1 {
+            color: #C0392B; /* A noticeable color for Admin */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #json-editor {
+            width: 100%;
+            border: 1px solid #CCCCCC;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 15px;
+            border-left: 3px solid #FFC107;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="manager-container">
+        <h1>🔒 Site Manager (Tools Configuration)</h1>
+        
+        <p>This page allows you to configure the tools displayed on the main page by editing the raw JSON data. Click **Load Tools** to pull the current configuration from <code>tools.json</code>.</p>
+        
+        <button id="load-tools-btn" class="btn primary" style="margin-right: 10px;">Load Current Tools</button>
+        <a href="index.html" class="btn secondary">Back to Homepage</a>
+        
+        <hr style="margin: 20px 0;">
+
+        <h3>JSON Editor</h3>
+        <textarea id="json-editor" rows="20" cols="80"></textarea>
+        
+        <p>After editing, click **Test Locally** to see how the page *would* look.</p>
+        <button id="test-locally-btn" class="btn secondary">Test Locally (Preview)</button>
+
+        <p class="help-text">
+            **Important:** This page cannot save changes back to GitHub. To update the live site, you must manually copy the updated JSON, paste it into your local <code>tools.json</code> file, and **commit the file** to your repository.
+        </p>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonEditor = document.getElementById('json-editor');
+            const loadButton = document.getElementById('load-tools-btn');
+            const testButton = document.getElementById('test-locally-btn');
+
+            // --- Load the current tools into the editor ---
+            async function loadToolsIntoEditor() {
+                try {
+                    const response = await fetch('tools.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const tools = await response.json();
+                    jsonEditor.value = JSON.stringify(tools, null, 4);
+                    alert('Current tools loaded successfully!');
+                } catch (error) {
+                    console.error('Could not load tools.json:', error);
+                    alert('Error loading tools.json. Check the console.');
+                }
+            }
+
+            // --- Test the changes locally ---
+            testButton.addEventListener('click', () => {
+                try {
+                    // Check if JSON is valid
+                    JSON.parse(jsonEditor.value);
+                    
+                    // Store the tested JSON in local storage
+                    localStorage.setItem('previewTools', jsonEditor.value);
+                    
+                    if(confirm('JSON is valid. Would you like to view the homepage preview with these changes?')) {
+                        // Open the homepage in a new tab for preview
+                        window.open('index.html?preview=true', '_blank');
+                    }
+
+                } catch (error) {
+                    alert('Error: Invalid JSON format. Please check your syntax.');
+                    console.error(error);
+                }
+            });
+
+            loadButton.addEventListener('click', loadToolsIntoEditor);
+            
+            // Load tools automatically when the manager page loads
+            loadToolsIntoEditor(); 
+        });
+    </script>
+</body>
+</html>
