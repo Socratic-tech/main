@@ -1,0 +1,34 @@
+[
+    {
+        "id": 1,
+        "title": "Text Summarizer",
+        "description": "Quickly distill long articles, reports, or documents into concise summaries. Great for saving time on research.",
+        "launch_url": "#",
+        "source_url": "#",
+        "icon": "📝"
+    },
+    {
+        "id": 2,
+        "title": "Code Generator",
+        "description": "Generate boilerplates, snippets, or entire functions in various programming languages based on your prompts.",
+        "launch_url": "#",
+        "source_url": "#",
+        "icon": "💻"
+    },
+    {
+        "id": 3,
+        "title": "Recipe Converter",
+        "description": "Adjust ingredient quantities for different serving sizes, or convert between metric and imperial measurements.",
+        "launch_url": "#",
+        "source_url": "#",
+        "icon": "🍳"
+    },
+    {
+        "id": 4,
+        "title": "Color Palette Mixer",
+        "description": "Experiment with different color schemes and generate accessible palettes for web development projects.",
+        "launch_url": "#",
+        "source_url": "#",
+        "icon": "🎨"
+    }
+]
