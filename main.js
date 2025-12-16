@@ -1,9 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const toolsContainer = document.getElementById('tools-container');
-    const siteManager = document.getElementById('site-manager');
-    const managerToggle = document.getElementById('manager-toggle');
-    const jsonEditor = document.getElementById('json-editor');
-    const saveToolsButton = document.getElementById('save-tools');
 
     // --- Core Function: Render Tools ---
     function renderTools(tools) {
@@ -39,38 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Render on the main page
             renderTools(tools);
-            
-            // Load content into the editor
-            jsonEditor.value = JSON.stringify(tools, null, 4);
 
         } catch (error) {
             console.error('Could not load tools.json:', error);
             toolsContainer.innerHTML = '<p style="text-align: center;">Error loading tools. Please check console.</p>';
         }
     }
-
-    // --- Site Manager Interaction ---
-    managerToggle.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Toggle visibility of the manager section
-        siteManager.style.display = (siteManager.style.display === 'block' ? 'none' : 'block');
-    });
-
-    saveToolsButton.addEventListener('click', () => {
-        try {
-            // Parse JSON from the editor
-            const newTools = JSON.parse(jsonEditor.value);
-            
-            // Re-render the tools on the page
-            renderTools(newTools);
-            
-            alert('Homepage updated successfully! Remember to commit tools.json to GitHub for permanent change.');
-
-        } catch (error) {
-            alert('Error: Invalid JSON format. Please check your syntax.');
-            console.error(error);
-        }
-    });
 
     // Initial load
     loadTools();
