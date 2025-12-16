@@ -117,6 +117,54 @@ body {
     background-color: var(--primary-color);
     color: white;
 }
+/* --- New Manager Styles --- */
+
+.toggle-btn {
+    margin-top: 20px;
+    font-size: 0.9em;
+    padding: 8px 12px;
+}
+
+.site-manager {
+    display: none; /* Hide by default */
+    background-color: var(--card-background);
+    border: 1px dashed var(--primary-color);
+    padding: 30px;
+    margin: 40px 0;
+    border-radius: 8px;
+}
+
+.site-manager h2 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+#json-editor {
+    width: 100%;
+    border: 1px solid #CCCCCC;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 14px;
+    margin-bottom: 15px;
+    resize: vertical;
+}
+
+.help-text {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 15px;
+    border-left: 3px solid #FFC107;
+    padding-left: 10px;
+}
+
+/* Tool Card Button Group refinement */
+.tool-card .button-group {
+    margin-top: 10px;
+}
+
+.tool-card .btn {
+    margin-top: 5px; 
+}
 
 /* About Section */
 .about-section {
