@@ -13,23 +13,13 @@
         <div class="container">
             <h1>🛠️ Our AI-Powered Toolkit 🤖</h1>
             <p class="subtitle">A collection of useful tools, utilities, and experiments built collaboratively.</p>
-            <a href="#" id="manager-toggle" class="btn secondary toggle-btn">Site Manager (Admin)</a>
+            <a href="manager.html" class="btn secondary toggle-btn">Site Manager (Admin)</a>
         </div>
     </header>
 
     <main class="container">
         
         <section class="tools-grid" id="tools-container"></section>
-
-        <section class="site-manager" id="site-manager">
-            <h2><span id="manager-title">Site Manager (Tools Config)</span></h2>
-            <p>Edit the <code>tools.json</code> file and click **Refresh Tools** to update the homepage.</p>
-            <textarea id="json-editor" rows="15" cols="80"></textarea>
-            <button id="save-tools" class="btn primary">Refresh Tools</button>
-            <p class="help-text">
-                Note: Saving here will only update the display *locally*. To permanently change the live site, you must **manually commit the updated <code>tools.json</code> file** back to GitHub.
-            </p>
-        </section>
 
         <section class="about-section">
             <h2>About This Collaboration</h2>
@@ -45,6 +35,6 @@
         </div>
     </footer>
 
-    <script src="siteManager.js"></script>
+    <script src="main.js"></script> 
 </body>
 </html>
