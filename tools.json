@@ -1,34 +1,42 @@
 [
     {
         "id": 1,
-        "title": "Text Summarizer",
-        "description": "Quickly distill long articles, reports, or documents into concise summaries. Great for saving time on research.",
-        "launch_url": "#",
-        "source_url": "#",
-        "icon": "📝"
+        "title": "Good Fire vs. Bad Fire",
+        "description": "Designed to be used to teach students about prescriptive fire.",
+        "launch_url": "https://socratic-tech.github.io/nbprairietool/",
+        "source_url": "https://socratic-tech.github.io/nbprairietool/",
+        "icon": "🔥"
     },
     {
         "id": 2,
-        "title": "Code Generator",
-        "description": "Generate boilerplates, snippets, or entire functions in various programming languages based on your prompts.",
-        "launch_url": "#",
-        "source_url": "#",
-        "icon": "💻"
+        "title": "Shadow Image Tool",
+        "description": "Take color images and turn them into silhouette shadows.",
+        "launch_url": "https://socratic-tech.github.io/stformary1/crop",
+        "source_url": "https://socratic-tech.github.io/stformary1/crop",
+        "icon": "👤"
     },
     {
         "id": 3,
-        "title": "Recipe Converter",
-        "description": "Adjust ingredient quantities for different serving sizes, or convert between metric and imperial measurements.",
-        "launch_url": "#",
-        "source_url": "#",
-        "icon": "🍳"
+        "title": "Esports Team Operations Simulator",
+        "description": "Simulator designed to teach concepts of how to run an esports team.",
+        "launch_url": "https://socratic-tech.github.io/esportssimgame",
+        "source_url": "https://socratic-tech.github.io/esportssimgame",
+        "icon": "🎮"
     },
     {
         "id": 4,
-        "title": "Color Palette Mixer",
-        "description": "Experiment with different color schemes and generate accessible palettes for web development projects.",
-        "launch_url": "#",
-        "source_url": "#",
-        "icon": "🎨"
+        "title": "Esports GM Simulator",
+        "description": "Simulating the decisions that GM's make for esports teams.",
+        "launch_url": "https://socratic-tech.github.io/esportsgmsim",
+        "source_url": "https://socratic-tech.github.io/esportsgmsim",
+        "icon": "📊"
+    },
+    {
+        "id": 5,
+        "title": "PII Removal Tool",
+        "description": "A tool to identify and remove Personally Identifiable Information from text.",
+        "launch_url": "https://socratic-tech.github.io/Pii_Pro",
+        "source_url": "https://socratic-tech.github.io/Pii_Pro",
+        "icon": "🛡️"
     }
 ]
