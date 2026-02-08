@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>John Phillips | EdTech Innovator, Speaker & Workshop Leader</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ------------------------------
+   GLOBAL STYLES
+------------------------------ */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: #1f2833;
+  background: #ffffff;
+  line-height: 1.6;
+}
+
+:root {
+  --brand: #0057ff;
+  --brand-dark: #0041c1;
+  --light: #f7f9fc;
+  --dark: #1f2833;
+  --gray: #6b7280;
+  --radius: 12px;
+}
+
+section { padding: 4rem 1.5rem; max-width: 1100px; margin: auto; }
+h1, h2, h3 { line-height: 1.2; }
+h2 { margin-bottom: 1rem; }
+
+html { scroll-behavior: smooth; }
+
+/* ------------------------------
+   NAVIGATION
+------------------------------ */
+header {
+  position: sticky; top: 0; z-index: 999;
+  background: #fff; border-bottom: 1px solid #eee;
+}
+nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.5rem; max-width: 1100px; margin: auto;
+}
+nav .links { display: none; gap: 2rem; }
+nav a { color: var(--dark); text-decoration: none; font-weight: 500; }
+nav .cta {
+  background: var(--brand); color: #fff; padding: 0.6rem 1rem;
+  border-radius: var(--radius); text-decoration: none; font-weight: 600;
+}
+.menu-toggle { display: block; font-size: 1.5rem; cursor: pointer; }
+
+.mobile-nav {
+  display: none; flex-direction: column; background: #fff;
+  padding: 1rem 1.5rem; border-bottom: 1px solid #eee;
+}
+.mobile-nav a { margin: 0.5rem 0; color: var(--dark); text-decoration: none; }
+
+@media (min-width: 820px) {
+  .menu-toggle { display: none; }
+  nav .links { display: flex; }
+  .mobile-nav { display: none !important; }
+}
+
+/* ------------------------------
+   HERO
+------------------------------ */
+.hero {
+  padding: 5rem 1.5rem 4rem; text-align: center;
+}
+.hero h1 {
+  font-size: 2rem; max-width: 700px; margin: auto; font-weight: 700;
+}
+.hero p.sub {
+  color: var(--gray); max-width: 650px; margin: 1rem auto 2rem;
+}
+.hero .cta-row {
+  display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--brand); color: #fff;
+  padding: 0.8rem 1.3rem; border-radius: var(--radius);
+  text-decoration: none; font-weight: 600;
+}
+.btn-secondary {
+  border: 2px solid var(--brand); color: var(--brand);
+  padding: 0.75rem 1.3rem; border-radius: var(--radius);
+  text-decoration: none; font-weight: 600;
+}
+.hero .strip { margin-top: 2rem; font-size: 0.9rem; color: var(--gray); }
+
+/* ------------------------------
+   OFFERINGS CARDS
+------------------------------ */
+.cards { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
+.card {
+  background: var(--light); padding: 1.5rem; border-radius: var(--radius);
+  border: 1px solid #e5e7eb;
+}
+.card small { color: var(--gray); }
+
+@media (min-width: 700px) { .cards { grid-template-columns: repeat(2,1fr); } }
+@media (min-width: 1100px) { .cards { grid-template-columns: repeat(3,1fr); } }
+
+/* ------------------------------
+   OUTCOMES
+------------------------------ */
+.outcomes-list { display: grid; gap: 1rem; }
+.outcome { display: flex; gap: 1rem; }
+.icon {
+  width: 28px; height: 28px; background: var(--brand);
+  border-radius: 50%;
+}
+
+/* ------------------------------
+   ABOUT
+------------------------------ */
+.about { display: grid; gap: 2rem; }
+.about .headshot {
+  width: 180px; height: 180px; border-radius: 50%;
+  background: linear-gradient(135deg, #d9e6ff, #a8c5ff);
+  margin: auto;
+}
+@media (min-width: 820px) { .about { grid-template-columns:1fr 1fr; } }
+
+/* ------------------------------
+   TESTIMONIALS
+------------------------------ */
+.testimonials { display: grid; gap: 1.5rem; }
+.testimonial {
+  background: var(--light); padding: 1.5rem;
+  border-radius: var(--radius); border: 1px solid #e5e7eb;
+}
+.testimonial small { color: var(--gray); }
+
+/* ------------------------------
+   FAQ
+------------------------------ */
+.faq-item { border-bottom: 1px solid #eee; padding: 1rem 0; }
+.faq-item h3 {
+  margin: 0; cursor: pointer; display: flex; justify-content: space-between;
+}
+.faq-item p {
+  display: none; margin-top: 0.8rem; color: var(--gray);
+}
+
+/* ------------------------------
+   BOOKING SELECTOR
+------------------------------ */
+.booking-box {
+  background: var(--light); padding: 2rem;
+  border-radius: var(--radius); border: 1px solid #e5e7eb;
+}
+.booking-info { margin-top: 1rem; color: var(--gray); }
+
+/* ------------------------------
+   CONTACT FORM
+------------------------------ */
+form {
+  display: grid; gap: 1.2rem; max-width: 700px; margin: auto;
+}
+input, select, textarea {
+  width: 100%; padding: 0.8rem; border-radius: var(--radius);
+  border: 1px solid #ccc; font-size: 1rem;
+}
+button {
+  padding: 0.9rem; background: var(--brand);
+  color: #fff; border: none; border-radius: var(--radius);
+  font-weight: 600; cursor: pointer;
+}
+.copy-btn { background: var(--brand-dark); }
+
+#success-message {
+  display: none; margin-top: 1rem;
+  background: #e8f5e9; padding: 1rem; border-radius: var(--radius);
+  color: #2e7d32; text-align: center;
+}
+
+/* ------------------------------
+   FOOTER
+------------------------------ */
+footer {
+  background: #f1f3f7; text-align: center;
+  padding: 2rem 1rem; color: var(--gray);
+}
+
+/* ------------------------------
+   MOBILE BOOK BUTTON
+------------------------------ */
+#mobile-book {
+  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+  background: var(--brand); color: #fff; padding: 0.9rem 2rem;
+  border-radius: 50px; z-index: 999; font-weight: 600;
+}
+@media (min-width: 820px) { #mobile-book { display:none; } }
+</style>
+</head>
+
+<body>
+
+<a id="mobile-book" href="#booking">Book</a>
+
+<!-- NAV -->
+<header>
+  <nav>
+    <div class="logo"><strong>John Phillips</strong></div>
+    <div class="links">
+      <a href="#about">About</a>
+      <a href="#offerings">Offerings</a>
+      <a href="#outcomes">Outcomes</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#faq">FAQ</a>
+      <a href="#booking">Booking</a>
+      <a href="#contact">Contact</a>
+      <a href="#booking" class="cta">Check Availability</a>
+    </div>
+    <div class="menu-toggle" onclick="toggleMobileNav()">☰</div>
+  </nav>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#about">About</a>
+    <a href="#offerings">Offerings</a>
+    <a href="#outcomes">Outcomes</a>
+    <a href="#testimonials">Testimonials</a>
+    <a href="#faq">FAQ</a>
+    <a href="#booking">Booking</a>
+    <a href="#contact">Contact</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Level up learning with games, making, and future-ready tech.</h1>
+  <p class="sub">John helps schools, colleges, and community partners build engaging, practical learning experiences that connect creativity, technology, and real-world skills.</p>
+
+  <div class="cta-row">
+    <a href="#booking" class="btn-primary">Book a Talk</a>
+    <a href="#" class="btn-secondary">Download One-Sheet</a>
+  </div>
+
+  <div class="strip">Workshops • Keynotes • Faculty PD • Esports & Game-Based Learning</div>
+</section>
+
+<!-- OFFERINGS -->
+<section id="offerings">
+  <h2>Featured Offerings</h2>
+  <div class="cards">
+
+    <div class="card">
+      <h3>Keynote: The Gameful Classroom</h3>
+      <p>Explore how games, curiosity, and systems thinking create deeply engaging learning experiences.</p>
+      <small>60–90 min • Any size • In-person/Virtual</small>
+    </div>
+
+    <div class="card">
+      <h3>Workshop: Design Thinking + Rapid Prototyping</h3>
+      <p>Hands-on making + creativity sessions for faculty, students, or program teams.</p>
+      <small>2–3 hrs • Up to 40 • In-person/Virtual</small>
+    </div>
+
+    <div class="card">
+      <h3>Session: Esports as Student Engagement</h3>
+      <p>Practical ways to build community, belonging, and teamwork using esports programs.</p>
+      <small>45–60 min • Any size • In-person/Virtual</small>
+    </div>
+
+    <div class="card">
+      <h3>Session: AI + Classroom-Ready Tools</h3>
+      <p>Simple frameworks + educator-friendly tools supporting creativity and productivity.</p>
+      <small>45–90 min • Any size • In-person/Virtual</small>
+    </div>
+
+    <div class="card">
+      <h3>Workshop: Maker/STEAM Build Day</h3>
+      <p>A collaborative maker experience for schools looking to energize creativity.</p>
+      <small>Half/Full day • Up to 50 • In-person</small>
+    </div>
+
+    <div class="card">
+      <h3>Custom Training for Your Team</h3>
+      <p>Tailored PD sessions aligned to your goals, curriculum, and learners.</p>
+      <small>Flexible • Any size • In-person/Virtual</small>
+    </div>
+
+  </div>
+</section>
+
+<!-- OUTCOMES -->
+<section id="outcomes">
+  <h2>Outcomes & Value</h2>
+
+  <div class="outcomes-list">
+    <div class="outcome"><div class="icon"></div>Boost student engagement through hands-on, gameful learning.</div>
+    <div class="outcome"><div class="icon"></div>Develop practical toolkits educators can use immediately.</div>
+    <div class="outcome"><div class="icon"></div>Support project-based learning and maker-centered thinking.</div>
+    <div class="outcome"><div class="icon"></div>Leave with implementation advice and tailored next steps.</div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <h2>About John</h2>
+
+  <div class="about">
+    <div>
+      <p>John works across Michigan to help students and educators build future-ready learning experiences that integrate creativity, technology, and real-world relevance.</p>
+      <ul>
+        <li>Builds real tools used in classrooms</li>
+        <li>Works statewide supporting future-ready learning</li>
+        <li>Connects games, tech, and making to real skills</li>
+        <li>Helps students turn ideas into working projects</li>
+      </ul>
+    </div>
+
+    <div class="headshot"></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <h2>Testimonials</h2>
+  <div class="testimonials">
+
+    <div class="testimonial">
+      <p>“John’s workshop energized our entire faculty. Practical, clear, and highly engaging.”</p>
+      <small>— Faculty Member, Community College</small>
+    </div>
+
+    <div class="testimonial">
+      <p>“Our teachers left with real strategies and tools they put into practice the next day.”</p>
+      <small>— K–12 Technology Director</small>
+    </div>
+
+    <div class="testimonial">
+      <p>“One of the most popular speakers at our event — highly recommend for conferences.”</p>
+      <small>— Conference Organizer</small>
+    </div>
+
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <h2>Frequently Asked Questions</h2>
+
+  <div class="faq-item">
+    <h3 onclick="toggleFAQ(this)">What is the pricing range? <span>+</span></h3>
+    <p>Offerings fall into three professional tiers: Standard, Enhanced, and Premium. Pricing varies based on duration, customization level, and event scale.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3 onclick="toggleFAQ(this)">Do you offer virtual or travel-based sessions? <span>+</span></h3>
+    <p>Yes — all offerings can be delivered virtually or in-person with travel arranged in advance.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3 onclick="toggleFAQ(this)">What are the common session formats? <span>+</span></h3>
+    <p>Keynotes, workshops, student sessions, PD days, and consulting engagements.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3 onclick="toggleFAQ(this)">How far in advance should we book? <span>+</span></h3>
+    <p>Most organizers book 1–3 months ahead, though shorter notice dates may be possible.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3 onclick="toggleFAQ(this)">What should organizers provide? <span>+</span></h3>
+    <p>A projector or display, internet if needed, and details about your audience & goals.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3 onclick="toggleFAQ(this)">Do you offer student-focused sessions? <span>+</span></h3>
+    <p>Yes — including esports activations, maker build-days, and creativity workshops.</p>
+  </div>
+</section>
+
+<!-- BOOKING SELECTOR -->
+<section id="booking">
+  <h2>Booking Options</h2>
+
+  <div class="booking-box">
+    <label for="bookingType"><strong>Choose your booking type:</strong></label>
+    <select id="bookingType" onchange="updateBookingInfo()">
+      <option value="Keynote">Keynote</option>
+      <option value="Workshop">Workshop</option>
+      <option value="Training">Training</option>
+      <option value="Student Session">Student Session</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <div id="bookingDetails" class="booking-info"></div>
+
+    <p><em>Response within 2 business days.</em></p>
+    <a class="btn-primary" href="#contact">Check Availability</a>
+  </div>
+</section>
+
+<!-- CONTACT FORM -->
+<section id="contact">
+  <h2>Request Information or Book an Event</h2>
+
+  <form id="bookingForm">
+    <input type="text" id="name" placeholder="Your Name *" required>
+    <input type="email" id="email" placeholder="Email *" required>
+    <input type="text" id="organization" placeholder="Organization *" required>
+    <input type="text" id="role" placeholder="Your Role">
+
+    <label>Event Date:</label>
+    <input type="date" id="eventDate">
+
+    <input type="text" id="location" placeholder="Location (City/State or Virtual) *" required>
+    <input type="text" id="audience" placeholder="Audience (Students/Faculty/Admin/Mixed)">
+
+    <select id="bookingTypeForm">
+      <option>Keynote</option>
+      <option>Workshop</option>
+      <option>Training</option>
+      <option>Student Session</option>
+      <option>Other</option>
+    </select>
+
+    <select id="budget">
+      <option value="">Select Budget Tier</option>
+      <option>Standard Tier</option>
+      <option>Enhanced Tier</option>
+      <option>Premium Tier</option>
+      <option>Unsure / Need Guidance</option>
+    </select>
+
+    <textarea id="message" rows="5" placeholder="Tell me about your event..."></textarea>
+
+    <label>
+      <input type="checkbox" id="onesheet"> I want a copy of the one-sheet
+    </label>
+
+    <button type="submit">Send Request</button>
+    <button type="button" class="copy-btn" onclick="copyDetails()">Copy Details</button>
+
+    <div id="success-message">Your message was prepared! Check your email client or clipboard.</div>
+  </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Email: info@example.com</p>
+  <p>Social: LinkedIn • Twitter • YouTube</p>
+  <p>© <span id="year"></span> John Phillips</p>
+</footer>
+
+<!-- JAVASCRIPT -->
+<script>
+function toggleMobileNav() {
+  const nav = document.getElementById("mobileNav");
+  nav.style.display = nav.style.display === "flex" ? "none" : "flex";
+}
+
+function toggleFAQ(el) {
+  const p = el.nextElementSibling;
+  p.style.display = p.style.display === "block" ? "none" : "block";
+  const icon = el.querySelector("span");
+  icon.textContent = icon.textContent === "+" ? "-" : "+";
+}
+
+function updateBookingInfo() {
+  const type = document.getElementById("bookingType").value;
+  const box = document.getElementById("bookingDetails");
+
+  const info = {
+    "Keynote": "Professional Tier: Premium • Designed for large groups and events.",
+    "Workshop": "Professional Tier: Enhanced • Hands-on learning experiences.",
+    "Training": "Professional Tier: Standard–Enhanced • Tailored team development options.",
+    "Student Session": "Professional Tier: Standard • Flexible for student engagement formats.",
+    "Other": "Flexible tiers available — share your goals below."
+  };
+
+  box.textContent = info[type];
+}
+updateBookingInfo();
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+document.getElementById("bookingForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const data = {
+    name: name.value,
+    email: email.value,
+    org: organization.value,
+    role: role.value,
+    date: eventDate.value,
+    location: location.value,
+    audience: audience.value,
+    type: bookingTypeForm.value,
+    budget: budget.value,
+    msg: message.value,
+    onesheet: onesheet.checked ? "Yes" : "No"
+  };
+
+  const details = `
+Booking Request:
+Name: ${data.name}
+Email: ${data.email}
+Organization: ${data.org}
+Role: ${data.role}
+Event Date: ${data.date}
+Location: ${data.location}
+Audience: ${data.audience}
+Booking Type: ${data.type}
+Budget Tier: ${data.budget}
+Message: ${data.msg}
+One-Sheet Requested: ${data.onesheet}
+`;
+
+  const mailto = `mailto:john@elderberryhaven.com?subject=Booking Request from ${encodeURIComponent(data.name)}&body=${encodeURIComponent(details)}`;
+  window.location.href = mailto;
+
+  document.getElementById("success-message").style.display = "block";
+});
+
+function copyDetails() {
+  const details = `
+Booking Request:
+Name: ${name.value}
+Email: ${email.value}
+Organization: ${organization.value}
+Role: ${role.value}
+Event Date: ${eventDate.value}
+Location: ${location.value}
+Audience: ${audience.value}
+Booking Type: ${bookingTypeForm.value}
+Budget Tier: ${budget.value}
+Message: ${message.value}
+One-Sheet Requested: ${onesheet.checked ? "Yes" : "No"}
+`;
+
+  navigator.clipboard.writeText(details).then(() => {
+    document.getElementById("success-message").style.display = "block";
+  });
+}
+</script>
+
+</body>
+</html>
