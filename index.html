@@ -29,7 +29,7 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background: #ffffff;
+  background: linear-gradient(to bottom, #f0f8ff, #f0fdfb);
   color: var(--dark);
   line-height: 1.6;
 }
@@ -107,7 +107,6 @@ nav .cta {
   nav .links { display: flex; }
   .mobile-nav { display: none !important; }
 }
-
 /* ----------------------------------------------------
    HERO SECTION — Gradient Blue → Teal
 ---------------------------------------------------- */
@@ -237,7 +236,6 @@ nav .cta {
 @media (min-width: 820px) {
   .about { grid-template-columns: 1fr 1fr; }
 }
-
 /* ----------------------------------------------------
    TESTIMONIALS — Soft Tint
 ---------------------------------------------------- */
@@ -387,7 +385,6 @@ footer {
     <a href="#contact">Contact</a>
   </div>
 </header>
-
 <!-- ======================================
      HERO
 ====================================== -->
@@ -400,7 +397,9 @@ footer {
 
   <div class="cta-row">
     <a href="#booking" class="btn-primary">Book a Talk</a>
-    <a href="#" class="btn-secondary">Download One-Sheet</a>
+    <a href="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQ..." 
+       download="John_Phillips_One_Sheet.pdf"
+       class="btn-secondary">Download One-Sheet</a>
   </div>
 
   <div class="award-strip">
@@ -490,7 +489,7 @@ footer {
       </p>
 
       <p>
-        Named the <strong>Most Innovative Professional Development Provider in the Midwest</strong> by <em>Tech & Learning</em> Magazine, John brings a blend of research-backed insight and playful, confident communication to every session he leads.
+        Named the <strong>2025 Most Innovative Professional Development Provider in the Midwest</strong> by <em>Tech & Learning</em> Magazine, John brings a blend of research-backed insight and playful, confident communication to every session he leads.
       </p>
 
       <ul>
@@ -505,7 +504,6 @@ footer {
     <div class="headshot" aria-label="Headshot placeholder"></div>
   </div>
 </section>
-
 <!-- ======================================
      TESTIMONIALS
 ====================================== -->
@@ -539,7 +537,10 @@ footer {
 
   <div class="faq-item">
     <h3 onclick="toggleFAQ(this)">What is the pricing range? <span>+</span></h3>
-    <p>Sessions fall into Standard, Enhanced, and Premium tiers depending on customization and support needs. Every engagement is designed around the environment you’re trying to create.</p>
+    <p>
+      Sessions fall into Standard, Enhanced, and Premium tiers depending on customization and support needs.
+      Every engagement is designed around the environment you're trying to create.
+    </p>
   </div>
 
   <div class="faq-item">
@@ -595,7 +596,8 @@ footer {
   <h2>Request Information or Book an Event</h2>
 
   <p style="max-width:700px;margin:auto;text-align:center;margin-bottom:2rem;">
-    Tell me about your students, your goals, and the environment you're trying to build. Every engagement is tailored to your context.
+    Tell me about your students, your goals, and the environment you're trying to build.
+    Every engagement is tailored to your context.
   </p>
 
   <form id="bookingForm">
@@ -618,14 +620,6 @@ footer {
       <option>Other</option>
     </select>
 
-    <select id="budget">
-      <option value="">Select Budget Tier</option>
-      <option>Standard Tier</option>
-      <option>Enhanced Tier</option>
-      <option>Premium Tier</option>
-      <option>Unsure / Need Guidance</option>
-    </select>
-
     <textarea id="message" rows="5" placeholder="Tell me about your event..."></textarea>
 
     <label><input type="checkbox" id="onesheet"> I want a copy of the one-sheet</label>
@@ -636,13 +630,12 @@ footer {
     <div id="success-message">Your message was prepared! Check your email client or clipboard.</div>
   </form>
 </section>
-
 <!-- ======================================
      FOOTER
 ====================================== -->
 <footer>
-  <p>Email: info@example.com</p>
-  <p>Social: LinkedIn • Twitter • YouTube</p>
+  <p>Email: john@socratictech.org</p>
+  <p>Social: LinkedIn </p>
   <p>© <span id="year"></span> John Phillips</p>
 </footer>
 
@@ -689,7 +682,6 @@ document.getElementById("bookingForm").addEventListener("submit", function(e){
     location: location.value,
     audience: audience.value,
     type: bookingTypeForm.value,
-    budget: budget.value,
     msg: message.value,
     onesheet: onesheet.checked ? "Yes" : "No"
   };
@@ -704,12 +696,15 @@ Event Date: ${data.date}
 Location: ${data.location}
 Audience: ${data.audience}
 Booking Type: ${data.type}
-Budget Tier: ${data.budget}
 Message: ${data.msg}
 One-sheet requested: ${data.onesheet}
 `;
 
-  const mailto = `mailto:info@example.com?subject=Booking Request from ${encodeURIComponent(data.name)}&body=${encodeURIComponent(details)}`;
+  const mailto = 
+    "mailto:john@socratictech.org"
+    + "?subject=" + encodeURIComponent("Booking Request from " + data.name)
+    + "&body=" + encodeURIComponent(details);
+
   window.location.href = mailto;
 
   document.getElementById("success-message").style.display = "block";
@@ -725,7 +720,6 @@ Event Date: ${eventDate.value}
 Location: ${location.value}
 Audience: ${audience.value}
 Booking Type: ${bookingTypeForm.value}
-Budget Tier: ${budget.value}
 Message: ${message.value}
 One-sheet requested: ${onesheet.checked ? "Yes" : "No"}
   `;
@@ -734,10 +728,6 @@ One-sheet requested: ${onesheet.checked ? "Yes" : "No"}
   });
 }
 </script>
-
-</body>
-</html>
-
 
 </body>
 </html>
