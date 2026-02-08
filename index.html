@@ -1,405 +1,456 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>John Phillips | EdTech Innovator, Speaker & Workshop Leader</title>
-
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<style>
-:root {
-  --blue: #1D4ED8;
-  --teal: #06B6D4;
-  --green: #10B981;
-  --dark: #1f2937;
-  --gray: #6b7280;
-  --light-bg: #f0fdf4;
-  --radius: 14px;
-}
-
-/* Background */
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(to bottom, #f0f8ff, #f0fdfb);
-  color: var(--dark);
-  line-height: 1.6;
-}
-
-section { padding: 4rem 1.5rem; max-width: 1100px; margin: auto; }
-h1, h2, h3 { margin: 0 0 1rem 0; }
-
-/* NAV */
-header {
-  position: sticky; top: 0; z-index: 999;
-  background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-
-nav {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 1rem 1.5rem; max-width: 1100px; margin: auto;
-}
-
-nav a { text-decoration: none; color: var(--dark); font-weight: 500; }
-nav .cta {
-  background: var(--blue); color: white; padding: 0.6rem 1rem;
-  border-radius: var(--radius); font-weight: 600;
-}
-
-.menu-toggle { display: none; cursor:pointer; }
-
-@media (max-width: 820px) {
-  .menu-toggle { display: block; }
-  nav .links { display: none; }
-  .mobile-nav { display: none; flex-direction: column; padding: 1rem; }
-  .mobile-nav a { padding: 0.5rem 0; }
-}
-
-/* HERO */
-.hero-wrapper {
-  background: linear-gradient(135deg, var(--blue), var(--teal));
-  padding: 6rem 1.5rem 4rem; color: white; text-align: center;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--blue), var(--green));
-  color: white; padding: 0.8rem 1.4rem; border-radius: var(--radius);
-  text-decoration: none; font-weight: 600;
-}
-
-.hero .cta-row { margin-top: 2rem; }
-
-/* Award strip */
-.award-strip {
-  margin-top: 2rem;
-  background: rgba(255,255,255,0.15);
-  padding: 1rem 1.5rem;
-  border-radius: var(--radius);
-  display: inline-block;
-  font-size: 0.95rem;
-  backdrop-filter: blur(6px);
-}
-
-/* Award Badge */
-.award-badge {
-  display:block;
-  margin: 1rem auto 0 auto;
-  max-width: 200px;
-  width: 100%;
-}
-
-/* OFFERINGS */
-.cards {
-  display: grid; gap: 1.5rem;
-}
-@media (min-width: 700px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1100px) { .cards { grid-template-columns: repeat(3, 1fr); } }
-
-.card {
-  background: var(--light-bg);
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-}
-
-/* OUTCOMES */
-#outcomes {
-  background: linear-gradient(135deg, var(--teal), var(--green));
-  color: white;
-}
-
-.outcome { display: flex; gap: 0.8rem; }
-
-/* ABOUT */
-.about { display: grid; gap: 2rem; }
-@media (min-width: 820px) { .about { grid-template-columns: 1fr 1fr; } }
-
-.headshot {
-  width: 180px; height: 180px;
-  background: linear-gradient(135deg, var(--blue), var(--green));
-  border-radius: 50%; margin: auto;
-}
-
-/* Contact CTA */
-#about-cta { text-align: center; padding: 2rem 1.5rem; }
-#about-cta a {
-  background: linear-gradient(135deg, var(--blue), var(--green));
-  color: white; padding: 0.9rem 1.6rem; border-radius: var(--radius);
-  text-decoration: none; font-weight: 600; font-size: 1.1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* BOOKING */
-#booking { background: linear-gradient(135deg, var(--blue), var(--green)); color: white; }
-
-.booking-box {
-  background: rgba(255,255,255,0.12);
-  padding: 2rem; border-radius: var(--radius);
-  backdrop-filter: blur(10px);
-}
-
-.booking-box select {
-  padding: 0.7rem; width: 100%; border-radius: var(--radius); border: none;
-}
-
-/* CONTACT FORM */
-form { max-width: 700px; margin: auto; display: grid; gap: 1rem; }
-input, textarea { padding: 0.8rem; border-radius: var(--radius); border: 1px solid #ccc; }
-
-button {
-  background: linear-gradient(135deg, var(--blue), var(--green));
-  color: white; padding: 0.9rem;
-  border-radius: var(--radius); border: none; font-weight: 600;
-}
-
-.copy-btn { background: var(--dark); }
-
-/* FOOTER */
-footer {
-  background: #f1f5f9; padding: 2rem 1rem; text-align: center; color: var(--gray);
-}
-</style>
-</head>
-
-<body>
-
-<!-- NAV -->
-<header>
-  <nav>
-    <div class="logo"><strong>John Phillips</strong></div>
-    <div class="links">
-      <a href="#about">About</a>
-      <a href="#offerings">Offerings</a>
-      <a href="#outcomes">Outcomes</a>
-      <a href="#testimonials">Testimonials</a>
-      <a href="#faq">FAQ</a>
-      <a href="#booking">Booking</a>
-      <a href="#contact" class="cta">Check Availability</a>
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>John Phillips | EdTech Innovator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Fraunces:wght@600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    .font-heading { font-family: 'Fraunces', serif; }
+    .font-body { font-family: 'DM Sans', sans-serif; }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-gradient {
+      background: linear-gradient(135deg, #0f766e 0%, #0369a1 50%, #1e40af 100%);
+    }
+    
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-glow {
+      box-shadow: 0 4px 14px 0 rgba(13, 148, 136, 0.4);
+      transition: all 0.3s ease;
+    }
+    .btn-glow:hover {
+      box-shadow: 0 6px 20px 0 rgba(13, 148, 136, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .nav-link {
+      position: relative;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #0d9488, #0284c7);
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    
+    html { scroll-behavior: smooth; }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full font-body bg-slate-50 text-slate-800 overflow-auto"><!-- Navigation -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+   <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"><a href="#" class="font-heading font-bold text-xl gradient-text">JP</a>
+    <div class="hidden md:flex items-center gap-8"><a href="#offerings" class="nav-link text-slate-600 hover:text-slate-900 font-medium transition-colors">Services</a> <a href="#outcomes" class="nav-link text-slate-600 hover:text-slate-900 font-medium transition-colors">Outcomes</a> <a href="#about" class="nav-link text-slate-600 hover:text-slate-900 font-medium transition-colors">About</a> <a href="#contact" class="bg-gradient-to-r from-teal-600 to-sky-600 text-white px-5 py-2.5 rounded-full font-semibold btn-glow">Get in Touch</a>
+    </div><button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600">
+     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+     </svg></button>
+   </nav><!-- Mobile Menu -->
+   <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 px-6 py-4">
+    <div class="flex flex-col gap-4"><a href="#offerings" class="text-slate-600 hover:text-slate-900 font-medium py-2">Services</a> <a href="#outcomes" class="text-slate-600 hover:text-slate-900 font-medium py-2">Outcomes</a> <a href="#about" class="text-slate-600 hover:text-slate-900 font-medium py-2">About</a> <a href="#contact" class="bg-gradient-to-r from-teal-600 to-sky-600 text-white px-5 py-3 rounded-full font-semibold text-center">Get in Touch</a>
     </div>
-    <div class="menu-toggle" onclick="toggleMobileNav()">☰</div>
-  </nav>
-
-  <div class="mobile-nav" id="mobileNav">
-    <a href="#about">About</a>
-    <a href="#offerings">Offerings</a>
-    <a href="#outcomes">Outcomes</a>
-    <a href="#testimonials">Testimonials</a>
-    <a href="#faq">FAQ</a>
-    <a href="#booking">Booking</a>
-    <a href="#contact">Contact</a>
-  </div>
-</header>
-
-<!-- HERO -->
-<div class="hero-wrapper">
-  <h1>Design learning environments where engagement naturally happens.</h1>
-  <p class="sub">
-    John Phillips helps schools and colleges create environments where students think deeply,
-    participate willingly, and take ownership of learning — not because they're told to,
-    but because the space invites it.
-  </p>
-
-  <div class="cta-row">
-    <a href="#booking" class="btn-primary">Book a Talk</a>
-  </div>
-
-  <div class="award-strip">
-    Named the Most Innovative Professional Development Provider in the Midwest by 
-    <em>Tech & Learning</em> Magazine
-  </div>
-
-  <img 
-    src="https://raw.githubusercontent.com/Socratic-tech/main/main/assets/TALRRT.0121_award%20seals_win%20(1).png"
-    alt="Tech & Learning Award Badge"
-    class="award-badge"
-  />
-</div>
-
-<!-- OFFERINGS -->
-<section id="offerings">
-  <h2>Featured Offerings</h2>
-  <div class="cards">
-
-    <div class="card">
-      <h3>Keynote: The Environment Does the Work</h3>
-      <p>Based on John's book, this keynote reframes engagement as a design problem —
-      not a student problem — centering belonging, agency, and alignment.</p>
+   </div>
+  </header><!-- Hero Section -->
+  <section class="hero-gradient min-h-[90%] flex items-center pt-20">
+   <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+    <div class="opacity-0 animate-fade-in-up"><span class="inline-block bg-white/20 text-white/90 px-4 py-1.5 rounded-full text-sm font-medium mb-6 backdrop-blur-sm"> 🏆 Award-Winning EdTech Leader </span>
     </div>
-
-    <div class="card">
-      <h3>Workshop: Designing Gameful Learning Spaces</h3>
-      <p>Explore game mechanics like progression, autonomy, and purposeful challenge
-      to redesign environments that spark participation.</p>
+    <h1 id="hero-title" class="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 opacity-0 animate-fade-in-up delay-100">John Phillips</h1>
+    <p id="hero-subtitle" class="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-10 opacity-0 animate-fade-in-up delay-200">Empowering educators to transform learning through innovative technology and inspiring workshops</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center opacity-0 animate-fade-in-up delay-300"><a href="#contact" class="bg-white text-teal-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"> Book a Workshop </a> <a href="#offerings" class="border-2 border-white/40 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition-all backdrop-blur-sm"> Explore Services </a>
+    </div><!-- Award Badge -->
+    <div class="mt-8 opacity-0 animate-fade-in-up delay-400 flex justify-center"><img src="https://raw.githubusercontent.com/Socratic-tech/main/main/assets/TALRRT.0121_award%20seals_win%20(1).png" alt="Tech and Learning Award" class="w-32 h-32 md:w-40 md:h-40 drop-shadow-lg" loading="lazy" onerror="console.error('Award badge failed to load:', this.src); this.style.display='none';">
+    </div><!-- Stats -->
+    <div class="mt-16 grid grid-cols-3 gap-8 max-w-xl mx-auto opacity-0 animate-fade-in-up delay-500">
+     <div class="text-center">
+      <div class="text-3xl md:text-4xl font-bold text-white">
+       500+
+      </div>
+      <div class="text-white/70 text-sm mt-1">
+       Workshops
+      </div>
+     </div>
+     <div class="text-center">
+      <div class="text-3xl md:text-4xl font-bold text-white">
+       25K+
+      </div>
+      <div class="text-white/70 text-sm mt-1">
+       Educators
+      </div>
+     </div>
+     <div class="text-center">
+      <div class="text-3xl md:text-4xl font-bold text-white">
+       15+
+      </div>
+      <div class="text-white/70 text-sm mt-1">
+       Years
+      </div>
+     </div>
     </div>
-
-    <div class="card">
-      <h3>Session: Belonging, Identity & Student Voice</h3>
-      <p>Learn how subtle shifts in environment transform confidence, identity,
-      and willingness to contribute.</p>
+   </div>
+  </section><!-- Services Section -->
+  <section id="offerings" class="py-20 md:py-28 bg-white">
+   <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16"><span class="text-teal-600 font-semibold text-sm uppercase tracking-wider">What I Offer</span>
+     <h2 class="font-heading text-3xl md:text-5xl font-bold mt-3 gradient-text">Transform Your Teaching</h2>
+     <p class="text-slate-600 mt-4 max-w-xl mx-auto">Practical, engaging professional development designed for real classroom impact</p>
     </div>
-
-    <div class="card">
-      <h3>Session: Esports & Ecosystem Thinking</h3>
-      <p>Why some programs collapse while others thrive — a look at ownership,
-      culture, and distributed leadership.</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Card 1 -->
+     <div class="card-hover bg-gradient-to-br from-teal-50 to-sky-50 p-8 rounded-2xl border border-teal-100">
+      <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mb-6 float-animation">
+       <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+       </svg>
+      </div>
+      <h3 class="font-heading text-xl font-bold text-slate-800 mb-3">Keynote Speaking</h3>
+      <p class="text-slate-600 leading-relaxed">Inspiring talks that energize audiences and spark new thinking about education's future.</p>
+     </div><!-- Card 2 -->
+     <div class="card-hover bg-gradient-to-br from-sky-50 to-indigo-50 p-8 rounded-2xl border border-sky-100">
+      <div class="w-14 h-14 bg-gradient-to-br from-sky-500 to-sky-600 rounded-xl flex items-center justify-center mb-6 float-animation" style="animation-delay: 0.5s;">
+       <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+       </svg>
+      </div>
+      <h3 class="font-heading text-xl font-bold text-slate-800 mb-3">Hands-On Workshops</h3>
+      <p class="text-slate-600 leading-relaxed">Interactive sessions where educators learn by doing and leave with ready-to-use strategies.</p>
+     </div><!-- Card 3 -->
+     <div class="card-hover bg-gradient-to-br from-indigo-50 to-purple-50 p-8 rounded-2xl border border-indigo-100">
+      <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6 float-animation" style="animation-delay: 1s;">
+       <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+       </svg>
+      </div>
+      <h3 class="font-heading text-xl font-bold text-slate-800 mb-3">Consulting</h3>
+      <p class="text-slate-600 leading-relaxed">Strategic guidance for schools and districts implementing educational technology initiatives.</p>
+     </div><!-- Card 4 -->
+     <div class="card-hover bg-gradient-to-br from-emerald-50 to-teal-50 p-8 rounded-2xl border border-emerald-100">
+      <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-6 float-animation" style="animation-delay: 1.5s;">
+       <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+       </svg>
+      </div>
+      <h3 class="font-heading text-xl font-bold text-slate-800 mb-3">Team Training</h3>
+      <p class="text-slate-600 leading-relaxed">Customized professional learning programs for entire departments or school teams.</p>
+     </div><!-- Card 5 -->
+     <div class="card-hover bg-gradient-to-br from-amber-50 to-orange-50 p-8 rounded-2xl border border-amber-100">
+      <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mb-6 float-animation" style="animation-delay: 2s;">
+       <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+       </svg>
+      </div>
+      <h3 class="font-heading text-xl font-bold text-slate-800 mb-3">Virtual Sessions</h3>
+      <p class="text-slate-600 leading-relaxed">Engaging online workshops and webinars that bring the same energy as in-person events.</p>
+     </div><!-- Card 6 -->
+     <div class="card-hover bg-gradient-to-br from-rose-50 to-pink-50 p-8 rounded-2xl border border-rose-100">
+      <div class="w-14 h-14 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mb-6 float-animation" style="animation-delay: 2.5s;">
+       <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+       </svg>
+      </div>
+      <h3 class="font-heading text-xl font-bold text-slate-800 mb-3">Conference Sessions</h3>
+      <p class="text-slate-600 leading-relaxed">Dynamic presentations for educational conferences of all sizes, local to international.</p>
+     </div>
     </div>
-
-    <div class="card">
-      <h3>Workshop: Maker-Centered Learning & Agency</h3>
-      <p>Hands-on experiences where students explore, iterate, collaborate,
-      and build meaningful mastery.</p>
+   </div>
+  </section><!-- Outcomes Section -->
+  <section id="outcomes" class="hero-gradient py-20 md:py-28">
+   <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16"><span class="text-teal-200 font-semibold text-sm uppercase tracking-wider">The Impact</span>
+     <h2 class="font-heading text-3xl md:text-5xl font-bold text-white mt-3">Real Results for Educators</h2>
     </div>
-
-    <div class="card">
-      <h3>Custom Training for Your Team</h3>
-      <p>Tailored sessions aligned to your goals, built around environments
-      where learning becomes durable and student-owned.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+     <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 flex items-start gap-4">
+      <div class="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center flex-shrink-0">
+       <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+       </svg>
+      </div>
+      <div>
+       <h3 class="font-bold text-white text-lg mb-1">Immediate Implementation</h3>
+       <p class="text-white/80">Walk away with strategies you can use in your classroom tomorrow</p>
+      </div>
+     </div>
+     <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 flex items-start gap-4">
+      <div class="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center flex-shrink-0">
+       <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+       </svg>
+      </div>
+      <div>
+       <h3 class="font-bold text-white text-lg mb-1">Increased Engagement</h3>
+       <p class="text-white/80">Research-backed techniques that captivate student attention</p>
+      </div>
+     </div>
+     <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 flex items-start gap-4">
+      <div class="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center flex-shrink-0">
+       <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+       </svg>
+      </div>
+      <div>
+       <h3 class="font-bold text-white text-lg mb-1">Renewed Confidence</h3>
+       <p class="text-white/80">Feel empowered to integrate technology meaningfully</p>
+      </div>
+     </div>
+     <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 flex items-start gap-4">
+      <div class="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center flex-shrink-0">
+       <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+       </svg>
+      </div>
+      <div>
+       <h3 class="font-bold text-white text-lg mb-1">Ongoing Resources</h3>
+       <p class="text-white/80">Access to materials and support long after the session ends</p>
+      </div>
+     </div>
+    </div><!-- Testimonial -->
+    <div class="mt-16 bg-white/10 backdrop-blur-sm p-8 md:p-10 rounded-2xl border border-white/20 text-center max-w-3xl mx-auto">
+     <svg class="w-10 h-10 text-teal-300 mx-auto mb-4" fill="currentColor" viewbox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+     </svg>
+     <p class="text-xl md:text-2xl text-white font-medium leading-relaxed mb-6">"John's workshop completely transformed how I approach technology in my classroom. The strategies were practical, engaging, and my students are more motivated than ever."</p>
+     <div class="text-teal-200 font-semibold">
+      Sarah M.
+     </div>
+     <div class="text-white/60 text-sm">
+      High School Science Teacher
+     </div>
     </div>
-
-  </div>
-</section>
-
-<!-- OUTCOMES -->
-<section id="outcomes">
-  <h2>Outcomes & Value</h2>
-  <div class="outcomes-list">
-    <div class="outcome">✔ Students participate willingly when the environment fits how they learn.</div>
-    <div class="outcome">✔ Educators gain clarity on what conditions accelerate deep thinking.</div>
-    <div class="outcome">✔ Classrooms shift from compliance to ownership and agency.</div>
-    <div class="outcome">✔ Schools learn to build ecosystems, not fragile programs.</div>
-    <div class="outcome">✔ Belonging becomes a catalyst for confidence and identity.</div>
-    <div class="outcome">✔ Learning becomes durable — not dependent on any one tool or teacher.</div>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<section id="about">
-  <h2>About John</h2>
-  <div class="about">
-    <div>
-      <p>John Phillips is an EdTech innovator, author, and workshop leader whose work centers on a simple idea:
-      when the environment is doing the work, students rise.</p>
-
-      <p>He designs ecosystems where belonging comes first, agency grows naturally,
-      and learning becomes something students own. His work in esports, makerspaces,
-      gameful learning, and hands-on tech environments highlights a consistent truth:
-      <strong>students aren’t disengaged — the environment is.</strong></p>
-
-      <p>Named the <strong>Most Innovative Professional Development Provider in the Midwest</strong>
-      by <em>Tech & Learning</em>, John blends research-backed insight with a confident,
-      playful style that resonates with educators and students alike.</p>
+   </div>
+  </section><!-- About Section -->
+  <section id="about" class="py-20 md:py-28 bg-slate-50">
+   <div class="max-w-6xl mx-auto px-6">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+     <div class="order-2 md:order-1"><span class="text-teal-600 font-semibold text-sm uppercase tracking-wider">About Me</span>
+      <h2 id="about-heading" class="font-heading text-3xl md:text-5xl font-bold mt-3 gradient-text mb-6">Passionate About Education</h2>
+      <div class="space-y-4 text-slate-600 leading-relaxed">
+       <p>With over 15 years in educational technology, I've dedicated my career to helping teachers harness the power of innovative tools to create meaningful learning experiences.</p>
+       <p>As a former classroom teacher turned consultant and speaker, I understand the real challenges educators face. My approach combines practical strategies with infectious enthusiasm to inspire lasting change.</p>
+       <p>When I'm not presenting at conferences or leading workshops, you'll find me exploring the latest EdTech tools, writing about best practices, or mentoring aspiring educational leaders.</p>
+      </div>
+      <div class="flex flex-wrap gap-3 mt-8"><span class="bg-teal-100 text-teal-700 px-4 py-2 rounded-full text-sm font-medium">Google Certified Trainer</span> <span class="bg-sky-100 text-sky-700 px-4 py-2 rounded-full text-sm font-medium">Apple Learning Coach</span>
+      </div>
+     </div>
+     <div class="order-1 md:order-2 flex justify-center">
+      <div class="relative">
+       <div class="w-64 h-64 md:w-80 md:h-80 rounded-2xl bg-gradient-to-br from-teal-500 to-sky-600 flex items-center justify-center text-white text-8xl font-heading font-bold shadow-2xl">
+        JP
+       </div>
+       <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-amber-400 rounded-xl flex items-center justify-center shadow-lg"><span class="text-3xl">🎤</span>
+       </div>
+      </div>
+     </div>
     </div>
+   </div>
+  </section><!-- Contact Section -->
+  <section id="contact" class="py-20 md:py-28 bg-white">
+   <div class="max-w-3xl mx-auto px-6">
+    <div class="text-center mb-12"><span class="text-teal-600 font-semibold text-sm uppercase tracking-wider">Get Started</span>
+     <h2 id="contact-heading" class="font-heading text-3xl md:text-5xl font-bold mt-3 gradient-text">Let's Work Together</h2>
+     <p class="text-slate-600 mt-4">Ready to transform your professional development? I'd love to hear from you.</p>
+    </div>
+    <form id="contact-form" class="space-y-6">
+     <div class="grid md:grid-cols-2 gap-6">
+      <div><label for="name" class="block text-slate-700 font-medium mb-2">Your Name</label> <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all">
+      </div>
+      <div><label for="email" class="block text-slate-700 font-medium mb-2">Email Address</label> <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all">
+      </div>
+     </div>
+     <div><label for="organization" class="block text-slate-700 font-medium mb-2">School/Organization</label> <input type="text" id="organization" name="organization" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all">
+     </div>
+     <div><label for="service" class="block text-slate-700 font-medium mb-2">What are you interested in?</label> <select id="service" name="service" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all bg-white"> <option value="">Select a service...</option> <option value="keynote">Keynote Speaking</option> <option value="workshop">Hands-On Workshop</option> <option value="consulting">Consulting</option> <option value="training">Team Training</option> <option value="virtual">Virtual Session</option> <option value="other">Other</option> </select>
+     </div>
+     <div><label for="message" class="block text-slate-700 font-medium mb-2">Tell me more about your needs</label> <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all resize-none"></textarea>
+     </div><button type="submit" class="w-full bg-gradient-to-r from-teal-600 to-sky-600 text-white py-4 rounded-xl font-bold text-lg btn-glow"> Send Message </button>
+    </form>
+    <div id="form-success" class="hidden text-center py-12">
+     <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+      <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+     </div>
+     <h3 class="font-heading text-2xl font-bold text-slate-800 mb-2">Message Sent!</h3>
+     <p class="text-slate-600">Thank you for reaching out. I'll get back to you within 24-48 hours.</p>
+    </div>
+   </div>
+  </section><!-- Footer -->
+  <footer class="bg-slate-900 text-white py-12">
+   <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+     <div class="text-center md:text-left">
+      <div class="font-heading text-2xl font-bold mb-2">
+       John Phillips
+      </div>
+      <p class="text-slate-400">EdTech Innovator • Speaker • Workshop Leader</p>
+     </div>
+     <div class="flex gap-4"><a href="#" class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-teal-600 transition-colors" aria-label="LinkedIn">
+       <svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+       </svg></a> <a href="#" class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-teal-600 transition-colors" aria-label="Twitter">
+       <svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+       </svg></a> <a href="#" class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-teal-600 transition-colors" aria-label="YouTube">
+       <svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+       </svg></a>
+     </div>
+    </div>
+    <div class="border-t border-slate-800 mt-8 pt-8 text-center text-slate-500 text-sm">
+     © 2024 John Phillips. All rights reserved.
+    </div>
+   </div>
+  </footer>
+  <script>
+    const defaultConfig = {
+      hero_title: "John Phillips",
+      hero_subtitle: "Empowering educators to transform learning through innovative technology and inspiring workshops",
+      about_heading: "Passionate About Education",
+      contact_heading: "Let's Work Together",
+      background_color: "#f8fafc",
+      primary_color: "#0d9488",
+      text_color: "#1e293b",
+      accent_color: "#0284c7",
+      surface_color: "#ffffff"
+    };
 
-    <div class="headshot"></div>
-  </div>
-</section>
+    let config = { ...defaultConfig };
 
-<!-- MID-PAGE CTA -->
-<section id="about-cta">
-  <a href="#contact">Contact Me</a>
-</section>
+    async function onConfigChange(cfg) {
+      config = { ...defaultConfig, ...cfg };
+      
+      document.getElementById('hero-title').textContent = config.hero_title || defaultConfig.hero_title;
+      document.getElementById('hero-subtitle').textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+      document.getElementById('about-heading').textContent = config.about_heading || defaultConfig.about_heading;
+      document.getElementById('contact-heading').textContent = config.contact_heading || defaultConfig.contact_heading;
+      
+      document.body.style.backgroundColor = config.background_color || defaultConfig.background_color;
+    }
 
-<!-- BOOKING -->
-<section id="booking">
-  <h2>Booking Options</h2>
-  <div class="booking-box">
-    <p><strong>Choose your booking type:</strong></p>
-    <select id="bookingType" onchange="updateBookingInfo()">
-      <option>Keynote</option>
-      <option>Workshop</option>
-      <option>Training</option>
-      <option>Student Session</option>
-      <option>Other</option>
-    </select>
+    function mapToCapabilities(cfg) {
+      return {
+        recolorables: [
+          {
+            get: () => cfg.background_color || defaultConfig.background_color,
+            set: (value) => {
+              cfg.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => cfg.surface_color || defaultConfig.surface_color,
+            set: (value) => {
+              cfg.surface_color = value;
+              window.elementSdk.setConfig({ surface_color: value });
+            }
+          },
+          {
+            get: () => cfg.text_color || defaultConfig.text_color,
+            set: (value) => {
+              cfg.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => cfg.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              cfg.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => cfg.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              cfg.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
 
-    <div id="bookingDetails" style="margin-top:1rem;"></div>
-    <p><em>Response within 2 business days.</em></p>
-    <a href="#contact" class="btn-primary">Check Availability</a>
-  </div>
-</section>
+    function mapToEditPanelValues(cfg) {
+      return new Map([
+        ["hero_title", cfg.hero_title || defaultConfig.hero_title],
+        ["hero_subtitle", cfg.hero_subtitle || defaultConfig.hero_subtitle],
+        ["about_heading", cfg.about_heading || defaultConfig.about_heading],
+        ["contact_heading", cfg.contact_heading || defaultConfig.contact_heading]
+      ]);
+    }
 
-<!-- CONTACT -->
-<section id="contact">
-  <h2>Request Information or Book an Event</h2>
-  <form id="bookingForm">
-    <input id="name" required placeholder="Your Name *" />
-    <input id="email" required type="email" placeholder="Email *" />
-    <input id="organization" required placeholder="Organization *" />
-    <input id="role" placeholder="Your Role" />
-    <input id="location" placeholder="Location (City/State or Virtual) *" required />
-    <textarea id="message" rows="5" placeholder="Tell me about your event..."></textarea>
+    // Initialize Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
 
-    <button type="submit">Send Request</button>
-    <button type="button" class="copy-btn" onclick="copyDetails()">Copy Details</button>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
 
-    <div id="success-message" style="display:none;">Your message was prepared! Check your email client or clipboard.</div>
-  </form>
-</section>
+    // Close mobile menu when clicking a link
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+      });
+    });
 
-<!-- FOOTER -->
-<footer>
-  <p>Email: john@socratictech.org</p>
-  <p>© <span id="year"></span> John Phillips</p>
-</footer>
+    // Form submission
+    const form = document.getElementById('contact-form');
+    const formSuccess = document.getElementById('form-success');
 
-<!-- JS -->
-<script>
-document.getElementById("year").textContent = new Date().getFullYear();
-
-function toggleMobileNav() {
-  const nav=document.getElementById("mobileNav");
-  nav.style.display = nav.style.display==="flex" ? "none" : "flex";
-}
-
-function updateBookingInfo() {
-  const t=document.getElementById("bookingType").value;
-  const m={
-    "Keynote":"Premium tier engagement for large events.",
-    "Workshop":"Enhanced tier, hands-on and interactive.",
-    "Training":"Standard to Enhanced tier, team-focused.",
-    "Student Session":"Designed for student participation and energy.",
-    "Other":"Flexible formats available."
-  };
-  document.getElementById("bookingDetails").textContent=m[t];
-}
-
-document.getElementById("bookingForm").addEventListener("submit", function(e){
-  e.preventDefault();
-  const d={
-    name: name.value,
-    email: email.value,
-    org: organization.value,
-    role: role.value,
-    location: location.value,
-    msg: message.value
-  };
-  const body=
-`Booking Request:
-Name: ${d.name}
-Email: ${d.email}
-Organization: ${d.org}
-Role: ${d.role}
-Location: ${d.location}
-Message: ${d.msg}`;
-  window.location.href=
-"mailto:john@socratictech.org?subject="+encodeURIComponent("Booking Request from "+d.name)+
-"&body="+encodeURIComponent(body);
-  document.getElementById("success-message").style.display="block";
-});
-
-function copyDetails(){
-  navigator.clipboard.writeText(
-    `Name: ${name.value}\nEmail: ${email.value}\nOrganization: ${organization.value}\nRole: ${role.value}\nLocation: ${location.value}\nMessage: ${message.value}`
-  );
-  document.getElementById("success-message").style.display="block";
-}
-</script>
-
-</body>
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      form.classList.add('hidden');
+      formSuccess.classList.remove('hidden');
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cae426685bc753c',t:'MTc3MDU4NjU1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
