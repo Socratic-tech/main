@@ -44,7 +44,7 @@ nav {
   padding: 1rem 1.5rem; max-width: 1100px; margin: auto;
 }
 
-nav a { text-decoration: none; color: var(--dark); }
+nav a { text-decoration: none; color: var(--dark); font-weight: 500; }
 nav .cta {
   background: var(--blue); color: white; padding: 0.6rem 1rem;
   border-radius: var(--radius); font-weight: 600;
@@ -73,7 +73,7 @@ nav .cta {
 
 .hero .cta-row { margin-top: 2rem; }
 
-/* Award text strip */
+/* Award strip */
 .award-strip {
   margin-top: 2rem;
   background: rgba(255,255,255,0.15);
@@ -86,12 +86,13 @@ nav .cta {
 
 /* Award Badge */
 .award-badge {
-  margin-top: 1.5rem;
+  display:block;
+  margin: 1rem auto 0 auto;
   max-width: 200px;
   width: 100%;
 }
 
-/* CARDS */
+/* OFFERINGS */
 .cards {
   display: grid; gap: 1.5rem;
 }
@@ -148,7 +149,7 @@ nav .cta {
 
 /* CONTACT FORM */
 form { max-width: 700px; margin: auto; display: grid; gap: 1rem; }
-input, select, textarea { padding: 0.8rem; border-radius: var(--radius); border: 1px solid #ccc; }
+input, textarea { padding: 0.8rem; border-radius: var(--radius); border: 1px solid #ccc; }
 
 button {
   background: linear-gradient(135deg, var(--blue), var(--green));
@@ -208,7 +209,8 @@ footer {
   </div>
 
   <div class="award-strip">
-    Named the 2026 Most Innovative Professional Development Provider in the Midwest by <em>Tech & Learning</em> Magazine
+    Named the Most Innovative Professional Development Provider in the Midwest by 
+    <em>Tech & Learning</em> Magazine
   </div>
 
   <img 
@@ -348,6 +350,11 @@ footer {
 <!-- JS -->
 <script>
 document.getElementById("year").textContent = new Date().getFullYear();
+
+function toggleMobileNav() {
+  const nav=document.getElementById("mobileNav");
+  nav.style.display = nav.style.display==="flex" ? "none" : "flex";
+}
 
 function updateBookingInfo() {
   const t=document.getElementById("bookingType").value;
