@@ -1,225 +1,206 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADHD Toolkit | Professional Reference Guide</title>
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>ADHD Toolkit: Professional Reference</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lexend:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0f172a; --secondary: #3b82f6; --accent: #0d9488; }
-        body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%); background-attachment: fixed; color: #1e293b; }
-        .hero-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); }
-        .reference-card { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .reference-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15); }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-        .accordion-content.open { max-height: 2000px; }
-        .tab-btn.active { color: white; border-bottom: 2px solid #3b82f6; }
-        .check-item.checked { background: rgba(13, 148, 136, 0.08); }
-        .check-item.checked .check-text { text-decoration: line-through; opacity: 0.6; }
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --accent-blue: #2563eb;
+            --accent-teal: #0d9488;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: var(--text-main); }
+        h1, h2, h3 { font-family: 'Lexend', sans-serif; }
+        
+        /* High Contrast Tab Styling */
+        .tab-active { 
+            background-color: var(--accent-blue) !important; 
+            color: white !important;
+            border-bottom: 4px solid #1d4ed8;
+        }
+        
+        /* Interactive Elements */
+        .strategy-card { transition: transform 0.2s ease; border-top: 4px solid var(--accent-blue); }
+        .strategy-card:hover { transform: translateY(-2px); }
+        
         .hidden { display: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
     </style>
 </head>
-<body class="h-full">
-    <header class="hero-bg py-12 px-6 border-b border-slate-700/30">
-        <div class="max-w-5xl mx-auto">
-            <span class="text-amber-400 text-sm font-semibold uppercase tracking-wider">Professional Reference</span>
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">Just the Tip of the Iceberg</h1>
-            <p class="text-lg text-slate-300 font-light mb-6">ADHD Toolkit for Educators</p>
-            <div class="flex flex-wrap gap-4 text-slate-400 text-sm">
-                <span>By Mary Phillips, Elementary STEAM Teacher [cite: 82]</span>
-                <span class="hidden md:inline">|</span>
-                <span>mphillips@bangorvikings.org [cite: 87]</span>
+<body class="min-h-screen">
+
+    <header class="bg-slate-900 text-white py-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-white">Just the Tip of the Iceberg</h1>
+                    <p class="text-xl text-slate-300 font-light">Comprehensive ADHD Support for Educators</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <p class="text-sm font-semibold text-blue-400">Mary Phillips</p>
+                    <p class="text-xs text-slate-400">Elementary STEAM Teacher</p>
+                    <p class="text-xs text-slate-400">mphillips@bangorvikings.org</p>
+                </div>
             </div>
         </div>
     </header>
 
-    <nav class="bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 border-b border-slate-700/30">
-        <div class="max-w-5xl mx-auto px-4 flex overflow-x-auto gap-2 py-3 custom-scrollbar">
-            <button class="tab-btn active px-4 py-2 text-sm font-medium whitespace-nowrap" data-tab="understanding">Brain & Iceberg</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium whitespace-nowrap" data-tab="hacks">Classroom Hacks</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium whitespace-nowrap" data-tab="academics">Academic Adaptations</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium whitespace-nowrap" data-tab="behavior">Behavior & Emotion</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium whitespace-nowrap" data-tab="library">Resource Library</button>
+    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex overflow-x-auto no-scrollbar gap-2 py-3">
+                <button onclick="showTab('presentation')" id="btn-presentation" class="tab-btn tab-active px-6 py-2 rounded-md font-bold text-slate-700 hover:bg-slate-100 transition-all">The Presentation</button>
+                <button onclick="showTab('mechanics')" id="btn-mechanics" class="tab-btn px-6 py-2 rounded-md font-bold text-slate-700 hover:bg-slate-100 transition-all">Neurobiology</button>
+                <button onclick="showTab('strategies')" id="btn-strategies" class="tab-btn px-6 py-2 rounded-md font-bold text-slate-700 hover:bg-slate-100 transition-all">Classroom Strategies</button>
+                <button onclick="showTab('academics')" id="btn-academics" class="tab-btn px-6 py-2 rounded-md font-bold text-slate-700 hover:bg-slate-100 transition-all">Academic Hacks</button>
+                <button onclick="showTab('resources')" id="btn-resources" class="tab-btn px-6 py-2 rounded-md font-bold text-slate-700 hover:bg-slate-100 transition-all">External Library</button>
+            </div>
         </div>
     </nav>
 
-    <main id="main-content" class="max-w-5xl mx-auto px-4 py-10">
-        
-        <section id="tab-understanding" class="tab-content">
-            <div class="mb-10">
-                <h2 class="text-3xl font-bold text-white mb-2 border-l-4 border-blue-500 pl-4">The ADHD Brain Mechanics</h2>
-                <p class="text-slate-400">Understanding why the brain "won't" vs. "can't"[cite: 152].</p>
-            </div>
+    <main class="max-w-6xl mx-auto px-4 py-12">
 
-            <div class="grid md:grid-cols-2 gap-6 mb-8">
-                <article class="reference-card bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                    <span class="inline-block px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full mb-3">NEUROBIOLOGY</span>
-                    <h3 class="text-xl font-semibold text-slate-900">Regulation & Dopamine</h3>
-                    <p class="text-slate-700 mb-4">ADHD is a disorder of <strong>regulation and balance</strong>, not lack of effort[cite: 143].</p>
-                    <button class="accordion-trigger w-full text-left flex items-center justify-between py-2 text-blue-600 font-medium">
-                        <span>The Science of "The Zone"</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div class="accordion-content">
-                        <ul class="mt-4 space-y-3 text-sm text-slate-700">
-                            <li><strong>Dopamine Seeking:</strong> Brain synapses underperform, leading to a constant search for dopamine and glucose (novelty, interest, or chocolate!)[cite: 143].</li>
-                            <li><strong>Hyperfocus:</strong> Often called "Flow," it allows for massive information absorption but distorts the sense of time[cite: 162].</li>
-                            <li><strong>Executive Function Delay:</strong> Social/emotional skills can be delayed by as much as 3 years compared to peers[cite: 30].</li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="reference-card bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                    <span class="inline-block px-3 py-1 text-xs font-semibold text-teal-700 bg-teal-100 rounded-full mb-3">COGNITIVE</span>
-                    <h3 class="text-xl font-semibold text-slate-900">Interest-Based Decisions</h3>
-                    <p class="text-slate-700 mb-4">ADHD brains prioritize tasks based on <strong>Interest</strong>, not <strong>Importance</strong>[cite: 145].</p>
-                                        <div class="mt-4 grid grid-cols-2 gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 text-center">
-                        <div class="p-2 bg-slate-100 rounded">Novelty</div>
-                        <div class="p-2 bg-slate-100 rounded">Challenge</div>
-                        <div class="p-2 bg-slate-100 rounded">Interest</div>
-                        <div class="p-2 bg-slate-100 rounded">Urgency</div>
-                    </div>
-                </article>
-            </div>
-
-            <article class="reference-card bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-8 border-l-4 border-blue-500 mb-8">
-                <h3 class="text-2xl font-semibold text-slate-900 mb-4">Below the Surface (The Iceberg)</h3>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div>
-                        <p class="text-slate-700 mb-4">The visible symptoms—hyperactivity and inattention—are just the tip. What's hidden is more complex[cite: 63].</p>
-                        <ul class="space-y-2 text-sm text-slate-700">
-                            <li><strong>Masking:</strong> Especially common in girls; hiding ADHD symptoms to fit societal norms[cite: 149].</li>
-                            <li><strong>2E (Twice Exceptional):</strong> High performance/giftedness paired with neurodivergence[cite: 148].</li>
-                            <li><strong>Justice Sensitivity:</strong> Intense feelings of unfairness that can look like "tattling"[cite: 156].</li>
-                        </ul>
-                    </div>
-                    <div class="bg-white rounded-lg p-6 border border-slate-200 text-sm">
-                        <h4 class="font-bold mb-2">Myths to Retire[cite: 141]:</h4>
-                        <p class="italic text-slate-500">"Everyone is a little ADHD."</p>
-                        <p class="mt-2">False. While everyone forgets things, for ADHD, these experiences are <strong>more severe, more frequent, and more debilitating</strong>[cite: 141].</p>
-                    </div>
+        <section id="tab-presentation" class="tab-content">
+            <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold mb-6 text-slate-900">Original Slide Deck</h2>
+                <div class="aspect-video w-full bg-slate-100 rounded-lg overflow-hidden border border-slate-300">
+                    <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vT1-M7S0H9O_Q8H5pXG4L_P0R-m0z0m0z0m0z0m0z0m0z/embed?start=false&loop=false&delayms=3000" 
+                            frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
+                        <p>Your browser does not support iframes. Access the deck directly at: <a href="http://bit.ly/ed-forward25ADHD" class="text-blue-600 underline">bit.ly/ed-forward25ADHD</a></p>
+                    </iframe>
                 </div>
-            </article>
+                <p class="mt-4 text-slate-600 italic">Note: Use the navigation bar above to quickly access specific strategies summarized from the slides.</p>
+            </div>
         </section>
 
-        <section id="tab-hacks" class="tab-content hidden">
-            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-teal-500 pl-4">The Classroom Hacks</h2>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold text-slate-900 mb-2">World's Easiest Org </h3>
-                    <p class="text-sm text-slate-600 mb-4">A simple 2-pocket folder system:</p>
-                    <ul class="text-xs space-y-2">
-                        <li class="p-2 bg-blue-50 border-l-2 border-blue-400"><strong>Pocket 1:</strong> Keep at Home</li>
-                        <li class="p-2 bg-teal-50 border-l-2 border-teal-400"><strong>Pocket 2:</strong> Return to School</li>
+        <section id="tab-mechanics" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-blue-600">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Regulation & Balance</h3>
+                    <p class="mb-4">ADHD is a <strong>neurodevelopmental disorder</strong> rooted in genetic and environmental triggers. It is characterized by synapses that underperform in regulating dopamine and glucose.</p>
+                    <ul class="space-y-3 text-slate-700">
+                        <li class="flex gap-3"><strong>Interest-Based:</strong> Decisions are driven by Novelty, Challenge, Interest, and Urgency—not "importance."</li>
+                        <li class="flex gap-3"><strong>The "Flow" Myth:</strong> Hyperfocus allows massive productivity but distorts time and causes the world to "disappear."</li>
+                        <li class="flex gap-3"><strong>Executive Delay:</strong> Social and emotional maturity can lag by up to 3 years compared to peers.</li>
                     </ul>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold text-slate-900 mb-2">Binder Clips [cite: 39]</h3>
-                    <p class="text-sm text-slate-600">Unlike bookmarks, binder clips don't fall out. Use them to clip current pages in planners or notebooks for instant access[cite: 39].</p>
+                <div class="bg-slate-900 text-white p-8 rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold mb-4 text-blue-400">Common Misconceptions</h3>
+                    <div class="space-y-4">
+                        <div class="border-b border-slate-700 pb-2">
+                            <p class="font-bold">"Everyone is a little ADHD"</p>
+                            <p class="text-sm text-slate-400">False. While everyone is forgetful, for ADHD, it is <strong>more severe, frequent, and debilitating</strong>.</p>
+                        </div>
+                        <div class="border-b border-slate-700 pb-2">
+                            <p class="font-bold">"They could do it if they wanted to"</p>
+                            <p class="text-sm text-slate-400">It isn't a lack of will. Executive Dysfunction means: "I want to do it, but I can't."</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold text-slate-900 mb-2">Label Everything [cite: 37]</h3>
-                    <p class="text-sm text-slate-600">Use clear containers. Short-term memory issues make items "invisible" if they aren't in plain sight[cite: 37, 38].</p>
+            </div>
+        </section>
+
+        <section id="tab-strategies" class="tab-content hidden">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 strategy-card rounded-lg shadow-sm">
+                    <h4 class="font-bold text-lg mb-2">World's Easiest Org</h4>
+                    <p class="text-sm text-slate-600 mb-4">A simple two-pocket folder system to prevent lost work:</p>
+                    <div class="flex flex-col gap-2">
+                        <div class="bg-blue-50 p-2 text-xs font-bold border-l-4 border-blue-500">POCKET 1: KEEP AT HOME</div>
+                        <div class="bg-teal-50 p-2 text-xs font-bold border-l-4 border-teal-500">POCKET 2: RETURN TO SCHOOL</div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 strategy-card rounded-lg shadow-sm border-t-4 border-amber-500">
+                    <h4 class="font-bold text-lg mb-2">Visual & Predictable Timers</h4>
+                    <p class="text-sm text-slate-600">Use timers that show the passage of time (like a Red Wing timer) or song timers (e.g., "Jackson 5's ABC" is exactly 3 minutes).</p>
+                </div>
+                <div class="bg-white p-6 strategy-card rounded-lg shadow-sm border-t-4 border-indigo-500">
+                    <h4 class="font-bold text-lg mb-2">The Binder Clip Trick</h4>
+                    <p class="text-sm text-slate-600">Standard bookmarks fall out. Use binder clips to lock planners and notebooks to the exact "current" page for instant access.</p>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-lg border-2 border-dashed border-slate-300">
+                    <h4 class="font-bold text-lg mb-2">The "Sensory Shock" Reset</h4>
+                    <p class="text-sm text-slate-600 mb-4">When a student has a big emotional reaction, re-engage the "thinking brain" with:</p>
+                    <ul class="text-sm space-y-1">
+                        <li>🍋 <strong>Sour Candy</strong> (Shock to the palate)</li>
+                        <li>❄️ <strong>Cold Water</strong> (Splash face)</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 strategy-card rounded-lg shadow-sm">
+                    <h4 class="font-bold text-lg mb-2">Minimally Viable Product</h4>
+                    <p class="text-sm text-slate-600">Combat perfectionism/paralysis by defining the <strong>absolute minimum</strong> required for a passing grade (e.g., "Title + 4 slides").</p>
+                </div>
+                <div class="bg-white p-6 strategy-card rounded-lg shadow-sm">
+                    <h4 class="font-bold text-lg mb-2">Transition "Stretch"</h4>
+                    <p class="text-sm text-slate-600">Use neutral activities (GoNoodle, stretch breaks) when moving from a preferred task to a non-preferred one.</p>
                 </div>
             </div>
         </section>
 
         <section id="tab-academics" class="tab-content hidden">
-            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-amber-500 pl-4">Academic Specifics</h2>
             <div class="space-y-6">
-                <article class="bg-white p-8 rounded-xl shadow-sm">
-                    <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                    <h3 class="text-xl font-bold mb-6 text-slate-900 border-b pb-2">Math & Writing Adaptations</h3>
+                    <div class="grid md:grid-cols-2 gap-12">
                         <div>
-                            <h3 class="text-xl font-bold mb-4">Math & Writing Hacks</h3>
-                            <ul class="space-y-4 text-slate-700">
-                                <li><strong>90-Degree Rotation:</strong> Turn lined paper sideways so the lines become columns to keep math problems aligned[cite: 59].</li>
-                                <li><strong>Graph Paper for Math:</strong> Use 1/2 inch or 1/4 inch squares to combat illegible alignment[cite: 59].</li>
-                                <li><strong>Sticky Note Drafting:</strong> Record one idea per sticky note. Organize them on a wall into paragraphs before writing[cite: 58].</li>
+                            <h4 class="font-bold text-blue-700 mb-2 underline uppercase text-sm tracking-widest">Math Alignment</h4>
+                            <p class="text-sm mb-4">Illegible handwriting often ruins math performance. Use these tactical fixes:</p>
+                            <ul class="list-disc ml-5 text-sm space-y-2 text-slate-700">
+                                <li><strong>Graph Paper:</strong> Use 1/2" or 1/4" squares to force number alignment.</li>
+                                <li><strong>90-Degree Rotation:</strong> Turn standard lined paper sideways so the lines act as vertical columns for math problems.</li>
                             </ul>
                         </div>
-                        <div class="bg-slate-50 p-6 rounded-lg border-2 border-dashed border-slate-200">
-                            <h4 class="font-bold mb-2">The Reading Tracker [cite: 39]</h4>
-                            <p class="text-sm text-slate-600">Provide paper copies and insist on finger-tracking or using a straight edge to follow along. This provides a <strong>tactile reminder</strong> of the current task[cite: 39].</p>
+                        <div>
+                            <h4 class="font-bold text-blue-700 mb-2 underline uppercase text-sm tracking-widest">Writing Logic</h4>
+                            <p class="text-sm mb-4">Help students bypass the "blank page" fear:</p>
+                            <ul class="list-disc ml-5 text-sm space-y-2 text-slate-700">
+                                <li><strong>Sticky Note Drafting:</strong> One idea per sticky note. Move them around on a wall to organize paragraphs before writing a single sentence.</li>
+                                <li><strong>Speech Bubbles:</strong> Students find "What do you think about this?" in a bubble less intimidating than a formal essay prompt.</li>
+                            </ul>
                         </div>
                     </div>
-                </article>
-            </div>
-        </section>
-
-        <section id="tab-behavior" class="tab-content hidden">
-            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-red-500 pl-4">Behavioral & Emotional Reset</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-xl font-bold mb-4">The "Sensory Shock" Reset </h3>
-                    <p class="text-sm text-slate-600 mb-4">To re-engage a child's thinking brain after a big reaction:</p>
-                    <ul class="space-y-2">
-                        <li class="flex gap-2"><span class="text-red-500">⚡</span> <span>Offer extremely <strong>sour candy</strong>.</span></li>
-                        <li class="flex gap-2"><span class="text-blue-500">❄️</span> <span>Have student splash face with <strong>cold water</strong>.</span></li>
-                    </ul>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-xl font-bold mb-4">Minimum Viable Product (MVP) </h3>
-                    <p class="text-sm text-slate-600 mb-4">Combat perfectionism and "Task Paralysis" by defining the <strong>absolute least</strong> amount of work required for a passing grade.</p>
-                    <p class="text-xs text-slate-500">Example: "4 slides, 1 image each, name on title" vs. "A perfect 10-slide deck".</p>
                 </div>
             </div>
         </section>
 
-        <section id="tab-library" class="tab-content hidden">
-            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-purple-500 pl-4">The ADHD Resource Library</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <a href="https://www.additudemag.com" target="_blank" class="bg-white p-4 rounded-lg shadow hover:bg-slate-50 transition-colors">
-                    <h4 class="font-bold text-blue-600">ADDitude Mag</h4>
-                    <p class="text-xs text-slate-500">EF Skills surveys & strategy library[cite: 34, 60].</p>
+        <section id="tab-resources" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="https://www.additudemag.com" target="_blank" class="p-4 bg-white border border-slate-200 rounded hover:shadow-md transition-shadow">
+                    <p class="font-bold text-blue-600">ADDitude Mag</p>
+                    <p class="text-xs text-slate-500">EF Skills surveys & strategies.</p>
                 </a>
-                <a href="https://www.understood.org" target="_blank" class="bg-white p-4 rounded-lg shadow hover:bg-slate-50 transition-colors">
-                    <h4 class="font-bold text-blue-600">Understood.org</h4>
-                    <p class="text-xs text-slate-500">Learning difference support & research.</p>
+                <a href="https://adhdalien.com" target="_blank" class="p-4 bg-white border border-slate-200 rounded hover:shadow-md transition-shadow">
+                    <p class="font-bold text-blue-600">ADHD Alien</p>
+                    <p class="text-xs text-slate-500">Visuals of lived experiences.</p>
                 </a>
-                <a href="https://adhdalien.com" target="_blank" class="bg-white p-4 rounded-lg shadow hover:bg-slate-50 transition-colors">
-                    <h4 class="font-bold text-blue-600">ADHD Alien (Pina Varnel)</h4>
-                    <p class="text-xs text-slate-500">Visual comics on lived experiences[cite: 102, 160].</p>
+                <a href="https://www.danidonovan.com" target="_blank" class="p-4 bg-white border border-slate-200 rounded hover:shadow-md transition-shadow">
+                    <p class="font-bold text-blue-600">Dani Donovan</p>
+                    <p class="text-xs text-slate-500">Executive dysfunction comics.</p>
                 </a>
-                <a href="https://www.danidonovan.com" target="_blank" class="bg-white p-4 rounded-lg shadow hover:bg-slate-50 transition-colors">
-                    <h4 class="font-bold text-blue-600">Dani Donovan</h4>
-                    <p class="text-xs text-slate-500">Executive dysfunction visual charts[cite: 152, 160].</p>
+                <a href="https://www.understood.org" target="_blank" class="p-4 bg-white border border-slate-200 rounded hover:shadow-md transition-shadow">
+                    <p class="font-bold text-blue-600">Understood.org</p>
+                    <p class="text-xs text-slate-500">Learning difference research.</p>
                 </a>
-                <a href="https://www.gonoodle.com" target="_blank" class="bg-white p-4 rounded-lg shadow hover:bg-slate-50 transition-colors">
-                    <h4 class="font-bold text-blue-600">GoNoodle</h4>
-                    <p class="text-xs text-slate-500">Movement and transition breaks[cite: 47].</p>
-                </a>
-                <div class="bg-white p-4 rounded-lg shadow border border-slate-200">
-                    <h4 class="font-bold">Mary's Presentation</h4>
-                    <p class="text-xs text-slate-500">bit.ly/ed-forward25ADHD [cite: 64]</p>
-                </div>
             </div>
         </section>
 
     </main>
 
     <script>
-        // Tab Logic
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-                btn.classList.add('active');
-                document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
-            });
-        });
-
-        // Accordion Logic
-        document.querySelectorAll('.accordion-trigger').forEach(trigger => {
-            trigger.addEventListener('click', () => {
-                const content = trigger.nextElementSibling;
-                const icon = trigger.querySelector('svg');
-                content.classList.toggle('open');
-                icon.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
-            });
-        });
+        function showTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            
+            // Show target
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            // Set button to active
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+        }
     </script>
 </body>
 </html>
