@@ -1,205 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accessible ADHD Toolkit | Just the Tip of the Iceberg</title>
+    <title>ADHD Toolkit | Professional Reference Guide</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        /* Color Palette (WCAG Compliant Contrast) */
         :root {
-            --primary-dark: #1a2a3a;
-            --secondary-blue: #0056b3;
-            --success-green: #1e7e34;
-            --warning-orange: #d35400;
-            --bg-light: #fdfdfd;
-            --text-main: #212529;
-            --focus-outline: #ffbf47;
+            --primary: #0f172a;
+            --secondary: #3b82f6;
+            --accent: #0d9488;
+            --surface: #ffffff;
+            --text: #1e293b;
         }
-
+        html, body { height: 100%; margin: 0; padding: 0; scroll-behavior: smooth; }
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            line-height: 1.6;
-            color: var(--text-main);
-            background-color: var(--bg-light);
-            margin: 0;
-            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            background-attachment: fixed;
+            color: #1e293b;
         }
-
-        /* Accessibility: Skip to Content Link */
-        .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: var(--secondary-blue);
-            color: white;
-            padding: 8px;
-            z-index: 100;
-            text-decoration: none;
-        }
-        .skip-link:focus { top: 0; outline: 3px solid var(--focus-outline); }
-
-        header {
-            background: var(--primary-dark);
-            color: white;
-            padding: 2.5rem 1rem;
-            text-align: center;
-        }
-
-        header h1 { margin: 0; font-size: 2.2rem; }
-        
-        main { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
-
-        section { margin-bottom: 3rem; }
-        
-        h2 { 
-            border-left: 6px solid var(--secondary-blue); 
-            padding-left: 15px; 
-            margin-bottom: 1.5rem;
-            color: var(--primary-dark);
-        }
-
-        /* Strategy Cards Grid */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        article {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        article h3 { 
-            margin-top: 0; 
-            color: var(--secondary-blue); 
-            font-size: 1.3rem;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        ul { padding-left: 1.5rem; }
-        li { margin-bottom: 0.8rem; }
-
-        /* Focus States for ADA */
-        a:focus, button:focus {
-            outline: 3px solid var(--focus-outline);
-            outline-offset: 2px;
-        }
-
-        .tag {
-            display: inline-block;
-            background: #e9ecef;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        footer {
-            background: #eee;
-            padding: 2rem;
-            text-align: center;
-            border-top: 1px solid #ccc;
-        }
+        .hero-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); }
+        .reference-card { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reference-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .accordion-content.open { max-height: 1000px; }
+        .tab-btn.active { color: white; border-bottom: 2px solid #3b82f6; }
+        .check-item.checked { background: rgba(13, 148, 136, 0.1); }
+        .check-item.checked .check-text { text-decoration: line-through; opacity: 0.6; }
+        .hidden { display: none; }
     </style>
 </head>
-<body>
+<body class="h-full">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-amber-500 focus:text-slate-900 focus:px-4 focus:py-2 focus:rounded-lg">Skip to content</a>
 
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-
-    <header>
-        <h1>Just the Tip of the Iceberg: ADHD Toolkit</h1>
-        <p>Strategies for Educators by Mary Phillips, Elementary STEAM Teacher</p>
+    <header class="hero-bg py-12 px-6 border-b border-slate-700/30">
+        <div class="max-w-5xl mx-auto">
+            <span class="text-amber-400 text-sm font-semibold uppercase tracking-wider">Professional Resource</span>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">Just the Tip of the Iceberg</h1>
+            <p class="text-lg text-slate-300 font-light mb-6">ADHD Toolkit for Educators</p>
+            <p class="text-slate-400 max-w-2xl">By Mary Phillips, Elementary STEAM Teacher. Based on the "Ed Forward 2025" Presentation[cite: 1, 4].</p>
+        </div>
     </header>
 
-    <main id="main-content">
-        
-        <section aria-labelledby="understanding-title">
-            <h2 id="understanding-title">1. Understanding the ADHD Brain</h2>
-            <div class="card-grid">
-                <article>
-                    <span class="tag">NEURODEVELOPMENTAL</span>
-                    <h3>The Regulation Challenge</h3>
-                    <p>ADHD is not a lack of knowledge; it's a disorder of <strong>regulation and balance</strong>[cite: 26].</p>
-                    <ul>
-                        <li><strong>Interest-Based Brain:</strong> Decision-making is driven by novelty, interest, or challenge, not just importance[cite: 14, 28].</li>
-                        <li><strong>Dopamine Seeking:</strong> The brain is constantly looking for dopamine and glucose to function[cite: 26].</li>
-                        <li><strong>Executive Dysfunction:</strong> Affects time management, organization, and emotional control[cite: 14, 27].</li>
+    <nav class="bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 border-b border-slate-700/30">
+        <div class="max-w-5xl mx-auto px-4 flex overflow-x-auto gap-2 py-3">
+            <button class="tab-btn active px-4 py-2 text-sm font-medium text-slate-400" data-tab="understanding">Understanding</button>
+            <button class="tab-btn px-4 py-2 text-sm font-medium text-slate-400" data-tab="strategies">Strategies</button>
+            <button class="tab-btn px-4 py-2 text-sm font-medium text-slate-400" data-tab="classroom">Classroom</button>
+            <button class="tab-btn px-4 py-2 text-sm font-medium text-slate-400" data-tab="checklist">Implementation</button>
+            <button class="tab-btn px-4 py-2 text-sm font-medium text-slate-400" data-tab="resources">Resources & Links</button>
+        </div>
+    </nav>
+
+    <main id="main-content" class="max-w-5xl mx-auto px-4 py-10">
+        <section id="tab-understanding" class="tab-content">
+            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-blue-500 pl-4">The ADHD Brain</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <article class="reference-card bg-white rounded-xl p-6 shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4">Regulation vs. Motivation</h3>
+                    <p class="text-slate-700">ADHD is a disorder of regulation, affecting focus, emotion, and executive function[cite: 13, 28].</p>
+                    <button class="accordion-trigger text-blue-600 mt-4 font-medium flex items-center gap-1">Key Insight ▼</button>
+                    <div class="accordion-content text-sm text-slate-600 space-y-2 mt-2">
+                        <p>• Interest-Based Decision Making: Driven by novelty/challenge, not importance[cite: 14].</p>
+                        <p>• Dopamine Seeking: Brains seek dopamine and glucose to stay engaged[cite: 13].</p>
+                    </div>
+                </article>
+                <article class="reference-card bg-white rounded-xl p-6 shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4">The "Iceberg" Truth</h3>
+                    <p class="text-slate-700">Surface symptoms (hyperactivity/inattention) hide deeper challenges like RSD and sensory sensitivity[cite: 22, 23].</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="tab-resources" class="tab-content hidden">
+            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-teal-500 pl-4">Linked Resources & Tools</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <article class="reference-card bg-white rounded-xl p-6 border-t-4 border-blue-500">
+                    <h3 class="font-bold text-slate-900 mb-2">Core ADHD Organizations</h3>
+                    <ul class="space-y-3">
+                        <li><a href="https://www.additudemag.com" target="_blank" class="text-blue-600 hover:underline">ADDitude Magazine</a> - Research & strategy library[cite: 76].</li>
+                        <li><a href="https://www.understood.org" target="_blank" class="text-blue-600 hover:underline">Understood.org</a> - Support for learning differences[cite: 76].</li>
                     </ul>
                 </article>
 
-                <article>
-                    <span class="tag">MYTH BUSTING</span>
-                    <h3>Changing the Narrative</h3>
-                    <ul>
-                        <li><strong>"Lazy" vs "Can't":</strong> Executive dysfunction often sounds like "I want to do it, but I can't"[cite: 33].</li>
-                        <li><strong>Masking:</strong> Students (especially girls) may appear fine while struggling internally to meet social norms[cite: 31].</li>
-                        <li><strong>Avoid Superlatives:</strong> Telling a perfectionist to "always do your best" can be anxiety-inducing[cite: 49].</li>
+                <article class="reference-card bg-white rounded-xl p-6 border-t-4 border-teal-500">
+                    <h3 class="font-bold text-slate-900 mb-2">Comics & Lived Experience</h3>
+                    <ul class="space-y-3">
+                        <li><a href="https://adhdalien.com" target="_blank" class="text-blue-600 hover:underline">ADHD Alien (Pina Varnel)</a> - Visual guides to the ADHD experience[cite: 5, 76].</li>
+                        <li><a href="https://www.danidonovan.com" target="_blank" class="text-blue-600 hover:underline">Dani Donovan</a> - Executive dysfunction visuals[cite: 19, 76].</li>
+                    </ul>
+                </article>
+
+                <article class="reference-card bg-white rounded-xl p-6 border-t-4 border-amber-500">
+                    <h3 class="font-bold text-slate-900 mb-2">Executive Function Surveys</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://www.additudemag.com/executive-function-test-for-middle-school-students/" target="_blank" class="text-blue-600">Middle School Student Survey</a> </li>
+                        <li><a href="https://www.additudemag.com/executive-function-test-for-elementary-school-students/" target="_blank" class="text-blue-600">Elementary Student Survey</a> </li>
+                        <li><a href="https://www.additudemag.com/executive-function-deficit-test-for-parents/" target="_blank" class="text-blue-600">Parent & Guardian EF Survey</a> </li>
+                    </ul>
+                </article>
+
+                <article class="reference-card bg-white rounded-xl p-6 border-t-4 border-red-500">
+                    <h3 class="font-bold text-slate-900 mb-2">RSD & Emotional Regulation</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://www.additudemag.com/rejection-sensitive-dysphoria-adhd-emotional-dysregulation/" target="_blank" class="text-blue-600">Why Criticism Hurts So Much</a> </li>
+                        <li><a href="https://www.additudemag.com/rejection-sensitive-dysphoria-adhd-symptoms-treatment/" target="_blank" class="text-blue-600">Coping with RSD</a> </li>
+                        <li><a href="https://adhdalien.com/rsd/" target="_blank" class="text-blue-600">How I Recognize RSD (Comic)</a> </li>
+                    </ul>
+                </article>
+
+                <article class="reference-card bg-white rounded-xl p-6 border-t-4 border-purple-500">
+                    <h3 class="font-bold text-slate-900 mb-2">Classroom Apps & Support</h3>
+                    <ul class="space-y-3">
+                        <li><a href="https://www.gonoodle.com" target="_blank" class="text-blue-600 hover:underline">GoNoodle</a> - Movement and sensory breaks[cite: 48].</li>
+                        <li><a href="https://www.post-it.com/3M/en_US/post-it/ideas/app/" target="_blank" class="text-blue-600 hover:underline">Post-it App</a> - Digitizing brain dumps.</li>
+                        <li><a href="https://getrocketbook.com/products/rocketbook-beacons" target="_blank" class="text-blue-600 hover:underline">Rocketbook Beacons</a> - Saving whiteboards.</li>
                     </ul>
                 </article>
             </div>
         </section>
 
-        <section aria-labelledby="strategies-title">
-            <h2 id="strategies-title">2. Actionable Classroom Hacks</h2>
-            <div class="card-grid">
-                <article>
-                    <h3>Organization & Focus</h3>
-                    <ul>
-                        <li><strong>World’s Easiest System:</strong> Use a 2-pocket folder labeled "Home" and "Return to School"[cite: 44].</li>
-                        <li><strong>Binder Clips:</strong> Use them to help students find the next blank page in a notebook instantly.</li>
-                        <li><strong>Say it in 3:</strong> Provide sticky notes with no more than 3 steps at a time to avoid overwhelm[cite: 45, 46].</li>
-                        <li><strong>Visual Timers:</strong> Use timers that show the physical passage of time[cite: 40].</li>
-                    </ul>
-                </article>
-
-                <article>
-                    <h3>Academic Modifications</h3>
-                    <ul>
-                        <li><strong>The MVP Approach:</strong> Define the "Minimally Viable Product"—the least amount of work required for mastery[cite: 49, 51].</li>
-                        <li><strong>Sticky Note Writing:</strong> One idea per sticky note. Organize them on a wall before drafting.</li>
-                        <li><strong>Math Clarity:</strong> Use graph paper or rotate lined paper 90 degrees to keep numbers in vertical columns[cite: 59].</li>
-                        <li><strong>Rethink Listening:</strong> Allow doodling or standing; SLANT doesn't work for every neurodivergent student.</li>
-                    </ul>
-                </article>
-
-                <article>
-                    <h3>The "Shock" Reset</h3>
-                    <p>When students face big emotional reactions or "brain lock":</p>
-                    <ul>
-                        <li><strong>Sour Candy:</strong> A sour taste can help re-engage the thinking brain.</li>
-                        <li><strong>Cold Water:</strong> Splashing the face with cold water serves as a sensory reset.</li>
-                        <li><strong>Validate First:</strong> Name the emotion and validate it before trying to solve the problem.</li>
-                    </ul>
-                </article>
+        <section id="tab-checklist" class="tab-content hidden">
+            <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-amber-500 pl-4">Implementation Checklist</h2>
+            <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+                <p class="mb-4 font-semibold">Track your classroom adaptation progress:</p>
+                <div class="space-y-3">
+                    <label class="check-item flex items-center p-3 rounded-lg border cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" class="w-5 h-5 mr-3"> <span class="check-text">Implement "World's Easiest Organization" (2-pocket folder) [cite: 44]</span>
+                    </label>
+                    <label class="check-item flex items-center p-3 rounded-lg border cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" class="w-5 h-5 mr-3"> <span class="check-text">Teach student how to use "Binder Clips" for page finding [cite: 39]</span>
+                    </label>
+                    <label class="check-item flex items-center p-3 rounded-lg border cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" class="w-5 h-5 mr-3"> <span class="check-text">Establish a "Quiet Zone" with sensory fidgets </span>
+                    </label>
+                    <label class="check-item flex items-center p-3 rounded-lg border cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" class="w-5 h-5 mr-3"> <span class="check-text">Switch to Graph Paper for math column alignment</span>
+                    </label>
+                </div>
+                <button onclick="window.location.reload()" class="mt-8 w-full py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg transition-all font-semibold">Reset Checklist</button>
             </div>
         </section>
-
-        <section aria-labelledby="resources-title">
-            <h2 id="resources-title">3. Recommended Resources</h2>
-            <div class="card-grid">
-                <article>
-                    <h3>Trusted Websites</h3>
-                    <ul>
-                        <li><a href="https://www.additudemag.com" target="_blank" aria-label="ADDitude Magazine (opens in new tab)">ADDitude.org</a> - Research and strategies[cite: 60].</li>
-                        <li><a href="https://www.understood.org" target="_blank" aria-label="Understood.org (opens in new tab)">Understood.org</a> - Support for learning differences[cite: 60].</li>
-                        <li><a href="#" aria-label="ADHD Alien Comics">ADHD Alien</a> - Comics by Pina Varnel illustrating lived experiences[cite: 60].</li>
-                    </ul>
-                </article>
-            </div>
-        </section>
-
     </main>
 
-    <footer>
-        <p>Curated from <strong>"Just the Tip of the Iceberg"</strong> by Mary Phillips (mphillips@bangorvikings.org)[cite: 1, 4].</p>
-        <p>This dashboard is a digital reference tool for educators.</p>
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <p>Toolkit curated from the Bangor Vikings STEAM department[cite: 4].</p>
+        <p>Presentation Archive: <a href="https://bit.ly/ed-forward25ADHD" class="underline">bit.ly/ed-forward25ADHD</a> [cite: 1]</p>
     </footer>
 
+    <script>
+        // Tab Functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+            });
+        });
+
+        // Accordion Functionality
+        document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const content = trigger.nextElementSibling;
+                content.classList.toggle('open');
+                trigger.innerHTML = content.classList.contains('open') ? 'Key Insight ▲' : 'Key Insight ▼';
+            });
+        });
+
+        // Checklist State
+        document.querySelectorAll('.check-item input').forEach(box => {
+            box.addEventListener('change', () => {
+                box.parentElement.classList.toggle('checked');
+            });
+        });
+    </script>
 </body>
 </html>
