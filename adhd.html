@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible ADHD Toolkit | Just the Tip of the Iceberg</title>
+    <style>
+        /* Color Palette (WCAG Compliant Contrast) */
+        :root {
+            --primary-dark: #1a2a3a;
+            --secondary-blue: #0056b3;
+            --success-green: #1e7e34;
+            --warning-orange: #d35400;
+            --bg-light: #fdfdfd;
+            --text-main: #212529;
+            --focus-outline: #ffbf47;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Accessibility: Skip to Content Link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--secondary-blue);
+            color: white;
+            padding: 8px;
+            z-index: 100;
+            text-decoration: none;
+        }
+        .skip-link:focus { top: 0; outline: 3px solid var(--focus-outline); }
+
+        header {
+            background: var(--primary-dark);
+            color: white;
+            padding: 2.5rem 1rem;
+            text-align: center;
+        }
+
+        header h1 { margin: 0; font-size: 2.2rem; }
+        
+        main { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        section { margin-bottom: 3rem; }
+        
+        h2 { 
+            border-left: 6px solid var(--secondary-blue); 
+            padding-left: 15px; 
+            margin-bottom: 1.5rem;
+            color: var(--primary-dark);
+        }
+
+        /* Strategy Cards Grid */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        article {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        article h3 { 
+            margin-top: 0; 
+            color: var(--secondary-blue); 
+            font-size: 1.3rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        ul { padding-left: 1.5rem; }
+        li { margin-bottom: 0.8rem; }
+
+        /* Focus States for ADA */
+        a:focus, button:focus {
+            outline: 3px solid var(--focus-outline);
+            outline-offset: 2px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background: #eee;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header>
+        <h1>Just the Tip of the Iceberg: ADHD Toolkit</h1>
+        <p>Strategies for Educators by Mary Phillips, Elementary STEAM Teacher</p>
+    </header>
+
+    <main id="main-content">
+        
+        <section aria-labelledby="understanding-title">
+            <h2 id="understanding-title">1. Understanding the ADHD Brain</h2>
+            <div class="card-grid">
+                <article>
+                    <span class="tag">NEURODEVELOPMENTAL</span>
+                    <h3>The Regulation Challenge</h3>
+                    <p>ADHD is not a lack of knowledge; it's a disorder of <strong>regulation and balance</strong>[cite: 26].</p>
+                    <ul>
+                        <li><strong>Interest-Based Brain:</strong> Decision-making is driven by novelty, interest, or challenge, not just importance[cite: 14, 28].</li>
+                        <li><strong>Dopamine Seeking:</strong> The brain is constantly looking for dopamine and glucose to function[cite: 26].</li>
+                        <li><strong>Executive Dysfunction:</strong> Affects time management, organization, and emotional control[cite: 14, 27].</li>
+                    </ul>
+                </article>
+
+                <article>
+                    <span class="tag">MYTH BUSTING</span>
+                    <h3>Changing the Narrative</h3>
+                    <ul>
+                        <li><strong>"Lazy" vs "Can't":</strong> Executive dysfunction often sounds like "I want to do it, but I can't"[cite: 33].</li>
+                        <li><strong>Masking:</strong> Students (especially girls) may appear fine while struggling internally to meet social norms[cite: 31].</li>
+                        <li><strong>Avoid Superlatives:</strong> Telling a perfectionist to "always do your best" can be anxiety-inducing[cite: 49].</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section aria-labelledby="strategies-title">
+            <h2 id="strategies-title">2. Actionable Classroom Hacks</h2>
+            <div class="card-grid">
+                <article>
+                    <h3>Organization & Focus</h3>
+                    <ul>
+                        <li><strong>World’s Easiest System:</strong> Use a 2-pocket folder labeled "Home" and "Return to School"[cite: 44].</li>
+                        <li><strong>Binder Clips:</strong> Use them to help students find the next blank page in a notebook instantly.</li>
+                        <li><strong>Say it in 3:</strong> Provide sticky notes with no more than 3 steps at a time to avoid overwhelm[cite: 45, 46].</li>
+                        <li><strong>Visual Timers:</strong> Use timers that show the physical passage of time[cite: 40].</li>
+                    </ul>
+                </article>
+
+                <article>
+                    <h3>Academic Modifications</h3>
+                    <ul>
+                        <li><strong>The MVP Approach:</strong> Define the "Minimally Viable Product"—the least amount of work required for mastery[cite: 49, 51].</li>
+                        <li><strong>Sticky Note Writing:</strong> One idea per sticky note. Organize them on a wall before drafting.</li>
+                        <li><strong>Math Clarity:</strong> Use graph paper or rotate lined paper 90 degrees to keep numbers in vertical columns[cite: 59].</li>
+                        <li><strong>Rethink Listening:</strong> Allow doodling or standing; SLANT doesn't work for every neurodivergent student.</li>
+                    </ul>
+                </article>
+
+                <article>
+                    <h3>The "Shock" Reset</h3>
+                    <p>When students face big emotional reactions or "brain lock":</p>
+                    <ul>
+                        <li><strong>Sour Candy:</strong> A sour taste can help re-engage the thinking brain.</li>
+                        <li><strong>Cold Water:</strong> Splashing the face with cold water serves as a sensory reset.</li>
+                        <li><strong>Validate First:</strong> Name the emotion and validate it before trying to solve the problem.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section aria-labelledby="resources-title">
+            <h2 id="resources-title">3. Recommended Resources</h2>
+            <div class="card-grid">
+                <article>
+                    <h3>Trusted Websites</h3>
+                    <ul>
+                        <li><a href="https://www.additudemag.com" target="_blank" aria-label="ADDitude Magazine (opens in new tab)">ADDitude.org</a> - Research and strategies[cite: 60].</li>
+                        <li><a href="https://www.understood.org" target="_blank" aria-label="Understood.org (opens in new tab)">Understood.org</a> - Support for learning differences[cite: 60].</li>
+                        <li><a href="#" aria-label="ADHD Alien Comics">ADHD Alien</a> - Comics by Pina Varnel illustrating lived experiences[cite: 60].</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Curated from <strong>"Just the Tip of the Iceberg"</strong> by Mary Phillips (mphillips@bangorvikings.org)[cite: 1, 4].</p>
+        <p>This dashboard is a digital reference tool for educators.</p>
+    </footer>
+
+</body>
+</html>
