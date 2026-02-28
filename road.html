@@ -267,7 +267,7 @@ border-top:1px solid var(–border);
 </main>
 
 <footer>
-  Weather: NOAA NWS API (api.weather.gov) · Soil model: USDA Berrien County SSURGO · Frost: Stefan equation for sandy loam · Refreshes on page load
+  Weather: NOAA NWS API direct (api.weather.gov) — no API key required · Soil: USDA Berrien County SSURGO · Frost: Stefan equation · Refreshes on page load
 </footer>
 
 <script>
@@ -342,58 +342,64 @@ function weatherEmoji(desc) {
 }
 
 // ══════════════════════════════════════════════════
-// FETCH WEATHER VIA ANTHROPIC API
-// Uses Claude with web_search tool to get NWS data
-// This sidesteps CORS — Claude fetches, we parse
+// FETCH WEATHER DIRECTLY FROM NWS API
+// NWS (api.weather.gov) supports CORS from any origin
+// No API key required — free public government API
+// Watervliet MI → NWS grid point GRR/32,65
 // ══════════════════════════════════════════════════
+const NWS_HDRS = {
+  'User-Agent': 'SCLayDrRoadAdvisor/3.0 (socratictech.org)',
+  'Accept': 'application/geo+json'
+};
+
 async function fetchWeatherViaClaude() {
-  const prompt = `You are a weather data extraction assistant. Search for and retrieve the current NWS weather forecast for Watervliet, Michigan (zip 49098, near Benton Harbor). 
+  // Step 1: Get grid endpoints for Watervliet MI
+  const ptsRes = await fetch(
+    'https://api.weather.gov/points/42.7726,-86.2716',
+    { headers: NWS_HDRS }
+  );
+  if (!ptsRes.ok) throw new Error(`NWS points ${ptsRes.status}`);
+  const pts = await ptsRes.json();
+  const { forecast: forecastUrl, observationStations: stationsUrl } = pts.properties;
 
-Return ONLY a valid JSON object with this exact structure, no other text:
-{
-  "tempF": <current temperature in Fahrenheit as integer>,
-  "humidity": <relative humidity percentage as integer>,
-  "windMph": <wind speed in mph as integer>,
-  "skyDesc": "<short current conditions description>",
-  "forecast": [
-    {
-      "dayName": "<day name like Monday, Tuesday, Today>",
-      "isDaytime": <true or false>,
-      "tempF": <high or low temp as integer>,
-      "shortForecast": "<brief forecast like Sunny, Chance Rain Showers>",
-      "pop": <probability of precipitation 0-100 as integer>
-    }
-  ]
-}
+  // Step 2: Parallel fetch — 7-day forecast + nearest obs station
+  const [fcastRes, stationsRes] = await Promise.all([
+    fetch(forecastUrl, { headers: NWS_HDRS }),
+    fetch(stationsUrl, { headers: NWS_HDRS })
+  ]);
+  if (!fcastRes.ok) throw new Error(`NWS forecast ${fcastRes.status}`);
+  if (!stationsRes.ok) throw new Error(`NWS stations ${stationsRes.status}`);
 
-The forecast array should have 14 entries (7 day periods + 7 night periods alternating, starting with today daytime). Use the NWS api.weather.gov data for the Watervliet/Benton Harbor area. Return only the JSON, nothing else.`;
+  const fcast    = await fcastRes.json();
+  const stations = await stationsRes.json();
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      tools: [{ type: "web_search_20250305", name: "web_search" }],
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
+  // Step 3: Latest observation from nearest station (KBTL or closest)
+  const stationId = stations.features[0].id;
+  const obsRes = await fetch(
+    `${stationId}/observations/latest`,
+    { headers: NWS_HDRS }
+  );
+  if (!obsRes.ok) throw new Error(`NWS obs ${obsRes.status}`);
+  const obs = (await obsRes.json()).properties;
 
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const data = await response.json();
+  // Parse current conditions
+  const tempC    = obs.temperature?.value ?? null;
+  const tempF    = tempC !== null ? Math.round(tempC * 9/5 + 32) : null;
+  const humidity = Math.round(obs.relativeHumidity?.value ?? 65);
+  const windMs   = obs.windSpeed?.value ?? 0;
+  const windMph  = Math.round((windMs || 0) * 2.237);
+  const skyDesc  = obs.textDescription || fcast.properties.periods[0]?.shortForecast || '';
 
-  // Extract text from response content blocks
-  const textBlocks = data.content.filter(b => b.type === 'text');
-  if (!textBlocks.length) throw new Error('No text in response');
+  // Parse forecast periods into our format
+  const forecast = fcast.properties.periods.map(p => ({
+    dayName:       p.name,
+    isDaytime:     p.isDaytime,
+    tempF:         p.temperature,
+    shortForecast: p.shortForecast,
+    pop:           p.probabilityOfPrecipitation?.value ?? 0
+  }));
 
-  const raw = textBlocks.map(b => b.text).join('');
-
-  // Parse JSON from response (strip any markdown fences if present)
-  const clean = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-  const jsonMatch = clean.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('No JSON found in response');
-
-  return JSON.parse(jsonMatch[0]);
+  return { tempF: tempF ?? 50, humidity, windMph, skyDesc, forecast };
 }
 
 // ══════════════════════════════════════════════════
