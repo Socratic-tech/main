@@ -12,194 +12,258 @@
             --primary-light: #eff6ff;
             --text-main: #334155;
             --text-sub: #64748b;
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --card: #ffffff;
             --border: #e2e8f0;
             --green: #10b981;
             --green-dark: #059669;
+            --sidebar-w: 320px;
         }
 
-        * { box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Full-viewport app shell ── */
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background: var(--bg);
+            overflow: hidden;
+        }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text-main);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 30px 20px;
-            margin: 0;
-            min-height: 100vh;
         }
 
-        h1 {
-            font-size: 1.4rem;
+        /* ── Top header bar ── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px;
+            height: 52px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .app-header h1 {
+            font-size: 1.05rem;
             font-weight: 800;
-            color: var(--text-main);
-            margin: 0 0 6px 0;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.2px;
         }
-        .subtitle {
-            font-size: 0.88rem;
+        .app-header .subtitle {
+            font-size: 0.8rem;
             color: var(--text-sub);
-            margin: 0 0 24px 0;
+            margin-left: 2px;
         }
 
-        .container {
+        /* ── Main two-column layout ── */
+        .app-body {
             display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            justify-content: center;
-            width: 100%;
-            max-width: 1300px;
-            align-items: flex-start;
-        }
-
-        /* Left Panel */
-        .controls-panel {
             flex: 1;
-            min-width: 300px;
-            max-width: 360px;
-            background: var(--card);
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
+            overflow: hidden;
         }
 
-        /* Right Panel */
-        .preview-panel {
-            flex: 2;
-            min-width: 340px;
+        /* ── Left sidebar (controls) ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: white;
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            overflow: hidden;
+        }
+
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* ── Right preview area ── */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            gap: 10px;
         }
 
         .canvas-frame {
-            background: #d1d5db;
-            padding: 12px;
-            border-radius: 8px;
-            width: 100%;
+            background: #94a3b8;
+            padding: 10px;
+            border-radius: 6px;
             display: flex;
+            align-items: center;
             justify-content: center;
+            max-width: 100%;
+            max-height: 100%;
+            flex: 1;
+            width: 100%;
         }
 
         canvas {
             max-width: 100%;
-            max-height: 600px;
-            height: auto;
+            max-height: 100%;
             background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
             border-radius: 2px;
             display: block;
+            object-fit: contain;
         }
 
         .placeholder {
             width: 100%;
-            min-height: 300px;
+            height: 100%;
+            min-height: 200px;
             background: white;
-            border-radius: 2px;
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 10px;
             color: #94a3b8;
-            font-size: 0.95rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 0.9rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+        }
+        .placeholder-icon { font-size: 2.5rem; }
+
+        .status-bar {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            text-align: center;
+            flex-shrink: 0;
+            height: 20px;
         }
 
-        .placeholder-icon { font-size: 3rem; }
+        /* ── Sidebar controls ── */
 
-        /* Upload */
         .upload-zone {
             border: 2px dashed #bfdbfe;
             background: var(--primary-light);
             color: var(--primary);
             font-weight: 700;
-            padding: 14px;
+            padding: 12px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 22px;
+            transition: 0.15s;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
         }
         .upload-zone:hover { background: #dbeafe; border-color: var(--primary); }
 
-        /* Section Labels */
         .section-label {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             color: #94a3b8;
-            margin-bottom: 10px;
-            margin-top: 18px;
+            margin-bottom: 8px;
+            margin-top: 14px;
         }
-        .section-label:first-of-type { margin-top: 0; }
 
-        /* Mode Tabs */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 14px 0;
+        }
+
+        /* Output style tabs */
         .tabs {
             display: flex;
             background: #f1f5f9;
             padding: 3px;
-            border-radius: 8px;
-            margin-bottom: 18px;
+            border-radius: 7px;
+            margin-bottom: 0;
         }
         .tab-btn {
             flex: 1;
             border: none;
             background: transparent;
-            padding: 8px;
+            padding: 7px;
             font-weight: 600;
-            font-size: 0.88rem;
+            font-size: 0.82rem;
             color: var(--text-sub);
             cursor: pointer;
-            border-radius: 6px;
-            transition: 0.15s;
+            border-radius: 5px;
+            transition: 0.12s;
         }
         .tab-btn.active {
             background: white;
             color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.07);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        /* Threshold mini-tabs */
+        .thresh-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .thresh-tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 6px;
+            font-weight: 600;
+            font-size: 0.79rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.12s;
+        }
+        .thresh-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
 
         /* Sliders */
-        .control-row { margin-bottom: 14px; }
+        .control-row { margin-bottom: 12px; }
 
         .label-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 0.88rem;
+            margin-bottom: 5px;
+            font-size: 0.83rem;
             font-weight: 600;
             color: var(--text-main);
         }
         .label-hint {
-            font-size: 0.76rem;
-            font-weight: 400;
+            font-size: 0.72rem;
             color: var(--text-sub);
             margin-top: 3px;
+            line-height: 1.35;
         }
         .val-badge {
             background: #f1f5f9;
-            padding: 2px 7px;
+            padding: 1px 6px;
             border-radius: 4px;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-sub);
             font-weight: 600;
         }
         input[type="range"] {
             width: 100%;
-            height: 6px;
+            height: 5px;
             background: #e2e8f0;
             border-radius: 3px;
             outline: none;
@@ -208,8 +272,8 @@
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             background: var(--primary);
             border-radius: 50%;
             cursor: pointer;
@@ -221,37 +285,53 @@
         .checkbox-row {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 8px;
-            font-size: 0.88rem;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.83rem;
             color: var(--text-main);
             cursor: pointer;
             line-height: 1.4;
         }
         input[type="checkbox"] {
             accent-color: var(--primary);
-            width: 16px;
-            height: 16px;
+            width: 15px;
+            height: 15px;
             flex-shrink: 0;
             margin-top: 2px;
         }
 
-        /* Divider */
-        .divider {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 18px 0;
+        /* Adaptive badge */
+        .adaptive-badge {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            font-size: 0.74rem;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 6px 9px;
+            margin-bottom: 10px;
+            line-height: 1.4;
         }
 
-        /* Buttons */
-        .action-buttons {
+        /* Action buttons — pinned at bottom of sidebar */
+        .sidebar-footer {
+            flex-shrink: 0;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
         }
+
         .btn {
-            padding: 11px;
+            padding: 10px;
             border: none;
             border-radius: 7px;
             font-weight: 700;
@@ -260,209 +340,182 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 6px;
-            font-size: 0.9rem;
-            transition: 0.15s;
+            gap: 5px;
+            font-size: 0.85rem;
+            transition: 0.12s;
         }
         .btn-svg {
             background: var(--green);
-            grid-column: 1 / -1;
-            padding: 13px;
-            font-size: 1rem;
+            width: 100%;
+            padding: 11px;
+            font-size: 0.95rem;
         }
         .btn-svg:hover { background: var(--green-dark); }
-        .btn-png { background: #334155; }
-        .btn-png:hover { background: #1e293b; }
+        .btn-png  { background: #334155; }
+        .btn-png:hover  { background: #1e293b; }
         .btn-preview { background: var(--primary); }
         .btn-preview:hover { background: #1d4ed8; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
-        /* Status badge */
-        .status-bar {
-            font-size: 0.82rem;
-            color: var(--text-sub);
-            text-align: center;
-            padding: 6px;
-        }
-
-        /* Tips */
+        /* Tip box */
         .tip-box {
             background: #fefce8;
             border: 1px solid #fde68a;
-            border-radius: 7px;
-            padding: 10px 12px;
-            font-size: 0.82rem;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.76rem;
             color: #92400e;
-            line-height: 1.5;
+            line-height: 1.45;
             margin-top: 14px;
         }
         .tip-box strong { color: #78350f; }
 
-        /* Threshold mode mini-tabs */
-        .thresh-tabs {
-            display: flex;
-            background: #f1f5f9;
-            padding: 3px;
-            border-radius: 7px;
-            margin-bottom: 12px;
-        }
-        .thresh-tab {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 6px;
-            font-weight: 600;
-            font-size: 0.82rem;
-            color: var(--text-sub);
-            cursor: pointer;
-            border-radius: 5px;
-            transition: 0.15s;
-        }
-        .thresh-tab.active {
-            background: white;
-            color: var(--primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-
-        /* Adaptive mode callout */
-        .adaptive-badge {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-            font-size: 0.78rem;
-            font-weight: 600;
-            border-radius: 6px;
-            padding: 7px 10px;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
         #fileInput { display: none; }
+
+        /* Responsive: stack on small screens */
+        @media (max-width: 640px) {
+            html, body { overflow: auto; height: auto; }
+            .app-body { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+            .sidebar-scroll { max-height: none; overflow-y: visible; }
+            .sidebar-footer { position: static; }
+            .preview-area { min-height: 50vh; }
+            .canvas-frame { flex: none; width: 100%; height: auto; min-height: 200px; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>✏️ Student Ink Drawing → SVG</h1>
-    <p class="subtitle">Upload a photo of a black ink drawing and download it as a clean vector SVG file.</p>
+    <!-- Header -->
+    <header class="app-header">
+        <h1>✏️ Student Ink Drawing → SVG</h1>
+        <span class="subtitle">Upload a photo · adjust · download a clean SVG</span>
+    </header>
 
-    <div class="container">
+    <div class="app-body">
 
-        <!-- Controls -->
-        <div class="controls-panel">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-scroll">
 
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                📸 Upload Drawing Photo
-            </div>
-            <input type="file" id="fileInput" accept="image/*">
-
-            <div class="section-label">Output Style</div>
-            <div class="tabs">
-                <button class="tab-btn active" id="btnFilled" onclick="setMode('filled')">Filled</button>
-                <button class="tab-btn" id="btnOutline" onclick="setMode('outline')">Outline Only</button>
-            </div>
-
-            <hr class="divider">
-            <div class="section-label">Image Prep</div>
-
-            <div class="control-row">
-                <div class="label-row">
-                    <span>Contrast Boost</span>
-                    <span class="val-badge" id="contrastVal">30%</span>
+                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                    📸 Upload Drawing Photo
                 </div>
-                <input type="range" id="contrast" min="0" max="200" value="30">
-                <div class="label-hint">Increase to sharpen faint or washed-out ink lines.</div>
-            </div>
+                <input type="file" id="fileInput" accept="image/*">
 
-            <div class="control-row">
-                <div class="label-row">
-                    <span>Smoothing</span>
-                    <span class="val-badge" id="blurVal">0.5px</span>
+                <div class="section-label">Output Style</div>
+                <div class="tabs">
+                    <button class="tab-btn active" id="btnFilled" onclick="setMode('filled')">Filled</button>
+                    <button class="tab-btn" id="btnOutline" onclick="setMode('outline')">Outline Only</button>
                 </div>
-                <input type="range" id="blur" min="0" max="5" value="0.5" step="0.5">
-                <div class="label-hint">Slight smoothing helps with grainy photos. Keep low for fine lines.</div>
-            </div>
 
-            <hr class="divider">
-            <div class="section-label">Ink Detection</div>
+                <hr class="divider">
+                <div class="section-label">Image Prep</div>
 
-            <div class="thresh-tabs">
-                <button class="thresh-tab active" id="btnSimple" onclick="setThreshMode('simple')">Simple</button>
-                <button class="thresh-tab" id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
-            </div>
-
-            <!-- Simple controls -->
-            <div id="simpleControls">
                 <div class="control-row">
                     <div class="label-row">
-                        <span>Threshold</span>
-                        <span class="val-badge" id="threshVal">140</span>
+                        <span>Contrast Boost</span>
+                        <span class="val-badge" id="contrastVal">30%</span>
                     </div>
-                    <input type="range" id="threshold" min="0" max="255" value="140">
-                    <div class="label-hint">Lower = only darkest marks. Higher = picks up lighter lines too.</div>
+                    <input type="range" id="contrast" min="0" max="200" value="30">
+                    <div class="label-hint">Increase to sharpen faint or washed-out ink.</div>
                 </div>
-            </div>
 
-            <!-- Adaptive controls -->
-            <div id="adaptiveControls" style="display:none;">
-                <div class="adaptive-badge">✅ Handles shadows &amp; uneven lighting automatically — best for phone photos.</div>
                 <div class="control-row">
                     <div class="label-row">
-                        <span>Local Area Size</span>
-                        <span class="val-badge" id="windowVal">80px</span>
+                        <span>Smoothing</span>
+                        <span class="val-badge" id="blurVal">0.5px</span>
                     </div>
-                    <input type="range" id="windowSize" min="20" max="200" value="80" step="5">
-                    <div class="label-hint">How large an area each pixel is compared against. Larger = handles bigger shadows.</div>
+                    <input type="range" id="blur" min="0" max="5" value="0.5" step="0.5">
+                    <div class="label-hint">Helps with grainy photos. Keep low for fine lines.</div>
                 </div>
+
+                <hr class="divider">
+                <div class="section-label">Ink Detection</div>
+
+                <div class="thresh-tabs">
+                    <button class="thresh-tab active" id="btnSimple" onclick="setThreshMode('simple')">Simple</button>
+                    <button class="thresh-tab" id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
+                </div>
+
+                <!-- Simple controls -->
+                <div id="simpleControls">
+                    <div class="control-row">
+                        <div class="label-row">
+                            <span>Threshold</span>
+                            <span class="val-badge" id="threshVal">140</span>
+                        </div>
+                        <input type="range" id="threshold" min="0" max="255" value="140">
+                        <div class="label-hint">Lower = only darkest marks. Higher = picks up lighter lines too.</div>
+                    </div>
+                </div>
+
+                <!-- Adaptive controls -->
+                <div id="adaptiveControls" style="display:none;">
+                    <div class="adaptive-badge">✅ Handles shadows &amp; uneven lighting — best for phone photos.</div>
+                    <div class="control-row">
+                        <div class="label-row">
+                            <span>Local Area Size</span>
+                            <span class="val-badge" id="windowVal">80px</span>
+                        </div>
+                        <input type="range" id="windowSize" min="20" max="200" value="80" step="5">
+                        <div class="label-hint">Larger = handles bigger shadows across the paper.</div>
+                    </div>
+                    <div class="control-row">
+                        <div class="label-row">
+                            <span>Ink Sensitivity</span>
+                            <span class="val-badge" id="sensitivityVal">12%</span>
+                        </div>
+                        <input type="range" id="sensitivity" min="1" max="35" value="12">
+                        <div class="label-hint">Higher = picks up faint lines. Lower = only bold marks.</div>
+                    </div>
+                </div>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="invert">
+                    Ink is lighter than background (e.g. white pen on dark paper)
+                </label>
+
+                <hr class="divider">
+                <div class="section-label">SVG Quality</div>
+
                 <div class="control-row">
                     <div class="label-row">
-                        <span>Ink Sensitivity</span>
-                        <span class="val-badge" id="sensitivityVal">12%</span>
+                        <span>Noise Cleanup</span>
+                        <span class="val-badge" id="cleanVal">6</span>
                     </div>
-                    <input type="range" id="sensitivity" min="1" max="35" value="12">
-                    <div class="label-hint">How much darker than its surroundings a pixel must be to count as ink. Higher = picks up fainter lines.</div>
+                    <input type="range" id="cleanup" min="1" max="30" value="6">
+                    <div class="label-hint">Higher = removes speckles. Lower = keeps fine details.</div>
                 </div>
-            </div>
 
-            <label class="checkbox-row">
-                <input type="checkbox" id="invert">
-                Ink is lighter than background (e.g. white pen on dark paper)
-            </label>
-
-            <hr class="divider">
-            <div class="section-label">SVG Quality</div>
-
-            <div class="control-row">
-                <div class="label-row">
-                    <span>Noise Cleanup</span>
-                    <span class="val-badge" id="cleanVal">6</span>
+                <div class="control-row">
+                    <div class="label-row">
+                        <span>Path Precision</span>
+                        <span class="val-badge" id="precisionVal">1.0</span>
+                    </div>
+                    <input type="range" id="precision" min="0.1" max="5" value="1.0" step="0.1">
+                    <div class="label-hint">Lower = smoother curves. Higher = more faithful to original.</div>
                 </div>
-                <input type="range" id="cleanup" min="1" max="30" value="6">
-                <div class="label-hint">Higher = removes more speckles and tiny marks. Lower = keeps fine details.</div>
-            </div>
 
-            <div class="control-row">
-                <div class="label-row">
-                    <span>Path Precision</span>
-                    <span class="val-badge" id="precisionVal">1.0</span>
+                <div class="tip-box">
+                    <strong>📷 Tips:</strong> Even lighting, flat surface, shoot straight down. Avoid shadows on the paper.
                 </div>
-                <input type="range" id="precision" min="0.1" max="5" value="1.0" step="0.1">
-                <div class="label-hint">Lower = smoother, fewer anchor points. Higher = more faithful to original.</div>
-            </div>
 
-            <div class="action-buttons">
+            </div><!-- end sidebar-scroll -->
+
+            <!-- Pinned action buttons -->
+            <div class="sidebar-footer">
                 <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG</button>
-                <button id="previewSvg" class="btn btn-preview" disabled>👁 SVG Preview</button>
-                <button id="dlPng" class="btn btn-png" disabled>⬇ PNG</button>
+                <div class="btn-row">
+                    <button id="previewSvg" class="btn btn-preview" disabled>👁 Preview SVG</button>
+                    <button id="dlPng" class="btn btn-png" disabled>⬇ PNG</button>
+                </div>
             </div>
 
-            <div class="tip-box">
-                <strong>📷 Photo Tips:</strong> Good lighting, flat surface, shoot straight down. Avoid shadows across the paper.
-            </div>
-
-        </div>
+        </aside>
 
         <!-- Preview -->
-        <div class="preview-panel">
+        <main class="preview-area">
             <div class="canvas-frame" id="canvasFrame">
                 <div class="placeholder" id="placeholder">
                     <span class="placeholder-icon">🖊️</span>
@@ -471,24 +524,24 @@
                 <canvas id="canvas" style="display:none;"></canvas>
             </div>
             <div class="status-bar" id="statusBar"></div>
-        </div>
+        </main>
 
     </div>
 
     <script>
-        let currentMode      = 'filled';
+        let currentMode       = 'filled';
         let currentThreshMode = 'simple';
         let currentImg = new Image();
         let isLoaded   = false;
 
-        const fileInput       = document.getElementById('fileInput');
-        const contrastSlider  = document.getElementById('contrast');
-        const blurSlider      = document.getElementById('blur');
-        const thresholdSlider = document.getElementById('threshold');
-        const invertCheck     = document.getElementById('invert');
-        const cleanupSlider   = document.getElementById('cleanup');
-        const precisionSlider = document.getElementById('precision');
-        const windowSlider    = document.getElementById('windowSize');
+        const fileInput         = document.getElementById('fileInput');
+        const contrastSlider    = document.getElementById('contrast');
+        const blurSlider        = document.getElementById('blur');
+        const thresholdSlider   = document.getElementById('threshold');
+        const invertCheck       = document.getElementById('invert');
+        const cleanupSlider     = document.getElementById('cleanup');
+        const precisionSlider   = document.getElementById('precision');
+        const windowSlider      = document.getElementById('windowSize');
         const sensitivitySlider = document.getElementById('sensitivity');
         const canvas    = document.getElementById('canvas');
         const ctx       = canvas.getContext('2d', { willReadFrequently: true });
@@ -496,16 +549,16 @@
 
         // --- Badges ---
         function updateBadges() {
-            document.getElementById('contrastVal').innerText   = contrastSlider.value + '%';
-            document.getElementById('blurVal').innerText       = blurSlider.value + 'px';
-            document.getElementById('threshVal').innerText     = thresholdSlider.value;
-            document.getElementById('cleanVal').innerText      = cleanupSlider.value;
-            document.getElementById('precisionVal').innerText  = parseFloat(precisionSlider.value).toFixed(1);
-            document.getElementById('windowVal').innerText     = windowSlider.value + 'px';
+            document.getElementById('contrastVal').innerText    = contrastSlider.value + '%';
+            document.getElementById('blurVal').innerText        = blurSlider.value + 'px';
+            document.getElementById('threshVal').innerText      = thresholdSlider.value;
+            document.getElementById('cleanVal').innerText       = cleanupSlider.value;
+            document.getElementById('precisionVal').innerText   = parseFloat(precisionSlider.value).toFixed(1);
+            document.getElementById('windowVal').innerText      = windowSlider.value + 'px';
             document.getElementById('sensitivityVal').innerText = sensitivitySlider.value + '%';
         }
 
-        // --- Threshold Mode (Simple vs Adaptive) ---
+        // --- Threshold Mode ---
         function setThreshMode(mode) {
             currentThreshMode = mode;
             document.getElementById('btnSimple').className   = mode === 'simple'   ? 'thresh-tab active' : 'thresh-tab';
@@ -533,11 +586,11 @@
                 const img = new Image();
                 img.onload = () => {
                     currentImg = img;
-                    isLoaded = true;
+                    isLoaded   = true;
                     document.getElementById('placeholder').style.display = 'none';
                     canvas.style.display = 'block';
-                    document.getElementById('dlSvg').disabled = false;
-                    document.getElementById('dlPng').disabled = false;
+                    document.getElementById('dlSvg').disabled     = false;
+                    document.getElementById('dlPng').disabled     = false;
                     document.getElementById('previewSvg').disabled = false;
                     processImage();
                 };
@@ -546,12 +599,11 @@
             reader.readAsDataURL(file);
         });
 
-        // ─────────────────────────────────────────────
-        //  ADAPTIVE THRESHOLDING (Bradley-Roth method)
-        //  Uses a summed-area table (integral image) so
-        //  the per-pixel neighborhood query is O(1),
-        //  making the whole pass O(width × height).
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────────────────────────
+        //  ADAPTIVE THRESHOLDING  (Bradley-Roth method)
+        //  Integral image (summed-area table) gives O(1)
+        //  per-pixel neighbourhood queries → O(w×h) total.
+        // ─────────────────────────────────────────────────
 
         function buildIntegralImage(gray, w, h) {
             const integral = new Float64Array(w * h);
@@ -559,17 +611,15 @@
                 for (let x = 0; x < w; x++) {
                     const i = y * w + x;
                     integral[i] = gray[i]
-                        + (x > 0 ? integral[i - 1] : 0)
-                        + (y > 0 ? integral[i - w] : 0)
+                        + (x > 0 ? integral[i - 1]     : 0)
+                        + (y > 0 ? integral[i - w]     : 0)
                         - (x > 0 && y > 0 ? integral[i - w - 1] : 0);
                 }
             }
             return integral;
         }
 
-        // Returns a Uint8Array: 1 = ink, 0 = background
-        // halfWin: half the side-length of the comparison window (pixels)
-        // C: sensitivity % — pixel must be (C%) darker than local mean to count as ink
+        // Returns Uint8Array: 1 = ink, 0 = background
         function applyAdaptiveThreshold(gray, w, h, halfWin, C) {
             const integral = buildIntegralImage(gray, w, h);
             const result   = new Uint8Array(w * h);
@@ -584,13 +634,11 @@
 
                     const count = (x2 - x1 + 1) * (y2 - y1 + 1);
                     const sum   = integral[y2 * w + x2]
-                        - (x1 > 0 ? integral[y2 * w + x1 - 1] : 0)
-                        - (y1 > 0 ? integral[(y1 - 1) * w + x2] : 0)
+                        - (x1 > 0 ? integral[y2 * w + x1 - 1]         : 0)
+                        - (y1 > 0 ? integral[(y1 - 1) * w + x2]       : 0)
                         + (x1 > 0 && y1 > 0 ? integral[(y1 - 1) * w + x1 - 1] : 0);
 
-                    const localMean = sum / count;
-                    // Ink = significantly darker than its local neighbourhood
-                    result[y * w + x] = gray[y * w + x] < localMean * factor ? 1 : 0;
+                    result[y * w + x] = gray[y * w + x] < (sum / count) * factor ? 1 : 0;
                 }
             }
             return result;
@@ -601,53 +649,40 @@
             const w = currentImg.width;
             const h = currentImg.height;
 
-            const maskCvs = document.createElement('canvas');
+            const maskCvs  = document.createElement('canvas');
             maskCvs.width  = w;
             maskCvs.height = h;
             const mCtx = maskCvs.getContext('2d');
 
-            const contrastPct = 100 + parseInt(contrastSlider.value);
-            const blur = parseFloat(blurSlider.value);
-
-            mCtx.filter = `contrast(${contrastPct}%) blur(${blur}px)`;
+            mCtx.filter = `contrast(${100 + parseInt(contrastSlider.value)}%) blur(${parseFloat(blurSlider.value)}px)`;
             mCtx.drawImage(currentImg, 0, 0);
             mCtx.filter = 'none';
 
-            const frame   = mCtx.getImageData(0, 0, w, h);
-            const data    = frame.data;
+            const frame    = mCtx.getImageData(0, 0, w, h);
+            const data     = frame.data;
             const inverted = invertCheck.checked;
 
             if (currentThreshMode === 'simple') {
-                // ── Simple global threshold ──
+                // ── Global threshold ──
                 const thresh = parseInt(thresholdSlider.value);
                 for (let i = 0; i < data.length; i += 4) {
-                    const brightness = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                    const isInk = inverted ? (brightness > thresh) : (brightness < thresh);
-                    if (isInk) {
-                        data[i] = 0; data[i+1] = 0; data[i+2] = 0; data[i+3] = 255;
-                    } else {
-                        data[i+3] = 0;
-                    }
+                    const lum  = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                    const isInk = inverted ? lum > thresh : lum < thresh;
+                    data[i] = data[i+1] = data[i+2] = 0;
+                    data[i+3] = isInk ? 255 : 0;
                 }
             } else {
                 // ── Adaptive threshold (Bradley-Roth) ──
-                // Build grayscale float array
                 const gray = new Float32Array(w * h);
                 for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-                    let v = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                    gray[p] = inverted ? (255 - v) : v;   // invert so "lighter ink" still works
+                    const v = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                    gray[p] = inverted ? 255 - v : v;
                 }
-
-                const halfWin    = Math.round(parseInt(windowSlider.value) / 2);
-                const sensitivity = parseInt(sensitivitySlider.value);
-                const inkMap     = applyAdaptiveThreshold(gray, w, h, halfWin, sensitivity);
-
+                const halfWin   = Math.round(parseInt(windowSlider.value) / 2);
+                const inkMap    = applyAdaptiveThreshold(gray, w, h, halfWin, parseInt(sensitivitySlider.value));
                 for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-                    if (inkMap[p] === 1) {
-                        data[i] = 0; data[i+1] = 0; data[i+2] = 0; data[i+3] = 255;
-                    } else {
-                        data[i+3] = 0;
-                    }
+                    data[i] = data[i+1] = data[i+2] = 0;
+                    data[i+3] = inkMap[p] ? 255 : 0;
                 }
             }
 
@@ -657,10 +692,9 @@
 
         // --- Outline Helper ---
         function drawOutline(maskCanvas) {
-            const w = maskCanvas.width;
-            const h = maskCanvas.height;
-            const mCtx = maskCanvas.getContext('2d');
-            const src = mCtx.getImageData(0, 0, w, h).data;
+            const w   = maskCanvas.width;
+            const h   = maskCanvas.height;
+            const src = maskCanvas.getContext('2d').getImageData(0, 0, w, h).data;
             const outData = ctx.createImageData(w, h);
             const out = outData.data;
 
@@ -668,14 +702,10 @@
                 for (let x = 1; x < w - 1; x++) {
                     const i = (y * w + x) * 4;
                     if (src[i + 3] === 0) {
-                        const neighbors = [
-                            ((y-1)*w + x)*4,
-                            ((y+1)*w + x)*4,
-                            (y*w + (x-1))*4,
-                            (y*w + (x+1))*4,
-                        ];
-                        if (neighbors.some(n => src[n+3] > 0)) {
-                            out[i] = 40; out[i+1] = 40; out[i+2] = 40; out[i+3] = 255;
+                        const n = [((y-1)*w+x)*4, ((y+1)*w+x)*4, (y*w+x-1)*4, (y*w+x+1)*4];
+                        if (n.some(j => src[j+3] > 0)) {
+                            out[i] = out[i+1] = out[i+2] = 40;
+                            out[i+3] = 255;
                         }
                     }
                 }
@@ -687,14 +717,10 @@
         function processImage() {
             if (!isLoaded) return;
 
-            const w = currentImg.width;
-            const h = currentImg.height;
-            canvas.width  = w;
-            canvas.height = h;
-
-            // White background
+            canvas.width  = currentImg.width;
+            canvas.height = currentImg.height;
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, w, h);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const maskCvs = buildMaskCanvas();
 
@@ -704,48 +730,37 @@
                 drawOutline(maskCvs);
             }
 
-            statusBar.innerText = `Preview: ${w} × ${h}px — adjust sliders, then download SVG.`;
+            statusBar.innerText = `${canvas.width} × ${canvas.height}px — adjust sliders, then download SVG.`;
         }
 
-        // --- Build SVG String ---
+        // --- Build SVG ---
         function buildSVG() {
             const maskCvs = buildMaskCanvas();
-            const w = maskCvs.width;
-            const h = maskCvs.height;
+            const w = maskCvs.width, h = maskCvs.height;
 
-            // Flatten to opaque black-on-white for ImageTracer
             const flat = document.createElement('canvas');
-            flat.width  = w;
-            flat.height = h;
+            flat.width = w; flat.height = h;
             const fCtx = flat.getContext('2d');
             fCtx.fillStyle = '#ffffff';
             fCtx.fillRect(0, 0, w, h);
             fCtx.drawImage(maskCvs, 0, 0);
 
-            const imageData = fCtx.getImageData(0, 0, w, h);
-            const precision = parseFloat(precisionSlider.value);
-            const cleanup   = parseInt(cleanupSlider.value);
-
             const options = {
-                ltres:          precision,
-                qtres:          precision,
-                pathomit:       cleanup,
-                colorsampling:  0,
-                numberofcolors: 2,
-                mincolorratio:  0,
-                colorquantcycles: 1,
+                ltres: parseFloat(precisionSlider.value),
+                qtres: parseFloat(precisionSlider.value),
+                pathomit: parseInt(cleanupSlider.value),
+                colorsampling: 0, numberofcolors: 2,
+                mincolorratio: 0, colorquantcycles: 1,
             };
 
-            let svgStr = window.ImageTracer.imagedataToSVG(imageData, options);
+            let svgStr = window.ImageTracer.imagedataToSVG(fCtx.getImageData(0, 0, w, h), options);
 
-            // In outline mode: switch to stroked paths instead of filled
             if (currentMode === 'outline') {
                 svgStr = svgStr.replace(
                     /fill="rgb\(0,0,0\)"/g,
                     'fill="none" stroke="rgb(30,30,30)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"'
                 );
             }
-
             return svgStr;
         }
 
@@ -754,34 +769,26 @@
             statusBar.innerText = 'Generating SVG preview…';
             setTimeout(() => {
                 try {
-                    const svgStr = buildSVG();
-                    const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-                    const url  = URL.createObjectURL(blob);
+                    const url = URL.createObjectURL(new Blob([buildSVG()], { type: 'image/svg+xml' }));
                     window.open(url, '_blank');
                     statusBar.innerText = 'SVG preview opened in new tab.';
-                } catch (err) {
-                    statusBar.innerText = 'Preview error: ' + err.message;
-                }
+                } catch (err) { statusBar.innerText = 'Error: ' + err.message; }
             }, 50);
         });
 
         // --- Download SVG ---
         document.getElementById('dlSvg').addEventListener('click', () => {
-            statusBar.innerText = 'Generating SVG… (may take a moment for large images)';
+            statusBar.innerText = 'Generating SVG…';
             setTimeout(() => {
                 try {
-                    const svgStr = buildSVG();
-                    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-                    const url  = URL.createObjectURL(blob);
+                    const url  = URL.createObjectURL(new Blob([buildSVG()], { type: 'image/svg+xml;charset=utf-8' }));
                     const link = document.createElement('a');
                     link.download = 'student-drawing.svg';
                     link.href = url;
                     link.click();
                     URL.revokeObjectURL(url);
                     statusBar.innerText = 'SVG downloaded!';
-                } catch (err) {
-                    statusBar.innerText = 'Export error: ' + err.message;
-                }
+                } catch (err) { statusBar.innerText = 'Error: ' + err.message; }
             }, 50);
         });
 
@@ -794,16 +801,12 @@
             statusBar.innerText = 'PNG downloaded!';
         });
 
-        // --- Live preview on any control change ---
+        // --- Live update ---
         [contrastSlider, blurSlider, thresholdSlider, invertCheck,
          cleanupSlider, precisionSlider, windowSlider, sensitivitySlider].forEach(el => {
-            el.addEventListener('input', () => {
-                updateBadges();
-                processImage();
-            });
+            el.addEventListener('input', () => { updateBadges(); processImage(); });
         });
 
-        // Init
         updateBadges();
     </script>
 </body>
