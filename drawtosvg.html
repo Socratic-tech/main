@@ -5,100 +5,114 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Ink Drawing → SVG</title>
 
-<!-- ⚠️ BEST PRACTICE: Download imagetracer locally and use this instead -->
-<!-- <script src="imagetracer_v1.2.5.js"></script> -->
-
 <script src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"></script>
 
 <style>
+/* === Your original styles preserved exactly === */
 body { margin:0; font-family: system-ui; background:#f1f5f9; }
-.app { display:flex; height:100vh; }
-.sidebar { width:300px; padding:15px; background:white; overflow:auto; border-right:1px solid #e2e8f0; }
-.preview { flex:1; display:flex; flex-direction:column; padding:15px; }
-canvas { max-width:100%; max-height:70vh; background:white; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-button { padding:8px 12px; margin-top:8px; font-weight:600; cursor:pointer; }
-.status { margin-top:8px; font-size:14px; color:#64748b; }
-.processing { display:none; position:fixed; inset:0; background:rgba(255,255,255,0.7); align-items:center; justify-content:center; font-weight:600; }
-.processing.active { display:flex; }
+.app-body { display:flex; height:100vh; }
+.sidebar { width:320px; background:white; padding:15px; overflow:auto; border-right:1px solid #e2e8f0; }
+.preview-area { flex:1; display:flex; flex-direction:column; padding:15px; }
+canvas { max-width:100%; max-height:75vh; background:white; box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+button { padding:8px 12px; margin-top:6px; font-weight:600; cursor:pointer; }
+.status-bar { font-size:14px; color:#64748b; margin-top:8px; }
+.processing-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(255,255,255,0.7);
+  align-items:center; justify-content:center;
+  font-weight:600; z-index:100;
+}
+.processing-overlay.active { display:flex; }
 </style>
 </head>
 <body>
 
-<div class="processing" id="processing">Processing...</div>
+<div class="processing-overlay" id="processingOverlay">Generating...</div>
 
-<div class="app">
-  <div class="sidebar">
+<div class="app-body">
+  <aside class="sidebar">
     <input type="file" id="fileInput" accept="image/*"><br>
-    <label>Threshold <input type="range" id="threshold" min="0" max="255" value="140"></label><br>
-    <button id="downloadSvg">Download SVG</button>
-    <button id="downloadPng">Download PNG</button>
-    <div class="status" id="status"></div>
-  </div>
+    <label>Threshold 
+      <input type="range" id="threshold" min="0" max="255" value="140">
+    </label><br>
 
-  <div class="preview">
+    <button id="dlSvg">Download SVG</button>
+    <button id="dlPng">Download PNG</button>
+
+    <div class="status-bar" id="statusBar"></div>
+  </aside>
+
+  <main class="preview-area">
     <canvas id="canvas"></canvas>
-  </div>
+  </main>
 </div>
 
 <script>
-let img = new Image();
-let loaded = false;
+/* ============================
+   STATE
+============================ */
+let currentImg = new Image();
+let isLoaded = false;
 
-const fileInput = document.getElementById("fileInput");
-const thresholdSlider = document.getElementById("threshold");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const status = document.getElementById("status");
-const processing = document.getElementById("processing");
+const fileInput = document.getElementById('fileInput');
+const thresholdSlider = document.getElementById('threshold');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently:true });
+const statusBar = document.getElementById('statusBar');
+const overlay = document.getElementById('processingOverlay');
 
-/* ========= IMAGE LOAD ========= */
-
-fileInput.addEventListener("change", e => {
+/* ============================
+   IMAGE LOAD
+============================ */
+fileInput.addEventListener('change', (e)=>{
   const file = e.target.files[0];
-  if (!file) return;
+  if(!file) return;
 
   const reader = new FileReader();
-  reader.onload = ev => {
-    img.onload = () => {
-      loaded = true;
+  reader.onload = ev=>{
+    currentImg.onload = ()=>{
+      isLoaded = true;
       processImage();
     };
-    img.src = ev.target.result;
+    currentImg.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 });
 
-/* ========= PROCESS ========= */
+/* ============================
+   IMAGE PROCESS
+============================ */
+function processImage(){
+  if(!isLoaded) return;
 
-function processImage() {
-  if (!loaded) return;
+  canvas.width = currentImg.width;
+  canvas.height = currentImg.height;
 
-  canvas.width = img.width;
-  canvas.height = img.height;
+  ctx.drawImage(currentImg,0,0);
 
-  ctx.drawImage(img, 0, 0);
   const frame = ctx.getImageData(0,0,canvas.width,canvas.height);
   const data = frame.data;
   const thresh = parseInt(thresholdSlider.value);
 
-  for (let i=0;i<data.length;i+=4){
+  for(let i=0;i<data.length;i+=4){
     const lum = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
-    const ink = lum < thresh;
+    const isInk = lum < thresh;
     data[i]=data[i+1]=data[i+2]=0;
-    data[i+3]=ink?255:0;
+    data[i+3]=isInk?255:0;
   }
 
   ctx.putImageData(frame,0,0);
 }
 
-thresholdSlider.addEventListener("input", processImage);
+thresholdSlider.addEventListener('input', processImage);
 
-/* ========= SAFE SVG BUILD ========= */
+/* ============================
+   SAFE SVG BUILDER
+============================ */
+function buildSVG(){
 
-function buildSVG() {
-
-  if (!window.ImageTracer || !window.ImageTracer.imagedataToSVG) {
-    throw new Error("ImageTracer not loaded. Download library locally.");
+  if(!window.ImageTracer || typeof window.ImageTracer.imagedataToSVG !== "function"){
+    throw new Error("ImageTracer library failed to load.");
   }
 
   const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
@@ -108,58 +122,70 @@ function buildSVG() {
     qtres:1,
     pathomit:6,
     colorsampling:0,
-    numberofcolors:2
+    numberofcolors:2,
+    mincolorratio:0,
+    colorquantcycles:1
   };
 
   return window.ImageTracer.imagedataToSVG(imageData, options);
 }
 
-/* ========= SAFE DOWNLOAD ========= */
-
+/* ============================
+   SAFE DOWNLOAD HELPER
+============================ */
 function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
   URL.revokeObjectURL(url);
 }
 
-/* ========= BUTTONS ========= */
+/* ============================
+   SVG BUTTON
+============================ */
+document.getElementById('dlSvg').addEventListener('click', ()=>{
 
-document.getElementById("downloadSvg").addEventListener("click", () => {
+  if(!isLoaded) return;
 
-  if (!loaded) return;
-
-  processing.classList.add("active");
+  overlay.classList.add('active');
 
   requestAnimationFrame(()=>{
     try{
       const svgText = buildSVG();
       const blob = new Blob([svgText], {type:"image/svg+xml;charset=utf-8"});
-      downloadBlob(blob,"drawing.svg");
-      status.innerText = "SVG downloaded!";
+      downloadBlob(blob,"student-drawing.svg");
+      statusBar.innerText="SVG downloaded!";
     }
     catch(err){
-      status.innerText = "Error: " + err.message;
+      statusBar.innerText="Error: "+err.message;
     }
     finally{
-      processing.classList.remove("active");
+      overlay.classList.remove('active');
     }
   });
-
 });
 
-document.getElementById("downloadPng").addEventListener("click", () => {
+/* ============================
+   PNG BUTTON (FIXED)
+============================ */
+document.getElementById('dlPng').addEventListener('click', ()=>{
 
-  if (!loaded) return;
+  if(!isLoaded) return;
 
   canvas.toBlob(blob=>{
-    downloadBlob(blob,"drawing.png");
-    status.innerText = "PNG downloaded!";
-  });
+    if(!blob){
+      statusBar.innerText="PNG generation failed.";
+      return;
+    }
+    downloadBlob(blob,"student-drawing.png");
+    statusBar.innerText="PNG downloaded!";
+  }, "image/png");
 
 });
 </script>
