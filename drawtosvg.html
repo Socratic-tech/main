@@ -7,7 +7,6 @@
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
 
-<!-- Keep CDN or replace with local file -->
 <script src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"
         onerror="document.getElementById('tracerError').style.display='block'"></script>
 
@@ -217,6 +216,7 @@ function processImage(){
     for(let i=0;i<data.length;i+=4){
         const lum=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
         const ink=lum<thresh;
+        // Make the ink black (0,0,0) and the rest transparent
         data[i]=data[i+1]=data[i+2]=0;
         data[i+3]=ink?255:0;
     }
@@ -229,17 +229,17 @@ thresholdSlider.addEventListener('input',processImage);
 // FIXED SVG BUILDER
 // =======================
 function buildSVG(){
-
-    if(!window.ImageTracer || typeof window.ImageTracer.imagedataToSVG!=="function"){
-        throw new Error("ImageTracer failed to load.");
+    // Validation for library
+    if(!window.ImageTracer){
+        throw new Error("ImageTracer library not loaded.");
     }
 
     const MAX_TRACE_DIM=1600;
-
     let workingCanvas=canvas;
     let w=canvas.width;
     let h=canvas.height;
 
+    // Scale down for performance if necessary
     if(Math.max(w,h)>MAX_TRACE_DIM){
         const scale=MAX_TRACE_DIM/Math.max(w,h);
         const scaled=document.createElement('canvas');
@@ -254,12 +254,16 @@ function buildSVG(){
 
     const imageData=workingCanvas.getContext('2d').getImageData(0,0,w,h);
 
-    return window.ImageTracer.imagedataToSVG(imageData,{
-        ltres:1,
-        qtres:1,
-        pathomit:6,
-        colorsampling:0,
-        numberofcolors:2
+    // ImageTracer options optimized for binary ink drawings
+    return ImageTracer.imagedataToSVG(imageData,{
+        ltres: 1,
+        qtres: 1,
+        pathomit: 16,
+        rightangleenhance: true,
+        colorsampling: 0,
+        numberofcolors: 2,
+        mincolorratio: 0,
+        pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:0}] 
     });
 }
 
@@ -281,19 +285,24 @@ function downloadBlob(blob,filename){
 // SVG BUTTON
 // =======================
 document.getElementById('dlSvg').addEventListener('click',()=>{
+    // Show overlay
     overlay.classList.add('active');
-    requestAnimationFrame(()=>{
+    
+    // We use setTimeout (0ms or 10ms) to let the browser render the overlay 
+    // before the heavy ImageTracer computation locks the main thread.
+    setTimeout(() => {
         try{
             const svgText=buildSVG();
             const blob=new Blob([svgText],{type:'image/svg+xml;charset=utf-8'});
             downloadBlob(blob,'student-drawing.svg');
             statusBar.innerText='SVG downloaded!';
         }catch(err){
+            console.error(err);
             statusBar.innerText='Error: '+err.message;
         }finally{
             overlay.classList.remove('active');
         }
-    });
+    }, 20);
 });
 
 // =======================
