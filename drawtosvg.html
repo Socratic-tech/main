@@ -7,9 +7,6 @@
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
 
-<script src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"
-        onerror="document.getElementById('tracerError').style.display='block'"></script>
-
 <style>
 /* ===========================
    ORIGINAL STYLES (COMPLETE)
@@ -130,8 +127,8 @@ body{display:flex;flex-direction:column;}
 
 <div class="processing-overlay" id="processingOverlay">Generating SVG…</div>
 
-<div id="tracerError" style="display:none;color:#991b1b;padding:10px;">
-⚠️ ImageTracer failed to load.
+<div id="tracerError" style="display:none;color:#991b1b;padding:10px;background:#fee2e2;border-bottom:1px solid #ef4444;">
+⚠️ ImageTracer failed to load. Please check your internet connection.
 </div>
 
 <header class="app-header">
@@ -164,6 +161,9 @@ body{display:flex;flex-direction:column;}
 </main>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"
+        onerror="document.getElementById('tracerError').style.display='block'"></script>
 
 <script>
 // =======================
@@ -228,14 +228,11 @@ thresholdSlider.addEventListener('input',processImage);
 // FIXED SVG BUILDER
 // =======================
 function buildSVG(){
-
-    // Ensure library exists. Use 'ImageTracer' directly as it attaches to window.
     if(typeof ImageTracer === 'undefined'){
         throw new Error("ImageTracer library not loaded.");
     }
 
     const MAX_TRACE_DIM=1600;
-
     let workingCanvas=canvas;
     let w=canvas.width;
     let h=canvas.height;
@@ -254,14 +251,14 @@ function buildSVG(){
 
     const imageData=workingCanvas.getContext('2d').getImageData(0,0,w,h);
 
-    // Fixed parameters: ImageTracer expects specific option keys
+    // Fixed parameters for binary (ink/transparent) images
     return ImageTracer.imagedataToSVG(imageData,{
         ltres:1,
         qtres:1,
         pathomit:8,
         colorsampling:0,
         numberofcolors:2,
-        pal: [{r:0,g:0,b:0,a:255},{r:255,g:255,b:255,a:0}] // Force black ink / transparent BG
+        pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:0}]
     });
 }
 
@@ -284,7 +281,8 @@ function downloadBlob(blob,filename){
 // =======================
 document.getElementById('dlSvg').addEventListener('click',()=>{
     overlay.classList.add('active');
-    // Using a tiny delay to ensure the DOM updates the overlay visibility before the thread locks
+    
+    // Using setTimeout to give the UI a chance to show the overlay
     setTimeout(()=>{
         try{
             const svgText=buildSVG();
