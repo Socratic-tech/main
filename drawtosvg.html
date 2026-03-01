@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Ink Drawing → SVG</title>
-    <script src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"></script>
-
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+    <script src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"
+            onerror="document.getElementById('tracerError').style.display='block'"></script>
     <style>
         :root {
-            --primary: #2563eb;
+            --primary:       #2563eb;
             --primary-light: #eff6ff;
-            --text-main: #334155;
-            --text-sub: #64748b;
-            --bg: #f1f5f9;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --green: #10b981;
-            --green-dark: #059669;
-            --sidebar-w: 320px;
+            --text-main:     #334155;
+            --text-sub:      #64748b;
+            --bg:            #f1f5f9;
+            --border:        #e2e8f0;
+            --green:         #10b981;
+            --green-dark:    #059669;
+            --orange:        #f97316;
+            --sidebar-w:     320px;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ── Full-viewport app shell ── */
         html, body {
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -30,43 +30,38 @@
             background: var(--bg);
             overflow: hidden;
         }
+        body { display: flex; flex-direction: column; }
 
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ── Top header bar ── */
+        /* ── Header ── */
         .app-header {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 0 20px;
-            height: 52px;
+            height: 50px;
             background: white;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        .app-header h1 {
-            font-size: 1.05rem;
-            font-weight: 800;
-            letter-spacing: -0.2px;
-        }
-        .app-header .subtitle {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            margin-left: 2px;
+        .app-header h1 { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.2px; }
+        .app-header .subtitle { font-size: 0.8rem; color: var(--text-sub); }
+
+        /* ── Error banner ── */
+        #tracerError {
+            display: none;
+            background: #fef2f2;
+            border-bottom: 1px solid #fca5a5;
+            color: #991b1b;
+            padding: 8px 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
         }
 
-        /* ── Main two-column layout ── */
-        .app-body {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+        /* ── Layout ── */
+        .app-body { display: flex; flex: 1; overflow: hidden; }
 
-        /* ── Left sidebar (controls) ── */
+        /* ── Sidebar ── */
         .sidebar {
             width: var(--sidebar-w);
             flex-shrink: 0;
@@ -76,56 +71,76 @@
             flex-direction: column;
             overflow: hidden;
         }
-
         .sidebar-scroll {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 14px;
             scrollbar-width: thin;
             scrollbar-color: #cbd5e1 transparent;
         }
         .sidebar-scroll::-webkit-scrollbar { width: 5px; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
-        /* ── Right preview area ── */
+        /* ── Preview area ── */
         .preview-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 16px;
             overflow: hidden;
-            gap: 10px;
+            gap: 8px;
         }
 
+        /* Crop toolbar — shown above canvas during crop drawing mode */
+        .crop-toolbar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 7px;
+            padding: 8px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #9a3412;
+            flex-shrink: 0;
+        }
+        .crop-toolbar.visible { display: flex; }
+        .crop-toolbar-btns { display: flex; gap: 8px; }
+
+        /* SVG preview toolbar — shown when SVG preview is active */
+        .svg-preview-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 7px;
+            padding: 7px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #166534;
+            flex-shrink: 0;
+        }
+        .svg-preview-bar.visible { display: flex; }
+
+        /* Canvas frame */
         .canvas-frame {
+            flex: 1;
             background: #94a3b8;
-            padding: 10px;
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            max-width: 100%;
-            max-height: 100%;
-            flex: 1;
-            width: 100%;
+            overflow: hidden;
+            position: relative;
         }
 
-        canvas {
-            max-width: 100%;
-            max-height: 100%;
-            background: white;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-            border-radius: 2px;
-            display: block;
-            object-fit: contain;
-        }
-
+        /* Placeholder */
         .placeholder {
             width: 100%;
             height: 100%;
-            min-height: 200px;
             background: white;
             border-radius: 4px;
             display: flex;
@@ -135,679 +150,951 @@
             gap: 10px;
             color: #94a3b8;
             font-size: 0.9rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
         }
         .placeholder-icon { font-size: 2.5rem; }
+
+        /* Canvas wrapper — relative so crop overlay can be absolute */
+        .canvas-wrapper {
+            position: relative;
+            display: none;          /* shown after upload */
+            max-width: 100%;
+            max-height: 100%;
+            line-height: 0;         /* removes gap under inline canvas */
+        }
+
+        #canvas {
+            max-width: 100%;
+            max-height: calc(100vh - 160px);
+            display: block;
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+
+        /* Crop overlay — same display size as #canvas */
+        #cropCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            cursor: crosshair;
+            border-radius: 2px;
+        }
+        #cropCanvas.active { display: block; }
+
+        /* SVG preview image */
+        #svgPreviewImg {
+            display: none;
+            max-width: 100%;
+            max-height: calc(100vh - 160px);
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
 
         .status-bar {
             font-size: 0.78rem;
             color: var(--text-sub);
             text-align: center;
+            height: 18px;
             flex-shrink: 0;
-            height: 20px;
         }
 
-        /* ── Sidebar controls ── */
-
+        /* ── Sidebar UI elements ── */
         .upload-zone {
             border: 2px dashed #bfdbfe;
             background: var(--primary-light);
             color: var(--primary);
             font-weight: 700;
-            padding: 12px;
+            padding: 11px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
             transition: 0.15s;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
         }
         .upload-zone:hover { background: #dbeafe; border-color: var(--primary); }
 
         .section-label {
-            font-size: 0.68rem;
+            font-size: 0.67rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             color: #94a3b8;
-            margin-bottom: 8px;
-            margin-top: 14px;
+            margin-bottom: 7px;
+            margin-top: 13px;
         }
+        .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
 
-        .divider {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 14px 0;
-        }
-
-        /* Output style tabs */
-        .tabs {
+        /* Tab groups */
+        .tabs, .thresh-tabs {
             display: flex;
             background: #f1f5f9;
             padding: 3px;
             border-radius: 7px;
             margin-bottom: 0;
         }
-        .tab-btn {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 7px;
-            font-weight: 600;
-            font-size: 0.82rem;
-            color: var(--text-sub);
-            cursor: pointer;
-            border-radius: 5px;
-            transition: 0.12s;
-        }
-        .tab-btn.active {
-            background: white;
-            color: var(--primary);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-
-        /* Threshold mini-tabs */
-        .thresh-tabs {
-            display: flex;
-            background: #f1f5f9;
-            padding: 3px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .thresh-tab {
+        .tab-btn, .thresh-tab {
             flex: 1;
             border: none;
             background: transparent;
             padding: 6px;
             font-weight: 600;
-            font-size: 0.79rem;
+            font-size: 0.81rem;
             color: var(--text-sub);
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 5px;
             transition: 0.12s;
         }
-        .thresh-tab.active {
+        .tab-btn.active, .thresh-tab.active {
             background: white;
             color: var(--primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
 
         /* Sliders */
-        .control-row { margin-bottom: 12px; }
-
+        .control-row { margin-bottom: 11px; }
         .label-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
-            font-size: 0.83rem;
+            font-size: 0.82rem;
             font-weight: 600;
-            color: var(--text-main);
         }
-        .label-hint {
-            font-size: 0.72rem;
-            color: var(--text-sub);
-            margin-top: 3px;
-            line-height: 1.35;
-        }
+        .label-hint { font-size: 0.71rem; color: var(--text-sub); margin-top: 3px; line-height: 1.35; }
         .val-badge {
             background: #f1f5f9;
             padding: 1px 6px;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             color: var(--text-sub);
             font-weight: 600;
         }
         input[type="range"] {
-            width: 100%;
-            height: 5px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-            cursor: pointer;
+            width: 100%; height: 5px;
+            background: #e2e8f0; border-radius: 3px;
+            outline: none; -webkit-appearance: none; cursor: pointer;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 16px; height: 16px;
             background: var(--primary);
-            border-radius: 50%;
-            cursor: pointer;
+            border-radius: 50%; cursor: pointer;
             border: 2px solid white;
             box-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
-
-        /* Checkbox */
         .checkbox-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 6px;
-            font-size: 0.83rem;
-            color: var(--text-main);
-            cursor: pointer;
-            line-height: 1.4;
+            display: flex; align-items: flex-start;
+            gap: 8px; margin-bottom: 6px;
+            font-size: 0.82rem; cursor: pointer; line-height: 1.4;
         }
         input[type="checkbox"] {
             accent-color: var(--primary);
-            width: 15px;
-            height: 15px;
-            flex-shrink: 0;
-            margin-top: 2px;
+            width: 15px; height: 15px;
+            flex-shrink: 0; margin-top: 2px;
         }
 
-        /* Adaptive badge */
         .adaptive-badge {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-            font-size: 0.74rem;
-            font-weight: 600;
-            border-radius: 6px;
-            padding: 6px 9px;
-            margin-bottom: 10px;
-            line-height: 1.4;
+            background: #f0fdf4; border: 1px solid #bbf7d0;
+            color: #166534; font-size: 0.73rem; font-weight: 600;
+            border-radius: 6px; padding: 6px 9px;
+            margin-bottom: 9px; line-height: 1.4;
         }
 
-        /* Action buttons — pinned at bottom of sidebar */
+        /* Crop status badge */
+        .crop-active-badge {
+            display: none;
+            background: #fff7ed; border: 1px solid #fed7aa;
+            color: #9a3412; font-size: 0.73rem; font-weight: 600;
+            border-radius: 6px; padding: 5px 9px;
+            margin-top: 6px; margin-bottom: 4px;
+            align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .crop-active-badge.visible { display: flex; }
+        .crop-active-badge button {
+            background: none; border: none; color: #9a3412;
+            font-size: 0.71rem; font-weight: 700; cursor: pointer;
+            text-decoration: underline; padding: 0;
+        }
+
+        /* Buttons */
         .sidebar-footer {
             flex-shrink: 0;
-            padding: 12px 16px;
+            padding: 11px 14px;
             border-top: 1px solid var(--border);
             background: white;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            display: flex; flex-direction: column; gap: 7px;
         }
-
-        .btn-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
         .btn {
-            padding: 10px;
-            border: none;
-            border-radius: 7px;
-            font-weight: 700;
-            cursor: pointer;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.85rem;
-            transition: 0.12s;
+            padding: 9px; border: none; border-radius: 7px;
+            font-weight: 700; cursor: pointer; color: white;
+            display: flex; justify-content: center; align-items: center;
+            gap: 5px; font-size: 0.84rem; transition: 0.12s;
+            white-space: nowrap;
         }
-        .btn-svg {
-            background: var(--green);
-            width: 100%;
-            padding: 11px;
-            font-size: 0.95rem;
-        }
-        .btn-svg:hover { background: var(--green-dark); }
+        .btn-svg  { background: var(--green); width: 100%; padding: 11px; font-size: 0.93rem; }
+        .btn-svg:hover  { background: var(--green-dark); }
         .btn-png  { background: #334155; }
         .btn-png:hover  { background: #1e293b; }
         .btn-preview { background: var(--primary); }
         .btn-preview:hover { background: #1d4ed8; }
+        .btn-sm {
+            padding: 5px 11px; border: none; border-radius: 5px;
+            font-size: 0.78rem; font-weight: 700; cursor: pointer;
+        }
+        .btn-apply  { background: #166534; color: white; }
+        .btn-cancel { background: #6b7280; color: white; }
+        .btn-back   { background: none; border: 1px solid #166534; color: #166534; }
         .btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
-        /* Tip box */
+        /* Crop start button in sidebar */
+        .btn-crop-start {
+            width: 100%;
+            padding: 8px;
+            background: #fff7ed;
+            border: 1.5px solid #fed7aa;
+            color: #c2410c;
+            border-radius: 7px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.12s;
+        }
+        .btn-crop-start:hover { background: #ffedd5; }
+        .btn-crop-start:disabled { opacity: 0.38; cursor: not-allowed; }
+
+        /* Processing overlay */
+        .processing-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(2px); z-index: 100;
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 14px;
+            font-size: 0.9rem; font-weight: 600;
+        }
+        .processing-overlay.active { display: flex; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         .tip-box {
-            background: #fefce8;
-            border: 1px solid #fde68a;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 0.76rem;
-            color: #92400e;
-            line-height: 1.45;
-            margin-top: 14px;
+            background: #fefce8; border: 1px solid #fde68a;
+            border-radius: 6px; padding: 7px 10px;
+            font-size: 0.74rem; color: #92400e; line-height: 1.45;
+            margin-top: 12px;
         }
         .tip-box strong { color: #78350f; }
-
         #fileInput { display: none; }
 
-        /* Responsive: stack on small screens */
         @media (max-width: 640px) {
             html, body { overflow: auto; height: auto; }
-            .app-body { flex-direction: column; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
-            .sidebar-scroll { max-height: none; overflow-y: visible; }
-            .sidebar-footer { position: static; }
-            .preview-area { min-height: 50vh; }
-            .canvas-frame { flex: none; width: 100%; height: auto; min-height: 200px; }
+            .app-body  { flex-direction: column; }
+            .sidebar   { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+            .sidebar-scroll { overflow-y: visible; }
+            .preview-area { min-height: 60vh; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <header class="app-header">
-        <h1>✏️ Student Ink Drawing → SVG</h1>
-        <span class="subtitle">Upload a photo · adjust · download a clean SVG</span>
-    </header>
+<div class="processing-overlay" id="processingOverlay">
+    <div class="spinner"></div>
+    <span id="processingMsg">Generating SVG…</span>
+</div>
 
-    <div class="app-body">
+<div id="tracerError">
+    ⚠️ ImageTracer failed to load (likely blocked by an ad blocker). SVG export won't work — try disabling your ad blocker for this page.
+</div>
 
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-scroll">
+<header class="app-header">
+    <h1>✏️ Student Ink Drawing → SVG</h1>
+    <span class="subtitle">Upload · crop · adjust · download</span>
+</header>
 
-                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                    📸 Upload Drawing Photo
+<div class="app-body">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar-scroll">
+
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                📸 Upload Drawing Photo
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+
+            <!-- Crop -->
+            <div class="section-label">Crop</div>
+            <button class="btn-crop-start" id="btnCropStart" onclick="enterCropMode()" disabled>
+                ✂️ Draw Crop Area
+            </button>
+            <div class="crop-active-badge" id="cropBadge">
+                <span>✂️ Crop active</span>
+                <button onclick="resetCrop()">Reset</button>
+            </div>
+            <div class="label-hint" style="margin-top:5px;">
+                Click then drag on the preview to select the area containing the drawing.
+            </div>
+
+            <hr class="divider">
+            <div class="section-label">Output Style</div>
+            <div class="tabs">
+                <button class="tab-btn active" id="btnFilled"  onclick="setMode('filled')">Filled</button>
+                <button class="tab-btn"        id="btnOutline" onclick="setMode('outline')">Outline Only</button>
+            </div>
+
+            <hr class="divider">
+            <div class="section-label">Image Prep</div>
+
+            <div class="control-row">
+                <div class="label-row">
+                    <span>Contrast Boost</span>
+                    <span class="val-badge" id="contrastVal">30%</span>
                 </div>
-                <input type="file" id="fileInput" accept="image/*">
+                <input type="range" id="contrast" min="0" max="200" value="30">
+                <div class="label-hint">Sharpens faint or washed-out ink lines.</div>
+            </div>
 
-                <div class="section-label">Output Style</div>
-                <div class="tabs">
-                    <button class="tab-btn active" id="btnFilled" onclick="setMode('filled')">Filled</button>
-                    <button class="tab-btn" id="btnOutline" onclick="setMode('outline')">Outline Only</button>
+            <div class="control-row">
+                <div class="label-row">
+                    <span>Smoothing</span>
+                    <span class="val-badge" id="blurVal">0.5px</span>
                 </div>
+                <input type="range" id="blur" min="0" max="5" value="0.5" step="0.5">
+                <div class="label-hint">Helps with grain. Keep low for fine lines.</div>
+            </div>
 
-                <hr class="divider">
-                <div class="section-label">Image Prep</div>
+            <hr class="divider">
+            <div class="section-label">Ink Detection</div>
 
+            <div class="thresh-tabs">
+                <button class="thresh-tab active" id="btnSimple"   onclick="setThreshMode('simple')">Simple</button>
+                <button class="thresh-tab"        id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
+            </div>
+
+            <div id="simpleControls" style="margin-top:9px;">
                 <div class="control-row">
                     <div class="label-row">
-                        <span>Contrast Boost</span>
-                        <span class="val-badge" id="contrastVal">30%</span>
+                        <span>Threshold</span>
+                        <span class="val-badge" id="threshVal">140</span>
                     </div>
-                    <input type="range" id="contrast" min="0" max="200" value="30">
-                    <div class="label-hint">Increase to sharpen faint or washed-out ink.</div>
-                </div>
-
-                <div class="control-row">
-                    <div class="label-row">
-                        <span>Smoothing</span>
-                        <span class="val-badge" id="blurVal">0.5px</span>
-                    </div>
-                    <input type="range" id="blur" min="0" max="5" value="0.5" step="0.5">
-                    <div class="label-hint">Helps with grainy photos. Keep low for fine lines.</div>
-                </div>
-
-                <hr class="divider">
-                <div class="section-label">Ink Detection</div>
-
-                <div class="thresh-tabs">
-                    <button class="thresh-tab active" id="btnSimple" onclick="setThreshMode('simple')">Simple</button>
-                    <button class="thresh-tab" id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
-                </div>
-
-                <!-- Simple controls -->
-                <div id="simpleControls">
-                    <div class="control-row">
-                        <div class="label-row">
-                            <span>Threshold</span>
-                            <span class="val-badge" id="threshVal">140</span>
-                        </div>
-                        <input type="range" id="threshold" min="0" max="255" value="140">
-                        <div class="label-hint">Lower = only darkest marks. Higher = picks up lighter lines too.</div>
-                    </div>
-                </div>
-
-                <!-- Adaptive controls -->
-                <div id="adaptiveControls" style="display:none;">
-                    <div class="adaptive-badge">✅ Handles shadows &amp; uneven lighting — best for phone photos.</div>
-                    <div class="control-row">
-                        <div class="label-row">
-                            <span>Local Area Size</span>
-                            <span class="val-badge" id="windowVal">80px</span>
-                        </div>
-                        <input type="range" id="windowSize" min="20" max="200" value="80" step="5">
-                        <div class="label-hint">Larger = handles bigger shadows across the paper.</div>
-                    </div>
-                    <div class="control-row">
-                        <div class="label-row">
-                            <span>Ink Sensitivity</span>
-                            <span class="val-badge" id="sensitivityVal">12%</span>
-                        </div>
-                        <input type="range" id="sensitivity" min="1" max="35" value="12">
-                        <div class="label-hint">Higher = picks up faint lines. Lower = only bold marks.</div>
-                    </div>
-                </div>
-
-                <label class="checkbox-row">
-                    <input type="checkbox" id="invert">
-                    Ink is lighter than background (e.g. white pen on dark paper)
-                </label>
-
-                <hr class="divider">
-                <div class="section-label">SVG Quality</div>
-
-                <div class="control-row">
-                    <div class="label-row">
-                        <span>Noise Cleanup</span>
-                        <span class="val-badge" id="cleanVal">6</span>
-                    </div>
-                    <input type="range" id="cleanup" min="1" max="30" value="6">
-                    <div class="label-hint">Higher = removes speckles. Lower = keeps fine details.</div>
-                </div>
-
-                <div class="control-row">
-                    <div class="label-row">
-                        <span>Path Precision</span>
-                        <span class="val-badge" id="precisionVal">1.0</span>
-                    </div>
-                    <input type="range" id="precision" min="0.1" max="5" value="1.0" step="0.1">
-                    <div class="label-hint">Lower = smoother curves. Higher = more faithful to original.</div>
-                </div>
-
-                <div class="tip-box">
-                    <strong>📷 Tips:</strong> Even lighting, flat surface, shoot straight down. Avoid shadows on the paper.
-                </div>
-
-            </div><!-- end sidebar-scroll -->
-
-            <!-- Pinned action buttons -->
-            <div class="sidebar-footer">
-                <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG</button>
-                <div class="btn-row">
-                    <button id="previewSvg" class="btn btn-preview" disabled>👁 Preview SVG</button>
-                    <button id="dlPng" class="btn btn-png" disabled>⬇ PNG</button>
+                    <input type="range" id="threshold" min="0" max="255" value="140">
+                    <div class="label-hint">Lower = darkest marks only. Higher = picks up more.</div>
                 </div>
             </div>
 
-        </aside>
-
-        <!-- Preview -->
-        <main class="preview-area">
-            <div class="canvas-frame" id="canvasFrame">
-                <div class="placeholder" id="placeholder">
-                    <span class="placeholder-icon">🖊️</span>
-                    <span>Upload a drawing photo to preview</span>
+            <div id="adaptiveControls" style="display:none; margin-top:9px;">
+                <div class="adaptive-badge">✅ Handles shadows &amp; uneven lighting — best for phone photos.</div>
+                <div class="control-row">
+                    <div class="label-row">
+                        <span>Local Area Size</span>
+                        <span class="val-badge" id="windowVal">80px</span>
+                    </div>
+                    <input type="range" id="windowSize" min="20" max="200" value="80" step="5">
+                    <div class="label-hint">Larger handles bigger shadow gradients.</div>
                 </div>
-                <canvas id="canvas" style="display:none;"></canvas>
+                <div class="control-row">
+                    <div class="label-row">
+                        <span>Ink Sensitivity</span>
+                        <span class="val-badge" id="sensitivityVal">12%</span>
+                    </div>
+                    <input type="range" id="sensitivity" min="1" max="35" value="12">
+                    <div class="label-hint">Higher picks up faint lines; lower = bold marks only.</div>
+                </div>
             </div>
-            <div class="status-bar" id="statusBar"></div>
-        </main>
 
-    </div>
+            <label class="checkbox-row" style="margin-top:4px;">
+                <input type="checkbox" id="invert">
+                Ink is lighter than background (e.g. white pen on dark paper)
+            </label>
 
-    <script>
-        let currentMode       = 'filled';
-        let currentThreshMode = 'simple';
-        let currentImg = new Image();
-        let isLoaded   = false;
+            <hr class="divider">
+            <div class="section-label">SVG Quality</div>
 
-        const fileInput         = document.getElementById('fileInput');
-        const contrastSlider    = document.getElementById('contrast');
-        const blurSlider        = document.getElementById('blur');
-        const thresholdSlider   = document.getElementById('threshold');
-        const invertCheck       = document.getElementById('invert');
-        const cleanupSlider     = document.getElementById('cleanup');
-        const precisionSlider   = document.getElementById('precision');
-        const windowSlider      = document.getElementById('windowSize');
-        const sensitivitySlider = document.getElementById('sensitivity');
-        const canvas    = document.getElementById('canvas');
-        const ctx       = canvas.getContext('2d', { willReadFrequently: true });
-        const statusBar = document.getElementById('statusBar');
+            <div class="control-row">
+                <div class="label-row">
+                    <span>Noise Cleanup</span>
+                    <span class="val-badge" id="cleanVal">6</span>
+                </div>
+                <input type="range" id="cleanup" min="1" max="30" value="6">
+                <div class="label-hint">Higher removes speckles. Lower keeps fine details.</div>
+            </div>
 
-        // --- Badges ---
-        function updateBadges() {
-            document.getElementById('contrastVal').innerText    = contrastSlider.value + '%';
-            document.getElementById('blurVal').innerText        = blurSlider.value + 'px';
-            document.getElementById('threshVal').innerText      = thresholdSlider.value;
-            document.getElementById('cleanVal').innerText       = cleanupSlider.value;
-            document.getElementById('precisionVal').innerText   = parseFloat(precisionSlider.value).toFixed(1);
-            document.getElementById('windowVal').innerText      = windowSlider.value + 'px';
-            document.getElementById('sensitivityVal').innerText = sensitivitySlider.value + '%';
-        }
+            <div class="control-row">
+                <div class="label-row">
+                    <span>Path Precision</span>
+                    <span class="val-badge" id="precisionVal">1.0</span>
+                </div>
+                <input type="range" id="precision" min="0.1" max="5" value="1.0" step="0.1">
+                <div class="label-hint">Lower = smoother curves. Higher = more faithful.</div>
+            </div>
 
-        // --- Threshold Mode ---
-        function setThreshMode(mode) {
-            currentThreshMode = mode;
-            document.getElementById('btnSimple').className   = mode === 'simple'   ? 'thresh-tab active' : 'thresh-tab';
-            document.getElementById('btnAdaptive').className = mode === 'adaptive' ? 'thresh-tab active' : 'thresh-tab';
-            document.getElementById('simpleControls').style.display   = mode === 'simple'   ? 'block' : 'none';
-            document.getElementById('adaptiveControls').style.display = mode === 'adaptive' ? 'block' : 'none';
+            <div class="tip-box">
+                <strong>📷 Tips:</strong> Even lighting, flat surface, shoot straight down. Avoid shadows on the paper.
+            </div>
+
+        </div><!-- end sidebar-scroll -->
+
+        <div class="sidebar-footer">
+            <button id="dlSvg"     class="btn btn-svg"     disabled>⬇ Download SVG</button>
+            <div class="btn-row">
+                <button id="previewSvg" class="btn btn-preview" disabled>👁 Preview SVG</button>
+                <button id="dlPng"      class="btn btn-png"     disabled>⬇ PNG</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Preview ── -->
+    <main class="preview-area">
+
+        <!-- Shown while drawing a crop rectangle -->
+        <div class="crop-toolbar" id="cropToolbar">
+            <span>🖱 Drag on the image to select the crop area</span>
+            <div class="crop-toolbar-btns">
+                <button class="btn-sm btn-apply"  id="btnApplyCrop"  onclick="applyCrop()" disabled>✓ Apply Crop</button>
+                <button class="btn-sm btn-cancel" onclick="cancelCropMode()">✕ Cancel</button>
+            </div>
+        </div>
+
+        <!-- Shown when SVG preview is active -->
+        <div class="svg-preview-bar" id="svgPreviewBar">
+            <span>👁 SVG Preview — this is the actual vector output</span>
+            <button class="btn-sm btn-back" onclick="backToLive()">← Live Preview</button>
+        </div>
+
+        <div class="canvas-frame">
+            <div class="placeholder" id="placeholder">
+                <span class="placeholder-icon">🖊️</span>
+                <span>Upload a drawing photo to get started</span>
+            </div>
+
+            <!-- Wrapper needed so the crop canvas can overlay exactly -->
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="canvas"></canvas>
+                <canvas id="cropCanvas"></canvas>
+            </div>
+
+            <!-- SVG preview — shown instead of canvas when preview mode is active -->
+            <img id="svgPreviewImg" alt="SVG Preview">
+        </div>
+
+        <div class="status-bar" id="statusBar"></div>
+    </main>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let currentMode       = 'filled';
+let currentThreshMode = 'simple';
+let currentImg        = new Image();
+let isLoaded          = false;
+
+// Crop state
+let cropRect    = null;   // Applied crop: {x,y,w,h} in image px coords
+let isCropMode  = false;  // Currently drawing a selection
+let dragStart   = null;   // {x,y} image coords
+let dragEnd     = null;   // {x,y} image coords
+
+// ═══════════════════════════════════════
+//  ELEMENT REFS
+// ═══════════════════════════════════════
+const fileInput         = document.getElementById('fileInput');
+const contrastSlider    = document.getElementById('contrast');
+const blurSlider        = document.getElementById('blur');
+const thresholdSlider   = document.getElementById('threshold');
+const invertCheck       = document.getElementById('invert');
+const cleanupSlider     = document.getElementById('cleanup');
+const precisionSlider   = document.getElementById('precision');
+const windowSlider      = document.getElementById('windowSize');
+const sensitivitySlider = document.getElementById('sensitivity');
+const canvas            = document.getElementById('canvas');
+const ctx               = canvas.getContext('2d', { willReadFrequently: true });
+const cropCanvas        = document.getElementById('cropCanvas');
+const cropCtx           = cropCanvas.getContext('2d', { willReadFrequently: true });
+const canvasWrapper     = document.getElementById('canvasWrapper');
+const svgPreviewImg     = document.getElementById('svgPreviewImg');
+const statusBar         = document.getElementById('statusBar');
+
+// ═══════════════════════════════════════
+//  BADGES
+// ═══════════════════════════════════════
+function updateBadges() {
+    document.getElementById('contrastVal').innerText    = contrastSlider.value + '%';
+    document.getElementById('blurVal').innerText        = blurSlider.value + 'px';
+    document.getElementById('threshVal').innerText      = thresholdSlider.value;
+    document.getElementById('cleanVal').innerText       = cleanupSlider.value;
+    document.getElementById('precisionVal').innerText   = parseFloat(precisionSlider.value).toFixed(1);
+    document.getElementById('windowVal').innerText      = windowSlider.value + 'px';
+    document.getElementById('sensitivityVal').innerText = sensitivitySlider.value + '%';
+}
+
+// ═══════════════════════════════════════
+//  MODE SWITCHES
+// ═══════════════════════════════════════
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btnFilled').className  = mode === 'filled'  ? 'tab-btn active' : 'tab-btn';
+    document.getElementById('btnOutline').className = mode === 'outline' ? 'tab-btn active' : 'tab-btn';
+    processImage();
+}
+
+function setThreshMode(mode) {
+    currentThreshMode = mode;
+    document.getElementById('btnSimple').className   = mode === 'simple'   ? 'thresh-tab active' : 'thresh-tab';
+    document.getElementById('btnAdaptive').className = mode === 'adaptive' ? 'thresh-tab active' : 'thresh-tab';
+    document.getElementById('simpleControls').style.display   = mode === 'simple'   ? 'block' : 'none';
+    document.getElementById('adaptiveControls').style.display = mode === 'adaptive' ? 'block' : 'none';
+    processImage();
+}
+
+// ═══════════════════════════════════════
+//  UPLOAD
+// ═══════════════════════════════════════
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    statusBar.innerText = 'Loading…';
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+            currentImg = img;
+            isLoaded   = true;
+            cropRect   = null;
+            document.getElementById('placeholder').style.display = 'none';
+            canvasWrapper.style.display = 'block';
+            document.getElementById('dlSvg').disabled      = false;
+            document.getElementById('dlPng').disabled      = false;
+            document.getElementById('previewSvg').disabled = false;
+            document.getElementById('btnCropStart').disabled = false;
+            document.getElementById('cropBadge').classList.remove('visible');
+            backToLive();   // ensure canvas is shown
             processImage();
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// ═══════════════════════════════════════
+//  CROP TOOL
+// ═══════════════════════════════════════
+
+/** Map a pointer event's client coords → image pixel coords */
+function clientToImage(clientX, clientY) {
+    const r  = canvas.getBoundingClientRect();
+    const sx = canvas.width  / r.width;
+    const sy = canvas.height / r.height;
+    return {
+        x: Math.max(0, Math.min(canvas.width  - 1, Math.round((clientX - r.left) * sx))),
+        y: Math.max(0, Math.min(canvas.height - 1, Math.round((clientY - r.top)  * sy))),
+    };
+}
+
+/** Normalise drag coords into a {x,y,w,h} rect (w,h always positive) */
+function dragToRect(a, b) {
+    const x = Math.min(a.x, b.x);
+    const y = Math.min(a.y, b.y);
+    return { x, y, w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y) };
+}
+
+function enterCropMode() {
+    isCropMode = true;
+    dragStart  = null;
+    dragEnd    = null;
+    // Size cropCanvas to match the canvas pixel dimensions
+    cropCanvas.width  = canvas.width;
+    cropCanvas.height = canvas.height;
+    cropCanvas.classList.add('active');
+    document.getElementById('cropToolbar').classList.add('visible');
+    document.getElementById('btnApplyCrop').disabled = true;
+    statusBar.innerText = 'Drag on the image to select the crop area.';
+}
+
+function cancelCropMode() {
+    isCropMode = false;
+    dragStart  = null;
+    dragEnd    = null;
+    cropCanvas.classList.remove('active');
+    cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    document.getElementById('cropToolbar').classList.remove('visible');
+    statusBar.innerText = '';
+}
+
+function applyCrop() {
+    if (!dragStart || !dragEnd) return;
+    const r = dragToRect(dragStart, dragEnd);
+    if (r.w < 5 || r.h < 5) { statusBar.innerText = 'Selection too small — try again.'; return; }
+    cropRect = r;
+    cancelCropMode();
+    document.getElementById('cropBadge').classList.add('visible');
+    processImage();
+    statusBar.innerText = `Crop applied: ${r.w} × ${r.h}px`;
+}
+
+function resetCrop() {
+    cropRect = null;
+    document.getElementById('cropBadge').classList.remove('visible');
+    processImage();
+    statusBar.innerText = 'Crop removed.';
+}
+
+// Draw the selection overlay on the crop canvas
+function drawCropOverlay() {
+    const w = cropCanvas.width;
+    const h = cropCanvas.height;
+    cropCtx.clearRect(0, 0, w, h);
+    if (!dragStart || !dragEnd) return;
+
+    const r = dragToRect(dragStart, dragEnd);
+
+    // Dark vignette outside selection
+    cropCtx.fillStyle = 'rgba(0,0,0,0.45)';
+    cropCtx.fillRect(0, 0, w, h);
+    cropCtx.clearRect(r.x, r.y, r.w, r.h);
+
+    // Dashed border
+    cropCtx.strokeStyle = '#f97316';
+    cropCtx.lineWidth   = Math.max(1.5, w / 600);
+    cropCtx.setLineDash([6, 3]);
+    cropCtx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+
+    // Corner handles
+    const hs = Math.max(6, w / 150);
+    cropCtx.setLineDash([]);
+    cropCtx.fillStyle = '#f97316';
+    [[r.x, r.y],[r.x+r.w, r.y],[r.x, r.y+r.h],[r.x+r.w, r.y+r.h]].forEach(([cx,cy]) => {
+        cropCtx.fillRect(cx - hs/2, cy - hs/2, hs, hs);
+    });
+
+    // Size label
+    cropCtx.fillStyle = 'rgba(249,115,22,0.9)';
+    const label = `${r.w} × ${r.h}`;
+    const fs    = Math.max(11, Math.min(16, w / 50));
+    cropCtx.font = `bold ${fs}px sans-serif`;
+    const lw    = cropCtx.measureText(label).width;
+    const lx    = Math.min(r.x + r.w + 4, w - lw - 4);
+    const ly    = Math.max(r.y - 4, fs + 4);
+    cropCtx.fillText(label, lx, ly);
+}
+
+// Pointer events on cropCanvas
+cropCanvas.addEventListener('mousedown', (e) => {
+    if (!isCropMode) return;
+    e.preventDefault();
+    dragStart = clientToImage(e.clientX, e.clientY);
+    dragEnd   = { ...dragStart };
+    document.getElementById('btnApplyCrop').disabled = true;
+});
+
+cropCanvas.addEventListener('mousemove', (e) => {
+    if (!isCropMode || !dragStart) return;
+    e.preventDefault();
+    dragEnd = clientToImage(e.clientX, e.clientY);
+    drawCropOverlay();
+});
+
+cropCanvas.addEventListener('mouseup', (e) => {
+    if (!isCropMode || !dragStart) return;
+    e.preventDefault();
+    dragEnd = clientToImage(e.clientX, e.clientY);
+    drawCropOverlay();
+    const r = dragToRect(dragStart, dragEnd);
+    document.getElementById('btnApplyCrop').disabled = (r.w < 5 || r.h < 5);
+});
+
+// Touch support
+cropCanvas.addEventListener('touchstart', (e) => {
+    if (!isCropMode) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    dragStart = clientToImage(t.clientX, t.clientY);
+    dragEnd   = { ...dragStart };
+}, { passive: false });
+
+cropCanvas.addEventListener('touchmove', (e) => {
+    if (!isCropMode || !dragStart) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    dragEnd = clientToImage(t.clientX, t.clientY);
+    drawCropOverlay();
+}, { passive: false });
+
+cropCanvas.addEventListener('touchend', (e) => {
+    if (!isCropMode || !dragStart) return;
+    e.preventDefault();
+    const r = dragToRect(dragStart, dragEnd);
+    document.getElementById('btnApplyCrop').disabled = (r.w < 5 || r.h < 5);
+}, { passive: false });
+
+// ═══════════════════════════════════════
+//  ADAPTIVE THRESHOLDING  (Bradley-Roth)
+//  Integral image → O(1) per-pixel query
+// ═══════════════════════════════════════
+function buildIntegralImage(gray, w, h) {
+    const I = new Float64Array(w * h);
+    for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+            const i = y * w + x;
+            I[i] = gray[i]
+                + (x > 0 ? I[i-1] : 0)
+                + (y > 0 ? I[i-w] : 0)
+                - (x > 0 && y > 0 ? I[i-w-1] : 0);
         }
+    return I;
+}
 
-        // --- Output Style Mode ---
-        function setMode(mode) {
-            currentMode = mode;
-            document.getElementById('btnFilled').className  = mode === 'filled'  ? 'tab-btn active' : 'tab-btn';
-            document.getElementById('btnOutline').className = mode === 'outline' ? 'tab-btn active' : 'tab-btn';
-            processImage();
+function applyAdaptiveThreshold(gray, w, h, halfWin, C) {
+    const I      = buildIntegralImage(gray, w, h);
+    const result = new Uint8Array(w * h);
+    const factor = 1 - C / 100;
+    for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+            const x1 = Math.max(x - halfWin, 0),  y1 = Math.max(y - halfWin, 0);
+            const x2 = Math.min(x + halfWin, w-1), y2 = Math.min(y + halfWin, h-1);
+            const count = (x2-x1+1)*(y2-y1+1);
+            const sum   = I[y2*w+x2]
+                - (x1>0 ? I[y2*w+x1-1]     : 0)
+                - (y1>0 ? I[(y1-1)*w+x2]   : 0)
+                + (x1>0&&y1>0 ? I[(y1-1)*w+x1-1] : 0);
+            result[y*w+x] = gray[y*w+x] < (sum/count)*factor ? 1 : 0;
         }
+    return result;
+}
 
-        // --- Upload ---
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            statusBar.innerText = 'Loading image…';
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    currentImg = img;
-                    isLoaded   = true;
-                    document.getElementById('placeholder').style.display = 'none';
-                    canvas.style.display = 'block';
-                    document.getElementById('dlSvg').disabled     = false;
-                    document.getElementById('dlPng').disabled     = false;
-                    document.getElementById('previewSvg').disabled = false;
-                    processImage();
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
+// ═══════════════════════════════════════
+//  BUILD MASK  (used by preview + export)
+// ═══════════════════════════════════════
+function buildMaskCanvas() {
+    // Determine source region (crop or full image)
+    const sx = cropRect ? cropRect.x : 0;
+    const sy = cropRect ? cropRect.y : 0;
+    const sw = cropRect ? cropRect.w : currentImg.width;
+    const sh = cropRect ? cropRect.h : currentImg.height;
 
-        // ─────────────────────────────────────────────────
-        //  ADAPTIVE THRESHOLDING  (Bradley-Roth method)
-        //  Integral image (summed-area table) gives O(1)
-        //  per-pixel neighbourhood queries → O(w×h) total.
-        // ─────────────────────────────────────────────────
+    const maskCvs    = document.createElement('canvas');
+    maskCvs.width    = sw;
+    maskCvs.height   = sh;
+    const mCtx = maskCvs.getContext('2d', { willReadFrequently: true });
 
-        function buildIntegralImage(gray, w, h) {
-            const integral = new Float64Array(w * h);
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    const i = y * w + x;
-                    integral[i] = gray[i]
-                        + (x > 0 ? integral[i - 1]     : 0)
-                        + (y > 0 ? integral[i - w]     : 0)
-                        - (x > 0 && y > 0 ? integral[i - w - 1] : 0);
+    mCtx.filter = `contrast(${100 + parseInt(contrastSlider.value)}%) blur(${parseFloat(blurSlider.value)}px)`;
+    // Draw only the (possibly-cropped) region
+    mCtx.drawImage(currentImg, sx, sy, sw, sh, 0, 0, sw, sh);
+    mCtx.filter = 'none';
+
+    const frame    = mCtx.getImageData(0, 0, sw, sh);
+    const data     = frame.data;
+    const inverted = invertCheck.checked;
+
+    if (currentThreshMode === 'simple') {
+        const thresh = parseInt(thresholdSlider.value);
+        for (let i = 0; i < data.length; i += 4) {
+            const lum   = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+            const isInk = inverted ? lum > thresh : lum < thresh;
+            data[i] = data[i+1] = data[i+2] = 0;
+            data[i+3] = isInk ? 255 : 0;
+        }
+    } else {
+        const gray = new Float32Array(sw * sh);
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            const v = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+            gray[p] = inverted ? 255 - v : v;
+        }
+        const halfWin = Math.round(parseInt(windowSlider.value) / 2);
+        const inkMap  = applyAdaptiveThreshold(gray, sw, sh, halfWin, parseInt(sensitivitySlider.value));
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            data[i] = data[i+1] = data[i+2] = 0;
+            data[i+3] = inkMap[p] ? 255 : 0;
+        }
+    }
+    mCtx.putImageData(frame, 0, 0);
+    return maskCvs;
+}
+
+// ═══════════════════════════════════════
+//  OUTLINE HELPER
+// ═══════════════════════════════════════
+function drawOutline(maskCanvas) {
+    const w   = maskCanvas.width;
+    const h   = maskCanvas.height;
+    const src = maskCanvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+    const out = ctx.createImageData(w, h);
+    const d   = out.data;
+    for (let y = 1; y < h-1; y++)
+        for (let x = 1; x < w-1; x++) {
+            const i = (y*w+x)*4;
+            if (src[i+3] === 0) {
+                const n = [((y-1)*w+x)*4,((y+1)*w+x)*4,(y*w+x-1)*4,(y*w+x+1)*4];
+                if (n.some(j => src[j+3] > 0)) {
+                    d[i] = d[i+1] = d[i+2] = 40; d[i+3] = 255;
                 }
             }
-            return integral;
         }
+    ctx.putImageData(out, 0, 0);
+}
 
-        // Returns Uint8Array: 1 = ink, 0 = background
-        function applyAdaptiveThreshold(gray, w, h, halfWin, C) {
-            const integral = buildIntegralImage(gray, w, h);
-            const result   = new Uint8Array(w * h);
-            const factor   = 1 - C / 100;
+// ═══════════════════════════════════════
+//  MAIN PROCESS  (live canvas preview)
+// ═══════════════════════════════════════
+function processImage() {
+    if (!isLoaded) return;
+    backToLive();   // switch away from SVG preview if active
 
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    const x1 = Math.max(x - halfWin, 0);
-                    const y1 = Math.max(y - halfWin, 0);
-                    const x2 = Math.min(x + halfWin, w - 1);
-                    const y2 = Math.min(y + halfWin, h - 1);
+    const mask = buildMaskCanvas();
+    canvas.width  = mask.width;
+    canvas.height = mask.height;
 
-                    const count = (x2 - x1 + 1) * (y2 - y1 + 1);
-                    const sum   = integral[y2 * w + x2]
-                        - (x1 > 0 ? integral[y2 * w + x1 - 1]         : 0)
-                        - (y1 > 0 ? integral[(y1 - 1) * w + x2]       : 0)
-                        + (x1 > 0 && y1 > 0 ? integral[(y1 - 1) * w + x1 - 1] : 0);
+    // Also resize crop canvas to match
+    if (!isCropMode) {
+        cropCanvas.width  = canvas.width;
+        cropCanvas.height = canvas.height;
+    }
 
-                    result[y * w + x] = gray[y * w + x] < (sum / count) * factor ? 1 : 0;
-                }
-            }
-            return result;
-        }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // --- Build Mask (shared by preview + export) ---
-        function buildMaskCanvas() {
-            const w = currentImg.width;
-            const h = currentImg.height;
+    if (currentMode === 'filled') {
+        ctx.drawImage(mask, 0, 0);
+    } else {
+        drawOutline(mask);
+    }
 
-            const maskCvs  = document.createElement('canvas');
-            maskCvs.width  = w;
-            maskCvs.height = h;
-            const mCtx = maskCvs.getContext('2d');
+    const dim = cropRect
+        ? `${mask.width}×${mask.height}px (cropped)`
+        : `${mask.width}×${mask.height}px`;
+    statusBar.innerText = `Preview: ${dim} — adjust sliders, then download SVG.`;
+}
 
-            mCtx.filter = `contrast(${100 + parseInt(contrastSlider.value)}%) blur(${parseFloat(blurSlider.value)}px)`;
-            mCtx.drawImage(currentImg, 0, 0);
-            mCtx.filter = 'none';
+// ═══════════════════════════════════════
+//  BUILD SVG STRING
+// ═══════════════════════════════════════
+function buildSVG() {
+    const mask = buildMaskCanvas();
+    const w = mask.width, h = mask.height;
 
-            const frame    = mCtx.getImageData(0, 0, w, h);
-            const data     = frame.data;
-            const inverted = invertCheck.checked;
+    const flat  = document.createElement('canvas');
+    flat.width  = w; flat.height = h;
+    const fCtx  = flat.getContext('2d', { willReadFrequently: true });
+    fCtx.fillStyle = '#ffffff';
+    fCtx.fillRect(0, 0, w, h);
+    fCtx.drawImage(mask, 0, 0);
 
-            if (currentThreshMode === 'simple') {
-                // ── Global threshold ──
-                const thresh = parseInt(thresholdSlider.value);
-                for (let i = 0; i < data.length; i += 4) {
-                    const lum  = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                    const isInk = inverted ? lum > thresh : lum < thresh;
-                    data[i] = data[i+1] = data[i+2] = 0;
-                    data[i+3] = isInk ? 255 : 0;
-                }
-            } else {
-                // ── Adaptive threshold (Bradley-Roth) ──
-                const gray = new Float32Array(w * h);
-                for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-                    const v = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                    gray[p] = inverted ? 255 - v : v;
-                }
-                const halfWin   = Math.round(parseInt(windowSlider.value) / 2);
-                const inkMap    = applyAdaptiveThreshold(gray, w, h, halfWin, parseInt(sensitivitySlider.value));
-                for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-                    data[i] = data[i+1] = data[i+2] = 0;
-                    data[i+3] = inkMap[p] ? 255 : 0;
-                }
-            }
+    const options = {
+        ltres: parseFloat(precisionSlider.value),
+        qtres: parseFloat(precisionSlider.value),
+        pathomit: parseInt(cleanupSlider.value),
+        colorsampling: 0, numberofcolors: 2,
+        mincolorratio: 0, colorquantcycles: 1,
+    };
 
-            mCtx.putImageData(frame, 0, 0);
-            return maskCvs;
-        }
+    let svg = window.ImageTracer.imagedataToSVG(fCtx.getImageData(0, 0, w, h), options);
 
-        // --- Outline Helper ---
-        function drawOutline(maskCanvas) {
-            const w   = maskCanvas.width;
-            const h   = maskCanvas.height;
-            const src = maskCanvas.getContext('2d').getImageData(0, 0, w, h).data;
-            const outData = ctx.createImageData(w, h);
-            const out = outData.data;
+    if (currentMode === 'outline') {
+        svg = svg.replace(
+            /fill="rgb\(0,0,0\)"/g,
+            'fill="none" stroke="rgb(30,30,30)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"'
+        );
+    }
+    return svg;
+}
 
-            for (let y = 1; y < h - 1; y++) {
-                for (let x = 1; x < w - 1; x++) {
-                    const i = (y * w + x) * 4;
-                    if (src[i + 3] === 0) {
-                        const n = [((y-1)*w+x)*4, ((y+1)*w+x)*4, (y*w+x-1)*4, (y*w+x+1)*4];
-                        if (n.some(j => src[j+3] > 0)) {
-                            out[i] = out[i+1] = out[i+2] = 40;
-                            out[i+3] = 255;
-                        }
-                    }
-                }
-            }
-            ctx.putImageData(outData, 0, 0);
-        }
+// ═══════════════════════════════════════
+//  SVG PREVIEW  (inline — no popup)
+// ═══════════════════════════════════════
+function showSVGPreview(svgStr) {
+    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
 
-        // --- Main Process ---
-        function processImage() {
-            if (!isLoaded) return;
+    // Revoke the previous blob URL if any
+    if (svgPreviewImg.dataset.blobUrl) {
+        URL.revokeObjectURL(svgPreviewImg.dataset.blobUrl);
+    }
+    svgPreviewImg.dataset.blobUrl = url;
+    svgPreviewImg.src = url;
 
-            canvas.width  = currentImg.width;
-            canvas.height = currentImg.height;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Swap canvas → img in preview panel
+    canvasWrapper.style.display = 'none';
+    svgPreviewImg.style.display = 'block';
+    document.getElementById('svgPreviewBar').classList.add('visible');
 
-            const maskCvs = buildMaskCanvas();
+    statusBar.innerText = 'SVG preview — this is the actual vector output.';
+}
 
-            if (currentMode === 'filled') {
-                ctx.drawImage(maskCvs, 0, 0);
-            } else {
-                drawOutline(maskCvs);
-            }
+function backToLive() {
+    svgPreviewImg.style.display = 'none';
+    canvasWrapper.style.display = isLoaded ? 'block' : 'none';
+    document.getElementById('svgPreviewBar').classList.remove('visible');
+}
 
-            statusBar.innerText = `${canvas.width} × ${canvas.height}px — adjust sliders, then download SVG.`;
-        }
+// ═══════════════════════════════════════
+//  SPINNER HELPER
+// ═══════════════════════════════════════
+function withSpinner(label, work) {
+    const overlay = document.getElementById('processingOverlay');
+    document.getElementById('processingMsg').innerText = label;
+    overlay.classList.add('active');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        try   { work(); }
+        catch (err) { statusBar.innerText = 'Error: ' + err.message; }
+        finally     { overlay.classList.remove('active'); }
+    }));
+}
 
-        // --- Build SVG ---
-        function buildSVG() {
-            const maskCvs = buildMaskCanvas();
-            const w = maskCvs.width, h = maskCvs.height;
+// ═══════════════════════════════════════
+//  BUTTON HANDLERS
+// ═══════════════════════════════════════
+document.getElementById('previewSvg').addEventListener('click', () => {
+    withSpinner('Generating SVG preview…', () => {
+        showSVGPreview(buildSVG());
+    });
+});
 
-            const flat = document.createElement('canvas');
-            flat.width = w; flat.height = h;
-            const fCtx = flat.getContext('2d');
-            fCtx.fillStyle = '#ffffff';
-            fCtx.fillRect(0, 0, w, h);
-            fCtx.drawImage(maskCvs, 0, 0);
+document.getElementById('dlSvg').addEventListener('click', () => {
+    withSpinner('Generating SVG…', () => {
+        const url  = URL.createObjectURL(new Blob([buildSVG()], { type: 'image/svg+xml;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.download = 'student-drawing.svg';
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+        statusBar.innerText = 'SVG downloaded!';
+    });
+});
 
-            const options = {
-                ltres: parseFloat(precisionSlider.value),
-                qtres: parseFloat(precisionSlider.value),
-                pathomit: parseInt(cleanupSlider.value),
-                colorsampling: 0, numberofcolors: 2,
-                mincolorratio: 0, colorquantcycles: 1,
-            };
+document.getElementById('dlPng').addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'student-drawing.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    statusBar.innerText = 'PNG downloaded!';
+});
 
-            let svgStr = window.ImageTracer.imagedataToSVG(fCtx.getImageData(0, 0, w, h), options);
+// ═══════════════════════════════════════
+//  LIVE SLIDER UPDATES
+// ═══════════════════════════════════════
+[contrastSlider, blurSlider, thresholdSlider, invertCheck,
+ cleanupSlider, precisionSlider, windowSlider, sensitivitySlider].forEach(el => {
+    el.addEventListener('input', () => { updateBadges(); processImage(); });
+});
 
-            if (currentMode === 'outline') {
-                svgStr = svgStr.replace(
-                    /fill="rgb\(0,0,0\)"/g,
-                    'fill="none" stroke="rgb(30,30,30)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"'
-                );
-            }
-            return svgStr;
-        }
-
-        // --- SVG Preview ---
-        document.getElementById('previewSvg').addEventListener('click', () => {
-            statusBar.innerText = 'Generating SVG preview…';
-            setTimeout(() => {
-                try {
-                    const url = URL.createObjectURL(new Blob([buildSVG()], { type: 'image/svg+xml' }));
-                    window.open(url, '_blank');
-                    statusBar.innerText = 'SVG preview opened in new tab.';
-                } catch (err) { statusBar.innerText = 'Error: ' + err.message; }
-            }, 50);
-        });
-
-        // --- Download SVG ---
-        document.getElementById('dlSvg').addEventListener('click', () => {
-            statusBar.innerText = 'Generating SVG…';
-            setTimeout(() => {
-                try {
-                    const url  = URL.createObjectURL(new Blob([buildSVG()], { type: 'image/svg+xml;charset=utf-8' }));
-                    const link = document.createElement('a');
-                    link.download = 'student-drawing.svg';
-                    link.href = url;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                    statusBar.innerText = 'SVG downloaded!';
-                } catch (err) { statusBar.innerText = 'Error: ' + err.message; }
-            }, 50);
-        });
-
-        // --- Download PNG ---
-        document.getElementById('dlPng').addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = 'student-drawing.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            statusBar.innerText = 'PNG downloaded!';
-        });
-
-        // --- Live update ---
-        [contrastSlider, blurSlider, thresholdSlider, invertCheck,
-         cleanupSlider, precisionSlider, windowSlider, sensitivitySlider].forEach(el => {
-            el.addEventListener('input', () => { updateBadges(); processImage(); });
-        });
-
-        updateBadges();
-    </script>
+updateBadges();
+</script>
 </body>
 </html>
