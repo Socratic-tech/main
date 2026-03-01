@@ -9,9 +9,8 @@
 
 <style>
 /* ===========================
-   ORIGINAL STYLES (COMPLETE)
+   ORIGINAL STYLES (RESTORED)
    =========================== */
-
 :root {
     --primary:#2563eb;
     --primary-light:#eff6ff;
@@ -104,6 +103,7 @@ body{display:flex;flex-direction:column;}
     font-weight:700;
     cursor:pointer;
     color:white;
+    width: 100%;
 }
 
 .btn-svg{background:var(--green);}
@@ -125,61 +125,39 @@ body{display:flex;flex-direction:column;}
 
 <body>
 
-<div class="processing-overlay" id="processingOverlay">Generating SVG…</div>
-
-<div id="tracerError" style="display:none;color:#991b1b;padding:10px;background:#fee2e2;border-bottom:1px solid #ef4444;text-align:center;font-weight:bold;">
-⚠️ ImageTracer failed to load. Please check your internet connection or use a different browser.
-</div>
+<div class="processing-overlay" id="processingOverlay">Building Vector Path…</div>
 
 <header class="app-header">
 <h1>✏️ Student Ink Drawing → SVG</h1>
 </header>
 
 <div class="app-body">
+    <aside class="sidebar">
+        <div class="sidebar-scroll">
+            <input type="file" id="fileInput" accept="image/*"><br><br>
 
-<aside class="sidebar">
-<div class="sidebar-scroll">
+            <label>Ink Sensitivity (Threshold)
+                <input type="range" id="threshold" min="0" max="255" value="140" style="width:100%">
+            </label><br><br>
 
-<input type="file" id="fileInput" accept="image/*"><br><br>
+            <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG</button>
+            <br><br>
+            <button id="dlPng" class="btn btn-png" disabled>⬇ Download PNG</button>
+        </div>
+    </aside>
 
-<label>Threshold
-<input type="range" id="threshold" min="0" max="255" value="140">
-</label><br><br>
-
-<button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG</button>
-<br><br>
-<button id="dlPng" class="btn btn-png" disabled>⬇ PNG</button>
-
+    <main class="preview-area">
+        <div class="canvas-frame">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div class="status-bar" id="statusBar"></div>
+    </main>
 </div>
-</aside>
-
-<main class="preview-area">
-<div class="canvas-frame">
-<canvas id="canvas"></canvas>
-</div>
-<div class="status-bar" id="statusBar"></div>
-</main>
-
-</div>
-
-<script id="tracerScript" src="https://cdn.jsdelivr.net/gh/jankovicsandras/imagetracerjs@1.2.5/imagetracer_v1.2.5.js"></script>
 
 <script>
-// Logic to handle script loading failure
-document.getElementById('tracerScript').onerror = function() {
-    console.warn("Primary CDN failed. Trying backup...");
-    const backup = document.createElement('script');
-    backup.src = "https://cdnjs.cloudflare.com/ajax/libs/imagetracerjs/1.2.5/imagetracer_v1.2.5.js";
-    backup.onerror = function() {
-        const errDiv = document.getElementById('tracerError');
-        if(errDiv) errDiv.style.display = 'block';
-    };
-    document.body.appendChild(backup);
-};
-
-// =======================
-// STATE
-// =======================
+// ==========================================
+// STATE & DOM
+// ==========================================
 let currentImg = new Image();
 let isLoaded = false;
 
@@ -190,140 +168,132 @@ const ctx = canvas.getContext('2d', {willReadFrequently:true});
 const statusBar = document.getElementById('statusBar');
 const overlay = document.getElementById('processingOverlay');
 
-// =======================
-// IMAGE LOAD
-// =======================
-fileInput.addEventListener('change', e=>{
+// ==========================================
+// IMAGE LOADING logic
+// ==========================================
+fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if(!file) return;
 
     const reader = new FileReader();
-    reader.onload = ev=>{
-        currentImg.onload = ()=>{
-            isLoaded=true;
-            document.getElementById('dlSvg').disabled=false;
-            document.getElementById('dlPng').disabled=false;
+    reader.onload = ev => {
+        currentImg.onload = () => {
+            isLoaded = true;
+            document.getElementById('dlSvg').disabled = false;
+            document.getElementById('dlPng').disabled = false;
             processImage();
         };
-        currentImg.src=ev.target.result;
+        currentImg.src = ev.target.result;
     };
     reader.readAsDataURL(file);
 });
 
-// =======================
-// PROCESS
-// =======================
-function processImage(){
+// ==========================================
+// THRESHOLD PROCESSING (Same as original)
+// ==========================================
+function processImage() {
     if(!isLoaded) return;
 
-    canvas.width=currentImg.width;
-    canvas.height=currentImg.height;
+    canvas.width = currentImg.width;
+    canvas.height = currentImg.height;
 
-    ctx.drawImage(currentImg,0,0);
-    const frame=ctx.getImageData(0,0,canvas.width,canvas.height);
-    const data=frame.data;
-    const thresh=parseInt(thresholdSlider.value);
+    ctx.drawImage(currentImg, 0, 0);
+    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = frame.data;
+    const thresh = parseInt(thresholdSlider.value);
 
-    for(let i=0;i<data.length;i+=4){
-        const lum=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
-        const ink=lum<thresh;
-        data[i]=data[i+1]=data[i+2]=0;
-        data[i+3]=ink?255:0;
+    for(let i=0; i<data.length; i+=4) {
+        const lum = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+        const isInk = lum < thresh;
+        // Make ink black, everything else transparent
+        data[i] = data[i+1] = data[i+2] = 0;
+        data[i+3] = isInk ? 255 : 0;
     }
-    ctx.putImageData(frame,0,0);
+    ctx.putImageData(frame, 0, 0);
+    statusBar.innerText = `Image ready: ${canvas.width} x ${canvas.height}`;
 }
 
-thresholdSlider.addEventListener('input',processImage);
+thresholdSlider.addEventListener('input', processImage);
 
-// =======================
-// FIXED SVG BUILDER
-// =======================
-function buildSVG(){
-    // Check if library is available in global scope
-    const tracer = window.ImageTracer || (typeof ImageTracer !== 'undefined' ? ImageTracer : null);
+// ==========================================
+// NATIVE VECTORIZER (The ImageTracer Alternative)
+// ==========================================
+function buildNativeSVG() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const imgData = ctx.getImageData(0, 0, w, h).data;
     
-    if(!tracer){
-        throw new Error("ImageTracer library not loaded.");
+    let paths = "";
+    
+    // Scanline algorithm: Groups horizontal runs of black pixels into path segments
+    for (let y = 0; y < h; y++) {
+        let inRun = false;
+        let startX = 0;
+        
+        for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            const isBlack = imgData[idx + 3] > 128; // Check Alpha channel
+            
+            if (isBlack && !inRun) {
+                inRun = true;
+                startX = x;
+            } else if (!isBlack && inRun) {
+                // End of a black segment found
+                paths += `M${startX} ${y}h${x - startX}v1h-${x - startX}z `;
+                inRun = false;
+            }
+        }
+        // If the run goes to the very edge of the image
+        if (inRun) {
+            paths += `M${startX} ${y}h${w - startX}v1h-${w - startX}z `;
+        }
     }
 
-    const MAX_TRACE_DIM=1600;
-    let workingCanvas=canvas;
-    let w=canvas.width;
-    let h=canvas.height;
-
-    if(Math.max(w,h)>MAX_TRACE_DIM){
-        const scale=MAX_TRACE_DIM/Math.max(w,h);
-        const scaled=document.createElement('canvas');
-        scaled.width=Math.round(w*scale);
-        scaled.height=Math.round(h*scale);
-        const sctx=scaled.getContext('2d');
-        sctx.drawImage(canvas,0,0,scaled.width,scaled.height);
-        workingCanvas=scaled;
-        w=scaled.width;
-        h=scaled.height;
-    }
-
-    const imageData=workingCanvas.getContext('2d').getImageData(0,0,w,h);
-
-    // ImageTracer options: 'pal' is critical for binary images
-    return tracer.imagedataToSVG(imageData,{
-        ltres:1,
-        qtres:1,
-        pathomit:8,
-        colorsampling:0,
-        numberofcolors:2,
-        pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:0}]
-    });
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">
+        <path d="${paths}" fill="black" />
+    </svg>`;
 }
 
-// =======================
-// SAFE DOWNLOAD
-// =======================
-function downloadBlob(blob,filename){
-    const url=URL.createObjectURL(blob);
-    const link=document.createElement('a');
-    link.href=url;
-    link.download=filename;
+// ==========================================
+// DOWNLOAD & UI
+// ==========================================
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 }
 
-// =======================
-// SVG BUTTON
-// =======================
-document.getElementById('dlSvg').addEventListener('click',()=>{
+document.getElementById('dlSvg').addEventListener('click', () => {
     overlay.classList.add('active');
     
-    setTimeout(()=>{
-        try{
-            const svgText=buildSVG();
-            const blob=new Blob([svgText],{type:'image/svg+xml;charset=utf-8'});
-            downloadBlob(blob,'student-drawing.svg');
-            statusBar.innerText='SVG downloaded!';
-        }catch(err){
-            statusBar.innerText='Error: '+err.message;
-            console.error(err);
-        }finally{
+    // Small timeout to allow the spinner to show up
+    setTimeout(() => {
+        try {
+            const svgContent = buildNativeSVG();
+            const blob = new Blob([svgContent], {type: 'image/svg+xml;charset=utf-8'});
+            downloadBlob(blob, 'student-drawing.svg');
+            statusBar.innerText = "SVG Vector downloaded successfully!";
+        } catch (e) {
+            statusBar.innerText = "Error creating SVG.";
+            console.error(e);
+        } finally {
             overlay.classList.remove('active');
         }
     }, 50);
 });
 
-// =======================
-// PNG BUTTON
-// =======================
-document.getElementById('dlPng').addEventListener('click',()=>{
-    canvas.toBlob(blob=>{
-        if(!blob){
-            statusBar.innerText="PNG generation failed.";
-            return;
-        }
-        downloadBlob(blob,'student-drawing.png');
-        statusBar.innerText='PNG downloaded!';
-    },'image/png');
+document.getElementById('dlPng').addEventListener('click', () => {
+    canvas.toBlob(blob => {
+        downloadBlob(blob, 'student-drawing.png');
+        statusBar.innerText = "Transparent PNG downloaded!";
+    }, 'image/png');
 });
 </script>
+
 </body>
 </html>
