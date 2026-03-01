@@ -109,22 +109,6 @@
         .crop-toolbar.visible { display: flex; }
         .crop-toolbar-btns { display: flex; gap: 8px; }
 
-        /* SVG preview toolbar — shown when SVG preview is active */
-        .svg-preview-bar {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 7px;
-            padding: 7px 14px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #166534;
-            flex-shrink: 0;
-        }
-        .svg-preview-bar.visible { display: flex; }
-
         /* Canvas frame */
         .canvas-frame {
             flex: 1;
@@ -181,16 +165,6 @@
             border-radius: 2px;
         }
         #cropCanvas.active { display: block; }
-
-        /* SVG preview image */
-        #svgPreviewImg {
-            display: none;
-            max-width: 100%;
-            max-height: calc(100vh - 160px);
-            background: white;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-            border-radius: 2px;
-        }
 
         .status-bar {
             font-size: 0.78rem;
@@ -551,10 +525,7 @@
 
         <div class="sidebar-footer">
             <button id="dlSvg"     class="btn btn-svg"     disabled>⬇ Download SVG</button>
-            <div class="btn-row">
-                <button id="previewSvg" class="btn btn-preview" disabled>👁 Preview SVG</button>
-                <button id="dlPng"      class="btn btn-png"     disabled>⬇ PNG</button>
-            </div>
+            <button id="dlPng"      class="btn btn-png"     disabled>⬇ PNG</button>
         </div>
     </aside>
 
@@ -570,12 +541,6 @@
             </div>
         </div>
 
-        <!-- Shown when SVG preview is active -->
-        <div class="svg-preview-bar" id="svgPreviewBar">
-            <span>👁 SVG Preview — this is the actual vector output</span>
-            <button class="btn-sm btn-back" onclick="backToLive()">← Live Preview</button>
-        </div>
-
         <div class="canvas-frame">
             <div class="placeholder" id="placeholder">
                 <span class="placeholder-icon">🖊️</span>
@@ -587,9 +552,6 @@
                 <canvas id="canvas"></canvas>
                 <canvas id="cropCanvas"></canvas>
             </div>
-
-            <!-- SVG preview — shown instead of canvas when preview mode is active -->
-            <img id="svgPreviewImg" alt="SVG Preview">
         </div>
 
         <div class="status-bar" id="statusBar"></div>
@@ -609,6 +571,7 @@ let isLoaded          = false;
 // Crop state
 let cropRect    = null;   // Applied crop: {x,y,w,h} in image px coords
 let isCropMode  = false;  // Currently drawing a selection
+let isDragging  = false;  // Mouse button currently held
 let dragStart   = null;   // {x,y} image coords
 let dragEnd     = null;   // {x,y} image coords
 
@@ -629,7 +592,6 @@ const ctx               = canvas.getContext('2d', { willReadFrequently: true });
 const cropCanvas        = document.getElementById('cropCanvas');
 const cropCtx           = cropCanvas.getContext('2d', { willReadFrequently: true });
 const canvasWrapper     = document.getElementById('canvasWrapper');
-const svgPreviewImg     = document.getElementById('svgPreviewImg');
 const statusBar         = document.getElementById('statusBar');
 
 // ═══════════════════════════════════════
@@ -682,10 +644,8 @@ fileInput.addEventListener('change', (e) => {
             canvasWrapper.style.display = 'block';
             document.getElementById('dlSvg').disabled      = false;
             document.getElementById('dlPng').disabled      = false;
-            document.getElementById('previewSvg').disabled = false;
             document.getElementById('btnCropStart').disabled = false;
             document.getElementById('cropBadge').classList.remove('visible');
-            backToLive();   // ensure canvas is shown
             processImage();
         };
         img.src = ev.target.result;
@@ -730,6 +690,7 @@ function enterCropMode() {
 
 function cancelCropMode() {
     isCropMode = false;
+    isDragging = false;
     dragStart  = null;
     dragEnd    = null;
     cropCanvas.classList.remove('active');
@@ -795,28 +756,35 @@ function drawCropOverlay() {
     cropCtx.fillText(label, lx, ly);
 }
 
-// Pointer events on cropCanvas
+// ── Crop pointer events ──
+// mousedown: begin drag
 cropCanvas.addEventListener('mousedown', (e) => {
     if (!isCropMode) return;
     e.preventDefault();
-    dragStart = clientToImage(e.clientX, e.clientY);
-    dragEnd   = { ...dragStart };
+    isDragging = true;
+    dragStart  = clientToImage(e.clientX, e.clientY);
+    dragEnd    = { ...dragStart };
     document.getElementById('btnApplyCrop').disabled = true;
+    cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
 });
 
-cropCanvas.addEventListener('mousemove', (e) => {
-    if (!isCropMode || !dragStart) return;
-    e.preventDefault();
-    dragEnd = clientToImage(e.clientX, e.clientY);
+// mousemove on WINDOW so dragging past canvas edge works
+window.addEventListener('mousemove', (e) => {
+    if (!isCropMode || !isDragging) return;
+    // clamp to canvas bounds
+    const r  = canvas.getBoundingClientRect();
+    const cx = Math.max(r.left, Math.min(r.right,  e.clientX));
+    const cy = Math.max(r.top,  Math.min(r.bottom, e.clientY));
+    dragEnd = clientToImage(cx, cy);
     drawCropOverlay();
 });
 
-cropCanvas.addEventListener('mouseup', (e) => {
-    if (!isCropMode || !dragStart) return;
-    e.preventDefault();
-    dragEnd = clientToImage(e.clientX, e.clientY);
-    drawCropOverlay();
-    const r = dragToRect(dragStart, dragEnd);
+// mouseup on WINDOW — fires even if released outside canvas
+window.addEventListener('mouseup', (e) => {
+    if (!isCropMode || !isDragging) return;
+    isDragging = false;
+    drawCropOverlay();   // keep overlay visible
+    const r = dragToRect(dragStart, dragEnd || dragStart);
     document.getElementById('btnApplyCrop').disabled = (r.w < 5 || r.h < 5);
 });
 
@@ -824,13 +792,15 @@ cropCanvas.addEventListener('mouseup', (e) => {
 cropCanvas.addEventListener('touchstart', (e) => {
     if (!isCropMode) return;
     e.preventDefault();
+    isDragging = true;
     const t = e.touches[0];
     dragStart = clientToImage(t.clientX, t.clientY);
     dragEnd   = { ...dragStart };
+    document.getElementById('btnApplyCrop').disabled = true;
 }, { passive: false });
 
 cropCanvas.addEventListener('touchmove', (e) => {
-    if (!isCropMode || !dragStart) return;
+    if (!isCropMode || !isDragging) return;
     e.preventDefault();
     const t = e.touches[0];
     dragEnd = clientToImage(t.clientX, t.clientY);
@@ -838,8 +808,9 @@ cropCanvas.addEventListener('touchmove', (e) => {
 }, { passive: false });
 
 cropCanvas.addEventListener('touchend', (e) => {
-    if (!isCropMode || !dragStart) return;
+    if (!isCropMode || !isDragging) return;
     e.preventDefault();
+    isDragging = false;
     const r = dragToRect(dragStart, dragEnd);
     document.getElementById('btnApplyCrop').disabled = (r.w < 5 || r.h < 5);
 }, { passive: false });
@@ -955,7 +926,6 @@ function drawOutline(maskCanvas) {
 // ═══════════════════════════════════════
 function processImage() {
     if (!isLoaded) return;
-    backToLive();   // switch away from SVG preview if active
 
     const mask = buildMaskCanvas();
     canvas.width  = mask.width;
@@ -1016,34 +986,6 @@ function buildSVG() {
 }
 
 // ═══════════════════════════════════════
-//  SVG PREVIEW  (inline — no popup)
-// ═══════════════════════════════════════
-function showSVGPreview(svgStr) {
-    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-    const url  = URL.createObjectURL(blob);
-
-    // Revoke the previous blob URL if any
-    if (svgPreviewImg.dataset.blobUrl) {
-        URL.revokeObjectURL(svgPreviewImg.dataset.blobUrl);
-    }
-    svgPreviewImg.dataset.blobUrl = url;
-    svgPreviewImg.src = url;
-
-    // Swap canvas → img in preview panel
-    canvasWrapper.style.display = 'none';
-    svgPreviewImg.style.display = 'block';
-    document.getElementById('svgPreviewBar').classList.add('visible');
-
-    statusBar.innerText = 'SVG preview — this is the actual vector output.';
-}
-
-function backToLive() {
-    svgPreviewImg.style.display = 'none';
-    canvasWrapper.style.display = isLoaded ? 'block' : 'none';
-    document.getElementById('svgPreviewBar').classList.remove('visible');
-}
-
-// ═══════════════════════════════════════
 //  SPINNER HELPER
 // ═══════════════════════════════════════
 function withSpinner(label, work) {
@@ -1060,12 +1002,6 @@ function withSpinner(label, work) {
 // ═══════════════════════════════════════
 //  BUTTON HANDLERS
 // ═══════════════════════════════════════
-document.getElementById('previewSvg').addEventListener('click', () => {
-    withSpinner('Generating SVG preview…', () => {
-        showSVGPreview(buildSVG());
-    });
-});
-
 document.getElementById('dlSvg').addEventListener('click', () => {
     withSpinner('Generating SVG…', () => {
         const url  = URL.createObjectURL(new Blob([buildSVG()], { type: 'image/svg+xml;charset=utf-8' }));
