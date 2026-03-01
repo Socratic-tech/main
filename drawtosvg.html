@@ -216,7 +216,6 @@ function processImage(){
     for(let i=0;i<data.length;i+=4){
         const lum=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
         const ink=lum<thresh;
-        // Make the ink black (0,0,0) and the rest transparent
         data[i]=data[i+1]=data[i+2]=0;
         data[i+3]=ink?255:0;
     }
@@ -229,17 +228,18 @@ thresholdSlider.addEventListener('input',processImage);
 // FIXED SVG BUILDER
 // =======================
 function buildSVG(){
-    // Validation for library
-    if(!window.ImageTracer){
+
+    // Ensure library exists. Use 'ImageTracer' directly as it attaches to window.
+    if(typeof ImageTracer === 'undefined'){
         throw new Error("ImageTracer library not loaded.");
     }
 
     const MAX_TRACE_DIM=1600;
+
     let workingCanvas=canvas;
     let w=canvas.width;
     let h=canvas.height;
 
-    // Scale down for performance if necessary
     if(Math.max(w,h)>MAX_TRACE_DIM){
         const scale=MAX_TRACE_DIM/Math.max(w,h);
         const scaled=document.createElement('canvas');
@@ -254,16 +254,14 @@ function buildSVG(){
 
     const imageData=workingCanvas.getContext('2d').getImageData(0,0,w,h);
 
-    // ImageTracer options optimized for binary ink drawings
+    // Fixed parameters: ImageTracer expects specific option keys
     return ImageTracer.imagedataToSVG(imageData,{
-        ltres: 1,
-        qtres: 1,
-        pathomit: 16,
-        rightangleenhance: true,
-        colorsampling: 0,
-        numberofcolors: 2,
-        mincolorratio: 0,
-        pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:0}] 
+        ltres:1,
+        qtres:1,
+        pathomit:8,
+        colorsampling:0,
+        numberofcolors:2,
+        pal: [{r:0,g:0,b:0,a:255},{r:255,g:255,b:255,a:0}] // Force black ink / transparent BG
     });
 }
 
@@ -285,24 +283,21 @@ function downloadBlob(blob,filename){
 // SVG BUTTON
 // =======================
 document.getElementById('dlSvg').addEventListener('click',()=>{
-    // Show overlay
     overlay.classList.add('active');
-    
-    // We use setTimeout (0ms or 10ms) to let the browser render the overlay 
-    // before the heavy ImageTracer computation locks the main thread.
-    setTimeout(() => {
+    // Using a tiny delay to ensure the DOM updates the overlay visibility before the thread locks
+    setTimeout(()=>{
         try{
             const svgText=buildSVG();
             const blob=new Blob([svgText],{type:'image/svg+xml;charset=utf-8'});
             downloadBlob(blob,'student-drawing.svg');
             statusBar.innerText='SVG downloaded!';
         }catch(err){
-            console.error(err);
             statusBar.innerText='Error: '+err.message;
+            console.error(err);
         }finally{
             overlay.classList.remove('active');
         }
-    }, 20);
+    }, 50);
 });
 
 // =======================
