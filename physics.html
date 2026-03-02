@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenPhysics Lab — 2D Simulation Framework</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;500;700;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #12161f;
+    --surface2: #1a1f2e;
+    --border: #252d3d;
+    --border-bright: #2e3a50;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #a78bfa;
+    --text: #f0f4f8;
+    --text-dim: #94a3b8;
+    --text-muted: #546880;
+    --grid: #111827;
+    --success: #10b981;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+  }
+
+  .logo-icon {
+    width: 28px; height: 28px;
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-icon::before {
+    content: '';
+    position: absolute;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    bottom: 5px; left: 4px;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .logo-icon::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent));
+    bottom: 9px; left: 4px;
+    transform: rotate(-32deg);
+    transform-origin: left center;
+  }
+
+  .logo-text { color: var(--text); }
+  .logo-text span { color: var(--accent); }
+
+  .badge {
+    font-size: 9px;
+    font-family: var(--mono);
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .status-text {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  /* EXPERIMENT SELECTOR */
+  .exp-selector {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .exp-tab {
+    padding: 5px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  .exp-tab:last-child { border-right: none; }
+  .exp-tab:hover { color: var(--text); background: var(--surface); }
+  .exp-tab.active {
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+  }
+
+  /* LAYOUT */
+  .workspace {
+    display: grid;
+    grid-template-columns: 240px 1fr 300px;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+  }
+
+  /* PANELS */
+  .panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-right {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border-bright);
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c8d8ea;
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+
+  .panel-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* CONTROLS */
+  .control-group {
+    margin-bottom: 20px;
+  }
+
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .control-name {
+    font-size: 11px;
+    color: #b0c4d8;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+
+  .control-value {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(0,229,255,0.5);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  .slider.orange::-webkit-slider-thumb {
+    background: var(--accent2);
+    box-shadow: 0 0 8px rgba(255,107,53,0.5);
+  }
+
+  .slider.purple::-webkit-slider-thumb {
+    background: #a78bfa;
+    box-shadow: 0 0 8px rgba(167,139,250,0.5);
+  }
+
+  .slider.green::-webkit-slider-thumb {
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16,185,129,0.5);
+  }
+
+  .slider.amber::-webkit-slider-thumb {
+    background: #f59e0b;
+    box-shadow: 0 0 8px rgba(245,158,11,0.5);
+  }
+
+  .slider-track {
+    position: relative;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* BUTTONS */
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 9px 16px;
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover {
+    background: transparent;
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(0,229,255,0.2);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-dim);
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover {
+    color: var(--text);
+    border-color: var(--text-dim);
+  }
+
+  .btn-orange {
+    background: transparent;
+    color: var(--accent2);
+    border-color: var(--accent2);
+  }
+
+  .btn-orange:hover {
+    background: rgba(255,107,53,0.1);
+    box-shadow: 0 0 12px rgba(255,107,53,0.2);
+  }
+
+  .state-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #0e1320;
+    border: 1px solid var(--border-bright);
+    border-radius: 5px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: #7a9ab5;
+    font-weight: 500;
+  }
+
+  .state-indicator.running { color: var(--success); border-color: var(--success); }
+  .state-indicator.running .state-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .state-indicator.idle .state-dot { background: #3d5068; }
+  .state-indicator.complete { color: var(--accent2); border-color: var(--accent2); }
+  .state-indicator.complete .state-dot { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+
+  .state-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* CANVAS AREA */
+  .canvas-area {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .canvas-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-bright);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .toolbar-info {
+    font-size: 11px;
+    color: #7a9ab5;
+    letter-spacing: 0.05em;
+  }
+
+  .toolbar-info span { color: var(--accent); }
+
+  .canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  canvas#simCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* Grid overlay */
+  .grid-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+  }
+
+  /* Origin marker */
+  .origin-marker {
+    position: absolute;
+    bottom: 40px;
+    left: 60px;
+    font-size: 10px;
+    color: var(--text-muted);
+    pointer-events: none;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+
+  .readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .readout {
+    background: #0e1320;
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .readout-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8aaabf;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .readout-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  .readout-unit {
+    font-size: 9px;
+    color: #6a8a9f;
+    margin-left: 2px;
+  }
+
+  .readout.orange .readout-value { color: var(--accent2); }
+  .readout.purple .readout-value { color: var(--accent3); }
+  .readout.green .readout-value { color: var(--success); }
+
+  .chart-container {
+    background: #0e1320;
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .chart-title {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8aaabf;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  canvas.chart-canvas {
+    width: 100% !important;
+    height: 140px !important;
+  }
+
+  /* EXPORT */
+  .export-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .export-row .btn {
+    flex: 1;
+    font-size: 10px;
+  }
+
+  .log-area {
+    background: #0d1220;
+    border: 1px solid var(--border-bright);
+    border-radius: 5px;
+    padding: 10px 12px;
+    font-size: 10px;
+    color: #7a9ab5;
+    max-height: 80px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    scrollbar-width: thin;
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 8px;
+    line-height: 1.6;
+  }
+
+  .log-time { color: #3d5568; }
+  .log-msg { color: #7a9ab5; }
+  .log-msg.success { color: var(--success); }
+  .log-msg.warn { color: var(--accent2); }
+
+  .formula-box {
+    background: #0d1422;
+    border: 1px solid var(--border-bright);
+    border-left: 3px solid var(--accent3);
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .formula-title {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .formula-line {
+    font-size: 11px;
+    color: #8aaabf;
+    line-height: 1.8;
+    font-family: var(--mono);
+  }
+
+  .formula-line em { color: #d4e8f5; font-style: normal; }
+
+  /* TOOLTIP */
+  .tooltip-overlay {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(10,12,16,0.95);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text-dim);
+    display: none;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .tooltip-overlay span { color: var(--accent); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel { animation: fadeIn 0.3s ease forwards; }
+
+  /* COMING SOON BADGE */
+  .coming-soon {
+    display: inline-block;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    border: 1px solid var(--text-muted);
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* VERSION TAG */
+  .version {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+  /* TAB SWITCHER */
+  .tab-switcher {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .tab-btn {
+    padding: 4px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+  }
+
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn:hover { color: var(--text); background: var(--surface2); }
+  .tab-btn.active { color: var(--accent2); background: rgba(255,107,53,0.08); }
+
+  /* DATA TABLE */
+  .table-meta {
+    font-size: 10px;
+    color: #7a9ab5;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: #0d1220;
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 320px;
+    border: 1px solid var(--border-bright);
+    border-radius: 5px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  #dataTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    font-family: var(--mono);
+  }
+
+  #dataTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  #dataTable th {
+    background: #0d1525;
+    color: #8aaabf;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 8px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-bright);
+    white-space: nowrap;
+  }
+
+  #dataTable th:first-child { text-align: center; }
+
+  #dataTable td {
+    padding: 5px 8px;
+    text-align: right;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(30,37,53,0.6);
+    font-size: 9.5px;
+    white-space: nowrap;
+  }
+
+  #dataTable td:first-child {
+    text-align: center;
+    font-weight: 700;
+    padding: 5px 6px;
+  }
+
+  #dataTable tbody tr:hover td { background: rgba(255,255,255,0.025); color: #c8d8ea; }
+  #dataTable tbody tr:last-child td { border-bottom: none; }
+
+  /* Run color badge in table */
+  .run-badge {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  .table-footer {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin: 6px 0 10px;
+    text-align: right;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon"></div>
+    <span class="logo-text">Open<span>Physics</span> Lab</span>
+    <span class="badge">MVP v0.1</span>
+  </div>
+
+  <div class="exp-selector">
+    <button class="exp-tab active" onclick="selectExperiment('projectile', event)">Projectile Motion</button>
+    <button class="exp-tab" onclick="selectExperiment('pendulum', event)">Simple Pendulum</button>
+    <button class="exp-tab" onclick="selectExperiment('collision', event)">Collisions <span class="coming-soon">soon</span></button>
+  </div>
+
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <span class="status-text" style="color:#7a9ab5;">Browser Engine Active</span>
+    <span class="version" style="color:#546880;">Apache 2.0</span>
+  </div>
+</header>
+
+<div class="workspace">
+
+  <!-- LEFT PANEL: Controls -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-dot" style="background: var(--accent)"></div>
+      <span class="panel-title">Parameters</span>
+    </div>
+    <div class="panel-content">
+
+      <div id="stateIndicator" class="state-indicator idle">
+        <div class="state-dot"></div>
+        <span id="stateText">READY TO LAUNCH</span>
+      </div>
+
+      <div id="panelProjectile">
+      <div class="formula-box">
+        <div class="formula-title">Physics Model — With Drag</div>
+        <div class="formula-line">x = <em>∫ vₓ dt</em></div>
+        <div class="formula-line">y = <em>∫ vᵧ dt</em></div>
+        <div class="formula-line">aₓ = <em>−k·|v|·vₓ</em></div>
+        <div class="formula-line">aᵧ = <em>−g − k·|v|·vᵧ</em></div>
+        <div class="formula-line">k = <em>½ρCdA / m</em></div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Initial Velocity</span>
+          <span class="control-value" id="velDisplay">25.0 m/s</span>
+        </div>
+        <input type="range" class="slider" id="velocity" min="5" max="80" value="25" step="0.5"
+          oninput="updateParam('velocity', this.value)" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Launch Angle</span>
+          <span class="control-value orange" id="angleDisplay">45.0°</span>
+        </div>
+        <input type="range" class="slider orange" id="angle" min="1" max="89" value="45" step="1"
+          oninput="updateParam('angle', this.value)" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Gravity</span>
+          <span class="control-value purple" id="gravDisplay">9.81 m/s²</span>
+        </div>
+        <input type="range" class="slider purple" id="gravity" min="0.5" max="25" value="9.81" step="0.1"
+          oninput="updateParam('gravity', this.value)" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Mass</span>
+          <span class="control-value green" id="massDisplay">1.0 kg</span>
+        </div>
+        <input type="range" class="slider green" id="mass" min="0.1" max="20" value="1" step="0.1"
+          oninput="updateParam('mass', this.value)" />
+        <div style="margin-top:5px; font-size:9px; color:#547080; letter-spacing:0.05em;">
+          Sphere ⌀ <span id="massRadius">13.1cm ⌀</span> · heavier = less drag effect
+        </div>
+      </div>
+      </div><!-- /panelProjectile -->
+
+      <!-- PENDULUM CONTROLS -->
+      <div id="panelPendulum" style="display:none;">
+      <div class="formula-box" style="border-left-color: #f59e0b;">
+        <div class="formula-title" style="color:#f59e0b;">Simple Pendulum — RK4</div>
+        <div class="formula-line">θ'' = <em>−(g/L)·sin(θ) − b·θ'</em></div>
+        <div class="formula-line">KE = <em>½mL²θ'²</em></div>
+        <div class="formula-line">PE = <em>mgL(1−cos θ)</em></div>
+        <div class="formula-line">T ≈ <em>2π√(L/g)</em></div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Length</span>
+          <span class="control-value" style="color:#f59e0b;" id="pLenDisplay">1.50 m</span>
+        </div>
+        <input type="range" class="slider amber" id="pLength" min="0.2" max="5" value="1.5" step="0.05"
+          oninput="updatePendulumParam('length', this.value)" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Initial Angle</span>
+          <span class="control-value orange" id="pAngleDisplay">30.0°</span>
+        </div>
+        <input type="range" class="slider orange" id="pAngle" min="1" max="175" value="30" step="1"
+          oninput="updatePendulumParam('angle', this.value)" />
+        <div style="margin-top:5px; font-size:9px; color:#547080;">
+          Large angles deviate from T = 2π√(L/g)
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Gravity</span>
+          <span class="control-value purple" id="pGravDisplay">9.81 m/s²</span>
+        </div>
+        <input type="range" class="slider purple" id="pGravity" min="0.5" max="25" value="9.81" step="0.1"
+          oninput="updatePendulumParam('gravity', this.value)" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Damping</span>
+          <span class="control-value" style="color:#94a3b8;" id="pDampDisplay">0.05</span>
+        </div>
+        <input type="range" class="slider" id="pDamping" min="0" max="2" value="0.05" step="0.01"
+          oninput="updatePendulumParam('damping', this.value)" />
+        <div style="margin-top:5px; font-size:9px; color:#547080;">
+          0 = ideal · 2 = overdamped
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="control-name">Mass</span>
+          <span class="control-value green" id="pMassDisplay">1.0 kg</span>
+        </div>
+        <input type="range" class="slider green" id="pMass" min="0.1" max="10" value="1" step="0.1"
+          oninput="updatePendulumParam('mass', this.value)" />
+        <div style="margin-top:5px; font-size:9px; color:#547080;">
+          Affects energy magnitude only
+        </div>
+      </div>
+      </div><!-- /panelPendulum -->
+
+      <div class="divider"></div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="launchBtn" onclick="handleLaunch()">▶ Start</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" style="flex:1;" onclick="handleReset()">↺ Clear All</button>
+          <button class="btn btn-secondary" style="flex:1; font-size:10px;" onclick="handleClearTrails()">⊘ Trails</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-label" style="margin-bottom: 4px;">
+        <span class="control-name" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#8aaabf; font-weight:600;">Show Trail</span>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="showTrail" checked onchange="toggleTrail()" style="accent-color: var(--accent);" />
+          <span style="font-size:10px; color:#8aaabf;">ON</span>
+        </label>
+      </div>
+
+      <div class="control-label" style="margin-bottom: 4px;">
+        <span class="control-name" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#8aaabf; font-weight:600;">Slow Motion</span>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="slowMo" onchange="toggleSlowMo()" style="accent-color: var(--accent);" />
+          <span style="font-size:10px; color:#8aaabf;">OFF</span>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER: Canvas -->
+  <div class="canvas-area">
+    <div class="canvas-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-info">Experiment: <span id="toolbarExpName">Projectile Motion</span></span>
+        <span class="toolbar-info" id="toolbarInfo1">Scale: <span>1px = 0.5m</span></span>
+        <span class="toolbar-info">t = <span id="timeDisplay">0.000</span>s</span>
+      </div>
+      <div class="toolbar-left">
+        <span class="toolbar-info" id="toolbarInfo2">pos: (<span id="posX">0.0</span>, <span id="posY">0.0</span>) m</span>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <div class="grid-overlay" id="gridOverlay"></div>
+      <canvas id="simCanvas"></canvas>
+      <div class="tooltip-overlay" id="tooltip"></div>
+      <div class="origin-marker" id="originMarker">⊕ Origin</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Data & Charts -->
+  <div class="panel-right">
+    <div class="panel-header" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="panel-dot" style="background: var(--accent2)"></div>
+        <span class="panel-title">Live Data</span>
+      </div>
+      <div class="tab-switcher">
+        <button class="tab-btn active" id="tabCharts" onclick="switchTab('charts')">Charts</button>
+        <button class="tab-btn" id="tabTable" onclick="switchTab('table')">Table</button>
+      </div>
+    </div>
+    <div class="panel-content">
+
+      <!-- READOUT GRID — relabeled per experiment -->
+      <div class="readout-grid" id="readoutGrid">
+        <div class="readout"><div class="readout-label" id="rl-0">Time</div><div class="readout-value" id="r-0">—<span class="readout-unit" id="ru-0">s</span></div></div>
+        <div class="readout orange"><div class="readout-label" id="rl-1">—</div><div class="readout-value" id="r-1">—<span class="readout-unit" id="ru-1"></span></div></div>
+        <div class="readout purple"><div class="readout-label" id="rl-2">—</div><div class="readout-value" id="r-2">—<span class="readout-unit" id="ru-2"></span></div></div>
+        <div class="readout green"><div class="readout-label" id="rl-3">—</div><div class="readout-value" id="r-3">—<span class="readout-unit" id="ru-3"></span></div></div>
+        <div class="readout"><div class="readout-label" id="rl-4">—</div><div class="readout-value" id="r-4">—<span class="readout-unit" id="ru-4"></span></div></div>
+        <div class="readout"><div class="readout-label" id="rl-5">—</div><div class="readout-value" id="r-5">—<span class="readout-unit" id="ru-5"></span></div></div>
+        <div class="readout orange"><div class="readout-label" id="rl-6">—</div><div class="readout-value" id="r-6">—<span class="readout-unit" id="ru-6"></span></div></div>
+        <div class="readout green"><div class="readout-label" id="rl-7">—</div><div class="readout-value" id="r-7">—<span class="readout-unit" id="ru-7"></span></div></div>
+      </div>
+
+      <!-- CHARTS TAB -->
+      <div id="viewCharts">
+        <!-- Projectile charts -->
+        <div id="chartsProjectile">
+          <div class="chart-container">
+            <div class="chart-title">Y Position vs Time</div>
+            <canvas class="chart-canvas" id="chartHeight"></canvas>
+          </div>
+          <div class="chart-container">
+            <div class="chart-title">Speed vs Time</div>
+            <canvas class="chart-canvas" id="chartSpeed"></canvas>
+          </div>
+        </div>
+        <!-- Pendulum charts -->
+        <div id="chartsPendulum" style="display:none;">
+          <div class="chart-container">
+            <div class="chart-title">Angle θ vs Time</div>
+            <canvas class="chart-canvas" id="chartAngle"></canvas>
+          </div>
+          <div class="chart-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="chart-title" style="margin-bottom:0">Energy vs Time</div>
+              <div style="display:flex;gap:8px;font-size:9px;font-family:var(--mono);">
+                <span style="color:#00e5ff;">━ KE</span>
+                <span style="color:#ff6b35;">━ PE</span>
+                <span style="color:#10b981;">━ Total</span>
+              </div>
+            </div>
+            <canvas class="chart-canvas" id="chartEnergy" style="margin-top:8px;"></canvas>
+          </div>
+        </div>
+        <div class="log-area" id="logArea">
+          <div class="log-entry"><span class="log-time">[00:00]</span><span class="log-msg success">OpenPhysics Lab initialized.</span></div>
+          <div class="log-entry"><span class="log-time">[00:00]</span><span class="log-msg">Set parameters and press Start.</span></div>
+        </div>
+      </div>
+
+      <!-- TABLE TAB -->
+      <div id="viewTable" style="display:none;">
+        <div class="table-meta" id="tableMeta">No data yet — run a simulation first.</div>
+        <div class="table-wrap">
+          <table id="dataTable">
+            <thead><tr id="tableHead"></tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">Showing every 5th sample &nbsp;·&nbsp; <span id="tableRowCount">0</span> rows</div>
+      </div>
+
+      <!-- EXPORT — always visible -->
+      <div class="export-row">
+        <button class="btn btn-secondary" onclick="exportCSV()" style="font-size:10px;">⬇ Raw CSV</button>
+        <button class="btn btn-secondary" onclick="exportJSON()" style="font-size:10px;">⬇ JSON</button>
+        <button class="btn btn-orange" onclick="exportTableCSV()" style="font-size:10px;">⬇ Table CSV</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  OpenPhysics Lab — Core Engine
+//  License: Apache 2.0
+//  Physics: Numerical integration (Euler) with aerodynamic drag
+//
+//  With drag, mass matters:
+//    F_drag = ½ · ρ_air · Cd · A · v²
+//    a_drag = F_drag / m
+//    r      = (3m / 4π·ρ_obj)^(1/3)   [sphere radius from mass]
+//    A      = π · r²
+//
+//  Heavier objects have larger A but proportionally less drag
+//  deceleration, so they travel farther — physically correct.
+// ============================================================
+
+// ---------- EXPERIMENT REGISTRY ----------
+const ExperimentRegistry = (() => {
+  const experiments = new Map();
+  return {
+    register(id, factory) { experiments.set(id, factory); },
+    get(id) { return experiments.get(id); },
+    list() { return [...experiments.keys()]; }
+  };
+})();
+
+// ---------- ACTIVE EXPERIMENT ----------
+let activeExperiment = 'projectile';
+
+// ---------- STATE ----------
+const state = {
+  params: { velocity: 25, angle: 45, gravity: 9.81, mass: 1.0 },
+  running: false,
+  finished: false,
+  slowMo: false,
+  showTrail: true,
+  currentTime: 0,
+  data: [],
+  completedRuns: [],
+  ps: null,
+  maxHeight: 0,
+  range: 0,
+  animFrame: null
+};
+
+const pendulumState = {
+  params: { length: 1.5, angle: 30, gravity: 9.81, damping: 0.05, mass: 1.0 },
+  running: false,
+  slowMo: false,
+  showTrail: true,
+  currentTime: 0,
+  data: [],          // {t, theta, omega, ke, pe, energy}
+  completedRuns: [],
+  ps: null,          // {theta, omega}
+  animFrame: null
+};
+
+// ---------- CANVAS SETUP ----------
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+// Physics→pixel scale
+const SCALE = 2.0;  // px per meter
+const ORIGIN_X_FRAC = 0.08;
+const ORIGIN_Y_FRAC = 0.82;
+
+let W, H, originX, originY;
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  W = canvas.width;
+  H = canvas.height;
+  originX = W * ORIGIN_X_FRAC;
+  originY = H * ORIGIN_Y_FRAC;
+  drawScene();
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// Coordinate transforms
+function toScreen(mx, my) {
+  return { x: originX + mx * SCALE * 10, y: originY - my * SCALE * 10 };
+}
+
+// ---------- CHART.JS SETUP ----------
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: { enabled: false }
+  },
+  scales: {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.03)' },
+      ticks: { color: '#334155', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 },
+      border: { color: '#1e2535' }
+    },
+    y: {
+      grid: { color: 'rgba(255,255,255,0.03)' },
+      ticks: { color: '#334155', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 5 },
+      border: { color: '#1e2535' }
+    }
+  }
+};
+
+const chartHeight = new Chart(document.getElementById('chartHeight'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      data: [],
+      borderColor: '#00e5ff',
+      borderWidth: 1.5,
+      pointRadius: 0,
+      tension: 0.3,
+      fill: { target: 'origin', above: 'rgba(0,229,255,0.04)' }
+    }]
+  },
+  options: { ...chartDefaults }
+});
+
+const chartSpeed = new Chart(document.getElementById('chartSpeed'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      data: [],
+      borderColor: '#ff6b35',
+      borderWidth: 1.5,
+      pointRadius: 0,
+      tension: 0.3,
+      fill: { target: 'origin', above: 'rgba(255,107,53,0.04)' }
+    }]
+  },
+  options: { ...chartDefaults }
+});
+
+function pushChartPoint(t, y, speed) {
+  const label = t.toFixed(2);
+  chartHeight.data.labels.push(label);
+  chartHeight.data.datasets[0].data.push(parseFloat(y.toFixed(3)));
+  chartSpeed.data.labels.push(label);
+  chartSpeed.data.datasets[0].data.push(parseFloat(speed.toFixed(3)));
+  // Throttle chart updates
+  if (state.data.length % 3 === 0) {
+    chartHeight.update('none');
+    chartSpeed.update('none');
+  }
+}
+
+function clearCharts() {
+  chartHeight.data.labels = [];
+  chartHeight.data.datasets[0].data = [];
+  chartSpeed.data.labels = [];
+  chartSpeed.data.datasets[0].data = [];
+  chartHeight.update('none');
+  chartSpeed.update('none');
+}
+
+// ---------- PHYSICS — NUMERICAL INTEGRATION WITH DRAG ----------
+// Constants
+const RHO_AIR  = 1.225;   // air density (kg/m³) at sea level
+const CD       = 0.47;    // drag coefficient — solid sphere
+const RHO_OBJ  = 800;     // object density (kg/m³) — slightly less than water
+
+// Compute drag deceleration coefficient k = ½·ρ_air·Cd·A/m
+function dragK(mass) {
+  const r = Math.pow((3 * mass) / (4 * Math.PI * RHO_OBJ), 1 / 3);
+  const A = Math.PI * r * r;
+  return (0.5 * RHO_AIR * CD * A) / mass;
+}
+
+// Initialise physics integrator state from params
+function initPhysicsState(params) {
+  const theta = params.angle * Math.PI / 180;
+  return {
+    x:  0,
+    y:  0,
+    vx: params.velocity * Math.cos(theta),
+    vy: params.velocity * Math.sin(theta),
+  };
+}
+
+// Euler step — returns new physics state and data point
+function stepPhysics(ps, params, dt) {
+  const { gravity: g, mass: m } = params;
+  const k = dragK(m);
+  const v = Math.sqrt(ps.vx * ps.vx + ps.vy * ps.vy);
+  // Drag decelerates along velocity direction: a_drag = -k·v·v̂
+  const ax = -k * v * ps.vx;
+  const ay = -g - k * v * ps.vy;
+  const nx = ps.x  + ps.vx * dt;
+  const ny = ps.y  + ps.vy * dt;
+  const nvx = ps.vx + ax * dt;
+  const nvy = ps.vy + ay * dt;
+  const nps = { x: nx, y: ny, vx: nvx, vy: nvy };
+  const speed = Math.sqrt(nvx * nvx + nvy * nvy);
+  return { ps: nps, point: { x: nx, y: ny, vx: nvx, vy: nvy, speed } };
+}
+
+// Simulate a complete trajectory numerically for preview/predictions
+function simulateRun(params, maxSteps = 8000) {
+  let ps = initPhysicsState(params);
+  const pts = [{ t: 0, ...ps, speed: Math.hypot(ps.vx, ps.vy) }];
+  const DT_SIM = 1 / 240;
+  for (let i = 0; i < maxSteps; i++) {
+    const res = stepPhysics(ps, params, DT_SIM);
+    ps = res.ps;
+    pts.push({ t: (i + 1) * DT_SIM, ...res.point });
+    if (ps.y < 0 && i > 2) break;
+  }
+  return pts;
+}
+
+// ---------- TRAIL COLOR PALETTE ----------
+// Each new run cycles through these. Current run always drawn last (brightest).
+const TRAIL_PALETTE = [
+  { r: 0,   g: 229, b: 255 },   // cyan
+  { r: 255, g: 107, b: 53  },   // orange
+  { r: 167, g: 139, b: 250 },   // purple
+  { r: 16,  g: 185, b: 129 },   // green
+  { r: 250, g: 204, b: 21  },   // yellow
+  { r: 244, g: 114, b: 182 },   // pink
+];
+const MAX_TRAILS = 6;
+
+function runColor(index) {
+  return TRAIL_PALETTE[index % TRAIL_PALETTE.length];
+}
+
+// ---------- DRAWING ----------
+function drawScene(simState) {
+  if (!W) return;
+  ctx.clearRect(0, 0, W, H);
+
+  // Ground line
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(0, originY);
+  ctx.lineTo(W, originY);
+  ctx.stroke();
+
+  // Axis ticks
+  ctx.fillStyle = '#547080';
+  ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'center';
+  for (let m = 10; m <= 500; m += 10) {
+    const sx = toScreen(m, 0).x;
+    if (sx > W) break;
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx, originY - 5);
+    ctx.lineTo(sx, originY + 3);
+    ctx.stroke();
+    if (m % 20 === 0) ctx.fillText(m + 'm', sx, originY + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let m = 10; m <= 300; m += 10) {
+    const sy = toScreen(0, m).y;
+    if (sy < 0) break;
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(originX - 3, sy);
+    ctx.lineTo(originX + 5, sy);
+    ctx.stroke();
+    if (m % 20 === 0) ctx.fillText(m + 'm', originX - 8, sy + 3);
+  }
+
+  // --- Completed runs (persistent trails) ---
+  for (let ri = 0; ri < state.completedRuns.length; ri++) {
+    const run = state.completedRuns[ri];
+    const age = state.completedRuns.length - 1 - ri; // 0 = most recent
+    const maxAge = Math.max(1, state.completedRuns.length - 1);
+    const fade = 1 - (age / maxAge) * 0.75;   // older runs fade to 25%
+    const c = run.color;
+    drawTrail(run.data, c, fade * 0.55, 1.5);
+    // Impact dot for completed run
+    if (run.range > 0) {
+      const ip = toScreen(run.range, 0);
+      ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${fade * 0.7})`;
+      ctx.beginPath();
+      ctx.arc(ip.x, originY, 3, 0, Math.PI * 2);
+      ctx.fill();
+      if (age === 0) {
+        // Label the most recent completed run
+        ctx.font = '9px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},0.7)`;
+        ctx.fillText(run.range.toFixed(1) + 'm', ip.x, originY + 20);
+      }
+    }
+  }
+
+  // Preview trajectory or current run
+  if (!simState || simState.length === 0) {
+    drawPreviewTrajectory();
+    return;
+  }
+
+  // --- Current run trail ---
+  const currentColor = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
+  if (state.showTrail && simState.length > 1) {
+    drawTrail(simState, currentColor, 0.75, 2);
+  }
+
+  // Velocity vector
+  const last = simState[simState.length - 1];
+  const pos = toScreen(last.x, last.y);
+  const vScale = 0.3;
+  ctx.strokeStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.6)`;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+  ctx.lineTo(pos.x + last.vx * vScale * SCALE, pos.y - last.vy * vScale * SCALE);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Projectile glow
+  const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 18);
+  grad.addColorStop(0, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.25)`);
+  grad.addColorStop(1, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0)`);
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Projectile ball — size scales with mass
+  const ballR = Math.max(4, Math.min(10, 3 + Math.cbrt(state.params.mass) * 1.5));
+  ctx.fillStyle = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+  ctx.shadowColor = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, ballR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Impact marker (current run finished)
+  if (state.finished && state.range > 0) {
+    const ip = toScreen(state.range, 0);
+    ctx.strokeStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.5)`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath();
+    ctx.moveTo(ip.x, originY - 10);
+    ctx.lineTo(ip.x, originY + 10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.9)`;
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.range.toFixed(1) + 'm', ip.x, originY + 22);
+  }
+}
+
+// Draws a trail for a given data array, color, alpha, lineWidth
+function drawTrail(data, color, alpha, lineWidth) {
+  if (data.length < 2) return;
+  ctx.lineWidth = lineWidth;
+  ctx.setLineDash([]);
+
+  // Draw in segments with fading alpha (tail → head)
+  const SEG = Math.max(1, Math.floor(data.length / 60));
+  for (let i = SEG; i < data.length; i += SEG) {
+    const progress = i / data.length;
+    const a = alpha * (0.15 + progress * 0.85);
+    ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${a})`;
+    ctx.beginPath();
+    const p0 = toScreen(data[i - SEG].x, data[i - SEG].y);
+    const p1 = toScreen(data[i].x, data[i].y);
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
+  }
+}
+
+function drawPreviewTrajectory() {
+  // Numerically simulate preview (accounts for drag correctly)
+  const previewPts = simulateRun(state.params, 2000);
+  if (previewPts.length < 2) return;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  let first = true;
+  for (const pt of previewPts) {
+    const p = toScreen(pt.x, pt.y);
+    if (first) { ctx.moveTo(p.x, p.y); first = false; }
+    else ctx.lineTo(p.x, p.y);
+    if (p.x > W) break;
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Launch angle indicator
+  const theta = state.params.angle * Math.PI / 180;
+  const len = 35;
+  ctx.strokeStyle = 'rgba(0,229,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(originX, originY);
+  ctx.lineTo(originX + len * Math.cos(theta), originY - len * Math.sin(theta));
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(0,229,255,0.15)';
+  ctx.beginPath();
+  ctx.arc(originX, originY, 20, -theta, 0, true);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(0,229,255,0.65)';
+  ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(state.params.angle + '°', originX + 24, originY - 6);
+}
+
+// ============================================================
+//  PENDULUM — Physics (RK4) + Drawing
+// ============================================================
+
+const PEND_SCALE = 130;   // pixels per meter of pendulum length
+
+function getPivot() {
+  return { x: W * 0.5, y: H * 0.18 };
+}
+
+function pendulumBobPos(theta, length) {
+  const piv = getPivot();
+  const L = length * PEND_SCALE;
+  return { x: piv.x + Math.sin(theta) * L, y: piv.y + Math.cos(theta) * L };
+}
+
+// RK4 integration for θ'' = -(g/L)·sin(θ) - b·θ'
+function rk4Pendulum(ps, params, dt) {
+  const { gravity: g, length: L, damping: b } = params;
+  const f = (th, om) => -(g / L) * Math.sin(th) - b * om;
+
+  const k1t = ps.omega;                              const k1o = f(ps.theta, ps.omega);
+  const k2t = ps.omega + 0.5*dt*k1o;                const k2o = f(ps.theta + 0.5*dt*k1t, ps.omega + 0.5*dt*k1o);
+  const k3t = ps.omega + 0.5*dt*k2o;                const k3o = f(ps.theta + 0.5*dt*k2t, ps.omega + 0.5*dt*k2o);
+  const k4t = ps.omega + dt*k3o;                     const k4o = f(ps.theta + dt*k3t, ps.omega + dt*k3o);
+
+  return {
+    theta: ps.theta + (dt/6)*(k1t + 2*k2t + 2*k3t + k4t),
+    omega: ps.omega + (dt/6)*(k1o + 2*k2o + 2*k3o + k4o),
+  };
+}
+
+function pendulumEnergy(ps, params) {
+  const { gravity: g, length: L, mass: m } = params;
+  const ke = 0.5 * m * L*L * ps.omega*ps.omega;
+  const pe = m * g * L * (1 - Math.cos(ps.theta));
+  return { ke, pe, energy: ke + pe };
+}
+
+function pendulumPeriod(params) {
+  return 2 * Math.PI * Math.sqrt(params.length / params.gravity);
+}
+
+// Draw the pendulum scene
+function drawPendulumScene() {
+  if (!W) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const piv = getPivot();
+  const { length: L } = pendulumState.params;
+  const currentColor = TRAIL_PALETTE[pendulumState.completedRuns.length % TRAIL_PALETTE.length];
+
+  // Faint ceiling bar
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(0, 0, W, piv.y - 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fillRect(piv.x - 30, piv.y - 6, 60, 6);
+
+  // --- Draw completed run trails ---
+  for (let ri = 0; ri < pendulumState.completedRuns.length; ri++) {
+    const run = pendulumState.completedRuns[ri];
+    const age = pendulumState.completedRuns.length - 1 - ri;
+    const maxAge = Math.max(1, pendulumState.completedRuns.length - 1);
+    const fade = 1 - (age / maxAge) * 0.8;
+    const c = run.color;
+    if (pendulumState.showTrail && run.data.length > 1) {
+      drawPendulumTrail(run.data, run.params, c, fade * 0.35);
+    }
+  }
+
+  const ps = pendulumState.ps;
+  if (!ps) {
+    // Idle — draw resting position with preview angle
+    const theta0 = pendulumState.params.angle * Math.PI / 180;
+    const bob = pendulumBobPos(theta0, L);
+    // Rod
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(piv.x, piv.y);
+    ctx.lineTo(bob.x, bob.y);
+    ctx.stroke();
+    // Angle arc
+    ctx.strokeStyle = 'rgba(245,158,11,0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(piv.x, piv.y, 40, Math.PI/2 - theta0, Math.PI/2, false);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(245,158,11,0.65)';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText(pendulumState.params.angle + '°', piv.x + 46, piv.y + 16);
+    // Bob
+    ctx.fillStyle = 'rgba(245,158,11,0.5)';
+    ctx.beginPath();
+    ctx.arc(bob.x, bob.y, 10, 0, Math.PI*2);
+    ctx.fill();
+    return;
+  }
+
+  // Current run trail
+  if (pendulumState.showTrail && pendulumState.data.length > 1) {
+    drawPendulumTrail(pendulumState.data, pendulumState.params, currentColor, 0.65);
+  }
+
+  const bob = pendulumBobPos(ps.theta, L);
+
+  // Rod shadow
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(piv.x+1, piv.y+1);
+  ctx.lineTo(bob.x+1, bob.y+1);
+  ctx.stroke();
+
+  // Rod
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(piv.x, piv.y);
+  ctx.lineTo(bob.x, bob.y);
+  ctx.stroke();
+
+  // Velocity vector (tangent direction)
+  const { ke, pe, energy } = pendulumEnergy(ps, pendulumState.params);
+  const vScale = 3.5;
+  const tangX =  Math.cos(ps.theta) * ps.omega * L * PEND_SCALE * vScale * 0.01;
+  const tangY = -Math.sin(ps.theta) * ps.omega * L * PEND_SCALE * vScale * 0.01;
+  ctx.strokeStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.5)`;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(bob.x, bob.y);
+  ctx.lineTo(bob.x + tangX * 12, bob.y + tangY * 12);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bob glow
+  const bobR = Math.max(6, Math.min(14, 5 + Math.cbrt(pendulumState.params.mass) * 2.5));
+  const grad = ctx.createRadialGradient(bob.x, bob.y, 0, bob.x, bob.y, bobR * 3);
+  grad.addColorStop(0, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.2)`);
+  grad.addColorStop(1, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0)`);
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(bob.x, bob.y, bobR * 3, 0, Math.PI*2);
+  ctx.fill();
+
+  // Bob
+  ctx.fillStyle = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+  ctx.shadowColor = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.arc(bob.x, bob.y, bobR, 0, Math.PI*2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Pivot pin
+  ctx.fillStyle = '#c8d8ea';
+  ctx.beginPath();
+  ctx.arc(piv.x, piv.y, 4, 0, Math.PI*2);
+  ctx.fill();
+
+  // Energy mini-bars (bottom-left corner)
+  drawEnergyBars(ke, pe, energy);
+
+  // Angle label
+  const thetaDeg = (ps.theta * 180 / Math.PI).toFixed(1);
+  ctx.fillStyle = '#8aaabf';
+  ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(`θ = ${thetaDeg}°`, 12, H - 12);
+}
+
+function drawPendulumTrail(data, params, color, alpha) {
+  if (data.length < 2) return;
+  const SEG = Math.max(1, Math.floor(data.length / 80));
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  for (let i = SEG; i < data.length; i += SEG) {
+    const progress = i / data.length;
+    const a = alpha * (0.1 + progress * 0.9);
+    const b0 = pendulumBobPos(data[i - SEG].theta, params.length);
+    const b1 = pendulumBobPos(data[i].theta, params.length);
+    ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${a})`;
+    ctx.beginPath();
+    ctx.moveTo(b0.x, b0.y);
+    ctx.lineTo(b1.x, b1.y);
+    ctx.stroke();
+  }
+}
+
+function drawEnergyBars(ke, pe, total) {
+  if (total <= 0) return;
+  const bx = 12, by = H - 70, bw = 8, bh = 50;
+  const labels = [['KE','#00e5ff',ke], ['PE','#ff6b35',pe], ['E','#10b981',total]];
+  labels.forEach(([label, color, val], i) => {
+    const frac = Math.min(1, val / total);
+    const filled = frac * bh;
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.fillRect(bx + i * 18, by, bw, bh);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(bx + i * 18, by + bh - filled, bw, filled);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = color;
+    ctx.font = '8px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, bx + i * 18 + bw/2, by + bh + 10);
+  });
+}
+
+// ============================================================
+//  PENDULUM — Simulation Loop
+// ============================================================
+const PEND_DT = 1 / 480;
+let pendLastTimestamp = null;
+let pendDtAccum = 0;
+
+function pendulumAnimLoop(timestamp) {
+  if (!pendulumState.running) return;
+
+  if (!pendLastTimestamp) pendLastTimestamp = timestamp;
+  let wallDelta = (timestamp - pendLastTimestamp) / 1000;
+  pendLastTimestamp = timestamp;
+  if (document.getElementById('slowMo').checked) wallDelta *= 0.15;
+  pendDtAccum += wallDelta;
+
+  while (pendDtAccum >= PEND_DT && pendulumState.running) {
+    pendDtAccum -= PEND_DT;
+    pendulumState.ps = rk4Pendulum(pendulumState.ps, pendulumState.params, PEND_DT);
+    pendulumState.currentTime += PEND_DT;
+
+    const { theta, omega } = pendulumState.ps;
+    const { ke, pe, energy } = pendulumEnergy(pendulumState.ps, pendulumState.params);
+    const point = { t: pendulumState.currentTime, theta, omega, ke, pe, energy };
+    pendulumState.data.push(point);
+
+    if (pendulumState.data.length % 6 === 0) {
+      pushPendulumChartPoint(pendulumState.currentTime, theta * 180 / Math.PI, ke, pe, energy);
+    }
+    if (pendulumState.data.length % 24 === 0) updatePendulumReadouts(point);
+    if (pendulumState.data.length % 120 === 0) maybeRefreshTable();
+  }
+
+  drawPendulumScene();
+  pendulumState.animFrame = requestAnimationFrame(pendulumAnimLoop);
+}
+
+function launchPendulum() {
+  if (pendulumState.running) return;
+  stopPendulum();
+  pendulumState.data = [];
+  pendulumState.currentTime = 0;
+  pendLastTimestamp = null;
+  pendDtAccum = 0;
+  clearPendulumCharts();
+
+  const theta0 = pendulumState.params.angle * Math.PI / 180;
+  pendulumState.ps = { theta: theta0, omega: 0 };
+
+  const { ke, pe, energy } = pendulumEnergy(pendulumState.ps, pendulumState.params);
+  pendulumState.data.push({ t: 0, theta: theta0, omega: 0, ke, pe, energy });
+  pendulumState.running = true;
+  setUIState('running');
+  document.getElementById('launchBtn').textContent = '⏸ Pause';
+  const T = pendulumPeriod(pendulumState.params).toFixed(3);
+  log(`Pendulum started — L=${pendulumState.params.length}m, θ₀=${pendulumState.params.angle}°, b=${pendulumState.params.damping}`, 'success');
+  log(`Small-angle period T≈${T}s · E₀=${energy.toFixed(3)}J`);
+
+  pendulumState.animFrame = requestAnimationFrame(pendulumAnimLoop);
+}
+
+function stopPendulum() {
+  pendulumState.running = false;
+  if (pendulumState.animFrame) cancelAnimationFrame(pendulumState.animFrame);
+  pendulumState.animFrame = null;
+  pendLastTimestamp = null;
+}
+
+function resetPendulum() {
+  stopPendulum();
+  pendulumState.data = [];
+  pendulumState.completedRuns = [];
+  pendulumState.currentTime = 0;
+  pendulumState.ps = null;
+  clearPendulumCharts();
+  setUIState('idle');
+  document.getElementById('launchBtn').textContent = '▶ Start';
+  drawPendulumScene();
+  refreshTable();
+  log('Pendulum workspace cleared.', 'warn');
+}
+
+function updatePendulumParam(param, value) {
+  pendulumState.params[param] = parseFloat(value);
+  const v = parseFloat(value);
+  if (param === 'length')  document.getElementById('pLenDisplay').textContent   = v.toFixed(2) + ' m';
+  if (param === 'angle')   document.getElementById('pAngleDisplay').textContent = v.toFixed(0) + '°';
+  if (param === 'gravity') document.getElementById('pGravDisplay').textContent  = v.toFixed(2) + ' m/s²';
+  if (param === 'damping') document.getElementById('pDampDisplay').textContent  = v.toFixed(2);
+  if (param === 'mass')    document.getElementById('pMassDisplay').textContent  = v.toFixed(1) + ' kg';
+  if (!pendulumState.running) drawPendulumScene();
+}
+
+function updatePendulumReadouts(p) {
+  const thetaDeg = (p.theta * 180 / Math.PI);
+  const omegaDeg = (p.omega * 180 / Math.PI);
+  setReadout(0, p.t.toFixed(3), 's');
+  setReadout(1, thetaDeg.toFixed(2), '°');
+  setReadout(2, p.omega.toFixed(3), 'rad/s');
+  setReadout(3, p.ke.toFixed(3), 'J');
+  setReadout(4, p.pe.toFixed(3), 'J');
+  setReadout(5, p.energy.toFixed(3), 'J');
+  setReadout(6, omegaDeg.toFixed(2), '°/s');
+  setReadout(7, pendulumPeriod(pendulumState.params).toFixed(3), 's');
+  document.getElementById('timeDisplay').textContent = p.t.toFixed(3);
+  document.getElementById('posX').textContent = (p.theta * 180 / Math.PI).toFixed(1);
+  document.getElementById('posY').textContent = p.omega.toFixed(3);
+}
+
+// ============================================================
+//  PENDULUM — Charts
+// ============================================================
+let chartAngle, chartEnergy;
+
+function initPendulumCharts() {
+  if (chartAngle) { chartAngle.destroy(); }
+  if (chartEnergy) { chartEnergy.destroy(); }
+
+  chartAngle = new Chart(document.getElementById('chartAngle'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{ data: [], borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0, tension: 0.2,
+        fill: { target: 'origin', above: 'rgba(245,158,11,0.05)' } }]
+    },
+    options: { ...chartDefaults }
+  });
+
+  chartEnergy = new Chart(document.getElementById('chartEnergy'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'KE',    data: [], borderColor: '#00e5ff', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+        { label: 'PE',    data: [], borderColor: '#ff6b35', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+        { label: 'Total', data: [], borderColor: '#10b981', borderWidth: 1,   pointRadius: 0, tension: 0.2 },
+      ]
+    },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+  });
+}
+
+function clearPendulumCharts() {
+  if (!chartAngle || !chartEnergy) return;
+  chartAngle.data.labels = []; chartAngle.data.datasets[0].data = []; chartAngle.update('none');
+  chartEnergy.data.labels = [];
+  chartEnergy.data.datasets.forEach(ds => { ds.data = []; });
+  chartEnergy.update('none');
+}
+
+function pushPendulumChartPoint(t, thetaDeg, ke, pe, energy) {
+  const label = t.toFixed(2);
+  chartAngle.data.labels.push(label);
+  chartAngle.data.datasets[0].data.push(parseFloat(thetaDeg.toFixed(3)));
+  chartEnergy.data.labels.push(label);
+  chartEnergy.data.datasets[0].data.push(parseFloat(ke.toFixed(4)));
+  chartEnergy.data.datasets[1].data.push(parseFloat(pe.toFixed(4)));
+  chartEnergy.data.datasets[2].data.push(parseFloat(energy.toFixed(4)));
+  if (pendulumState.data.length % 12 === 0) {
+    chartAngle.update('none');
+    chartEnergy.update('none');
+  }
+}
+
+// ============================================================
+//  UNIFIED DISPATCHER — routes button clicks to active experiment
+// ============================================================
+function handleLaunch() {
+  if (activeExperiment === 'projectile') {
+    launch();
+  } else if (activeExperiment === 'pendulum') {
+    if (pendulumState.running) {
+      // Pause
+      stopPendulum();
+      setUIState('idle');
+      document.getElementById('launchBtn').textContent = '▶ Resume';
+      log('Pendulum paused.', 'warn');
+    } else if (pendulumState.ps !== null) {
+      // Resume from paused state
+      pendulumState.running = true;
+      pendLastTimestamp = null;
+      pendDtAccum = 0;
+      setUIState('running');
+      document.getElementById('launchBtn').textContent = '⏸ Pause';
+      log('Pendulum resumed.');
+      pendulumState.animFrame = requestAnimationFrame(pendulumAnimLoop);
+    } else {
+      // Fresh start
+      launchPendulum();
+    }
+  }
+}
+
+function handleReset() {
+  if (activeExperiment === 'projectile') resetSim();
+  else if (activeExperiment === 'pendulum') resetPendulum();
+}
+
+function handleClearTrails() {
+  if (activeExperiment === 'projectile') clearTrails();
+  else if (activeExperiment === 'pendulum') {
+    pendulumState.completedRuns = [];
+    drawPendulumScene();
+    refreshTable();
+    log('Pendulum trails cleared.', 'warn');
+  }
+}
+
+// ---------- SIMULATION LOOP ----------
+let lastTimestamp = null;
+const DT = 1 / 240;   // physics timestep (s) — matches integrator
+let dtAccum = 0;
+
+function animLoop(timestamp) {
+  if (!state.running) return;
+
+  if (!lastTimestamp) lastTimestamp = timestamp;
+  let wallDelta = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp;
+
+  if (state.slowMo) wallDelta *= 0.15;
+  dtAccum += wallDelta;
+
+  while (dtAccum >= DT && state.running) {
+    dtAccum -= DT;
+    const res = stepPhysics(state.ps, state.params, DT);
+    state.ps = res.ps;
+    state.currentTime += DT;
+
+    const { x, y, vx, vy, speed } = res.point;
+
+    if (y < 0 && state.currentTime > 0.02) {
+      // Landed — interpolate impact x (linear between last two steps)
+      const prev = state.data.length > 0 ? state.data[state.data.length - 1] : { x: 0, y: 0 };
+      const frac = prev.y / (prev.y - y);   // fraction along last segment to y=0
+      state.range = prev.x + frac * (x - prev.x);
+
+      state.running = false;
+      state.finished = true;
+
+      const finalPoint = { t: state.currentTime, x: state.range, y: 0, vx, vy, speed };
+      state.data.push(finalPoint);
+
+      // Save this run to completed trails
+      const runColor = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
+      state.completedRuns.push({
+        data: [...state.data],
+        color: runColor,
+        range: state.range,
+        maxHeight: state.maxHeight,
+        params: { ...state.params },
+      });
+      // Keep only MAX_TRAILS
+      if (state.completedRuns.length > MAX_TRAILS) state.completedRuns.shift();
+
+      setUIState('complete');
+      updateReadouts(finalPoint);
+      drawScene(state.data);
+      log(`Landed — x=${state.range.toFixed(2)}m, t=${state.currentTime.toFixed(2)}s`, 'warn');
+      chartHeight.update('none');
+      chartSpeed.update('none');
+      refreshTable();
+      return;
+    }
+
+    const point = { t: state.currentTime, x, y, vx, vy, speed };
+    state.data.push(point);
+    if (y > state.maxHeight) state.maxHeight = y;
+
+    if (state.data.length % 4 === 0) pushChartPoint(state.currentTime, y, speed);
+    updateReadouts(point);
+    maybeRefreshTable();
+
+    document.getElementById('timeDisplay').textContent = state.currentTime.toFixed(3);
+    document.getElementById('posX').textContent = x.toFixed(1);
+    document.getElementById('posY').textContent = y.toFixed(1);
+  }
+
+  drawScene(state.data);
+  state.animFrame = requestAnimationFrame(animLoop);
+}
+
+function updateReadouts(p) {
+  setReadout(0, p.t.toFixed(3), 's');
+  setReadout(1, p.x.toFixed(2), 'm');
+  setReadout(2, p.y.toFixed(2), 'm');
+  setReadout(3, p.speed.toFixed(1), 'm/s');
+  setReadout(4, p.vx.toFixed(2), 'm/s');
+  setReadout(5, p.vy.toFixed(2), 'm/s');
+  setReadout(6, state.maxHeight.toFixed(2), 'm');
+  if (state.range > 0) setReadout(7, state.range.toFixed(2), 'm');
+}
+
+// ---------- UI ACTIONS ----------
+function launch() {
+  if (state.running) return;
+
+  // Reset current run data but KEEP completed trails
+  state.running = false;
+  state.finished = false;
+  state.currentTime = 0;
+  state.data = [];
+  state.maxHeight = 0;
+  state.range = 0;
+  if (state.animFrame) cancelAnimationFrame(state.animFrame);
+  state.animFrame = null;
+  lastTimestamp = null;
+  dtAccum = 0;
+  clearCharts();
+
+  // Initialise physics integrator
+  state.ps = initPhysicsState(state.params);
+  state.running = true;
+
+  // Snapshot first frame
+  const { vx, vy } = state.ps;
+  const speed0 = Math.hypot(vx, vy);
+  state.data.push({ t: 0, x: 0, y: 0, vx, vy, speed: speed0 });
+
+  setUIState('running');
+
+  const c = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
+  log(`Launch #${state.completedRuns.length + 1} — v₀=${state.params.velocity}m/s, θ=${state.params.angle}°, m=${state.params.mass}kg`, 'success');
+
+  // Predicted range from numerical simulation
+  const preview = simulateRun(state.params);
+  const lastPt = preview[preview.length - 1];
+  const predRange = (lastPt && lastPt.x > 0) ? lastPt.x.toFixed(2) : '?';
+  const predH = Math.max(...preview.map(p => p.y)).toFixed(2);
+  log(`Predicted: H≈${predH}m, R≈${predRange}m (with drag)`);
+
+  state.animFrame = requestAnimationFrame(animLoop);
+}
+
+function resetSim() {
+  // Full hard reset — clears trails too
+  state.running = false;
+  state.finished = false;
+  state.currentTime = 0;
+  state.data = [];
+  state.completedRuns = [];
+  state.maxHeight = 0;
+  state.range = 0;
+  state.ps = null;
+  if (state.animFrame) cancelAnimationFrame(state.animFrame);
+  state.animFrame = null;
+  lastTimestamp = null;
+  clearCharts();
+  setUIState('idle');
+  drawScene([]);
+  refreshTable();
+  document.getElementById('timeDisplay').textContent = '0.000';
+  document.getElementById('posX').textContent = '0.0';
+  document.getElementById('posY').textContent = '0.0';
+  ['r-time','r-x','r-y','r-speed','r-vx','r-vy','r-maxH','r-range'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '—';
+  });
+  log('Workspace cleared.', 'warn');
+}
+
+function setUIState(s) {
+  const ind = document.getElementById('stateIndicator');
+  const txt = document.getElementById('stateText');
+  ind.className = 'state-indicator ' + s;
+  const isPend = activeExperiment === 'pendulum';
+  txt.textContent = s === 'running' ? 'SIMULATION RUNNING'
+                  : s === 'complete' ? (isPend ? 'STOPPED — DATA READY' : 'LANDED — DATA READY')
+                  : (isPend ? 'READY TO START' : 'READY TO LAUNCH');
+}
+
+function updateParam(param, value) {
+  state.params[param] = parseFloat(value);
+  if (param === 'velocity') document.getElementById('velDisplay').textContent = parseFloat(value).toFixed(1) + ' m/s';
+  if (param === 'angle')    document.getElementById('angleDisplay').textContent = parseFloat(value).toFixed(0) + '°';
+  if (param === 'gravity')  document.getElementById('gravDisplay').textContent = parseFloat(value).toFixed(2) + ' m/s²';
+  if (param === 'mass') {
+    const m = parseFloat(value);
+    document.getElementById('massDisplay').textContent = m.toFixed(1) + ' kg';
+    // Show radius in mm for context
+    const r = Math.pow((3 * m) / (4 * Math.PI * RHO_OBJ), 1/3) * 100; // cm
+    document.getElementById('massRadius').textContent = r.toFixed(1) + 'cm ⌀';
+  }
+  if (!state.running) drawScene([]);
+}
+
+function toggleTrail() {
+  state.showTrail = document.getElementById('showTrail').checked;
+}
+
+function toggleSlowMo() {
+  state.slowMo = document.getElementById('slowMo').checked;
+}
+
+// ---------- TAB SWITCHING ----------
+let activeTab = 'charts';
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('viewCharts').style.display = tab === 'charts' ? '' : 'none';
+  document.getElementById('viewTable').style.display  = tab === 'table'  ? '' : 'none';
+  document.getElementById('tabCharts').classList.toggle('active', tab === 'charts');
+  document.getElementById('tabTable').classList.toggle('active',  tab === 'table');
+  if (tab === 'table') refreshTable();
+}
+
+// ---------- DATA TABLE ----------
+function refreshTable() {
+  const tbody   = document.getElementById('tableBody');
+  const meta    = document.getElementById('tableMeta');
+  const countEl = document.getElementById('tableRowCount');
+  const thead   = document.getElementById('tableHead');
+
+  if (activeExperiment === 'projectile') {
+    thead.innerHTML = '<th>Run</th><th>t (s)</th><th>x (m)</th><th>y (m)</th><th>vx</th><th>vy</th><th>speed</th>';
+    const allRuns = [
+      ...state.completedRuns,
+      ...(state.data.length > 1 ? [{ data: state.data, color: TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length], params: { ...state.params }, range: state.range, maxHeight: state.maxHeight }] : []),
+    ];
+    renderRunsToTable(allRuns, tbody, meta, countEl, (d) =>
+      `<td>${d.t.toFixed(3)}</td><td>${d.x.toFixed(3)}</td><td>${d.y.toFixed(3)}</td><td>${d.vx.toFixed(3)}</td><td>${d.vy.toFixed(3)}</td><td>${d.speed.toFixed(3)}</td>`,
+      (p) => `v₀=${p.velocity}m/s θ=${p.angle}° m=${p.mass}kg`
+    );
+  } else {
+    thead.innerHTML = '<th>Run</th><th>t (s)</th><th>θ (°)</th><th>ω (rad/s)</th><th>KE (J)</th><th>PE (J)</th><th>E (J)</th>';
+    const allRuns = [
+      ...pendulumState.completedRuns,
+      ...(pendulumState.data.length > 1 ? [{ data: pendulumState.data, color: TRAIL_PALETTE[pendulumState.completedRuns.length % TRAIL_PALETTE.length], params: { ...pendulumState.params }, range: 0 }] : []),
+    ];
+    renderRunsToTable(allRuns, tbody, meta, countEl, (d) =>
+      `<td>${d.t.toFixed(3)}</td><td>${(d.theta * 180 / Math.PI).toFixed(2)}</td><td>${d.omega.toFixed(4)}</td><td>${d.ke.toFixed(4)}</td><td>${d.pe.toFixed(4)}</td><td>${d.energy.toFixed(4)}</td>`,
+      (p) => `L=${p.length}m θ₀=${p.angle}° b=${p.damping}`
+    );
+  }
+}
+
+function renderRunsToTable(allRuns, tbody, meta, countEl, rowFn, labelFn) {
+  if (allRuns.length === 0) {
+    tbody.innerHTML = '';
+    meta.textContent = 'No data yet — run a simulation first.';
+    countEl.textContent = '0';
+    return;
+  }
+  const STEP = 5;
+  let rowCount = 0;
+  let html = '';
+  allRuns.forEach((run, runIdx) => {
+    const c = run.color;
+    const colorHex = `rgb(${c.r},${c.g},${c.b})`;
+    const label = labelFn(run.params);
+    html += `<tr><td colspan="7" style="background:#0d1422;color:${colorHex};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid #1e2535;">
+      <span class="run-badge" style="background:${colorHex};"></span>Run ${runIdx+1} &nbsp;·&nbsp; ${label}
+    </td></tr>`;
+    for (let i = 0; i < run.data.length; i += STEP) {
+      const d = run.data[i];
+      html += `<tr><td><span class="run-badge" style="background:${colorHex};"></span>${runIdx+1}</td>${rowFn(d)}</tr>`;
+      rowCount++;
+    }
+  });
+  tbody.innerHTML = html;
+  countEl.textContent = rowCount;
+  const total = allRuns.reduce((s,r) => s + r.data.length, 0);
+  meta.textContent = `${allRuns.length} run${allRuns.length > 1 ? 's' : ''} · ${total.toLocaleString()} total points · sampled every ${STEP} frames`;
+}
+
+// Live-update table while running (throttled)
+let tableRefreshCounter = 0;
+function maybeRefreshTable() {
+  if (activeTab !== 'table') return;
+  tableRefreshCounter++;
+  if (tableRefreshCounter % 20 === 0) refreshTable();
+}
+
+// ============================================================
+//  READOUT HELPERS — generic indexed readout cells
+// ============================================================
+function setReadout(i, val, unit) {
+  const el = document.getElementById('r-' + i);
+  const uel = document.getElementById('ru-' + i);
+  if (el) el.firstChild.textContent = val;
+  if (uel) uel.textContent = unit;
+}
+
+function labelReadouts(labels) {
+  labels.forEach((l, i) => {
+    const lel = document.getElementById('rl-' + i);
+    const vel = document.getElementById('r-' + i);
+    const uel = document.getElementById('ru-' + i);
+    if (lel) lel.textContent = l.label;
+    if (vel) vel.firstChild.textContent = '—';
+    if (uel) uel.textContent = l.unit;
+  });
+}
+
+const READOUT_PROJECTILE = [
+  { label: 'Time', unit: 's' }, { label: 'X Pos', unit: 'm' },
+  { label: 'Y Pos', unit: 'm' }, { label: 'Speed', unit: 'm/s' },
+  { label: 'Vx', unit: 'm/s' }, { label: 'Vy', unit: 'm/s' },
+  { label: 'Max Height', unit: 'm' }, { label: 'Range', unit: 'm' },
+];
+
+const READOUT_PENDULUM = [
+  { label: 'Time', unit: 's' }, { label: 'Angle θ', unit: '°' },
+  { label: 'ω', unit: 'rad/s' }, { label: 'KE', unit: 'J' },
+  { label: 'PE', unit: 'J' }, { label: 'Energy', unit: 'J' },
+  { label: 'θ̇', unit: '°/s' }, { label: 'Period T', unit: 's' },
+];
+
+// ============================================================
+//  EXPERIMENT SELECTOR
+// ============================================================
+function selectExperiment(id, evt) {
+  if (id === 'collision') {
+    log('Collisions experiment coming soon!', 'warn');
+    return;
+  }
+
+  // Stop whatever is running
+  if (state.running) { state.running = false; if (state.animFrame) cancelAnimationFrame(state.animFrame); }
+  if (pendulumState.running) stopPendulum();
+
+  activeExperiment = id;
+  document.getElementById('launchBtn').textContent = id === 'projectile' ? '▶ Launch' : '▶ Start';
+
+  // Swap control panels
+  document.getElementById('panelProjectile').style.display = id === 'projectile' ? '' : 'none';
+  document.getElementById('panelPendulum').style.display   = id === 'pendulum'   ? '' : 'none';
+
+  // Swap charts
+  document.getElementById('chartsProjectile').style.display = id === 'projectile' ? '' : 'none';
+  document.getElementById('chartsPendulum').style.display   = id === 'pendulum'   ? '' : 'none';
+
+  // Swap readout labels
+  labelReadouts(id === 'projectile' ? READOUT_PROJECTILE : READOUT_PENDULUM);
+
+  document.getElementById('toolbarExpName').textContent =
+    id === 'projectile' ? 'Projectile Motion' : 'Simple Pendulum';
+
+  document.getElementById('gridOverlay').style.opacity  = id === 'projectile' ? '' : '0';
+  document.getElementById('originMarker').style.display = id === 'projectile' ? '' : 'none';
+
+  document.querySelectorAll('.exp-tab').forEach(t => t.classList.remove('active'));
+  if (evt && evt.target) evt.target.classList.add('active');
+
+  setUIState('idle');
+  refreshTable();
+
+  if (id === 'projectile') {
+    drawScene([]);
+    log('Switched to Projectile Motion.');
+  } else {
+    initPendulumCharts();
+    drawPendulumScene();
+    log('Switched to Simple Pendulum — RK4 integration.');
+  }
+}
+
+function clearTrails() {
+  state.completedRuns = [];
+  drawScene(state.data.length > 0 ? state.data : []);
+  log('Trail history cleared.', 'warn');
+}
+
+// ---------- LOG ----------
+function log(msg, type = '') {
+  const area = document.getElementById('logArea');
+  const now = new Date();
+  const ts = now.toTimeString().slice(0,5);
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">[${ts}]</span><span class="log-msg ${type}">${msg}</span>`;
+  area.appendChild(entry);
+  area.scrollTop = area.scrollHeight;
+}
+
+// ---------- EXPORT ----------
+function exportCSV() {
+  if (activeExperiment === 'projectile') {
+    if (!state.data.length) { log('No data yet.', 'warn'); return; }
+    const rows = ['t,x,y,vx,vy,speed'];
+    state.data.forEach(p => rows.push(`${p.t.toFixed(4)},${p.x.toFixed(4)},${p.y.toFixed(4)},${p.vx.toFixed(4)},${p.vy.toFixed(4)},${p.speed.toFixed(4)}`));
+    downloadFile(rows.join('\n'), 'projectile_data.csv', 'text/csv');
+    log('Exported ' + state.data.length + ' points as CSV.', 'success');
+  } else {
+    if (!pendulumState.data.length) { log('No data yet.', 'warn'); return; }
+    const rows = ['t,theta_deg,omega,ke,pe,energy'];
+    pendulumState.data.forEach(p => rows.push(`${p.t.toFixed(4)},${(p.theta*180/Math.PI).toFixed(4)},${p.omega.toFixed(4)},${p.ke.toFixed(4)},${p.pe.toFixed(4)},${p.energy.toFixed(4)}`));
+    downloadFile(rows.join('\n'), 'pendulum_data.csv', 'text/csv');
+    log('Exported ' + pendulumState.data.length + ' points as CSV.', 'success');
+  }
+}
+
+function exportJSON() {
+  if (activeExperiment === 'projectile') {
+    if (!state.data.length) { log('No data yet.', 'warn'); return; }
+    const payload = {
+      experiment: 'projectile_motion_with_drag', version: '0.1', license: 'Apache-2.0',
+      physics: { model: 'euler_integration', Cd: CD, rho_air: RHO_AIR, rho_obj: RHO_OBJ },
+      params: state.params,
+      computed: { maxHeight: state.maxHeight, range: state.range, timeOfFlight: state.currentTime },
+      data: state.data.map(p => ({ t: +p.t.toFixed(4), x: +p.x.toFixed(4), y: +p.y.toFixed(4), vx: +p.vx.toFixed(4), vy: +p.vy.toFixed(4), speed: +p.speed.toFixed(4) }))
+    };
+    downloadFile(JSON.stringify(payload, null, 2), 'projectile_data.json', 'application/json');
+    log('Exported as JSON.', 'success');
+  } else {
+    if (!pendulumState.data.length) { log('No data yet.', 'warn'); return; }
+    const payload = {
+      experiment: 'simple_pendulum_rk4', version: '0.1', license: 'Apache-2.0',
+      physics: { model: 'runge_kutta_4', equation: "theta'' = -(g/L)*sin(theta) - b*theta'" },
+      params: pendulumState.params,
+      data: pendulumState.data.map(p => ({ t: +p.t.toFixed(4), theta_deg: +(p.theta*180/Math.PI).toFixed(4), omega: +p.omega.toFixed(4), ke: +p.ke.toFixed(4), pe: +p.pe.toFixed(4), energy: +p.energy.toFixed(4) }))
+    };
+    downloadFile(JSON.stringify(payload, null, 2), 'pendulum_data.json', 'application/json');
+    log('Exported as JSON.', 'success');
+  }
+}
+
+function exportTableCSV() {
+  if (activeExperiment === 'projectile') {
+    const allRuns = [...state.completedRuns, ...(state.data.length > 1 ? [{ data: state.data, params: { ...state.params }, range: state.range }] : [])];
+    if (!allRuns.length) { log('No data to export.', 'warn'); return; }
+    const rows = ['run,v0_ms,angle_deg,mass_kg,gravity_ms2,t_s,x_m,y_m,vx_ms,vy_ms,speed_ms'];
+    allRuns.forEach((run, ri) => {
+      const p = run.params;
+      run.data.forEach(d => rows.push([ri+1, p.velocity, p.angle, p.mass, p.gravity, d.t.toFixed(4), d.x.toFixed(4), d.y.toFixed(4), d.vx.toFixed(4), d.vy.toFixed(4), d.speed.toFixed(4)].join(',')));
+    });
+    downloadFile(rows.join('\n'), 'projectile_table.csv', 'text/csv');
+    log(`Table exported — ${allRuns.length} run(s).`, 'success');
+  } else {
+    const allRuns = [...pendulumState.completedRuns, ...(pendulumState.data.length > 1 ? [{ data: pendulumState.data, params: { ...pendulumState.params } }] : [])];
+    if (!allRuns.length) { log('No data to export.', 'warn'); return; }
+    const rows = ['run,length_m,angle_deg,gravity_ms2,damping,mass_kg,t_s,theta_deg,omega,ke_J,pe_J,energy_J'];
+    allRuns.forEach((run, ri) => {
+      const p = run.params;
+      run.data.forEach(d => rows.push([ri+1, p.length, p.angle, p.gravity, p.damping, p.mass, d.t.toFixed(4), (d.theta*180/Math.PI).toFixed(4), d.omega.toFixed(4), d.ke.toFixed(4), d.pe.toFixed(4), d.energy.toFixed(4)].join(',')));
+    });
+    downloadFile(rows.join('\n'), 'pendulum_table.csv', 'text/csv');
+    log(`Table exported — ${allRuns.length} run(s).`, 'success');
+  }
+}
+
+function downloadFile(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ---------- INIT ----------
+resizeCanvas();
+updateParam('mass', state.params.mass);
+labelReadouts(READOUT_PROJECTILE);
+log('Canvas initialized at ' + W + '×' + H, 'success');
+log('Projectile Motion loaded. Switch tabs above to try Pendulum!');
+log('Tip: Launch multiple times to overlay trails.');
+</script>
+</body>
+</html>
