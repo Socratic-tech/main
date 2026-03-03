@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@
 <title>OpenPhysics Lab — Version E (Engine + ADA UI)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ===== ADA-compliant, high-contrast theme (kept near top) ===== -->
+<!-- ===== ADA-compliant, high-contrast theme ===== -->
 <style>
   :root {
     --bg: #0E1117;
@@ -19,9 +18,8 @@
     --accent-red: #FF6A6A;
     --accent-gold: #DAA520;
 
-    /* Accessibility control variables */
-    --font-scale: 1.0;
-    --ui-scale: 1.0;          /* kept for future, but no page-level transform */
+    --font-scale: 1.0;   /* Large UI handled by font scaling */
+    --ui-scale: 1.0;     /* Kept for semantics; no page transform */
     --transition-speed: 180ms;
   }
 
@@ -33,227 +31,108 @@
     margin:0;
     background:var(--bg);
     color:var(--text);
-    font-family:"JetBrains Mono", monospace;
+    font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: calc(14px * var(--font-scale));
     overflow:hidden;
   }
 
-  /* ===== Toolbar =================================================== */
+  /* Toolbar */
   #toolbar {
-    position:fixed;
-    top:0; left:0; right:0;
-    height:48px;
-    background:var(--panel);
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    padding:0 16px;
-    gap:16px;
-    z-index:20;
+    position:fixed; top:0; left:0; right:0; height:48px;
+    background:var(--panel); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 16px; gap:12px; z-index:20;
   }
-
   #toolbar select, #toolbar button {
-    background:var(--panel);
-    border:1px solid var(--border);
-    color:var(--text);
-    padding:6px 8px;
-    border-radius:4px;
-    cursor:pointer;
+    background:var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:6px 10px; border-radius:4px; cursor:pointer;
     font-size: calc(14px * var(--font-scale));
+    min-height: 32px;  /* min hit size */
   }
+  #toolbar button:hover, #toolbar select:focus { outline:2px solid var(--accent); }
 
-  #toolbar button:hover,
-  #toolbar select:focus {
-    outline:2px solid var(--accent);
-  }
-
-  /* ===== Sidebar =================================================== */
+  /* Sidebar */
   #sidePanel {
-    position:fixed;
-    top:48px; bottom:0; right:0;
-    width:300px;
-    background:var(--panel);
-    border-left:1px solid var(--border);
-    padding:12px;
-    overflow-y:auto;
-    z-index:15;
+    position:fixed; top:48px; bottom:0; right:0; width:300px;
+    background:var(--panel); border-left:1px solid var(--border);
+    padding:12px; overflow-y:auto; z-index:15;
   }
-
   .sectionTitle {
-    font-size: calc(13px * var(--font-scale));
-    color:var(--accent);
-    text-transform:uppercase;
-    margin-top:12px;
-    margin-bottom:6px;
-    border-bottom:1px solid var(--border);
-    padding-bottom:4px;
-    letter-spacing:0.08em;
+    font-size: calc(15px * var(--font-scale));
+    color:var(--accent); text-transform:uppercase;
+    margin:12px 0 6px; border-bottom:1px solid var(--border); padding-bottom:4px;
+    letter-spacing:0.08em; font-weight:700;
   }
-
   button.actionBtn {
-    width:100%;
-    margin-top:8px;
-    padding:10px;
-    background:var(--panel);
-    border:1px solid var(--border);
-    color:var(--text);
-    border-radius:4px;
-    cursor:pointer;
-    font-size: calc(14px * var(--font-scale));
+    width:100%; margin-top:8px; padding:10px;
+    background:var(--panel); border:1px solid var(--border); color:var(--text);
+    border-radius:4px; cursor:pointer; font-size: calc(14px * var(--font-scale));
+    min-height: 36px;
   }
-  button.actionBtn:hover,
-  button.actionBtn:focus {
-    outline:2px solid var(--accent);
-  }
+  button.actionBtn:hover, button.actionBtn:focus { outline:2px solid var(--accent); }
 
-  /* ===== Readout grid ============================================= */
+  /* Readouts grid */
   #readoutGrid .row {
-    display:flex;
-    justify-content:space-between;
-    font-size: calc(14px * var(--font-scale));
-    margin:4px 0;
+    display:flex; justify-content:space-between; font-size: calc(14px * var(--font-scale)); margin:4px 0;
   }
+  #readoutGrid .row span:last-child { font-weight:700; color: var(--accent-green); }
 
-  /* ===== Canvas ==================================================== */
+  /* Canvas */
   #simCanvas {
-    position:absolute;
-    left:0; right:300px;
-    top:48px;
-    bottom:0;
-    width:calc(100vw - 300px);
-    height:calc(100vh - 48px);
-    background:var(--bg);
+    position:absolute; left:0; right:300px; top:48px; bottom:0;
+    width:calc(100vw - 300px); height:calc(100vh - 48px); background:var(--bg);
   }
 
-  /* ===== Bottom drawer (collapsible) =============================== */
+  /* Bottom Drawer */
   #drawer {
-    position:fixed;
-    left:0;
-    width:calc(100vw - 300px);
-    height:200px;                /* Min height */
-    bottom:-200px;               /* start collapsed */
-    background:var(--panel);
-    border-top:1px solid var(--border);
-    transition:bottom var(--transition-speed) ease;
-    z-index:25;
-    display:flex;
-    flex-direction:column;
+    position:fixed; left:0; width:calc(100vw - 300px); height:200px;
+    bottom:-200px; background:var(--panel); border-top:1px solid var(--border);
+    transition:bottom var(--transition-speed) ease; z-index:25; display:flex; flex-direction:column;
   }
-
   #drawer.open { bottom:0; }
-
   #drawerHandle {
-    height:10px;
-    background:var(--border);
-    cursor:ns-resize;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:var(--text-dim);
-    user-select:none;
+    height:16px; font-size: calc(12px * var(--font-scale)); color:var(--text-dim); background:var(--border);
+    cursor:ns-resize; user-select:none; display:flex; justify-content:center; align-items:center;
   }
+  #drawer.open #drawerHandle { background: var(--accent); color:black; }
+  #drawerContent { flex:1; overflow:auto; padding:12px; }
+  table.runTable { width:100%; border-collapse:collapse; }
+  .runTable th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--border); color:var(--text); }
+  .runTable td { padding:6px 4px; color:var(--text-dim); border-bottom:1px solid var(--border); }
 
-  #drawerContent {
-    flex:1;
-    overflow:auto;
-    padding:12px;
-  }
-
-  table.runTable {
-    width:100%;
-    border-collapse:collapse;
-  }
-
-  .runTable th {
-    text-align:left;
-    padding:6px 4px;
-    border-bottom:1px solid var(--border);
-    color:var(--text);
-  }
-  .runTable td {
-    padding:6px 4px;
-    color:var(--text-dim);
-    border-bottom:1px solid var(--border);
-  }
-
-  /* ===== Accessibility Panel ====================================== */
-  #accessibilityPanel {
-    position:fixed;
-    right:300px; top:48px;
-    width:220px;
-    background:var(--panel);
-    border-left:1px solid var(--border);
-    border-bottom:1px solid var(--border);
-    padding:12px;
-    z-index:30;
-    display:none;
-  }
-  #accessibilityPanel.open { display:block; }
-
-  .accOption {
-    margin:6px 0;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-  }
-</style>
-
-<!-- ===== ADA interaction styling (focus rings, tables, etc.) ===== -->
-<style>
+  /* ADA interaction styling */
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  button:focus-visible, select:focus-visible, input[type=range]:focus-visible {
-    outline: 3px solid var(--accent); outline-offset: 2px;
-  }
+  button:focus-visible, select:focus-visible, input[type=range]:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .visToggle:focus-visible, .delRun:focus-visible { outline: 3px solid var(--accent-gold); }
   button:hover, select:hover { background: rgba(88,166,255,0.12); }
   button:active, select:active { transform: scale(0.97); transition: transform 80ms ease-out; }
-
   input[type=range]{ height:24px; }
   input[type=range]::-webkit-slider-thumb{
     -webkit-appearance:none;height:18px;width:18px;border-radius:50%;
     background:var(--accent);border:2px solid #C9D1D9;cursor:pointer;
   }
-  input[type=range]::-webkit-slider-runnable-track{
-    height:6px;background:var(--border);border-radius:6px;
-  }
-
-  /* NOTE: Removed page-wide transform: scale(var(--ui-scale)) to prevent
-           the “shrunk to top-left” effect. Use font scaling instead. */
-
-  @media (prefers-reduced-motion: reduce) {
-    *,*::before,*::after { animation: none !important; transition: none !important; }
-  }
-
+  input[type=range]::-webkit-slider-runnable-track{ height:6px;background:var(--border);border-radius:6px; }
   .runTable th,.runTable td { font-size: calc(14px * var(--font-scale)); padding:8px 6px; }
   .runTable tr:hover td { background: rgba(88,166,255,0.08); }
   .runTable button {
-    background: var(--panel); border:1px solid var(--border); color:var(--text);
-    padding:4px 8px; border-radius:4px; cursor:pointer; font-size: calc(12px * var(--font-scale));
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    padding: 4px 8px; border-radius: 4px; cursor:pointer; font-size: calc(12px * var(--font-scale));
   }
   .runTable button:hover { background: rgba(88,166,255,0.15); }
 
-  #runList > div { padding:4px 0; font-size: calc(14px * var(--font-scale)); }
-  #runList button {
-    margin-left:4px; height:26px; color:var(--text); background:var(--panel);
-    border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size: calc(14px * var(--font-scale));
+  /* Accessibility Panel */
+  #accessibilityPanel {
+    position:fixed; right:300px; top:48px; width:240px; background:var(--panel);
+    border-left:3px solid var(--accent); border-bottom:1px solid var(--border);
+    padding:12px; z-index:30; display:none; box-shadow: 0 0 20px rgba(0,0,0,0.4);
   }
-  #runList button:hover { background: rgba(88,166,255,0.12); }
-
-  #drawerHandle {
-    height:16px; font-size: calc(12px * var(--font-scale));
-    color:var(--text-dim); background:var(--border); cursor:ns-resize;
-    user-select:none; display:flex; justify-content:center; align-items:center;
-  }
-  #drawer.open #drawerHandle { background: var(--accent); color:black; }
-
-  #accessibilityPanel { border-left:3px solid var(--accent); box-shadow: 0 0 20px rgba(0,0,0,0.4); }
-  #accessibilityPanel.open { animation: fadeIn var(--transition-speed) ease; }
+  #accessibilityPanel.open { display:block; animation: fadeIn var(--transition-speed) ease; }
+  .accOption { margin:6px 0; display:flex; justify-content:space-between; align-items:center; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
 
-  .sectionTitle { font-weight:700; font-size: calc(15px * var(--font-scale)); color:var(--accent); }
-  #readoutGrid .row span:last-child { font-weight:700; color: var(--accent-green); }
+  /* Tiny segmented buttons inside sidebar */
+  .seg { display:flex; gap:6px; }
+  .seg button { flex:1; min-height: 32px; }
 </style>
-
 </head>
 <body>
 
@@ -262,13 +141,16 @@
   <label for="expSelector">Experiment:</label>
   <select id="expSelector" aria-label="Experiment Selector">
     <option value="projectile">Projectile Motion</option>
-  <option value="pendulum">Pendulum</option>
-  <option value="spring">Spring–Mass</option>
-  <option value="pendulum">Pendulum</option>
-  <option value="spring">Spring–Mass</option>
-  <option value="pendulum">Pendulum</option>
-  <option value="spring">Spring–Mass</option>
+    <option value="pendulum">Pendulum</option>
+    <option value="spring">Spring–Mass</option>
+    <option value="incline">Inclined Plane</option>
   </select>
+
+  <!-- Demo presets -->
+  <select id="presetSelect" aria-label="Demo Presets">
+    <option value="">Demo Presets…</option>
+  </select>
+  <button id="btnLoadPreset" class="actionBtn">Load Demo</button>
 
   <button id="btnStart" class="actionBtn">Start</button>
   <button id="btnPause" class="actionBtn">Pause</button>
@@ -277,39 +159,41 @@
   <button id="btnResetSim" class="actionBtn">Reset Simulation</button>
   <button id="btnResetParams" class="actionBtn">Reset Parameters</button>
 
-  <button id="btnAccessibility" class="actionBtn">Accessibility ⚙️</button>
+  <button id="btnAccessibility" class="actionBtn" aria-haspopup="true" aria-controls="accessibilityPanel">Accessibility ⚙️</button>
+
+  <!-- Drawer toggle button will be appended here by drawer-controller -->
 </div>
 
 <!-- ===== Accessibility Menu ===== -->
-<div id="accessibilityPanel">
+<div id="accessibilityPanel" role="dialog" aria-labelledby="Accessibility Settings">
   <div class="sectionTitle">Accessibility</div>
 
   <div class="accOption">
     <span>Reduced motion</span>
-    <input type="checkbox" id="accReducedMotion">
+    <input type="checkbox" id="accReducedMotion" aria-label="Toggle Reduced Motion">
   </div>
 
   <div class="accOption">
     <span>Larger UI</span>
-    <input type="checkbox" id="accLargeUI">
+    <input type="checkbox" id="accLargeUI" aria-label="Toggle Larger UI Mode">
   </div>
 
   <div class="accOption">
     <span>Increase font</span>
-    <button id="accFontUp">A+</button>
+    <button id="accFontUp" class="actionBtn" aria-label="Increase Font Size">A+</button>
   </div>
 
   <div class="accOption">
     <span>Decrease font</span>
-    <button id="accFontDown">A−</button>
+    <button id="accFontDown" class="actionBtn" aria-label="Decrease Font Size">A−</button>
   </div>
 
   <div class="accOption">
     <span>Colorblind Trails</span>
-    <input type="checkbox" id="accCBMode">
+    <input type="checkbox" id="accCBMode" aria-label="Toggle Colorblind-Friendly Trails">
   </div>
 
-  <button id="accClose" class="actionBtn">Close</button>
+  <button id="accClose" class="actionBtn" aria-label="Close Accessibility Menu">Close</button>
 </div>
 
 <!-- ===== Sidebar ===== -->
@@ -325,6 +209,15 @@
   <label>Gravity: <span id="labelGrav">9.81</span> m/s²</label>
   <input type="range" id="sliderGrav" min="0.5" max="20" step="0.01" value="9.81">
 
+  <!-- Shown only for Inclined Plane -->
+  <div id="inclineControls" style="display:none; margin-top:10px;">
+    <div class="sectionTitle">Incline</div>
+    <div class="seg">
+      <button id="dirDown" class="actionBtn" title="Block slides down the ramp (from near top)">⬇ Slide Down</button>
+      <button id="dirUp" class="actionBtn" title="Push block up the ramp with initial speed">⬆ Push Up</button>
+    </div>
+  </div>
+
   <button id="btnSaveRun" class="actionBtn">Save Run</button>
   <button id="btnUndoRun" class="actionBtn">Undo Last Run</button>
 
@@ -339,526 +232,301 @@
 <canvas id="simCanvas"></canvas>
 
 <!-- ===== Bottom Drawer (Data Table) ===== -->
-<div id="drawer">
+<div id="drawer" role="region">
   <div id="drawerHandle">⋮⋮ Drag to Resize ⋮⋮</div>
-  <div id="drawerContent">
+  <div id="drawerContent" aria-label="Run History Table">
     <table class="runTable" id="runTable"></table>
   </div>
 </div>
 
 <!-- ============================================================
-     ALL MODULES BELOW ARE "SOURCE ONLY" (not executed yet)
-     The loader at the very end builds an import map and runs #main.
+     MODULES BELOW ARE "SOURCE ONLY" (not executed yet)
+     The loader at the end builds the import map and runs #main.
 =============================================================== -->
 
-<!-- CAMERA -->
+<!-- ENGINE: CAMERA -->
 <script type="text/x-module-source" id="engine-camera">
 export const camera = {
-    x: 0,
-    y: 0,
-    scale: 20,
-    minScale: 0.2,
-    maxScale: 5,
-    reducedMotion: false
+  x: 0,
+  y: 0,
+  scale: 20,
+  minScale: 0.2,
+  maxScale: 5,
+  reducedMotion: false
 };
-
 export function worldToScreen(x, y, canvas) {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    return {
-        x: cx + (x - camera.x) * camera.scale,
-        y: cy - (y - camera.y) * camera.scale
-    };
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  return { x: cx + (x - camera.x) * camera.scale, y: cy - (y - camera.y) * camera.scale };
 }
-
 export function screenToWorld(px, py, canvas) {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    return {
-        x: (px - cx) / camera.scale + camera.x,
-        y: (cy - py) / camera.scale + camera.y
-    };
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  return { x: (px - cx) / camera.scale + camera.x, y: (cy - py) / camera.scale + camera.y };
 }
-
 export function applyCameraInput(canvas) {
-    let dragging = false;
-    let last = { x:0, y:0 };
-
-    canvas.addEventListener("wheel", e => {
-        e.preventDefault();
-        const factor = e.deltaY < 0 ? 1.1 : 0.9;
-        camera.scale *= factor;
-        camera.scale = Math.min(camera.maxScale, Math.max(camera.minScale, camera.scale));
-    });
-
-    canvas.addEventListener("mousedown", e => {
-        dragging = true;
-        last = { x:e.clientX, y:e.clientY };
-    });
-
-    window.addEventListener("mouseup", () => dragging = false);
-
-    canvas.addEventListener("mousemove", e => {
-        if (!dragging) return;
-        const dx = (e.clientX - last.x) / camera.scale;
-        const dy = (e.clientY - last.y) / camera.scale;
-        camera.x -= dx;
-        camera.y += dy;
-        last = { x:e.clientX, y:e.clientY };
-    });
+  let dragging = false; let last = { x:0, y:0 };
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    camera.scale = Math.min(camera.maxScale, Math.max(camera.minScale, camera.scale * factor));
+  }, { passive:false });
+  canvas.addEventListener("mousedown", e => { dragging = true; last = { x:e.clientX, y:e.clientY }; });
+  window.addEventListener("mouseup", () => dragging = false);
+  canvas.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    const dx = (e.clientX - last.x) / camera.scale;
+    const dy = (e.clientY - last.y) / camera.scale;
+    camera.x -= dx; camera.y += dy; last = { x:e.clientX, y:e.clientY };
+  });
 }
 </script>
 
-<!-- RENDERER -->
+<!-- ENGINE: RENDERER -->
 <script type="text/x-module-source" id="engine-renderer">
 import { worldToScreen, camera } from "#engine-camera";
-
 export const renderer = {
-    ctx:null,
-    canvas:null,
-    
-    init(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d", { alpha:false });
-    },
-
-    clear() {
-        this.ctx.fillStyle = "#0E1117";
-        this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-    },
-
-    ball(x, y, r, color) {
-        const p = worldToScreen(x, y, this.canvas);
-        this.ctx.fillStyle = color;
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, r * camera.scale, 0, Math.PI*2);
-        this.ctx.fill();
-    },
-
-    line(x1, y1, x2, y2, color="#C9D1D9", w=2) {
-        const p1 = worldToScreen(x1, y1, this.canvas);
-        const p2 = worldToScreen(x2, y2, this.canvas);
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = w;
-        this.ctx.beginPath();
-        this.ctx.moveTo(p1.x, p1.y);
-        this.ctx.lineTo(p2.x, p2.y);
-        this.ctx.stroke();
-    },
-
-    trail(points, style) {
-        if (points.length < 2) return;
-
-        const { color, width=2, dash=null } = style;
-
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = width;
-        if (dash) this.ctx.setLineDash(dash);
-        else this.ctx.setLineDash([]);
-
-        this.ctx.beginPath();
-        for (let i=1; i<points.length; i++) {
-            const p1 = worldToScreen(points[i-1].x, points[i-1].y, this.canvas);
-            const p2 = worldToScreen(points[i].x, points[i].y, this.canvas);
-            this.ctx.moveTo(p1.x, p1.y);
-            this.ctx.lineTo(p2.x, p2.y);
-        }
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
-    },
-
-    text(str, x, y, color="#C9D1D9") {
-        const p = worldToScreen(x, y, this.canvas);
-        this.ctx.fillStyle = color;
-        this.ctx.font = "14px JetBrains Mono";
-        this.ctx.fillText(str, p.x + 6, p.y - 6);
+  ctx:null, canvas:null,
+  init(canvas) { this.canvas = canvas; this.ctx = canvas.getContext("2d", { alpha:false }); },
+  clear() { this.ctx.fillStyle = "#0E1117"; this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height); },
+  ball(x, y, r, color) {
+    const p = worldToScreen(x, y, this.canvas);
+    this.ctx.fillStyle = color; this.ctx.beginPath();
+    this.ctx.arc(p.x, p.y, Math.max(1, r * camera.scale), 0, Math.PI*2); this.ctx.fill();
+  },
+  line(x1, y1, x2, y2, color="#C9D1D9", w=2) {
+    const p1 = worldToScreen(x1, y1, this.canvas);
+    const p2 = worldToScreen(x2, y2, this.canvas);
+    this.ctx.strokeStyle = color; this.ctx.lineWidth = w;
+    this.ctx.beginPath(); this.ctx.moveTo(p1.x, p1.y); this.ctx.lineTo(p2.x, p2.y); this.ctx.stroke();
+  },
+  trail(points, style) {
+    if (points.length < 2) return;
+    const { color, width=2, dash=null } = style;
+    this.ctx.strokeStyle = color; this.ctx.lineWidth = width;
+    this.ctx.setLineDash(dash ? dash : []);
+    this.ctx.beginPath();
+    for (let i=1;i<points.length;i++){
+      const p1 = worldToScreen(points[i-1].x, points[i-1].y, this.canvas);
+      const p2 = worldToScreen(points[i].x, points[i].y, this.canvas);
+      this.ctx.moveTo(p1.x, p1.y); this.ctx.lineTo(p2.x, p2.y);
     }
+    this.ctx.stroke(); this.ctx.setLineDash([]);
+  },
+  text(str, x, y, color="#C9D1D9") {
+    const p = worldToScreen(x, y, this.canvas);
+    this.ctx.fillStyle = color; this.ctx.font = "14px JetBrains Mono, monospace";
+    this.ctx.fillText(str, p.x + 6, p.y - 6);
+  }
 };
 </script>
 
-<!-- LOOP -->
+<!-- ENGINE: LOOP -->
 <script type="text/x-module-source" id="engine-loop">
 export let activeExperiment = null;
-
 let last = 0;
-
-export function setActiveExperiment(exp) {
-    activeExperiment = exp;
-}
-
+export function setActiveExperiment(exp) { activeExperiment = exp; }
 export function loop(t) {
-    if (!last) last = t;
-    const dt = Math.min(0.05, (t - last) / 1000);
-    last = t;
-
-    if (activeExperiment) {
-        activeExperiment.update(dt);
-        activeExperiment.draw();
-        if (activeExperiment.updateUI) activeExperiment.updateUI();
-    }
-
-    requestAnimationFrame(loop);
+  if (!last) last = t; const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  if (activeExperiment) {
+    activeExperiment.update(dt);
+    activeExperiment.draw();
+    if (activeExperiment.updateUI) activeExperiment.updateUI();
+  }
+  requestAnimationFrame(loop);
 }
 </script>
 
-<!-- RUN MANAGER -->
+<!-- ENGINE: RUN MANAGER -->
 <script type="text/x-module-source" id="engine-runmanager">
 export const runManager = {
-    runs: [],       // { id, points, params, stats, visible, style }
-    nextId: 1,
-
-    saveRun(points, params, stats, style) {
-        const run = {
-            id: this.nextId++,
-            points: structuredClone(points),
-            params: structuredClone(params),
-            stats: structuredClone(stats),
-            visible: true,
-            style: structuredClone(style)
-        };
-        this.runs.push(run);
-        return run;
-    },
-
-    undo() {
-        return this.runs.pop();
-    },
-
-    toggleVisibility(id) {
-        const run = this.runs.find(r=>r.id===id);
-        if (!run) return;
-        run.visible = !run.visible;
-    },
-
-    deleteRun(id) {
-        this.runs = this.runs.filter(r=>r.id !== id);
-    },
-
-    getStats(points) {
-        // Compute max height, range, duration
-        let maxH = -Infinity;
-        let last = points[points.length-1];
-
-        for (const p of points) maxH = Math.max(maxH, p.y);
-
-        const range = last.x;
-        const duration = last.t;
-
-        return { maxH, range, duration };
-    }
+  runs: [], nextId: 1,
+  saveRun(points, params, stats, style) {
+    const run = {
+      id: this.nextId++,
+      points: structuredClone(points),
+      params: structuredClone(params),
+      stats: structuredClone(stats),
+      visible: true,
+      style: structuredClone(style)
+    };
+    this.runs.push(run); return run;
+  },
+  undo() { return this.runs.pop(); },
+  toggleVisibility(id) { const r = this.runs.find(x=>x.id===id); if (r) r.visible = !r.visible; },
+  deleteRun(id) { this.runs = this.runs.filter(r=>r.id!==id); },
+  getStats(points) {
+    if (!points.length) return { maxH:0, range:0, duration:0 };
+    let maxH = -Infinity, minX = Infinity, maxX = -Infinity;
+    for (const p of points){ if (p.y>maxH) maxH=p.y; if (p.x<minX) minX=p.x; if (p.x>maxX) maxX=p.x; }
+    const last = points[points.length-1];
+    return { maxH, range:(maxX - minX), duration:last.t };
+  }
 };
 </script>
 
-<!-- UI WORKBENCH -->
+<!-- UI: WORKBENCH -->
 <script type="text/x-module-source" id="ui-workbench">
 import { activeExperiment } from "#engine-loop";
 import { runManager } from "#engine-runmanager";
-import { camera } from "#engine-camera";
 
-/* ------------------------------------------------------------
-   DOM ELEMENTS
------------------------------------------------------------- */
+/* Elements */
 const el = {
-    labelVel: document.getElementById("labelVel"),
-    labelAng: document.getElementById("labelAng"),
-    labelGrav: document.getElementById("labelGrav"),
-
-    sliderVel: document.getElementById("sliderVel"),
-    sliderAng: document.getElementById("sliderAng"),
-    sliderGrav: document.getElementById("sliderGrav"),
-
-    btnStart: document.getElementById("btnStart"),
-    btnPause: document.getElementById("btnPause"),
-    btnNewRun: document.getElementById("btnNewRun"),
-    btnResetRun: document.getElementById("btnResetRun"),
-    btnResetSim: document.getElementById("btnResetSim"),
-    btnResetParams: document.getElementById("btnResetParams"),
-
-    btnSaveRun: document.getElementById("btnSaveRun"),
-    btnUndoRun: document.getElementById("btnUndoRun"),
-
-    runList: document.getElementById("runList"),
-    readoutGrid: document.getElementById("readoutGrid"),
-
-    drawer: document.getElementById("drawer"),
-    drawerHandle: document.getElementById("drawerHandle"),
-    runTable: document.getElementById("runTable"),
-
-    accBtn: document.getElementById("btnAccessibility"),
-    accPanel: document.getElementById("accessibilityPanel"),
-    accReducedMotion: document.getElementById("accReducedMotion"),
-    accLargeUI: document.getElementById("accLargeUI"),
-    accFontUp: document.getElementById("accFontUp"),
-    accFontDown: document.getElementById("accFontDown"),
-    accCBMode: document.getElementById("accCBMode"),
-    accClose: document.getElementById("accClose")
+  labelVel: document.getElementById("labelVel"),
+  labelAng: document.getElementById("labelAng"),
+  labelGrav: document.getElementById("labelGrav"),
+  sliderVel: document.getElementById("sliderVel"),
+  sliderAng: document.getElementById("sliderAng"),
+  sliderGrav: document.getElementById("sliderGrav"),
+  btnStart: document.getElementById("btnStart"),
+  btnPause: document.getElementById("btnPause"),
+  btnNewRun: document.getElementById("btnNewRun"),
+  btnResetRun: document.getElementById("btnResetRun"),
+  btnResetSim: document.getElementById("btnResetSim"),
+  btnResetParams: document.getElementById("btnResetParams"),
+  btnSaveRun: document.getElementById("btnSaveRun"),
+  btnUndoRun: document.getElementById("btnUndoRun"),
+  runList: document.getElementById("runList"),
+  readoutGrid: document.getElementById("readoutGrid"),
+  runTable: document.getElementById("runTable"),
+  drawer: document.getElementById("drawer"),
+  inclineControls: document.getElementById("inclineControls"),
+  dirDown: document.getElementById("dirDown"),
+  dirUp: document.getElementById("dirUp"),
+  presetSelect: document.getElementById("presetSelect"),
+  btnLoadPreset: document.getElementById("btnLoadPreset")
 };
 
-let drawerHeight = 200;        // default min height
-const drawerMax = window.innerHeight * 0.70;
+/* UI parameter state */
+export const paramsUI = { v0:25, angle:45*Math.PI/180, g:9.81 };
 
-/* ------------------------------------------------------------
-   ACCESSIBILITY CONTROLS
------------------------------------------------------------- */
-el.accBtn.onclick = () => el.accPanel.classList.toggle("open");
-el.accClose.onclick = () => el.accPanel.classList.remove("open");
+/* Sliders */
+el.sliderVel.oninput = () => { paramsUI.v0 = +el.sliderVel.value; el.labelVel.textContent = paramsUI.v0; };
+el.sliderAng.oninput = () => { paramsUI.angle = +el.sliderAng.value * Math.PI/180; el.labelAng.textContent = el.sliderAng.value; };
+el.sliderGrav.oninput = () => { paramsUI.g = +el.sliderGrav.value; el.labelGrav.textContent = paramsUI.g.toFixed(2); };
 
-el.accReducedMotion.onchange = () => {
-    camera.reducedMotion = el.accReducedMotion.checked;
-    document.documentElement.style.setProperty(
-        "--transition-speed", camera.reducedMotion ? "0ms" : "180ms"
-    );
-};
-
-el.accLargeUI.onchange = () => {
-    /* Previously set --ui-scale which did page transform; keep as semantic flag.
-       For classroom readability, we bump font scale instead (non-destructive). */
-    const on = el.accLargeUI.checked;
-    document.documentElement.style.setProperty("--ui-scale", on ? "1.2" : "1.0");
-    document.documentElement.style.setProperty("--font-scale", on ? "1.2" : "1.0");
-};
-
-let fontScale = 1;
-function applyFontScaling() {
-    document.documentElement.style.setProperty("--font-scale", fontScale.toString());
-}
-
-el.accFontUp.onclick = () => { fontScale = Math.min(1.6, fontScale + 0.1); applyFontScaling(); };
-el.accFontDown.onclick = () => { fontScale = Math.max(0.8, fontScale - 0.1); applyFontScaling(); };
-
-el.accCBMode.onchange = () => {
-    if (activeExperiment && activeExperiment.setColorblindMode)
-        activeExperiment.setColorblindMode(el.accCBMode.checked);
-};
-
-/* ------------------------------------------------------------
-   DRAWER (DATA TABLE)
------------------------------------------------------------- */
-let drawerDragging = false;
-let drawerLastY = 0;
-
-el.drawerHandle.addEventListener("mousedown", e => {
-    drawerDragging = true;
-    drawerLastY = e.clientY;
-});
-
-window.addEventListener("mouseup", () => drawerDragging = false);
-
-window.addEventListener("mousemove", e => {
-    if (!drawerDragging) return;
-    const dy = drawerLastY - e.clientY;
-    drawerLastY = e.clientY;
-
-    drawerHeight = Math.min(drawerMax, Math.max(200, drawerHeight + dy));
-    el.drawer.style.height = drawerHeight + "px";
-});
-
-/* Expand/collapse behavior (toggle drawer) */
-export function toggleDrawer() {
-    el.drawer.classList.toggle("open");
-}
-
-/* ------------------------------------------------------------
-   PARAMETER SLIDERS (UI ONLY — no instant reset)
------------------------------------------------------------- */
-export const paramsUI = {
-    v0: 25,
-    angle: 45 * Math.PI/180,
-    g: 9.81
-};
-
-el.sliderVel.oninput = () => {
-    paramsUI.v0 = +el.sliderVel.value;
-    el.labelVel.textContent = paramsUI.v0;
-};
-
-el.sliderAng.oninput = () => {
-    paramsUI.angle = +el.sliderAng.value * Math.PI/180;
-    el.labelAng.textContent = el.sliderAng.value;
-};
-
-el.sliderGrav.oninput = () => {
-    paramsUI.g = +el.sliderGrav.value;
-    el.labelGrav.textContent = paramsUI.g.toFixed(2);
-};
-
-/* ------------------------------------------------------------
-   RUN CONTROL BUTTONS
------------------------------------------------------------- */
-el.btnStart.onclick = () => {
-    if (activeExperiment) activeExperiment.startRun(paramsUI);
-};
-
-el.btnPause.onclick = () => {
-    if (activeExperiment) activeExperiment.pauseRun();
-};
-
-el.btnNewRun.onclick = () => {
-    if (activeExperiment) activeExperiment.startNewRun(paramsUI);
-};
-
-el.btnResetRun.onclick = () => {
-    if (activeExperiment) activeExperiment.resetRun(paramsUI, { recenter:true });
-};
-
-el.btnResetSim.onclick = () => {
-    if (activeExperiment) activeExperiment.resetSimulation(paramsUI);
-};
-
+/* Buttons */
+el.btnStart.onclick = () => { if (activeExperiment) activeExperiment.startRun(paramsUI); };
+el.btnPause.onclick = () => { if (activeExperiment) activeExperiment.pauseRun(); };
+el.btnNewRun.onclick = () => { if (activeExperiment) activeExperiment.startNewRun(paramsUI); };
+el.btnResetRun.onclick = () => { if (activeExperiment) activeExperiment.resetRun(paramsUI, { recenter:true }); };
+el.btnResetSim.onclick = () => { if (activeExperiment) activeExperiment.resetSimulation(paramsUI); };
 el.btnResetParams.onclick = () => {
-    el.sliderVel.value = 25;
-    el.sliderAng.value = 45;
-    el.sliderGrav.value = 9.81;
-
-    paramsUI.v0 = 25;
-    paramsUI.angle = 45 * Math.PI/180;
-    paramsUI.g = 9.81;
-
-    el.labelVel.textContent = 25;
-    el.labelAng.textContent = 45;
-    el.labelGrav.textContent = "9.81";
+  el.sliderVel.value = 25; el.sliderAng.value = 45; el.sliderGrav.value = 9.81;
+  paramsUI.v0 = 25; paramsUI.angle = 45*Math.PI/180; paramsUI.g = 9.81;
+  el.labelVel.textContent = 25; el.labelAng.textContent = 45; el.labelGrav.textContent = "9.81";
 };
+el.btnSaveRun.onclick = () => { if (activeExperiment) activeExperiment.saveCurrentRun(); };
+el.btnUndoRun.onclick = () => { runManager.undo(); refreshRunList(); refreshRunTable(); };
 
-el.btnSaveRun.onclick = () => {
-    if (activeExperiment) activeExperiment.saveCurrentRun();
-};
+/* Direction buttons (used by Incline experiment if present) */
+export function bindInclineDirectionHandlers(setDirFn) {
+  el.dirDown.onclick = () => setDirFn("down");
+  el.dirUp.onclick   = () => setDirFn("up");
+}
+export function showInclineControls(show) {
+  el.inclineControls.style.display = show ? "" : "none";
+}
 
-el.btnUndoRun.onclick = () => {
-    runManager.undo();
-    refreshRunList();
-    refreshRunTable();
-};
+/* Demo presets UI */
+export function populatePresetSelect(options) {
+  // options: [{label, index}]
+  el.presetSelect.innerHTML = '<option value="">Demo Presets…</option>' +
+    options.map(o => `<option value="${o.index}">${o.label}</option>`).join('');
+}
+export function onLoadPreset(handler) {
+  el.btnLoadPreset.onclick = () => {
+    const idx = el.presetSelect.value;
+    if (idx !== "") handler(+idx);
+  };
+}
 
-/* ------------------------------------------------------------
-   READOUT GRID
------------------------------------------------------------- */
+/* Readouts */
 export function updateReadout(readouts) {
-    el.readoutGrid.innerHTML = Object.entries(readouts)
-        .map(([key, val]) => `
-            <div class="row">
-              <span>${key}</span>
-              <span>${val}</span>
-            </div>
-        `)
-        .join("");
+  el.readoutGrid.innerHTML = Object.entries(readouts).map(([k,v]) => `
+    <div class="row"><span>${k}</span><span>${v}</span></div>
+  `).join("");
 }
 
-/* ------------------------------------------------------------
-   RUN LIST (SIDEBAR)
------------------------------------------------------------- */
+/* Run list (sidebar) */
 export function refreshRunList() {
-    el.runList.innerHTML = "";
-
-    for (const run of runManager.runs) {
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.justifyContent = "space-between";
-        row.style.margin = "4px 0";
-
-        row.innerHTML = `
-          <span>Run ${run.id}</span>
-          <div>
-            <button data-id="${run.id}" class="visToggle" style="width:40px;">
-              ${run.visible ? "👁" : "🙈"}
-            </button>
-            <button data-id="${run.id}" class="delRun" style="width:40px; color:var(--accent-red);">
-              ✖
-            </button>
-          </div>
-        `;
-
-        row.querySelector(".visToggle").onclick = () => {
-            runManager.toggleVisibility(run.id);
-            refreshRunList();
-            refreshRunTable();
-        };
-
-        row.querySelector(".delRun").onclick = () => {
-            runManager.deleteRun(run.id);
-            refreshRunList();
-            refreshRunTable();
-        };
-
-        el.runList.appendChild(row);
-    }
+  el.runList.innerHTML = "";
+  for (const run of runManager.runs) {
+    const row = document.createElement("div");
+    row.style.display = "flex"; row.style.justifyContent = "space-between"; row.style.margin = "4px 0";
+    row.innerHTML = `
+      <span>Run ${run.id}</span>
+      <div>
+        <button data-id="${run.id}" class="visToggle" style="width:44px;">${run.visible ? "👁" : "🙈"}</button>
+        <button data-id="${run.id}" class="delRun" style="width:44px;color:var(--accent-red);">✖</button>
+      </div>
+    `;
+    row.querySelector(".visToggle").onclick = () => { runManager.toggleVisibility(run.id); refreshRunList(); refreshRunTable(); };
+    row.querySelector(".delRun").onclick = () => { runManager.deleteRun(run.id); refreshRunList(); refreshRunTable(); };
+    el.runList.appendChild(row);
+  }
 }
 
-/* ------------------------------------------------------------
-   HISTORY TABLE IN DRAWER
------------------------------------------------------------- */
+/* Run table (drawer) — adds data-run-id for row click highlight */
 export function refreshRunTable() {
-    const rows = [];
-
+  const rows = [];
+  rows.push(`
+    <tr>
+      <th>Run #</th>
+      <th>Max Height</th>
+      <th>Range</th>
+      <th>Duration</th>
+      <th>Visible</th>
+      <th>Export</th>
+    </tr>
+  `);
+  for (const run of runManager.runs) {
     rows.push(`
-      <tr>
-        <th>Run #</th>
-        <th>Max Height</th>
-        <th>Range</th>
-        <th>Duration</th>
-        <th>Visible</th>
-        <th>Export</th>
+      <tr data-run-id="${run.id}" tabindex="0" aria-label="Run ${run.id} summary">
+        <td>${run.id}</td>
+        <td>${(run.stats.maxH ?? 0).toFixed(2)} m</td>
+        <td>${(run.stats.range ?? 0).toFixed(2)} m</td>
+        <td>${(run.stats.duration ?? 0).toFixed(2)} s</td>
+        <td>${run.visible ? "👁" : "🙈"}</td>
+        <td>
+          <button class="expCSV" data-id="${run.id}">CSV</button>
+          <button class="expJSON" data-id="${run.id}">JSON</button>
+        </td>
       </tr>
     `);
+  }
+  el.runTable.innerHTML = rows.join("");
 
-    for (const run of runManager.runs) {
-        rows.push(`
-          <tr>
-            <td>${run.id}</td>
-            <td>${run.stats.maxH.toFixed(2)} m</td>
-            <td>${run.stats.range.toFixed(2)} m</td>
-            <td>${run.stats.duration.toFixed(2)} s</td>
-            <td>${run.visible ? "👁" : "🙈"}</td>
-            <td>
-              <button data-id="${run.id}" class="expCSV">CSV</button>
-              <button data-id="${run.id}" class="expJSON">JSON</button>
-            </td>
-          </tr>
-        `);
-    }
+  // Export handlers
+  for (const btn of el.runTable.querySelectorAll(".expCSV")) btn.onclick = () => exportRunCSV(+btn.dataset.id);
+  for (const btn of el.runTable.querySelectorAll(".expJSON")) btn.onclick = () => exportRunJSON(+btn.dataset.id);
 
-    el.runTable.innerHTML = rows.join("");
-
-    // Export buttons
-    for (const btn of el.runTable.querySelectorAll(".expCSV")) {
-        btn.onclick = () => exportRunCSV(+btn.dataset.id);
+  // Row click -> highlight
+  el.runTable.onclick = (e) => {
+    const row = e.target.closest("tr[data-run-id]");
+    if (!row) return;
+    const id = Number(row.dataset.runId);
+    if (activeExperiment && activeExperiment.highlightRun) {
+      activeExperiment.highlightRun(id);
     }
-    for (const btn of el.runTable.querySelectorAll(".expJSON")) {
-        btn.onclick = () => exportRunJSON(+btn.dataset.id);
-    }
+    refreshRunTable(); // redraw to reflect style changes if needed
+  };
 }
 
-/* ------------------------------------------------------------
-   EXPORT UTILITIES
------------------------------------------------------------- */
+/* Export utilities */
 function exportRunCSV(id) {
-    const run = runManager.runs.find(r=>r.id===id);
-    if (!run) return;
-
-    const rows = ["t,x,y,vx,vy"];
-    for (const p of run.points) {
-        rows.push(`${p.t},${p.x},${p.y},${p.vx},${p.vy}`);
-    }
-
-    const blob = new Blob([rows.join("\n")], { type:"text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `run_${id}.csv`;
-    a.click();
+  const run = runManager.runs.find(r=>r.id===id); if (!run) return;
+  const rows = ["t,x,y,vx,vy"];
+  for (const p of run.points) rows.push(`${p.t},${p.x},${p.y},${p.vx ?? ""},${p.vy ?? ""}`);
+  const blob = new Blob([rows.join("\n")], { type:"text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `run_${id}.csv`; a.click();
 }
-
 function exportRunJSON(id) {
-    const run = runManager.runs.find(r=>r.id===id);
-    if (!run) return;
-
-    const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `run_${id}.json`;
-    a.click();
+  const run = runManager.runs.find(r=>r.id===id); if (!run) return;
+  const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `run_${id}.json`; a.click();
 }
 </script>
 
-<!-- PROJECTILE EXPERIMENT -->
+<!-- EXPERIMENT: PROJECTILE -->
 <script type="text/x-module-source" id="exp-projectile">
 import { renderer } from "#engine-renderer";
 import { camera } from "#engine-camera";
@@ -866,104 +534,59 @@ import { runManager } from "#engine-runmanager";
 import { updateReadout, refreshRunList, refreshRunTable } from "#ui-workbench";
 
 export class ProjectileExperiment {
-
-    constructor() {
-        this.running = false;
-        this.paused = false;
-        this.points = [];
-        this.colorblindMode = false;
-
-        this.params = { v0: 25, angle: 45 * Math.PI/180, g: 9.81 };
+  constructor() {
+    this.running = false; this.paused = false; this.points = []; this.colorblindMode = false;
+    this.params = { v0:25, angle:45*Math.PI/180, g:9.81 };
+    this.t = 0; this.x = 0; this.y = 0; this.vx = 0; this.vy = 0;
+  }
+  _computeStats(points) { return runManager.getStats(points); }
+  _style(){ return this.colorblindMode?{ color:"#58A6FF", width:2, dash:[6,4] }:{ color:"#58A6FF", width:2, dash:null }; }
+  setColorblindMode(e){ this.colorblindMode = e; }
+  startRun(paramsUI){ if (this.running && !this.paused) return; this.params = { ...paramsUI }; if (this.paused){ this.paused=false; this.running=true; return; } this._beginNewRun(); }
+  pauseRun(){ if (!this.running) return; this.paused=true; this.running=false; }
+  startNewRun(paramsUI){ this.params = { ...paramsUI }; this._beginNewRun(); }
+  _beginNewRun(){
+    this.running=true; this.paused=false; this.t=0; this.points=[];
+    const p=this.params; this.x=0; this.y=0; this.vx=p.v0*Math.cos(p.angle); this.vy=p.v0*Math.sin(p.angle);
+  }
+  resetRun(paramsUI,{recenter=false}={}){
+    this.params = { ...paramsUI }; this.running=false; this.paused=false; this.points=[]; this.t=0;
+    const p=this.params; this.x=0; this.y=0; this.vx=p.v0*Math.cos(p.angle); this.vy=p.v0*Math.sin(p.angle);
+    if (recenter){ camera.x=0; camera.y=0; }
+  }
+  resetSimulation(paramsUI){ this.resetRun(paramsUI,{recenter:false}); }
+  resetParameters(){ /* handled in UI */ }
+  saveCurrentRun(){ if (this.points.length<2) return; const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
+  update(dt){
+    if (!this.running || this.paused) return;
+    const p=this.params; this.t+=dt; this.vy-=p.g*dt; this.x+=this.vx*dt; this.y+=this.vy*dt;
+    this.points.push({ t:this.t, x:this.x, y:this.y, vx:this.vx, vy:this.vy });
+    if (this.y<=0 && this.t>0.05){ this.running=false; this.paused=false;
+      const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
+    this.updateUI();
+  }
+  draw(){
+    renderer.clear();
+    renderer.line(-500,0,500,0,"#8B949E",2);
+    for (const run of runManager.runs) if (run.visible) renderer.trail(run.points, run.style);
+    renderer.trail(this.points,this._style());
+    renderer.ball(this.x,this.y,0.15,"#58A6FF");
+  }
+  updateUI(){
+    const speed = Math.hypot(this.vx, this.vy);
+    updateReadout({ Time: this.t.toFixed(2)+" s", X: this.x.toFixed(2)+" m", Y: this.y.toFixed(2)+" m",
+      Vx: this.vx.toFixed(2)+" m/s", Vy: this.vy.toFixed(2)+" m/s", Speed: speed.toFixed(2)+" m/s" });
+  }
+  highlightRun(runId){
+    for (const run of runManager.runs) {
+      if (run.id===runId){ run.style.width=4; run.style.color="#3FB950"; if (this.colorblindMode) run.style.dash=[6,2]; }
+      else { run.style.width=1.5; run.style.color="#8B949E"; run.style.dash=this.colorblindMode?[3,3]:null; }
     }
-
-    _computeStats(points) { return runManager.getStats(points); }
-
-    _style() {
-        if (!this.colorblindMode) {
-            return { color: "#58A6FF", width: 2, dash: null };
-        }
-        return { color: "#58A6FF", width: 2, dash: [6, 4] };
-    }
-
-    setColorblindMode(enabled) { this.colorblindMode = enabled; }
-
-    startRun(paramsUI) {
-        if (this.running && !this.paused) return;
-        this.params = { ...paramsUI };
-        if (this.paused) { this.paused = false; this.running = true; return; }
-        this._beginNewRun();
-    }
-
-    pauseRun() { if (!this.running) return; this.paused = true; this.running = false; }
-
-    startNewRun(paramsUI) { this.params = { ...paramsUI }; this._beginNewRun(); }
-
-    _beginNewRun() {
-        this.running = true; this.paused = false; this.t = 0; this.points = [];
-        const p = this.params; this.x = 0; this.y = 0; this.vx = p.v0 * Math.cos(p.angle); this.vy = p.v0 * Math.sin(p.angle);
-    }
-
-    resetRun(paramsUI, options={}) {
-        const { recenter=false } = options;
-        this.params = { ...paramsUI }; this.running = false; this.paused = false;
-        this.points = []; this.t = 0;
-        const p = this.params; this.x = 0; this.y = 0; this.vx = p.v0 * Math.cos(p.angle); this.vy = p.v0 * Math.sin(p.angle);
-        if (recenter) { camera.x = 0; camera.y = 0; }
-    }
-
-    resetSimulation(paramsUI) { this.resetRun(paramsUI, { recenter:false }); }
-
-    resetParameters() { /* handled in UI */ }
-
-    saveCurrentRun() {
-        if (this.points.length < 2) return;
-        const stats = this._computeStats(this.points);
-        runManager.saveRun(this.points, this.params, stats, this._style());
-        refreshRunList(); refreshRunTable();
-    }
-
-    update(dt) {
-        if (!this.running || this.paused) return;
-        const p = this.params;
-        this.t += dt; this.vy -= p.g * dt;
-        this.x += this.vx * dt; this.y += this.vy * dt;
-        this.points.push({ t:this.t, x:this.x, y:this.y, vx:this.vx, vy:this.vy });
-
-        if (this.y <= 0 && this.t > 0.05) {
-            this.running = false; this.paused = false;
-            const stats = this._computeStats(this.points);
-            runManager.saveRun(this.points, this.params, stats, this._style());
-            refreshRunList(); refreshRunTable();
-        }
-        this.updateUI();
-    }
-
-    draw() {
-        renderer.clear();
-        renderer.line(-500, 0, 500, 0, "#8B949E", 2);
-        for (const run of runManager.runs) if (run.visible) renderer.trail(run.points, run.style);
-        renderer.trail(this.points, this._style());
-        renderer.ball(this.x, this.y, 0.15, "#58A6FF");
-    }
-
-    updateUI() {
-        const speed = Math.hypot(this.vx, this.vy);
-        updateReadout({
-            Time: this.t.toFixed(2) + " s",
-            X: this.x.toFixed(2) + " m",
-            Y: this.y.toFixed(2) + " m",
-            Vx: this.vx.toFixed(2) + " m/s",
-            Vy: this.vy.toFixed(2) + " m/s",
-            Speed: speed.toFixed(2) + " m/s"
-        });
-    }
+  }
 }
-<!-- ============================================================
-     SCRIPT MODULE: PENDULUM EXPERIMENT (Version E)
-     - Uses UI "Velocity" as initial bob tip speed (ω0 = v0/L)
-     - Uses UI "Angle" as θ0 (radians)
-     - Uses UI "Gravity" as g
-=============================================================== -->
+</script>
+
+<!-- EXPERIMENT: PENDULUM (RK4) -->
 <script type="text/x-module-source" id="exp-pendulum">
 import { renderer } from "#engine-renderer";
 import { camera } from "#engine-camera";
@@ -971,149 +594,86 @@ import { runManager } from "#engine-runmanager";
 import { updateReadout, refreshRunList, refreshRunTable } from "#ui-workbench";
 
 export class PendulumExperiment {
-  constructor() {
-    this.running = false;
-    this.paused = false;
-    this.colorblindMode = false;
+  constructor(){
+    this.running=false; this.paused=false; this.colorblindMode=false; this.points=[];
+    this.params={ v0:25, angle:30*Math.PI/180, g:9.81 };  // v0 controls initial omega via v0/L
+    this.L=2.0; this.damping=0.02; this.pivot={ x:0, y:1.5 };
+    this.t=0; this.theta=this.params.angle; this.omega=0;
+  }
+  // Allow presets to override physical constants:
+  _applyExtras(paramsUI){ if (paramsUI.L) this.L = paramsUI.L; if (paramsUI.damping!=null) this.damping = paramsUI.damping; }
+  _style(){ return this.colorblindMode?{ color:"#DAA520", width:2, dash:[6,4] }:{ color:"#DAA520", width:2, dash:null }; }
+  setColorblindMode(e){ this.colorblindMode=e; }
+  _computeStats(points){
+    if (!points.length) return { maxH:0, range:0, duration:0 };
+    let minX=Infinity,maxX=-Infinity,maxY=-Infinity; for(const p of points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; }
+    const last=points[points.length-1]; return { maxH:maxY, range:(maxX-minX), duration:last.t };
+  }
+  startRun(paramsUI){ if (this.running && !this.paused) return; this.params={...paramsUI}; this._applyExtras(paramsUI); if (this.paused){ this.paused=false; this.running=true; return; } this._beginNewRun(); }
+  pauseRun(){ if(!this.running)return; this.paused=true; this.running=false; }
+  startNewRun(paramsUI){ this.params={...paramsUI}; this._applyExtras(paramsUI); this._beginNewRun(); }
 
-    this.points = [];
-    this.params = { v0: 25, angle: 30 * Math.PI/180, g: 9.81 };
+  _beginNewRun(){
+    this.running=true; this.paused=false; this.t=0; this.points=[];
+    this.theta=this.params.angle; this.omega = this.L>0?(this.params.v0/this.L):0;  // convert tip speed to angular speed
+    const pos=this._bobPosition(this.theta); this.points.push({ t:this.t, x:pos.x, y:pos.y, theta:this.theta, omega:this.omega });
+  }
+  resetRun(paramsUI,{recenter=false}={}){
+    this.params={...paramsUI}; this._applyExtras(paramsUI); this.running=false; this.paused=false; this.t=0; this.points=[];
+    this.theta=this.params.angle; this.omega=this.L>0?(this.params.v0/this.L):0; if (recenter){ camera.x=0; camera.y=0; }
+  }
+  resetSimulation(paramsUI){ this.resetRun(paramsUI,{recenter:false}); }
+  resetParameters(){ /* handled in UI */ }
+  saveCurrentRun(){ if (this.points.length<2) return; const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
 
-    this.L = 2.0;
-    this.damping = 0.02;
-    this.pivot = { x: 0, y: 1.5 };
-
-    this.t = 0;
-    this.theta = this.params.angle;
-    this.omega = 0;
+  // RK4 integrator
+  _rk4_step(dt){
+    const g=this.params.g, L=this.L, b=this.damping;
+    const f = (th, om) => (-(g/L)*Math.sin(th) - b*om);
+    const k1t = this.omega,       k1o = f(this.theta, this.omega);
+    const k2t = this.omega+0.5*dt*k1o,  k2o = f(this.theta+0.5*dt*k1t, this.omega+0.5*dt*k1o);
+    const k3t = this.omega+0.5*dt*k2o,  k3o = f(this.theta+0.5*dt*k2t, this.omega+0.5*dt*k2o);
+    const k4t = this.omega+dt*k3o,      k4o = f(this.theta+dt*k3t, this.omega+dt*k3o);
+    this.theta += (dt/6)*(k1t + 2*k2t + 2*k3t + k4t);
+    this.omega += (dt/6)*(k1o + 2*k2o + 2*k3o + k4o);
   }
 
-  _style() {
-    return this.colorblindMode
-      ? { color: "#DAA520", width: 2, dash: [6, 4] }
-      : { color: "#DAA520", width: 2, dash: null };
-  }
-  setColorblindMode(e) { this.colorblindMode = e; }
-
-  _computeStats(points) {
-    if (!points.length) return { maxH: 0, range: 0, duration: 0 };
-    let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const p of points) { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; }
-    const last = points[points.length-1];
-    return { maxH: maxY, range: (maxX - minX), duration: last.t };
-  }
-
-  startRun(paramsUI) {
-    if (this.running && !this.paused) return;
-    this.params = { ...paramsUI };
-    if (this.paused) { this.paused = false; this.running = true; return; }
-    this._beginNewRun();
-  }
-  pauseRun() { if (!this.running) return; this.paused = true; this.running = false; }
-  startNewRun(paramsUI) { this.params = { ...paramsUI }; this._beginNewRun(); }
-
-  _beginNewRun() {
-    this.running = true; this.paused = false; this.t = 0; this.points = [];
-    this.theta = this.params.angle;
-    this.omega = this.L > 0 ? (this.params.v0 / this.L) : 0;
-    const pos = this._bobPosition(this.theta);
-    this.points.push({ t: this.t, x: pos.x, y: pos.y, theta: this.theta, omega: this.omega });
-  }
-
-  resetRun(paramsUI, { recenter=false } = {}) {
-    this.params = { ...paramsUI }; this.running = false; this.paused = false; this.t = 0; this.points = [];
-    this.theta = this.params.angle; this.omega = this.L > 0 ? (this.params.v0 / this.L) : 0;
-    if (recenter) { camera.x = 0; camera.y = 0; }
-  }
-  resetSimulation(paramsUI) { this.resetRun(paramsUI, { recenter:false }); }
-  resetParameters() { /* handled in UI */ }
-
-  saveCurrentRun() {
-    if (this.points.length < 2) return;
-    const stats = this._computeStats(this.points);
-    runManager.saveRun(this.points, this.params, stats, this._style());
-    refreshRunList(); refreshRunTable();
-  }
-
-  update(dt) {
+  update(dt){
     if (!this.running || this.paused) return;
-    const step = Math.min(0.05, dt);
-    const g = this.params.g, L = this.L, b = this.damping;
-
-    const alpha = -(g / L) * Math.sin(this.theta) - b * this.omega;
-    this.t += step; this.omega += alpha * step; this.theta += this.omega * step;
-
-    const pos = this._bobPosition(this.theta);
-    this.points.push({ t: this.t, x: pos.x, y: pos.y, theta: this.theta, omega: this.omega });
-
-    const settled = Math.abs(this.omega) < 0.02 && Math.abs(this.theta) < 0.02 && this.points.length > 30;
-    const timeUp = this.t >= 10.0;
-    if (settled || timeUp) {
-      this.running = false; this.paused = false;
-      const stats = this._computeStats(this.points);
-      runManager.saveRun(this.points, this.params, stats, this._style());
-      refreshRunList(); refreshRunTable();
-    }
+    const step=Math.min(0.05,dt);
+    this.t+=step; this._rk4_step(step);
+    const pos=this._bobPosition(this.theta); this.points.push({ t:this.t, x:pos.x, y:pos.y, theta:this.theta, omega:this.omega });
+    const settled = Math.abs(this.omega)<0.02 && Math.abs(this.theta)<0.02 && this.points.length>30;
+    const timeUp = this.t>=10.0;
+    if (settled || timeUp){ this.running=false; this.paused=false; const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
     this.updateUI();
   }
-
-  _bobPosition(theta) {
-    const x = this.pivot.x + this.L * Math.sin(theta);
-    const y = this.pivot.y - this.L * Math.cos(theta);
-    return { x, y };
-  }
-
-  draw() {
-    renderer.clear();
-    renderer.ball(this.pivot.x, this.pivot.y, 0.06, "#C9D1D9");
+  _bobPosition(theta){ return { x: this.pivot.x + this.L*Math.sin(theta), y: this.pivot.y - this.L*Math.cos(theta) }; }
+  draw(){
+    renderer.clear(); renderer.ball(this.pivot.x,this.pivot.y,0.06,"#C9D1D9");
     for (const run of runManager.runs) if (run.visible) renderer.trail(run.points, run.style);
-    if (this.points.length) {
-      const last = this.points[this.points.length - 1];
-      renderer.line(this.pivot.x, this.pivot.y, last.x, last.y, "#8B949E", 2);
-      renderer.trail(this.points, this._style());
-      renderer.ball(last.x, last.y, 0.12, "#DAA520");
+    if (this.points.length){ const last=this.points[this.points.length-1];
+      renderer.line(this.pivot.x,this.pivot.y,last.x,last.y,"#8B949E",2);
+      renderer.trail(this.points,this._style());
+      renderer.ball(last.x,last.y,0.12,"#DAA520");
     }
   }
-
-  updateUI() {
-    const m = 1.0, g = this.params.g, L = this.L;
-    const yLowest = this.pivot.y - L;
-    const bob = this._bobPosition(this.theta);
-    const h = (bob.y - yLowest);
-    const v = Math.abs(this.omega) * L;
-    const PE = m * g * h, KE = 0.5 * m * v * v, E = PE + KE;
-
-    updateReadout({
-      "Time": this.t.toFixed(2) + " s",
-      "θ": (this.theta * 180/Math.PI).toFixed(1) + " °",
-      "ω": this.omega.toFixed(3) + " rad/s",
-      "Speed": v.toFixed(2) + " m/s",
-      "Energy": E.toFixed(2) + " J"
-    });
+  updateUI(){
+    const m=1.0,g=this.params.g,L=this.L; const yLowest=this.pivot.y-L; const bob=this._bobPosition(this.theta); const h=(bob.y - yLowest);
+    const v=Math.abs(this.omega)*L; const PE=m*g*h, KE=0.5*m*v*v, E=PE+KE;
+    updateReadout({ "Time":this.t.toFixed(2)+" s", "θ":(this.theta*180/Math.PI).toFixed(1)+" °", "ω":this.omega.toFixed(3)+" rad/s",
+      "Speed":v.toFixed(2)+" m/s", "Energy":E.toFixed(2)+" J" });
   }
-
-  highlightRun(runId) {
-    for (const run of runManager.runs) {
-      if (run.id === runId) {
-        run.style.width = 4;
-        run.style.color = "#3FB950";
-        if (this.colorblindMode) run.style.dash = [6, 2];
-      } else {
-        run.style.width = 1.5;
-        run.style.color = "#8B949E";
-        run.style.dash = this.colorblindMode ? [3,3] : null;
-      }
+  highlightRun(runId){
+    for (const run of runManager.runs){
+      if (run.id===runId){ run.style.width=4; run.style.color="#3FB950"; if (this.colorblindMode) run.style.dash=[6,2]; }
+      else { run.style.width=1.5; run.style.color="#8B949E"; run.style.dash=this.colorblindMode?[3,3]:null; }
     }
   }
 }
 </script>
-<!-- ============================================================
-     SCRIPT MODULE: SPRING–MASS EXPERIMENT (Version E)
-     Horizontal damped oscillator
-     - Velocity slider -> initial mass velocity (m/s)
-     - Angle slider    -> (not used here; can be mapped to x0 later)
-     - Gravity slider  -> (not used here; horizontal setup)
-=============================================================== -->
+
+<!-- EXPERIMENT: SPRING–MASS (RK4) -->
 <script type="text/x-module-source" id="exp-spring">
 import { renderer } from "#engine-renderer";
 import { camera } from "#engine-camera";
@@ -1121,339 +681,223 @@ import { runManager } from "#engine-runmanager";
 import { updateReadout, refreshRunList, refreshRunTable } from "#ui-workbench";
 
 export class SpringMassExperiment {
-  constructor() {
-    this.running = false;
-    this.paused = false;
-    this.colorblindMode = false;
+  constructor(){
+    this.running=false; this.paused=false; this.colorblindMode=false; this.points=[];
+    this.params={ v0:25, angle:45*Math.PI/180, g:9.81 }; // angle,g not used
+    this.m=1.0; this.k=10.0; this.c=0.2;
+    this.t=0; this.x=1.0; this.v=0.0; // default x0
+  }
+  // Allow presets to override physical constants and initial conditions:
+  _applyExtras(paramsUI){ if (paramsUI.k) this.k=paramsUI.k; if (paramsUI.m) this.m=paramsUI.m; if (paramsUI.c!=null) this.c=paramsUI.c; if (paramsUI.x0!=null) this.x=paramsUI.x0; if (paramsUI.v0!=null) this.v=paramsUI.v0; }
+  _style(){ return this.colorblindMode?{ color:"#FF6A6A", width:2, dash:[6,4] }:{ color:"#FF6A6A", width:2, dash:null }; }
+  setColorblindMode(e){ this.colorblindMode=e; }
+  _computeStats(points){
+    if(!points.length) return { maxH:0, range:0, duration:0 };
+    let minX=Infinity,maxX=-Infinity; for(const p of points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; }
+    const last=points[points.length-1]; return { maxH:0, range:(maxX-minX), duration:last.t };
+  }
+  startRun(paramsUI){ if(this.running && !this.paused) return; this.params={...paramsUI}; this._applyExtras(paramsUI); if(this.paused){ this.paused=false; this.running=true; return; } this._beginNewRun(); }
+  pauseRun(){ if(!this.running) return; this.paused=true; this.running=false; }
+  startNewRun(paramsUI){ this.params={...paramsUI}; this._applyExtras(paramsUI); this._beginNewRun(); }
+  resetParameters(){ /* handled in UI */ }
+  _beginNewRun(){ this.running=true; this.paused=false; this.t=0; this.points=[]; /* x,v already set in _applyExtras or defaults */ this.points.push({ t:this.t, x:this.x, y:0, vx:this.v, vy:0 }); }
+  resetRun(paramsUI,{recenter=false}={}){ this.params={...paramsUI}; this._applyExtras(paramsUI); this.running=false; this.paused=false; this.t=0; this.points=[]; if(recenter){ camera.x=0; camera.y=0; } }
+  resetSimulation(paramsUI){ this.resetRun(paramsUI,{recenter:false}); }
+  saveCurrentRun(){ if (this.points.length<2) return; const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
 
-    this.points = [];
-    this.params = { v0: 25, angle: 45 * Math.PI/180, g: 9.81 }; // angle,g unused here
-
-    // Physical constants (tweak as needed)
-    this.m = 1.0;     // mass (kg)
-    this.k = 10.0;    // spring constant (N/m)
-    this.c = 0.2;     // viscous damping (N·s/m)
-
-    // State (x in meters, v in m/s)
-    this.t = 0;
-    this.x = 1.0;     // initial displacement (m) – fixed; feel free to map from angle slider if desired
-    this.v = 0.0;     // initial velocity (m/s)
+  // RK4 for x'' = -(c/m)x' - (k/m)x
+  _rk4_step(dt){
+    const m=this.m, c=this.c, k=this.k;
+    const f = (x,v) => ({ dx: v, dv: (-(c/m)*v - (k/m)*x) });
+    const k1 = f(this.x, this.v);
+    const k2 = f(this.x + 0.5*dt*k1.dx, this.v + 0.5*dt*k1.dv);
+    const k3 = f(this.x + 0.5*dt*k2.dx, this.v + 0.5*dt*k2.dv);
+    const k4 = f(this.x + dt*k3.dx,      this.v + dt*k3.dv);
+    this.x += (dt/6)*(k1.dx + 2*k2.dx + 2*k3.dx + k4.dx);
+    this.v += (dt/6)*(k1.dv + 2*k2.dv + 2*k3.dv + k4.dv);
   }
 
-  /* -----------------------------------------------
-     Styling (colorblind-friendly trails)
-  -------------------------------------------------*/
-  _style() {
-    return this.colorblindMode
-      ? { color: "#FF6A6A", width: 2, dash: [6, 4] }  // red dotted for CB mode
-      : { color: "#FF6A6A", width: 2, dash: null };
-  }
-  setColorblindMode(enabled) { this.colorblindMode = enabled; }
-
-  /* -----------------------------------------------
-     Stats for drawer table (reuse headings)
-     Max Height (y) = 0 here, Range = horizontal sweep
-  -------------------------------------------------*/
-  _computeStats(points) {
-    if (!points.length) return { maxH: 0, range: 0, duration: 0 };
-    let minX = Infinity, maxX = -Infinity;
-    for (const p of points) { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; }
-    const last = points[points.length - 1];
-    return { maxH: 0, range: (maxX - minX), duration: last.t };
-  }
-
-  /* -----------------------------------------------
-     Lifecycle (Version-E contract)
-  -------------------------------------------------*/
-  startRun(paramsUI) {
-    if (this.running && !this.paused) return;
-    this.params = { ...paramsUI };
-    if (this.paused) { this.paused = false; this.running = true; return; }
-    this._beginNewRun();
-  }
-  pauseRun() { if (!this.running) return; this.paused = true; this.running = false; }
-  startNewRun(paramsUI) { this.params = { ...paramsUI }; this._beginNewRun(); }
-  resetParameters() { /* handled in UI */ }
-
-  _beginNewRun() {
-    this.running = true; this.paused = false; this.t = 0; this.points = [];
-    this.x = 1.0;         // fixed x0; optionally map from angle slider
-    this.v = this.params.v0; // from Velocity slider (m/s)
-
-    // First sample (world X = x, world Y = 0)
-    this.points.push({ t: this.t, x: this.x, y: 0, vx: this.v, vy: 0 });
-  }
-
-  resetRun(paramsUI, { recenter=false } = {}) {
-    this.params = { ...paramsUI };
-    this.running = false; this.paused = false;
-    this.t = 0; this.points = [];
-    this.x = 1.0;
-    this.v = this.params.v0;
-    if (recenter) { camera.x = 0; camera.y = 0; }
-  }
-  resetSimulation(paramsUI) { this.resetRun(paramsUI, { recenter:false }); }
-
-  saveCurrentRun() {
-    if (this.points.length < 2) return;
-    const stats = this._computeStats(this.points);
-    runManager.saveRun(this.points, this.params, stats, this._style());
-    refreshRunList(); refreshRunTable();
-  }
-
-  /* -----------------------------------------------
-     Physics
-     m x'' + c x' + k x = 0
-  -------------------------------------------------*/
-  update(dt) {
-    if (!this.running || this.paused) return;
-    const step = Math.min(0.05, dt);
-    const { m, c, k } = this;
-
-    // Acceleration
-    const a = -(c/m)*this.v - (k/m)*this.x;
-
-    // Integrate (semi-implicit Euler)
-    this.t += step;
-    this.v += a * step;
-    this.x += this.v * step;
-
-    this.points.push({ t: this.t, x: this.x, y: 0, vx: this.v, vy: 0 });
-
-    // Auto-stop when settled or after 15s
-    const settled = Math.abs(this.v) < 0.01 && Math.abs(this.x) < 0.01 && this.points.length > 30;
-    const timeUp = this.t >= 15.0;
-    if (settled || timeUp) {
-      this.running = false; this.paused = false;
-      const stats = this._computeStats(this.points);
-      runManager.saveRun(this.points, this.params, stats, this._style());
-      refreshRunList(); refreshRunTable();
-    }
-
+  update(dt){
+    if(!this.running || this.paused) return; const step=Math.min(0.05,dt);
+    this.t+=step; this._rk4_step(step);
+    this.points.push({ t:this.t, x:this.x, y:0, vx:this.v, vy:0 });
+    const settled = Math.abs(this.v)<0.01 && Math.abs(this.x)<0.01 && this.points.length>30;
+    const timeUp = this.t>=15.0;
+    if (settled || timeUp){ this.running=false; this.paused=false; const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
     this.updateUI();
   }
-
-  /* -----------------------------------------------
-     Drawing
-  -------------------------------------------------*/
-  draw() {
+  draw(){
     renderer.clear();
-
-    // Ground line
-    renderer.line(-6, 0, 6, 0, "#8B949E", 2);
-
-    // Wall at x = -3
-    renderer.line(-3, -1, -3, 1, "#8B949E", 3);
-
-    // Spring line (simple)
-    const massX = this.x;  // world X
-    renderer.line(-3, 0, massX, 0, "#C9D1D9", 2);
-
-    // Mass (ball)
-    renderer.ball(massX, 0, 0.18, "#FF6A6A");
-
-    // Draw saved runs (trails along y=0)
-    for (const run of runManager.runs) {
-      if (run.visible) renderer.trail(run.points, run.style);
-    }
-
-    // Live trail
-    renderer.trail(this.points, this._style());
+    renderer.line(-6,0,6,0,"#8B949E",2);  // ground
+    renderer.line(-3,-1,-3,1,"#8B949E",3); // wall
+    renderer.line(-3,0,this.x,0,"#C9D1D9",2); // spring
+    renderer.ball(this.x,0,0.18,"#FF6A6A"); // mass
+    for (const run of runManager.runs) if (run.visible) renderer.trail(run.points, run.style);
+    renderer.trail(this.points,this._style());
   }
-
-  /* -----------------------------------------------
-     Readouts
-  -------------------------------------------------*/
-  updateUI() {
-    const m = this.m, k = this.k, c = this.c;
-    const PE = 0.5 * k * this.x * this.x;
-    const KE = 0.5 * m * this.v * this.v;
-    const D  = 0.5 * c * this.v * this.v; // indicative damping term (not energy)
-
-    updateReadout({
-      "Time": this.t.toFixed(2) + " s",
-      "x (disp)": this.x.toFixed(3) + " m",
-      "v": this.v.toFixed(3) + " m/s",
-      "PE_spring": PE.toFixed(2) + " J",
-      "KE": KE.toFixed(2) + " J"
-    });
+  updateUI(){
+    const PE=0.5*this.k*this.x*this.x, KE=0.5*this.m*this.v*this.v;
+    updateReadout({ "Time":this.t.toFixed(2)+" s", "x (disp)":this.x.toFixed(3)+" m", "v":this.v.toFixed(3)+" m/s", "PE_spring":PE.toFixed(2)+" J", "KE":KE.toFixed(2)+" J" });
   }
-
-  /* -----------------------------------------------
-     Highlight
-  -------------------------------------------------*/
-  highlightRun(runId) {
-    for (const run of runManager.runs) {
-      if (run.id === runId) {
-        run.style.width = 4;
-        run.style.color = "#3FB950";
-        if (this.colorblindMode) run.style.dash = [6, 2];
-      } else {
-        run.style.width = 1.5;
-        run.style.color = "#8B949E";
-        run.style.dash = this.colorblindMode ? [3,3] : null;
-      }
+  highlightRun(runId){
+    for(const run of runManager.runs){
+      if(run.id===runId){ run.style.width=4; run.style.color="#3FB950"; if(this.colorblindMode) run.style.dash=[6,2]; }
+      else { run.style.width=1.5; run.style.color="#8B949E"; run.style.dash=this.colorblindMode?[3,3]:null; }
     }
   }
 }
 </script>
-</script>
-<!-- ============================================================
-     SCRIPT MODULE: PENDULUM EXPERIMENT (Version E)
-     - Uses UI "Velocity" as initial bob tip speed (ω0 = v0/L)
-     - Uses UI "Angle" as θ0 (radians)
-     - Uses UI "Gravity" as g
-=============================================================== -->
-<script type="text/x-module-source" id="exp-pendulum">
+
+<!-- EXPERIMENT: INCLINED PLANE -->
+<script type="text/x-module-source" id="exp-incline">
 import { renderer } from "#engine-renderer";
 import { camera } from "#engine-camera";
 import { runManager } from "#engine-runmanager";
-import { updateReadout, refreshRunList, refreshRunTable } from "#ui-workbench";
+import { updateReadout, refreshRunList, refreshRunTable, bindInclineDirectionHandlers } from "#ui-workbench";
 
-export class PendulumExperiment {
+export class InclineExperiment {
   constructor() {
-    this.running = false;
-    this.paused = false;
-    this.colorblindMode = false;
+    this.running=false; this.paused=false; this.colorblindMode=false; this.points=[];
+    // Use generic sliders: angle (deg), g, and v0 (used only for push-up)
+    this.params={ v0:5.0, angle:30*Math.PI/180, g:9.81, muS:0.4, muK:0.3 };
+    this.direction = "down"; // "down" | "up"
+    this.t=0; this.s=0; this.v=0; // s along ramp (m), v (m/s)
+    this.rampLen = 5.0; // metres
+  }
+  // Allow presets to override friction or v0:
+  _applyExtras(paramsUI){ if (paramsUI.muS!=null) this.params.muS = paramsUI.muS; if (paramsUI.muK!=null) this.params.muK = paramsUI.muK; if (paramsUI.v0!=null) this.params.v0 = paramsUI.v0; if (paramsUI.rampLen) this.rampLen=paramsUI.rampLen; }
+  _style(){ return this.colorblindMode?{ color:"#A78BFA", width:2, dash:[6,4] }:{ color:"#A78BFA", width:2, dash:null }; }
+  setColorblindMode(e){ this.colorblindMode=e; }
+  setDirection(dir){ this.direction = (dir==="up"?"up":"down"); }
+  _computeStats(points){
+    if(!points.length) return { maxH:0, range:0, duration:0 };
+    let minS=Infinity,maxS=-Infinity; for(const p of points){ if(p.x<minS)minS=p.x; if(p.x>maxS)maxS=p.x; }
+    const last=points[points.length-1]; return { maxH:0, range:(maxS-minS), duration:last.t };
+  }
+  startRun(paramsUI){ if(this.running && !this.paused) return; this.params={...this.params, ...paramsUI}; this._applyExtras(paramsUI); if(this.paused){ this.paused=false; this.running=true; return; } this._beginNewRun(); }
+  pauseRun(){ if(!this.running) return; this.paused=true; this.running=false; }
+  startNewRun(paramsUI){ this.params={...this.params, ...paramsUI}; this._applyExtras(paramsUI); this._beginNewRun(); }
+  _beginNewRun(){
+    this.running=true; this.paused=false; this.t=0; this.points=[];
+    if (this.direction==="down"){ this.s=this.rampLen*0.85; this.v=0; } // start near top, let it slide
+    else { this.s=0.1; this.v = -Math.abs(this.params.v0); }            // push up: negative along +down axis
+    this._emitPoint();
+  }
+  resetRun(paramsUI,{recenter=false}={}){
+    this.params={...this.params, ...paramsUI}; this._applyExtras(paramsUI); this.running=false; this.paused=false; this.t=0; this.points=[];
+    if (this.direction==="down"){ this.s=this.rampLen*0.85; this.v=0; } else { this.s=0.1; this.v = -Math.abs(this.params.v0); }
+    if (recenter){ camera.x=0; camera.y=0; }
+  }
+  resetSimulation(paramsUI){ this.resetRun(paramsUI,{recenter:false}); }
+  resetParameters(){ /* handled in UI */ }
+  saveCurrentRun(){ if (this.points.length<2) return; const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable(); }
 
-    this.points = [];
-    this.params = { v0: 25, angle: 30 * Math.PI/180, g: 9.81 };
+  _emitPoint(extra={}){ const theta=this.params.angle; const x=this.s, y=0; this.points.push({ t:this.t, x, y, vx:this.v, vy:0, ...extra }); }
 
-    this.L = 2.0;
-    this.damping = 0.02;
-    this.pivot = { x: 0, y: 1.5 };
-
-    this.t = 0;
-    this.theta = this.params.angle;
-    this.omega = 0;
+  // physics per-step
+  _physics(){
+    const theta=this.params.angle;
+    const m=1.0, g=this.params.g, muS=this.params.muS, muK=this.params.muK;
+    const N = m*g*Math.cos(theta);
+    const Fg = m*g*Math.sin(theta); // + down the ramp
+    const fsMax = muS*N;
+    const fk = muK*N;
+    let a=0, friction=0, moving=this.v!==0;
+    if (moving){
+      friction = this.v>=0 ? -fk : +fk; // oppose motion
+      a = (Fg + friction)/m;
+    } else {
+      if (Math.abs(Fg) > fsMax){ // breakaway
+        friction = (Fg>0 ? -fk : +fk);
+        a = (Fg + friction)/m;
+        moving = true;
+      } else {
+        friction = -Fg; a=0;
+      }
+    }
+    return { a, friction, Fg, N, fk, fsMax, moving };
   }
 
-  _style() {
-    return this.colorblindMode
-      ? { color: "#DAA520", width: 2, dash: [6, 4] }
-      : { color: "#DAA520", width: 2, dash: null };
-  }
-  setColorblindMode(e) { this.colorblindMode = e; }
+  update(dt){
+    if(!this.running || this.paused) return; const step=Math.min(0.05,dt);
+    const { a, friction, Fg, N, fk, fsMax, moving } = this._physics();
+    // Integrate (semi-implicit Euler)
+    const vNew = this.v + a*step;
+    const sNew = this.s + this.v*step + 0.5*a*step*step;
 
-  _computeStats(points) {
-    if (!points.length) return { maxH: 0, range: 0, duration: 0 };
-    let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const p of points) { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; }
-    const last = points[points.length-1];
-    return { maxH: maxY, range: (maxX - minX), duration: last.t };
-  }
+    // Handle velocity reversal: if crosses zero, test static locking
+    let v=vNew, s=sNew, stillMoving=moving;
+    if (this.v!==0 && vNew!==0 && Math.sign(vNew)!==Math.sign(this.v)){
+      const Fg2 = this.params.g*Math.sin(this.params.angle)*1.0; // m=1
+      const fsMax2 = this.params.muS*Math.cos(this.params.angle)*this.params.g*1.0;
+      if (Math.abs(Fg2) <= fsMax2){ v=0; stillMoving=false; }
+    }
 
-  startRun(paramsUI) {
-    if (this.running && !this.paused) return;
-    this.params = { ...paramsUI };
-    if (this.paused) { this.paused = false; this.running = true; return; }
-    this._beginNewRun();
-  }
-  pauseRun() { if (!this.running) return; this.paused = true; this.running = false; }
-  startNewRun(paramsUI) { this.params = { ...paramsUI }; this._beginNewRun(); }
+    // Clamp to ramp extents
+    if (s<=0){ s=0; v=0; stillMoving=false; }
+    if (s>=this.rampLen){ s=this.rampLen; v=0; stillMoving=false; }
 
-  _beginNewRun() {
-    this.running = true; this.paused = false; this.t = 0; this.points = [];
-    this.theta = this.params.angle;
-    this.omega = this.L > 0 ? (this.params.v0 / this.L) : 0;
-    const pos = this._bobPosition(this.theta);
-    this.points.push({ t: this.t, x: pos.x, y: pos.y, theta: this.theta, omega: this.omega });
-  }
+    this.t+=step; this.v=v; this.s=s;
+    this._emitPoint({ a, Fg, friction, N, fk, fsMax, moving:stillMoving });
 
-  resetRun(paramsUI, { recenter=false } = {}) {
-    this.params = { ...paramsUI }; this.running = false; this.paused = false; this.t = 0; this.points = [];
-    this.theta = this.params.angle; this.omega = this.L > 0 ? (this.params.v0 / this.L) : 0;
-    if (recenter) { camera.x = 0; camera.y = 0; }
-  }
-  resetSimulation(paramsUI) { this.resetRun(paramsUI, { recenter:false }); }
-  resetParameters() { /* handled in UI */ }
-
-  saveCurrentRun() {
-    if (this.points.length < 2) return;
-    const stats = this._computeStats(this.points);
-    runManager.saveRun(this.points, this.params, stats, this._style());
-    refreshRunList(); refreshRunTable();
-  }
-
-  update(dt) {
-    if (!this.running || this.paused) return;
-    const step = Math.min(0.05, dt);
-    const g = this.params.g, L = this.L, b = this.damping;
-
-    const alpha = -(g / L) * Math.sin(this.theta) - b * this.omega;
-    this.t += step; this.omega += alpha * step; this.theta += this.omega * step;
-
-    const pos = this._bobPosition(this.theta);
-    this.points.push({ t: this.t, x: pos.x, y: pos.y, theta: this.theta, omega: this.omega });
-
-    const settled = Math.abs(this.omega) < 0.02 && Math.abs(this.theta) < 0.02 && this.points.length > 30;
-    const timeUp = this.t >= 10.0;
-    if (settled || timeUp) {
-      this.running = false; this.paused = false;
-      const stats = this._computeStats(this.points);
-      runManager.saveRun(this.points, this.params, stats, this._style());
-      refreshRunList(); refreshRunTable();
+    // Auto-stop conditions
+    if ((!stillMoving && this.points.length>60) || this.t>30){
+      this.running=false; this.paused=false;
+      const stats=this._computeStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); refreshRunList(); refreshRunTable();
     }
     this.updateUI();
   }
 
-  _bobPosition(theta) {
-    const x = this.pivot.x + this.L * Math.sin(theta);
-    const y = this.pivot.y - this.L * Math.cos(theta);
-    return { x, y };
-  }
-
-  draw() {
+  draw(){
     renderer.clear();
-    renderer.ball(this.pivot.x, this.pivot.y, 0.06, "#C9D1D9");
+    const theta=this.params.angle;
+    // Draw ramp from (0,0) to (L*cos, L*sin) in world coords rotated?
+    // We'll draw a simple ramp in world coords: base at (0,0), top at (L*cos, L*sin)
+    const L=this.rampLen;
+    const x2=L*Math.cos(theta), y2=L*Math.sin(theta);
+    // Ground / axes
+    renderer.line(-1,-0.02, x2+0.5,-0.02, "#8B949E", 1);
+    // Ramp
+    renderer.line(0,0, x2,y2, "#34d399", 3);
+    // Block position along ramp (projected point)
+    const frac=Math.min(1,Math.max(0,this.s/L));
+    const bx=frac*x2, by=frac*y2;
+    // Live + saved trails
     for (const run of runManager.runs) if (run.visible) renderer.trail(run.points, run.style);
-    if (this.points.length) {
-      const last = this.points[this.points.length - 1];
-      renderer.line(this.pivot.x, this.pivot.y, last.x, last.y, "#8B949E", 2);
-      renderer.trail(this.points, this._style());
-      renderer.ball(last.x, last.y, 0.12, "#DAA520");
-    }
+    renderer.trail(this.points, this._style());
+    // Block (ball) and normal marker
+    renderer.ball(bx,by, 0.18, "#A78BFA");
+    // Simple on-canvas info
+    renderer.text(`s=${this.s.toFixed(2)} m`, bx, by+0.35, "#8aaabf");
   }
 
-  updateUI() {
-    const m = 1.0, g = this.params.g, L = this.L;
-    const yLowest = this.pivot.y - L;
-    const bob = this._bobPosition(this.theta);
-    const h = (bob.y - yLowest);
-    const v = Math.abs(this.omega) * L;
-    const PE = m * g * h, KE = 0.5 * m * v * v, E = PE + KE;
-
+  updateUI(){
+    const theta=this.params.angle, g=this.params.g, m=1.0;
+    const N = m*g*Math.cos(theta);
+    const Fg = m*g*Math.sin(theta);
     updateReadout({
-      "Time": this.t.toFixed(2) + " s",
-      "θ": (this.theta * 180/Math.PI).toFixed(1) + " °",
-      "ω": this.omega.toFixed(3) + " rad/s",
-      "Speed": v.toFixed(2) + " m/s",
-      "Energy": E.toFixed(2) + " J"
+      "Time":this.t.toFixed(2)+" s",
+      "s (along ramp)":this.s.toFixed(3)+" m",
+      "v":this.v.toFixed(3)+" m/s",
+      "Fg∥":Fg.toFixed(2)+" N",
+      "Normal":N.toFixed(2)+" N"
     });
   }
 
-  highlightRun(runId) {
-    for (const run of runManager.runs) {
-      if (run.id === runId) {
-        run.style.width = 4;
-        run.style.color = "#3FB950";
-        if (this.colorblindMode) run.style.dash = [6, 2];
-      } else {
-        run.style.width = 1.5;
-        run.style.color = "#8B949E";
-        run.style.dash = this.colorblindMode ? [3,3] : null;
-      }
+  highlightRun(runId){
+    for(const run of runManager.runs){
+      if(run.id===runId){ run.style.width=4; run.style.color="#3FB950"; if(this.colorblindMode) run.style.dash=[6,2]; }
+      else { run.style.width=1.5; run.style.color="#8B949E"; run.style.dash=this.colorblindMode?[3,3]:null; }
     }
   }
 }
 </script>
 
-<!-- ACCESSIBILITY CONTROLLER -->
+<!-- CONTROLLER: ACCESSIBILITY -->
 <script type="text/x-module-source" id="accessibility-controller">
 import { camera } from "#engine-camera";
 import { activeExperiment } from "#engine-loop";
 
-/* ELEMENT REFS */
 const accPanel = document.getElementById("accessibilityPanel");
 const btnAccessibility = document.getElementById("btnAccessibility");
 const accReducedMotion = document.getElementById("accReducedMotion");
@@ -1463,305 +907,301 @@ const accFontDown = document.getElementById("accFontDown");
 const accCBMode = document.getElementById("accCBMode");
 const accClose = document.getElementById("accClose");
 
-/* MENU OPEN/CLOSE */
+/* Open/close */
 btnAccessibility.addEventListener("click", () => {
-    accPanel.classList.toggle("open");
-    accPanel.setAttribute("aria-expanded", accPanel.classList.contains("open"));
+  accPanel.classList.toggle("open");
+  accPanel.setAttribute("aria-expanded", accPanel.classList.contains("open"));
 });
-accClose.addEventListener("click", () => {
-    accPanel.classList.remove("open");
-    accPanel.setAttribute("aria-expanded", "false");
-});
+accClose.addEventListener("click", () => { accPanel.classList.remove("open"); accPanel.setAttribute("aria-expanded","false"); });
 
-/* REDUCED MOTION */
+/* Reduced motion */
 accReducedMotion.addEventListener("change", () => {
-    const enabled = accReducedMotion.checked;
-    camera.reducedMotion = enabled;
-    document.documentElement.style.setProperty("--transition-speed", enabled ? "0ms" : "180ms");
+  const enabled = accReducedMotion.checked; camera.reducedMotion = enabled;
+  document.documentElement.style.setProperty("--transition-speed", enabled ? "0ms" : "180ms");
 });
 
-/* LARGE UI: bump font-scale instead of page transform */
+/* Large UI: use font scaling */
 accLargeUI.addEventListener("change", () => {
-    const enabled = accLargeUI.checked;
-    document.documentElement.style.setProperty("--ui-scale", enabled ? "1.20" : "1.0");
-    document.documentElement.style.setProperty("--font-scale", enabled ? "1.20" : "1.0");
+  const enabled = accLargeUI.checked;
+  document.documentElement.style.setProperty("--font-scale", enabled ? "1.2" : "1.0");
 });
 
-/* FONT SIZE */
+/* Font size nudge */
 let fontScale = 1.0;
 function applyFontScale(){ document.documentElement.style.setProperty("--font-scale", fontScale.toString()); }
 accFontUp.addEventListener("click", () => { fontScale = Math.min(1.8, fontScale + 0.1); applyFontScale(); });
 accFontDown.addEventListener("click", () => { fontScale = Math.max(0.6, fontScale - 0.1); applyFontScale(); });
 
-/* COLORBLIND MODE */
+/* Colorblind mode toggles per-experiment */
 accCBMode.addEventListener("change", () => {
-    const enabled = accCBMode.checked;
-    if (activeExperiment && activeExperiment.setColorblindMode) activeExperiment.setColorblindMode(enabled);
-    if (activeExperiment && activeExperiment.restyleRunsForColorblindMode) activeExperiment.restyleRunsForColorblindMode(enabled);
+  const enabled = accCBMode.checked;
+  if (activeExperiment && activeExperiment.setColorblindMode) activeExperiment.setColorblindMode(enabled);
+  if (activeExperiment && activeExperiment.restyleRunsForColorblindMode) activeExperiment.restyleRunsForColorblindMode(enabled);
 });
-
-/* ARIA */
-accPanel.setAttribute("role", "dialog");
-accPanel.setAttribute("aria-labelledby", "Accessibility Settings");
-btnAccessibility.setAttribute("aria-haspopup", "true");
-btnAccessibility.setAttribute("aria-controls", "accessibilityPanel");
-accReducedMotion.setAttribute("aria-label", "Toggle Reduced Motion");
-accLargeUI.setAttribute("aria-label", "Toggle Larger UI Mode");
-accCBMode.setAttribute("aria-label", "Toggle Colorblind-Friendly Trails");
-accFontUp.setAttribute("aria-label", "Increase Font Size");
-accFontDown.setAttribute("aria-label", "Decrease Font Size");
-accClose.setAttribute("aria-label", "Close Accessibility Menu");
 </script>
 
-<!-- DRAWER CONTROLLER -->
+<!-- CONTROLLER: DRAWER -->
 <script type="text/x-module-source" id="drawer-controller">
-import { activeExperiment } from "#engine-loop";
 import { runManager } from "#engine-runmanager";
-import { camera } from "#engine-camera";
 import { refreshRunTable } from "#ui-workbench";
+import { camera } from "#engine-camera";
 
-/* DOM */
+const toolbar = document.getElementById("toolbar");
 const drawer = document.getElementById("drawer");
 const drawerHandle = document.getElementById("drawerHandle");
-const drawerContent = document.getElementById("drawerContent");
 const drawerTable = document.getElementById("runTable");
 
+/* Add toggle button into toolbar */
 const btnToggleDrawer = document.createElement("button");
 btnToggleDrawer.textContent = "Run Table ▼";
 btnToggleDrawer.className = "actionBtn";
 btnToggleDrawer.style.marginLeft = "auto";
 btnToggleDrawer.style.width = "140px";
-document.getElementById("toolbar").appendChild(btnToggleDrawer);
+btnToggleDrawer.setAttribute("aria-haspopup","true");
+btnToggleDrawer.setAttribute("aria-controls","drawerContent");
+toolbar.appendChild(btnToggleDrawer);
 
-/* TOGGLE */
-function toggleDrawer() {
-    drawer.classList.toggle("open");
-    const open = drawer.classList.contains("open");
-    btnToggleDrawer.textContent = open ? "Run Table ▲" : "Run Table ▼";
-    btnToggleDrawer.setAttribute("aria-expanded", open);
-    if (open) refreshRunTable();
+/* Toggle */
+function toggleDrawer(){
+  drawer.classList.toggle("open");
+  const open = drawer.classList.contains("open");
+  btnToggleDrawer.textContent = open ? "Run Table ▲" : "Run Table ▼";
+  btnToggleDrawer.setAttribute("aria-expanded", open);
+  if (open) refreshRunTable();
 }
 btnToggleDrawer.onclick = toggleDrawer;
-btnToggleDrawer.setAttribute("aria-haspopup", "true");
-btnToggleDrawer.setAttribute("aria-controls", "drawerContent");
-
-/* Keyboard for toggle */
-btnToggleDrawer.onkeydown = (e) => {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleDrawer(); }
-};
-
+btnToggleDrawer.onkeydown = (e) => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleDrawer(); } };
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && drawer.classList.contains("open")) {
-        drawer.classList.remove("open");
-        btnToggleDrawer.textContent = "Run Table ▼";
-        btnToggleDrawer.setAttribute("aria-expanded", "false");
-    }
+  if (e.key==="Escape" && drawer.classList.contains("open")){ drawer.classList.remove("open"); btnToggleDrawer.textContent="Run Table ▼"; btnToggleDrawer.setAttribute("aria-expanded","false"); }
 });
 
-/* Center camera on run */
-function centerCameraOnRun(run) {
-    if (!run || run.points.length === 0) return;
-    const midpointIndex = Math.floor(run.points.length / 2);
-    const mid = run.points[midpointIndex];
-    camera.x = mid.x; camera.y = mid.y;
-}
+/* Resize by dragging handle */
+let dragging=false, lastY=0, height=200, maxH=window.innerHeight*0.7;
+drawerHandle.addEventListener("mousedown", e=>{ dragging=true; lastY=e.clientY; });
+window.addEventListener("mouseup", ()=>dragging=false);
+window.addEventListener("mousemove", e=>{ if(!dragging) return; const dy=lastY-e.clientY; lastY=e.clientY; height=Math.min(maxH, Math.max(200, height+dy)); drawer.style.height=height+"px"; });
 
-/* Click row -> highlight */
-drawerTable.onclick = (e) => {
-    const row = e.target.closest("tr");
-    if (!row || !row.dataset.runId) return;
-    const runId = Number(row.dataset.runId);
-    const run = runManager.runs.find(r => r.id === runId);
-    if (!run) return;
-    activeExperiment.highlightRun(runId);
-    centerCameraOnRun(run);
-import { PendulumExperiment } from "#exp-pendulum";
-import { SpringMassExperiment } from "#exp-spring";
-    refreshRunTable();
-};
-
-/* Interactive render (kept export) */
-export function renderRunTableInteractive() {
-    const rows = [];
-const experiments = {
-  projectile: new ProjectileExperiment(),
-  pendulum: new PendulumExperiment()
-  spring: new SpringMassExperiment(),
-};
-      <tr role="row">
-        <th role="columnheader">Run #</th>
-        <th role="columnheader">Max Height</th>
-        <th role="columnheader">Range</th>
-        <th role="columnheader">Duration</th>
-        <th role="columnheader">Visible</th>
-        <th role="columnheader">Export</th>
-      </tr>
-    `);
-
-    for (const run of runManager.runs) {
-        const vis = run.visible ? "👁" : "🙈";
-        rows.push(`
-          <tr role="row" data-run-id="${run.id}" tabindex="0" aria-label="Run ${run.id} summary">
-            <td>${run.id}</td>
-            <td>${run.stats.maxH.toFixed(2)} m</td>
-            <td>${run.stats.range.toFixed(2)} m</td>
-            <td>${run.stats.duration.toFixed(2)} s</td>
-            <td>${vis}</td>
-            <td><button data-expcsv="${run.id}">CSV</button> <button data-expjson="${run.id}">JSON</button></td>
-          </tr>
-        `);
-    }
-
-    drawerTable.innerHTML = rows.join("");
-    for (const btn of drawerTable.querySelectorAll("[data-expcsv]")) btn.onclick = () => exportRunCSV(+btn.dataset.expcsv);
-    for (const btn of drawerTable.querySelectorAll("[data-expjson]")) btn.onclick = () => exportRunJSON(+btn.dataset.expjson);
-}
-
-/* Keyboard nav */
-drawerTable.onkeydown = (e) => {
-    if (!drawer.classList.contains("open")) return;
-    const rows = [...drawerTable.querySelectorAll("tr[data-run-id]")];
-    const current = document.activeElement;
-    if (!rows.includes(current)) return;
-    const idx = rows.indexOf(current);
-    if (e.key === "ArrowDown") { e.preventDefault(); rows[Math.min(idx+1, rows.length-1)].focus(); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); rows[Math.max(idx-1, 0)].focus(); }
-};
-
-/* Export helpers */
-function exportRunCSV(id) {
-    const run = runManager.runs.find(r => r.id === id);
-    if (!run) return;
-    const rows = ["t,x,y,vx,vy"];
-    for (const p of run.points) rows.push(`${p.t},${p.x},${p.y},${p.vx},${p.vy}`);
-    const blob = new Blob([rows.join("\n")], { type:"text/csv" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `run_${id}.csv`; a.click();
-}
-function exportRunJSON(id) {
-    const run = runManager.runs.find(r => r.id === id); if (!run) return;
-    const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `run_${id}.json`; a.click();
-}
+/* Optional: click row recenters camera horizontally if data present */
+drawerTable.addEventListener("click", (e)=>{
+  const row = e.target.closest("tr[data-run-id]"); if (!row) return;
+  const id = Number(row.dataset.runId);
+  const run = runManager.runs.find(r=>r.id===id); if (!run || !run.points?.length) return;
+  const mid = run.points[Math.floor(run.points.length/2)];
+  if (typeof mid.x === "number" && typeof mid.y === "number") { camera.x = mid.x; camera.y = mid.y; }
+});
 </script>
 
 <!-- FINAL GLUE -->
 <script type="text/x-module-source" id="final-glue">
 import { activeExperiment } from "#engine-loop";
 import { runManager } from "#engine-runmanager";
-import { refreshRunTable, refreshRunList } from "#ui-workbench";
+import { refreshRunList, refreshRunTable } from "#ui-workbench";
 
-/* Provide default behaviors safely only when activeExperiment exists */
+/* Defaults if an experiment doesn't implement these */
 if (activeExperiment && !activeExperiment.highlightRun) {
-    activeExperiment.highlightRun = function(runId) {
-        for (const run of runManager.runs) {
-            if (run.id === runId) {
-                run.style.width = 4;
-                run.style.color = "#3FB950";
-            } else {
-                run.style.width = 1.5;
-                if (!document.getElementById("accCBMode").checked) run.style.color = "#8B949E";
-                else run.style.dash = [3,3];
-            }
-        }
-    };
-}
-
-if (activeExperiment && !activeExperiment.restyleRunsForColorblindMode) {
-    activeExperiment.restyleRunsForColorblindMode = function(enabled) {
-        for (const run of runManager.runs) {
-            if (enabled) run.style = { color:"#58A6FF", width:2, dash:[6,4] };
-            else run.style = { color:"#58A6FF", width:2, dash:null };
-        }
-        refreshRunList(); refreshRunTable();
-    };
-}
-
-/* Re-apply highlight after table changes */
-function applyCurrentHighlight() {
-    const highlighted = runManager.runs.find(r => r.style.width >= 4);
-    if (highlighted && activeExperiment && activeExperiment.highlightRun) {
-        activeExperiment.highlightRun(highlighted.id);
+  activeExperiment.highlightRun = function(runId){
+    for (const run of runManager.runs){
+      if (run.id===runId){ run.style.width=4; run.style.color="#3FB950"; }
+      else { run.style.width=1.5; run.style.color="#8B949E"; run.style.dash=[3,3]; }
     }
+  };
 }
-
-/* Events around run changes */
-document.addEventListener("runsUpdated", () => {
-    refreshRunList();
-    refreshRunTable();
-    applyCurrentHighlight();
-});
-
-/* Wrap runManager to dispatch updates */
-const originalSaveRun = runManager.saveRun;
-runManager.saveRun = function(...args) {
-    const out = originalSaveRun.apply(runManager, args);
-    document.dispatchEvent(new Event("runsUpdated")); return out;
-};
-const originalDeleteRun = runManager.deleteRun;
-runManager.deleteRun = function(id) {
-    originalDeleteRun.call(runManager, id);
-    document.dispatchEvent(new Event("runsUpdated"));
-};
-const originalUndoRun = runManager.undo;
-runManager.undo = function() {
-    const out = originalUndoRun.call(runManager);
-    document.dispatchEvent(new Event("runsUpdated")); return out;
-};
-
-/* Optional hook for future switches */
-export function onExperimentChange() {
-    for (const run of runManager.runs) { run.style.width = 2; run.style.color = "#58A6FF"; run.style.dash = null; }
+if (activeExperiment && !activeExperiment.restyleRunsForColorblindMode) {
+  activeExperiment.restyleRunsForColorblindMode = function(enabled){
+    for (const run of runManager.runs){
+      if (enabled){ run.style = { color:"#58A6FF", width:2, dash:[6,4] }; }
+      else { run.style = { color:"#58A6FF", width:2, dash:null }; }
+    }
     refreshRunList(); refreshRunTable();
+  };
 }
 
-/* ARIA */
-document.getElementById("drawer").setAttribute("role", "region");
-document.getElementById("drawerContent").setAttribute("aria-label", "Run History Table");
+/* Dispatch redraws on runs change */
+const originalSave = runManager.saveRun;
+runManager.saveRun = function(...args){ const out = originalSave.apply(runManager,args); document.dispatchEvent(new Event("runsUpdated")); return out; };
+const originalDel = runManager.deleteRun;
+runManager.deleteRun = function(id){ originalDel.call(runManager,id); document.dispatchEvent(new Event("runsUpdated")); };
+const originalUndo = runManager.undo;
+runManager.undo = function(){ const out = originalUndo.call(runManager); document.dispatchEvent(new Event("runsUpdated")); return out; };
+
+document.addEventListener("runsUpdated", ()=>{ refreshRunList(); refreshRunTable(); });
 </script>
 
-<!-- MAIN (kept as a single source block with the required id) -->
+<!-- DEMO PRESETS -->
+<script type="text/x-module-source" id="exp-presets">
+/**
+ * Demo preset system for Version-E
+ * - listPresets(expId): returns [{label, index}]
+ * - applyPreset(expId, index, {experiments, paramsUI, resetAndShow})
+ *   Sets UI sliders (when applicable) and overrides per-experiment extras.
+ */
+export const DEMO_PRESETS = {
+  projectile: [
+    { label:"Classic 45°", p:{ v0:40, angleDeg:45, g:9.81 } },
+    { label:"Angle Compare (30°)", p:{ v0:35, angleDeg:30, g:9.81 } },
+    { label:"Moon Gravity", p:{ v0:25, angleDeg:45, g:1.62 } }
+  ],
+  pendulum: [
+    { label:"Small Angle — Ideal",   p:{ L:2.0, angleDeg:15, g:9.81, damping:0, v0:0 } },
+    { label:"Large Angle (90°)",     p:{ L:1.5, angleDeg:90, g:9.81, damping:0, v0:0 } },
+    { label:"Overdamped",            p:{ L:1.0, angleDeg:45, g:9.81, damping:1.8, v0:0 } }
+  ],
+  spring: [
+    { label:"Pure SHM",              p:{ k:25, m:1.0, c:0.0, x0:2.0, v0:0 } },
+    { label:"Underdamped",           p:{ k:25, m:1.0, c:1.5, x0:2.0, v0:0 } },
+    { label:"Critically Damped",     p:{ k:25, m:1.0, c:10.0, x0:2.0, v0:0 } }
+  ],
+  incline: [
+    { label:"Static Equilibrium",    p:{ angleDeg:15, g:9.81, muS:0.40, muK:0.30, mode:"down" } },
+    { label:"Free Slide Down",       p:{ angleDeg:35, g:9.81, muS:0.35, muK:0.25, mode:"down" } },
+    { label:"Pushed Up — Reversal",  p:{ angleDeg:25, g:9.81, muS:0.50, muK:0.35, mode:"up", v0:4.0 } }
+  ]
+};
+
+export function listPresets(expId){
+  const list = DEMO_PRESETS[expId] || [];
+  return list.map((it, i) => ({ label: it.label, index:i }));
+}
+
+/**
+ * applyPreset:
+ * - sets UI sliders where sensible (v0, angle, g)
+ * - applies experiment-specific extras via paramsUI (L, damping, k, m, c, x0, v0, muS, muK, etc.)
+ */
+export function applyPreset(expId, index, ctx){
+  const conf = (DEMO_PRESETS[expId] || [])[index]; if (!conf) return;
+  const p = conf.p || {};
+  const { experiments, paramsUI, setSlidersAndReset, setInclineMode } = ctx;
+
+  // Common UI sliders (if present in preset)
+  if (p.v0 != null) { paramsUI.v0 = Math.abs(p.v0); }
+  if (p.angleDeg != null) { paramsUI.angle = p.angleDeg * Math.PI/180; }
+  if (p.g != null) { paramsUI.g = p.g; }
+
+  // Extras per experiment (passed via paramsUI to the module on reset)
+  if (expId==="pendulum"){
+    paramsUI.L = p.L ?? 2.0;
+    paramsUI.damping = p.damping ?? 0.02;
+    // v0 interpreted as bob-tip speed (sets initial omega = v0/L)
+    if (p.v0!=null) paramsUI.v0 = p.v0;
+  }
+  else if (expId==="spring"){
+    paramsUI.k = p.k ?? 10;
+    paramsUI.m = p.m ?? 1;
+    paramsUI.c = p.c ?? 0.2;
+    paramsUI.x0 = p.x0 ?? 1.0;
+    paramsUI.v0 = p.v0 ?? 0.0;
+  }
+  else if (expId==="incline"){
+    paramsUI.muS = p.muS ?? 0.4;
+    paramsUI.muK = p.muK ?? 0.3;
+    if (p.v0!=null) paramsUI.v0 = p.v0;  // used for push-up
+    // also set UI angle/g if provided
+    if (p.mode) setInclineMode(p.mode);
+  }
+
+  // Push updates back to the sliders & experiment reset
+  setSlidersAndReset();
+}
+</script>
+
+<!-- MAIN (exactly one) -->
 <script type="text/x-module-source" id="main">
-/* Import engine modules */
 import { camera, applyCameraInput } from "#engine-camera";
 import { renderer } from "#engine-renderer";
 import { setActiveExperiment, loop, activeExperiment } from "#engine-loop";
+import { paramsUI, refreshRunList, refreshRunTable, showInclineControls, bindInclineDirectionHandlers, populatePresetSelect, onLoadPreset } from "#ui-workbench";
 
-/* UI workbench */
-import { paramsUI, refreshRunList, refreshRunTable } from "#ui-workbench";
-
-/* Experiments */
 import { ProjectileExperiment } from "#exp-projectile";
 import { PendulumExperiment } from "#exp-pendulum";
 import { SpringMassExperiment } from "#exp-spring";
+import { InclineExperiment } from "#exp-incline";
+import { listPresets, applyPreset } from "#exp-presets";
 
-/* DOM refs */
+/* DOM */
 const canvas = document.getElementById("simCanvas");
 const expSelector = document.getElementById("expSelector");
+const presetSelect = document.getElementById("presetSelect");
 
 /* Registry */
-const experiments = { projectile: new ProjectileExperiment() };
+const experiments = {
+  projectile: new ProjectileExperiment(),
+  pendulum: new PendulumExperiment(),
+  spring: new SpringMassExperiment(),
+  incline: new InclineExperiment()
+};
 
-/* Canvas + Renderer */
-function resizeCanvas() {
-    canvas.width = window.innerWidth - 300;
-    canvas.height = window.innerHeight - 48;
+/* Canvas + renderer */
+function resizeCanvas(){ canvas.width = window.innerWidth - 300; canvas.height = window.innerHeight - 48; }
+resizeCanvas(); window.addEventListener("resize", resizeCanvas);
+renderer.init(canvas); applyCameraInput(canvas);
+
+/* Wiring for incline direction buttons */
+function wireInclineDirection(exp){
+  bindInclineDirectionHandlers(dir => {
+    if (exp && exp.setDirection) exp.setDirection(dir);
+  });
 }
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
-renderer.init(canvas);
-applyCameraInput(canvas);
+
+/* Reset + sliders sync helper (after presets) */
+function setSlidersFromParamsUI(){
+  // reflect (paramsUI -> sliders)
+  document.getElementById("sliderVel").value  = paramsUI.v0 ?? 25;
+  document.getElementById("labelVel").textContent = paramsUI.v0 ?? 25;
+
+  const deg = Math.round((paramsUI.angle ?? (45*Math.PI/180)) * 180/Math.PI);
+  document.getElementById("sliderAng").value = deg;
+  document.getElementById("labelAng").textContent = deg;
+
+  const g = paramsUI.g ?? 9.81;
+  document.getElementById("sliderGrav").value = g;
+  document.getElementById("labelGrav").textContent = g.toFixed(2);
+}
 
 /* Switch experiment */
-function switchExperiment(id) {
-    if (!experiments[id]) return;
-    setActiveExperiment(experiments[id]);
-    activeExperiment.resetRun(paramsUI, { recenter:true });
-    refreshRunList(); refreshRunTable();
+function switchExperiment(id){
+  if (!experiments[id]) return;
+
+  setActiveExperiment(experiments[id]);
+
+  // Show / hide incline-specific UI:
+  const isIncline = (id === "incline");
+  showInclineControls(isIncline);
+  if (isIncline) wireInclineDirection(experiments.incline);
+
+  // Reset and initialize with UI parameters (plus extras if present)
+  activeExperiment.resetRun(paramsUI, { recenter:true });
+
+  // Update presets list for the selected experiment
+  const opts = listPresets(id);
+  populatePresetSelect(opts);
+
+  refreshRunList(); refreshRunTable();
 }
 expSelector.onchange = () => { switchExperiment(expSelector.value); };
 
-/* Init + loop */
-switchExperiment("projectile");
+/* Demo preset apply hook */
+onLoadPreset((index) => {
+  const expId = expSelector.value;
+  applyPreset(expId, index, {
+    experiments,
+    paramsUI,
+    setSlidersAndReset: () => {
+      setSlidersFromParamsUI();
+      // Re-init the active experiment with the new params
+      if (activeExperiment) activeExperiment.resetRun(paramsUI, { recenter:true });
+      refreshRunList(); refreshRunTable();
+    },
+    setInclineMode: (mode) => {
+      if (experiments.incline && experiments.incline.setDirection) experiments.incline.setDirection(mode);
+    }
+  });
+});
+
+/* Init: choose default */
+switchExperiment("projectile");    // Change to "pendulum"/"spring"/"incline" if you prefer
+
+/* Loop */
 requestAnimationFrame(loop);
 </script>
 
@@ -1769,10 +1209,7 @@ requestAnimationFrame(loop);
      BOOTSTRAP LOADER (last): builds import map and runs #main
 =============================================================== -->
 <script type="module">
-/**
- * Build a Blob-backed import map from inline module sources, then run #main.
- * This keeps the file single and preserves each module's code.
- */
+/* Build a Blob-backed import map from inline module sources, then run #main. */
 (function bootstrap() {
   const sources = [...document.querySelectorAll('script[type="text/x-module-source"][id]')];
   const imports = {};
@@ -1787,7 +1224,6 @@ requestAnimationFrame(loop);
   document.head.appendChild(im);
 })();
 
-// Now import and run main (which will import others by the map above)
 import('#main');
 </script>
 
