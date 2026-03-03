@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>OpenPhysics Lab — Version D (Projectile + UI)</title>
+<style>
+  body {
+    margin:0; overflow:hidden;
+    background:#0a0c10;
+    font-family:JetBrains Mono, monospace;
+    color:#c8d8ea;
+  }
+  #toolbar {
+    position:fixed; top:0; left:0; right:300px;
+    background:#12161f;
+    height:48px;
+    border-bottom:1px solid #252d3d;
+    display:flex; align-items:center;
+    padding:0 16px; gap:12px;
+    z-index:10;
+  }
+  #sidePanel {
+    position:fixed; top:0; right:0; width:300px; height:100vh;
+    background:#12161f;
+    border-left:1px solid #252d3d;
+    padding:12px;
+    overflow-y:auto;
+  }
+  canvas {
+    position:absolute; left:0; top:48px;
+  }
+  .sectionTitle {
+    font-size:12px; color:#00e5ff;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-top:12px;
+    border-bottom:1px solid #2e3a50;
+    padding-bottom:4px;
+  }
+  .readoutRow {
+    display:flex; justify-content:space-between;
+    margin:4px 0;
+    font-size:12px;
+  }
+  .sliderRow {
+    margin:10px 0;
+  }
+  input[type=range] {
+    width:100%;
+  }
+  button {
+    width:100%; padding:8px; margin-top:8px;
+    background:#1a1f2e;
+    border:1px solid #2e3a50;
+    color:#c8d8ea;
+    cursor:pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div id="toolbar">
+  <label>Experiment:</label>
+  <select id="expSelector">
+    <option value="projectile">Projectile Motion</option>
+  </select>
+</div>
+
+<!-- SIDE PANEL (UI) -->
+<div id="sidePanel">
+  <div class="sectionTitle">Parameters</div>
+  <div class="sliderRow">
+    <label>Velocity: <span id="velLabel">25</span> m/s</label>
+    <input id="velSlider" type="range" min="1" max="80" value="25">
+  </div>
+  <div class="sliderRow">
+    <label>Angle: <span id="angleLabel">45</span>°</label>
+    <input id="angleSlider" type="range" min="1" max="89" value="45">
+  </div>
+  <div class="sliderRow">
+    <label>Gravity: <span id="gravLabel">9.81</span> m/s²</label>
+    <input id="gravSlider" type="range" min="0.5" max="20" step="0.01" value="9.81">
+  </div>
+
+  <button id="resetBtn">Reset Run</button>
+  <button id="saveBtn">Save Run</button>
+  <button id="clearRunsBtn">Clear Saved Runs</button>
+
+  <div class="sectionTitle">Live Readout</div>
+  <div id="readout"></div>
+
+  <button id="exportCSV">Export CSV</button>
+  <button id="exportJSON">Export JSON</button>
+</div>
+
+<canvas id="simCanvas"></canvas>
+
+<script type="module">
+/* ============================================================
+   VERSION D — CAMERA
+   ============================================================ */
+export const camera = {
+  x: 0, y: 0, scale: 20,
+  min: 0.2, max: 5
+};
+
+export function worldToScreen(x,y,canvas){
+  const cx=canvas.width/2, cy=canvas.height/2;
+  return {
+    x: cx + (x - camera.x) * camera.scale,
+    y: cy - (y - camera.y) * camera.scale
+  };
+}
+
+/* ============================================================
+   VERSION D — RENDERER
+   ============================================================ */
+export const renderer = {
+  ctx:null, canvas:null,
+  init(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); },
+  clear(){ this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height); },
+
+  ball(x,y,r,color){
+    const p=worldToScreen(x,y,this.canvas);
+    this.ctx.fillStyle=color;
+    this.ctx.beginPath();
+    this.ctx.arc(p.x,p.y,r*camera.scale,0,Math.PI*2);
+    this.ctx.fill();
+  },
+
+  line(x1,y1,x2,y2,color,w=1){
+    const p1=worldToScreen(x1,y1,this.canvas);
+    const p2=worldToScreen(x2,y2,this.canvas);
+    this.ctx.strokeStyle=color; this.ctx.lineWidth=w;
+    this.ctx.beginPath(); this.ctx.moveTo(p1.x,p1.y);
+    this.ctx.lineTo(p2.x,p2.y); this.ctx.stroke();
+  },
+
+  trail(points,color){
+    if(points.length<2) return;
+    this.ctx.strokeStyle=color; this.ctx.lineWidth=2;
+    this.ctx.beginPath();
+    for(let i=1;i<points.length;i++){
+      const p1=worldToScreen(points[i-1].x,points[i-1].y,this.canvas);
+      const p2=worldToScreen(points[i].x,points[i].y,this.canvas);
+      this.ctx.moveTo(p1.x,p1.y); this.ctx.lineTo(p2.x,p2.y);
+    }
+    this.ctx.stroke();
+  },
+
+  text(str,x,y,color="#c8d8ea"){
+    const p=worldToScreen(x,y,this.canvas);
+    this.ctx.fillStyle=color; this.ctx.font="12px JetBrains Mono";
+    this.ctx.fillText(str,p.x+4,p.y-4);
+  }
+};
+
+/* ============================================================
+   VERSION D — LOOP
+   ============================================================ */
+let lastT=0;
+let activeExperiment=null;
+
+function masterLoop(t){
+  if(!lastT) lastT=t;
+  const dt=Math.min(0.05,(t-lastT)/1000);
+  lastT=t;
+
+  if(activeExperiment){
+    activeExperiment.update(dt);
+    activeExperiment.draw(renderer);
+    updateReadoutUI(activeExperiment);
+  }
+
+  requestAnimationFrame(masterLoop);
+}
+
+/* ============================================================
+   BASE EXPERIMENT CLASS
+   ============================================================ */
+class BaseExperiment {
+  constructor(name){ this.name=name; this.savedRuns=[]; }
+  init(engine){}
+  reset(){}
+  update(dt){}
+  draw(renderer){}
+  getReadouts(){ return {}; }
+  getCSV(){ return ""; }
+  getJSON(){ return ""; }
+}
+
+/* ============================================================
+   PROJECTILE EXPERIMENT
+   ============================================================ */
+class ProjectileExperiment extends BaseExperiment {
+  constructor(){ super("projectile"); }
+
+  init(engine){
+    this.engine=engine;
+    this.reset();
+  }
+
+  reset(){
+    this.t=0;
+    this.points=[];
+    this.x=0; this.y=0;
+
+    const p=this.engine.params;
+    this.vx=p.v0*Math.cos(p.angle);
+    this.vy=p.v0*Math.sin(p.angle);
+  }
+
+  update(dt){
+    const p=this.engine.params;
+    this.t += dt;
+    this.vy -= p.g * dt;
+    this.x += this.vx*dt;
+    this.y += this.vy*dt;
+
+    this.points.push({t:this.t,x:this.x,y:this.y,vx:this.vx,vy:this.vy});
+
+    if(this.y<0 && this.t>0.1){ this.vx=0; this.vy=0; }
+  }
+
+  draw(r){
+    r.clear();
+    r.line(-200,0,200,0,"#2e3a50",2);
+    r.trail(this.points,"#00e5ff");
+    r.ball(this.x,this.y,0.12,"#00e5ff");
+  }
+
+  getReadouts(){
+    return {
+      Time: this.t.toFixed(2)+" s",
+      X: this.x.toFixed(2)+" m",
+      Y: this.y.toFixed(2)+" m",
+      Vx: this.vx.toFixed(2)+" m/s",
+      Vy: this.vy.toFixed(2)+" m/s",
+      Speed: Math.hypot(this.vx,this.vy).toFixed(2)+" m/s"
+    };
+  }
+
+  getCSV(){
+    const rows=["t,x,y,vx,vy"];
+    for(const p of this.points)
+      rows.push(`${p.t.toFixed(4)},${p.x.toFixed(4)},${p.y.toFixed(4)},${p.vx.toFixed(4)},${p.vy.toFixed(4)}`);
+    return rows.join("\n");
+  }
+
+  getJSON(){
+    return JSON.stringify(this.points,null,2);
+  }
+}
+
+/* ============================================================
+   ENGINE BOOTSTRAP
+   ============================================================ */
+const canvas=document.getElementById("simCanvas");
+function resize(){
+  canvas.width=window.innerWidth-300;
+  canvas.height=window.innerHeight-48;
+}
+resize();
+window.addEventListener("resize",resize);
+
+renderer.init(canvas);
+
+/* Parameters shared with UI */
+const engine = {
+  renderer,
+  canvas,
+  params:{
+    v0:25,
+    angle:45*Math.PI/180,
+    g:9.81
+  }
+};
+
+/* Load experiment */
+activeExperiment = new ProjectileExperiment();
+activeExperiment.init(engine);
+
+/* ============================================================
+   UI HOOKS
+   ============================================================ */
+
+document.getElementById("velSlider").oninput = e=>{
+  engine.params.v0 = +e.value;
+  document.getElementById("velLabel").textContent=e.value;
+  activeExperiment.reset();
+};
+
+document.getElementById("angleSlider").oninput = e=>{
+  engine.params.angle = +e.value * Math.PI/180;
+  document.getElementById("angleLabel").textContent=e.value;
+  activeExperiment.reset();
+};
+
+document.getElementById("gravSlider").oninput = e=>{
+  engine.params.g = +e.value;
+  document.getElementById("gravLabel").textContent=e.value;
+  activeExperiment.reset();
+};
+
+document.getElementById("resetBtn").onclick = ()=> activeExperiment.reset();
+
+document.getElementById("saveBtn").onclick = ()=>{
+  activeExperiment.savedRuns.push([...activeExperiment.points]);
+  alert("Run saved!");
+};
+
+document.getElementById("clearRunsBtn").onclick = ()=>{
+  activeExperiment.savedRuns=[];
+  alert("Saved runs cleared.");
+};
+
+document.getElementById("exportCSV").onclick = ()=>{
+  const blob=new Blob([activeExperiment.getCSV()],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="projectile_data.csv";
+  a.click();
+};
+
+document.getElementById("exportJSON").onclick = ()=>{
+  const blob=new Blob([activeExperiment.getJSON()],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="projectile_data.json";
+  a.click();
+};
+
+/* LIVE READOUT */
+function updateReadoutUI(exp){
+  const data = exp.getReadouts();
+  const div = document.getElementById("readout");
+  div.innerHTML = Object.entries(data)
+    .map(([k,v])=>`<div class="readoutRow"><span>${k}</span><span>${v}</span></div>`)
+    .join("");
+}
+
+/* CAMERA INPUT */
+let dragging=false, lastMouse={x:0,y:0};
+
+canvas.addEventListener("wheel",e=>{
+  e.preventDefault();
+  camera.scale *= e.deltaY<0?1.1:0.9;
+  camera.scale=Math.max(camera.min,Math.min(camera.max,camera.scale));
+});
+
+canvas.addEventListener("mousedown",e=>{
+  dragging=true;
+  lastMouse={x:e.clientX,y:e.clientY};
+});
+window.addEventListener("mouseup",()=>dragging=false);
+
+canvas.addEventListener("mousemove",e=>{
+  if(!dragging) return;
+  const dx=(e.clientX-lastMouse.x)/camera.scale;
+  const dy=(e.clientY-lastMouse.y)/camera.scale;
+  camera.x -= dx;
+  camera.y += dy;
+  lastMouse = {x:e.clientX,y:e.clientY};
+});
+
+/* START ENGINE */
+requestAnimationFrame(masterLoop);
+</script>
+
+</body>
+</html>
