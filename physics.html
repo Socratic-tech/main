@@ -39,7 +39,6 @@
     flex-direction: column;
   }
 
-  /* HEADER */
   header {
     display: flex;
     align-items: center;
@@ -132,7 +131,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* EXPERIMENT SELECTOR */
   .exp-selector {
     display: flex;
     align-items: center;
@@ -164,7 +162,6 @@
     background: rgba(0,229,255,0.08);
   }
 
-  /* LAYOUT */
   .workspace {
     display: grid;
     grid-template-columns: 240px 1fr 300px;
@@ -173,7 +170,6 @@
     gap: 0;
   }
 
-  /* PANELS */
   .panel {
     background: var(--surface);
     border-right: 1px solid var(--border);
@@ -223,7 +219,6 @@
     scrollbar-color: var(--border) transparent;
   }
 
-  /* CONTROLS */
   .control-group {
     margin-bottom: 20px;
   }
@@ -269,30 +264,10 @@
   }
 
   .slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-
-  .slider.orange::-webkit-slider-thumb {
-    background: var(--accent2);
-    box-shadow: 0 0 8px rgba(255,107,53,0.5);
-  }
-
-  .slider.purple::-webkit-slider-thumb {
-    background: #a78bfa;
-    box-shadow: 0 0 8px rgba(167,139,250,0.5);
-  }
-
-  .slider.green::-webkit-slider-thumb {
-    background: #10b981;
-    box-shadow: 0 0 8px rgba(16,185,129,0.5);
-  }
-
-  .slider.amber::-webkit-slider-thumb {
-    background: #f59e0b;
-    box-shadow: 0 0 8px rgba(245,158,11,0.5);
-  }
-
-  .slider-track {
-    position: relative;
-  }
+  .slider.orange::-webkit-slider-thumb { background: var(--accent2); box-shadow: 0 0 8px rgba(255,107,53,0.5); }
+  .slider.purple::-webkit-slider-thumb { background: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,0.5); }
+  .slider.green::-webkit-slider-thumb { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+  .slider.amber::-webkit-slider-thumb { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.5); }
 
   .divider {
     height: 1px;
@@ -300,7 +275,6 @@
     margin: 16px 0;
   }
 
-  /* BUTTONS */
   .btn-group {
     display: flex;
     flex-direction: column;
@@ -382,7 +356,6 @@
     flex-shrink: 0;
   }
 
-  /* CANVAS AREA */
   .canvas-area {
     background: var(--bg);
     display: flex;
@@ -427,7 +400,6 @@
     width: 100%; height: 100%;
   }
 
-  /* Grid overlay */
   .grid-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -439,7 +411,6 @@
     opacity: 0.3;
   }
 
-  /* Origin marker */
   .origin-marker {
     position: absolute;
     bottom: 40px;
@@ -514,7 +485,6 @@
     height: 140px !important;
   }
 
-  /* EXPORT */
   .export-row {
     display: flex;
     gap: 8px;
@@ -576,7 +546,6 @@
 
   .formula-line em { color: #d4e8f5; font-style: normal; }
 
-  /* TOOLTIP */
   .tooltip-overlay {
     position: absolute;
     pointer-events: none;
@@ -591,14 +560,10 @@
     white-space: nowrap;
   }
 
-  .tooltip-overlay span { color: var(--accent); }
-
-  /* SCROLLBAR */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  /* ANIMATIONS */
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
@@ -606,7 +571,6 @@
 
   .panel { animation: fadeIn 0.3s ease forwards; }
 
-  /* COMING SOON BADGE */
   .coming-soon {
     display: inline-block;
     font-size: 8px;
@@ -620,13 +584,12 @@
     vertical-align: middle;
   }
 
-  /* VERSION TAG */
   .version {
     font-size: 10px;
     color: var(--text-muted);
     letter-spacing: 0.05em;
   }
-  /* TAB SWITCHER */
+
   .tab-switcher {
     display: flex;
     background: var(--bg);
@@ -653,7 +616,6 @@
   .tab-btn:hover { color: var(--text); background: var(--surface2); }
   .tab-btn.active { color: var(--accent2); background: rgba(255,107,53,0.08); }
 
-  /* DATA TABLE */
   .table-meta {
     font-size: 10px;
     color: #7a9ab5;
@@ -682,11 +644,7 @@
     font-family: var(--mono);
   }
 
-  #dataTable thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
+  #dataTable thead { position: sticky; top: 0; z-index: 2; }
 
   #dataTable th {
     background: #0d1525;
@@ -720,7 +678,6 @@
   #dataTable tbody tr:hover td { background: rgba(255,255,255,0.025); color: #c8d8ea; }
   #dataTable tbody tr:last-child td { border-bottom: none; }
 
-  /* Run color badge in table */
   .run-badge {
     display: inline-block;
     width: 8px; height: 8px;
@@ -737,6 +694,182 @@
     text-align: right;
   }
 
+  /* ── RUN LEGEND (per-run trail toggles) ── */
+  .run-legend {
+    margin-bottom: 12px;
+  }
+
+  .run-legend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .run-legend-title {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8aaabf;
+    font-weight: 600;
+  }
+
+  .legend-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .legend-action-btn {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    color: #546880;
+    background: transparent;
+    border: 1px solid #1e2d3d;
+    border-radius: 3px;
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-transform: uppercase;
+  }
+
+  .legend-action-btn:hover {
+    color: #94a3b8;
+    border-color: #334155;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .run-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .run-list-empty {
+    font-size: 10px;
+    color: #3d5068;
+    letter-spacing: 0.05em;
+    padding: 8px 10px;
+    background: #0d1220;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .run-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #0d1220;
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    transition: all 0.12s;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .run-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--run-color, #333);
+    border-radius: 4px 0 0 4px;
+  }
+
+  .run-item:hover {
+    background: #111827;
+    border-color: #3a4a5e;
+  }
+
+  .run-item.hidden {
+    opacity: 0.4;
+  }
+
+  .run-item.hidden .run-item-label,
+  .run-item.hidden .run-item-meta {
+    text-decoration: line-through;
+  }
+
+  .run-color-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 5px var(--run-color, #333);
+  }
+
+  .run-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .run-item-label {
+    font-size: 10px;
+    color: #c8d8ea;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .run-item-meta {
+    font-size: 9px;
+    color: #546880;
+    letter-spacing: 0.03em;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .run-toggle-btn {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    border: 1px solid #2a3a4d;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.12s;
+    font-size: 12px;
+    color: #546880;
+  }
+
+  .run-toggle-btn:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: #3a4a5e;
+    color: #94a3b8;
+  }
+
+  .run-item:not(.hidden) .run-toggle-btn {
+    color: #94a3b8;
+    border-color: #2e3a50;
+  }
+
+  .run-item.active-run {
+    border-color: var(--run-color, #333);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .run-item.active-run .run-item-label {
+    color: #fff;
+  }
+
+  /* Running indicator dot on active run */
+  .run-live-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 5px var(--success);
+    animation: pulse 1s infinite;
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
@@ -956,7 +1089,7 @@
     </div>
     <div class="panel-content">
 
-      <!-- READOUT GRID — relabeled per experiment -->
+      <!-- READOUT GRID -->
       <div class="readout-grid" id="readoutGrid">
         <div class="readout"><div class="readout-label" id="rl-0">Time</div><div class="readout-value" id="r-0">—<span class="readout-unit" id="ru-0">s</span></div></div>
         <div class="readout orange"><div class="readout-label" id="rl-1">—</div><div class="readout-value" id="r-1">—<span class="readout-unit" id="ru-1"></span></div></div>
@@ -968,9 +1101,22 @@
         <div class="readout green"><div class="readout-label" id="rl-7">—</div><div class="readout-value" id="r-7">—<span class="readout-unit" id="ru-7"></span></div></div>
       </div>
 
+      <!-- RUN LEGEND — per-run trail visibility toggles -->
+      <div class="run-legend" id="runLegend">
+        <div class="run-legend-header">
+          <span class="run-legend-title">Runs</span>
+          <div class="legend-actions">
+            <button class="legend-action-btn" onclick="setAllRunsVisible(true)">All On</button>
+            <button class="legend-action-btn" onclick="setAllRunsVisible(false)">All Off</button>
+          </div>
+        </div>
+        <div class="run-list" id="runList">
+          <div class="run-list-empty" id="runListEmpty">No runs yet</div>
+        </div>
+      </div>
+
       <!-- CHARTS TAB -->
       <div id="viewCharts">
-        <!-- Projectile charts -->
         <div id="chartsProjectile">
           <div class="chart-container">
             <div class="chart-title">Y Position vs Time</div>
@@ -981,7 +1127,6 @@
             <canvas class="chart-canvas" id="chartSpeed"></canvas>
           </div>
         </div>
-        <!-- Pendulum charts -->
         <div id="chartsPendulum" style="display:none;">
           <div class="chart-container">
             <div class="chart-title">Angle θ vs Time</div>
@@ -1017,7 +1162,7 @@
         <div class="table-footer">Showing every 5th sample &nbsp;·&nbsp; <span id="tableRowCount">0</span> rows</div>
       </div>
 
-      <!-- EXPORT — always visible -->
+      <!-- EXPORT -->
       <div class="export-row">
         <button class="btn btn-secondary" onclick="exportCSV()" style="font-size:10px;">⬇ Raw CSV</button>
         <button class="btn btn-secondary" onclick="exportJSON()" style="font-size:10px;">⬇ JSON</button>
@@ -1031,18 +1176,7 @@
 
 <script>
 // ============================================================
-//  OpenPhysics Lab — Core Engine
-//  License: Apache 2.0
-//  Physics: Numerical integration (Euler) with aerodynamic drag
-//
-//  With drag, mass matters:
-//    F_drag = ½ · ρ_air · Cd · A · v²
-//    a_drag = F_drag / m
-//    r      = (3m / 4π·ρ_obj)^(1/3)   [sphere radius from mass]
-//    A      = π · r²
-//
-//  Heavier objects have larger A but proportionally less drag
-//  deceleration, so they travel farther — physically correct.
+//  OpenPhysics Lab — Core Engine  (Apache 2.0)
 // ============================================================
 
 // ---------- EXPERIMENT REGISTRY ----------
@@ -1055,7 +1189,6 @@ const ExperimentRegistry = (() => {
   };
 })();
 
-// ---------- ACTIVE EXPERIMENT ----------
 let activeExperiment = 'projectile';
 
 // ---------- STATE ----------
@@ -1067,7 +1200,7 @@ const state = {
   showTrail: true,
   currentTime: 0,
   data: [],
-  completedRuns: [],
+  completedRuns: [],   // each run: { data, color, range, maxHeight, params, visible }
   ps: null,
   maxHeight: 0,
   range: 0,
@@ -1080,18 +1213,17 @@ const pendulumState = {
   slowMo: false,
   showTrail: true,
   currentTime: 0,
-  data: [],          // {t, theta, omega, ke, pe, energy}
-  completedRuns: [],
-  ps: null,          // {theta, omega}
+  data: [],
+  completedRuns: [],   // each run: { data, color, params, visible }
+  ps: null,
   animFrame: null
 };
 
-// ---------- CANVAS SETUP ----------
+// ---------- CANVAS ----------
 const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d');
 
-// Physics→pixel scale
-const SCALE = 2.0;  // px per meter
+const SCALE = 2.0;
 const ORIGIN_X_FRAC = 0.08;
 const ORIGIN_Y_FRAC = 0.82;
 
@@ -1110,12 +1242,11 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 
-// Coordinate transforms
 function toScreen(mx, my) {
   return { x: originX + mx * SCALE * 10, y: originY - my * SCALE * 10 };
 }
 
-// ---------- CHART.JS SETUP ----------
+// ---------- CHART.JS ----------
 const chartDefaults = {
   responsive: true,
   maintainAspectRatio: false,
@@ -1176,7 +1307,6 @@ function pushChartPoint(t, y, speed) {
   chartHeight.data.datasets[0].data.push(parseFloat(y.toFixed(3)));
   chartSpeed.data.labels.push(label);
   chartSpeed.data.datasets[0].data.push(parseFloat(speed.toFixed(3)));
-  // Throttle chart updates
   if (state.data.length % 3 === 0) {
     chartHeight.update('none');
     chartSpeed.update('none');
@@ -1192,20 +1322,17 @@ function clearCharts() {
   chartSpeed.update('none');
 }
 
-// ---------- PHYSICS — NUMERICAL INTEGRATION WITH DRAG ----------
-// Constants
-const RHO_AIR  = 1.225;   // air density (kg/m³) at sea level
-const CD       = 0.47;    // drag coefficient — solid sphere
-const RHO_OBJ  = 800;     // object density (kg/m³) — slightly less than water
+// ---------- PHYSICS ----------
+const RHO_AIR = 1.225;
+const CD      = 0.47;
+const RHO_OBJ = 800;
 
-// Compute drag deceleration coefficient k = ½·ρ_air·Cd·A/m
 function dragK(mass) {
   const r = Math.pow((3 * mass) / (4 * Math.PI * RHO_OBJ), 1 / 3);
   const A = Math.PI * r * r;
   return (0.5 * RHO_AIR * CD * A) / mass;
 }
 
-// Initialise physics integrator state from params
 function initPhysicsState(params) {
   const theta = params.angle * Math.PI / 180;
   return {
@@ -1216,16 +1343,14 @@ function initPhysicsState(params) {
   };
 }
 
-// Euler step — returns new physics state and data point
 function stepPhysics(ps, params, dt) {
   const { gravity: g, mass: m } = params;
   const k = dragK(m);
   const v = Math.sqrt(ps.vx * ps.vx + ps.vy * ps.vy);
-  // Drag decelerates along velocity direction: a_drag = -k·v·v̂
   const ax = -k * v * ps.vx;
   const ay = -g - k * v * ps.vy;
-  const nx = ps.x  + ps.vx * dt;
-  const ny = ps.y  + ps.vy * dt;
+  const nx  = ps.x  + ps.vx * dt;
+  const ny  = ps.y  + ps.vy * dt;
   const nvx = ps.vx + ax * dt;
   const nvy = ps.vy + ay * dt;
   const nps = { x: nx, y: ny, vx: nvx, vy: nvy };
@@ -1233,7 +1358,6 @@ function stepPhysics(ps, params, dt) {
   return { ps: nps, point: { x: nx, y: ny, vx: nvx, vy: nvy, speed } };
 }
 
-// Simulate a complete trajectory numerically for preview/predictions
 function simulateRun(params, maxSteps = 8000) {
   let ps = initPhysicsState(params);
   const pts = [{ t: 0, ...ps, speed: Math.hypot(ps.vx, ps.vy) }];
@@ -1248,14 +1372,13 @@ function simulateRun(params, maxSteps = 8000) {
 }
 
 // ---------- TRAIL COLOR PALETTE ----------
-// Each new run cycles through these. Current run always drawn last (brightest).
 const TRAIL_PALETTE = [
-  { r: 0,   g: 229, b: 255 },   // cyan
-  { r: 255, g: 107, b: 53  },   // orange
-  { r: 167, g: 139, b: 250 },   // purple
-  { r: 16,  g: 185, b: 129 },   // green
-  { r: 250, g: 204, b: 21  },   // yellow
-  { r: 244, g: 114, b: 182 },   // pink
+  { r: 0,   g: 229, b: 255 },
+  { r: 255, g: 107, b: 53  },
+  { r: 167, g: 139, b: 250 },
+  { r: 16,  g: 185, b: 129 },
+  { r: 250, g: 204, b: 21  },
+  { r: 244, g: 114, b: 182 },
 ];
 const MAX_TRAILS = 6;
 
@@ -1263,7 +1386,101 @@ function runColor(index) {
   return TRAIL_PALETTE[index % TRAIL_PALETTE.length];
 }
 
-// ---------- DRAWING ----------
+function colorHex(c) {
+  const toH = n => n.toString(16).padStart(2,'0');
+  return '#' + toH(c.r) + toH(c.g) + toH(c.b);
+}
+
+// ============================================================
+//  RUN LEGEND — per-run trail visibility
+// ============================================================
+
+function renderRunLegend() {
+  const list   = document.getElementById('runList');
+  const empty  = document.getElementById('runListEmpty');
+  const runs   = activeExperiment === 'projectile' ? state.completedRuns : pendulumState.completedRuns;
+  const isRunningNow = activeExperiment === 'projectile' ? state.running : pendulumState.running;
+
+  if (runs.length === 0 && !isRunningNow) {
+    list.innerHTML = '';
+    list.appendChild(empty);
+    empty.style.display = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  // Build items array: completed runs + optionally the active run
+  const items = runs.map((run, i) => ({ run, index: i, isActive: false }));
+
+  // Add the in-progress run as a live entry (no toggle, just indicator)
+  const activeData = activeExperiment === 'projectile' ? state.data : pendulumState.data;
+  if (isRunningNow && activeData.length > 0) {
+    const liveColor = TRAIL_PALETTE[runs.length % TRAIL_PALETTE.length];
+    items.push({ run: { color: liveColor, params: activeExperiment === 'projectile' ? {...state.params} : {...pendulumState.params}, visible: true }, index: runs.length, isActive: true });
+  }
+
+  list.innerHTML = items.map(({ run, index, isActive }) => {
+    const c = run.color;
+    const hex = colorHex(c);
+    const isVisible = run.visible !== false;
+    const label = isActive ? `Run ${index + 1} ∙ Live` : `Run ${index + 1}`;
+
+    let meta = '';
+    if (activeExperiment === 'projectile') {
+      const p = run.params;
+      meta = `v₀=${p.velocity}m/s θ=${p.angle}° m=${p.mass}kg`;
+      if (!isActive && run.range > 0) meta += ` · R=${run.range.toFixed(1)}m`;
+    } else {
+      const p = run.params;
+      meta = `L=${p.length}m θ₀=${p.angle}° b=${p.damping}`;
+    }
+
+    const eyeIcon = isVisible ? '◉' : '○';
+    const hiddenClass = !isVisible ? ' hidden' : '';
+    const activeClass = isActive ? ' active-run' : '';
+    const liveDot = isActive ? '<div class="run-live-dot"></div>' : '';
+
+    return `<div class="run-item${hiddenClass}${activeClass}" style="--run-color:${hex}">
+      <div class="run-color-dot" style="background:${hex}; --run-color:${hex}"></div>
+      <div class="run-item-info">
+        <div class="run-item-label">${label}</div>
+        <div class="run-item-meta">${meta}</div>
+      </div>
+      ${liveDot}
+      ${isActive ? '' : `<button class="run-toggle-btn" onclick="toggleRunVisible(${index})" title="${isVisible ? 'Hide' : 'Show'} trail">${eyeIcon}</button>`}
+    </div>`;
+  }).join('');
+}
+
+function toggleRunVisible(index) {
+  const runs = activeExperiment === 'projectile' ? state.completedRuns : pendulumState.completedRuns;
+  if (index < 0 || index >= runs.length) return;
+  runs[index].visible = runs[index].visible === false ? true : false;
+  renderRunLegend();
+  // Redraw the canvas to reflect visibility change immediately
+  if (activeExperiment === 'projectile') {
+    drawScene(state.data.length > 0 ? state.data : []);
+  } else {
+    drawPendulumScene();
+  }
+}
+
+function setAllRunsVisible(visible) {
+  const runs = activeExperiment === 'projectile' ? state.completedRuns : pendulumState.completedRuns;
+  runs.forEach(r => { r.visible = visible; });
+  renderRunLegend();
+  if (activeExperiment === 'projectile') {
+    drawScene(state.data.length > 0 ? state.data : []);
+  } else {
+    drawPendulumScene();
+  }
+}
+
+// ============================================================
+//  DRAWING
+// ============================================================
+
 function drawScene(simState) {
   if (!W) return;
   ctx.clearRect(0, 0, W, H);
@@ -1305,15 +1522,17 @@ function drawScene(simState) {
     if (m % 20 === 0) ctx.fillText(m + 'm', originX - 8, sy + 3);
   }
 
-  // --- Completed runs (persistent trails) ---
+  // Completed runs (respect visible flag)
   for (let ri = 0; ri < state.completedRuns.length; ri++) {
     const run = state.completedRuns[ri];
-    const age = state.completedRuns.length - 1 - ri; // 0 = most recent
+    if (run.visible === false) continue;   // ← skip hidden runs
+
+    const age = state.completedRuns.length - 1 - ri;
     const maxAge = Math.max(1, state.completedRuns.length - 1);
-    const fade = 1 - (age / maxAge) * 0.75;   // older runs fade to 25%
+    const fade = 1 - (age / maxAge) * 0.75;
     const c = run.color;
     drawTrail(run.data, c, fade * 0.55, 1.5);
-    // Impact dot for completed run
+
     if (run.range > 0) {
       const ip = toScreen(run.range, 0);
       ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${fade * 0.7})`;
@@ -1321,7 +1540,6 @@ function drawScene(simState) {
       ctx.arc(ip.x, originY, 3, 0, Math.PI * 2);
       ctx.fill();
       if (age === 0) {
-        // Label the most recent completed run
         ctx.font = '9px JetBrains Mono';
         ctx.textAlign = 'center';
         ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},0.7)`;
@@ -1330,19 +1548,16 @@ function drawScene(simState) {
     }
   }
 
-  // Preview trajectory or current run
   if (!simState || simState.length === 0) {
     drawPreviewTrajectory();
     return;
   }
 
-  // --- Current run trail ---
   const currentColor = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
   if (state.showTrail && simState.length > 1) {
     drawTrail(simState, currentColor, 0.75, 2);
   }
 
-  // Velocity vector
   const last = simState[simState.length - 1];
   const pos = toScreen(last.x, last.y);
   const vScale = 0.3;
@@ -1355,7 +1570,6 @@ function drawScene(simState) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Projectile glow
   const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 18);
   grad.addColorStop(0, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.25)`);
   grad.addColorStop(1, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0)`);
@@ -1364,7 +1578,6 @@ function drawScene(simState) {
   ctx.arc(pos.x, pos.y, 18, 0, Math.PI * 2);
   ctx.fill();
 
-  // Projectile ball — size scales with mass
   const ballR = Math.max(4, Math.min(10, 3 + Math.cbrt(state.params.mass) * 1.5));
   ctx.fillStyle = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
   ctx.shadowColor = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
@@ -1374,7 +1587,6 @@ function drawScene(simState) {
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Impact marker (current run finished)
   if (state.finished && state.range > 0) {
     const ip = toScreen(state.range, 0);
     ctx.strokeStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.5)`;
@@ -1392,13 +1604,10 @@ function drawScene(simState) {
   }
 }
 
-// Draws a trail for a given data array, color, alpha, lineWidth
 function drawTrail(data, color, alpha, lineWidth) {
   if (data.length < 2) return;
   ctx.lineWidth = lineWidth;
   ctx.setLineDash([]);
-
-  // Draw in segments with fading alpha (tail → head)
   const SEG = Math.max(1, Math.floor(data.length / 60));
   for (let i = SEG; i < data.length; i += SEG) {
     const progress = i / data.length;
@@ -1414,7 +1623,6 @@ function drawTrail(data, color, alpha, lineWidth) {
 }
 
 function drawPreviewTrajectory() {
-  // Numerically simulate preview (accounts for drag correctly)
   const previewPts = simulateRun(state.params, 2000);
   if (previewPts.length < 2) return;
 
@@ -1432,7 +1640,6 @@ function drawPreviewTrajectory() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Launch angle indicator
   const theta = state.params.angle * Math.PI / 180;
   const len = 35;
   ctx.strokeStyle = 'rgba(0,229,255,0.3)';
@@ -1454,10 +1661,10 @@ function drawPreviewTrajectory() {
 }
 
 // ============================================================
-//  PENDULUM — Physics (RK4) + Drawing
+//  PENDULUM — Physics + Drawing
 // ============================================================
 
-const PEND_SCALE = 130;   // pixels per meter of pendulum length
+const PEND_SCALE = 130;
 
 function getPivot() {
   return { x: W * 0.5, y: H * 0.18 };
@@ -1469,7 +1676,6 @@ function pendulumBobPos(theta, length) {
   return { x: piv.x + Math.sin(theta) * L, y: piv.y + Math.cos(theta) * L };
 }
 
-// RK4 integration for θ'' = -(g/L)·sin(θ) - b·θ'
 function rk4Pendulum(ps, params, dt) {
   const { gravity: g, length: L, damping: b } = params;
   const f = (th, om) => -(g / L) * Math.sin(th) - b * om;
@@ -1496,7 +1702,6 @@ function pendulumPeriod(params) {
   return 2 * Math.PI * Math.sqrt(params.length / params.gravity);
 }
 
-// Draw the pendulum scene
 function drawPendulumScene() {
   if (!W) return;
   ctx.clearRect(0, 0, W, H);
@@ -1505,15 +1710,16 @@ function drawPendulumScene() {
   const { length: L } = pendulumState.params;
   const currentColor = TRAIL_PALETTE[pendulumState.completedRuns.length % TRAIL_PALETTE.length];
 
-  // Faint ceiling bar
   ctx.fillStyle = 'rgba(255,255,255,0.06)';
   ctx.fillRect(0, 0, W, piv.y - 2);
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.fillRect(piv.x - 30, piv.y - 6, 60, 6);
 
-  // --- Draw completed run trails ---
+  // Completed run trails (respect visible flag)
   for (let ri = 0; ri < pendulumState.completedRuns.length; ri++) {
     const run = pendulumState.completedRuns[ri];
+    if (run.visible === false) continue;   // ← skip hidden runs
+
     const age = pendulumState.completedRuns.length - 1 - ri;
     const maxAge = Math.max(1, pendulumState.completedRuns.length - 1);
     const fade = 1 - (age / maxAge) * 0.8;
@@ -1525,10 +1731,8 @@ function drawPendulumScene() {
 
   const ps = pendulumState.ps;
   if (!ps) {
-    // Idle — draw resting position with preview angle
     const theta0 = pendulumState.params.angle * Math.PI / 180;
     const bob = pendulumBobPos(theta0, L);
-    // Rod
     ctx.strokeStyle = 'rgba(255,255,255,0.18)';
     ctx.lineWidth = 2;
     ctx.setLineDash([]);
@@ -1536,7 +1740,6 @@ function drawPendulumScene() {
     ctx.moveTo(piv.x, piv.y);
     ctx.lineTo(bob.x, bob.y);
     ctx.stroke();
-    // Angle arc
     ctx.strokeStyle = 'rgba(245,158,11,0.25)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1546,7 +1749,6 @@ function drawPendulumScene() {
     ctx.font = '10px JetBrains Mono';
     ctx.textAlign = 'left';
     ctx.fillText(pendulumState.params.angle + '°', piv.x + 46, piv.y + 16);
-    // Bob
     ctx.fillStyle = 'rgba(245,158,11,0.5)';
     ctx.beginPath();
     ctx.arc(bob.x, bob.y, 10, 0, Math.PI*2);
@@ -1554,14 +1756,12 @@ function drawPendulumScene() {
     return;
   }
 
-  // Current run trail
   if (pendulumState.showTrail && pendulumState.data.length > 1) {
     drawPendulumTrail(pendulumState.data, pendulumState.params, currentColor, 0.65);
   }
 
   const bob = pendulumBobPos(ps.theta, L);
 
-  // Rod shadow
   ctx.strokeStyle = 'rgba(0,0,0,0.3)';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -1569,7 +1769,6 @@ function drawPendulumScene() {
   ctx.lineTo(bob.x+1, bob.y+1);
   ctx.stroke();
 
-  // Rod
   ctx.strokeStyle = 'rgba(255,255,255,0.55)';
   ctx.lineWidth = 2;
   ctx.setLineDash([]);
@@ -1578,7 +1777,6 @@ function drawPendulumScene() {
   ctx.lineTo(bob.x, bob.y);
   ctx.stroke();
 
-  // Velocity vector (tangent direction)
   const { ke, pe, energy } = pendulumEnergy(ps, pendulumState.params);
   const vScale = 3.5;
   const tangX =  Math.cos(ps.theta) * ps.omega * L * PEND_SCALE * vScale * 0.01;
@@ -1592,7 +1790,6 @@ function drawPendulumScene() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Bob glow
   const bobR = Math.max(6, Math.min(14, 5 + Math.cbrt(pendulumState.params.mass) * 2.5));
   const grad = ctx.createRadialGradient(bob.x, bob.y, 0, bob.x, bob.y, bobR * 3);
   grad.addColorStop(0, `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.2)`);
@@ -1602,7 +1799,6 @@ function drawPendulumScene() {
   ctx.arc(bob.x, bob.y, bobR * 3, 0, Math.PI*2);
   ctx.fill();
 
-  // Bob
   ctx.fillStyle = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
   ctx.shadowColor = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
   ctx.shadowBlur = 14;
@@ -1611,16 +1807,13 @@ function drawPendulumScene() {
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Pivot pin
   ctx.fillStyle = '#c8d8ea';
   ctx.beginPath();
   ctx.arc(piv.x, piv.y, 4, 0, Math.PI*2);
   ctx.fill();
 
-  // Energy mini-bars (bottom-left corner)
   drawEnergyBars(ke, pe, energy);
 
-  // Angle label
   const thetaDeg = (ps.theta * 180 / Math.PI).toFixed(1);
   ctx.fillStyle = '#8aaabf';
   ctx.font = '10px JetBrains Mono';
@@ -1696,7 +1889,10 @@ function pendulumAnimLoop(timestamp) {
       pushPendulumChartPoint(pendulumState.currentTime, theta * 180 / Math.PI, ke, pe, energy);
     }
     if (pendulumState.data.length % 24 === 0) updatePendulumReadouts(point);
-    if (pendulumState.data.length % 120 === 0) maybeRefreshTable();
+    if (pendulumState.data.length % 120 === 0) {
+      maybeRefreshTable();
+      renderRunLegend();
+    }
   }
 
   drawPendulumScene();
@@ -1723,6 +1919,7 @@ function launchPendulum() {
   const T = pendulumPeriod(pendulumState.params).toFixed(3);
   log(`Pendulum started — L=${pendulumState.params.length}m, θ₀=${pendulumState.params.angle}°, b=${pendulumState.params.damping}`, 'success');
   log(`Small-angle period T≈${T}s · E₀=${energy.toFixed(3)}J`);
+  renderRunLegend();
 
   pendulumState.animFrame = requestAnimationFrame(pendulumAnimLoop);
 }
@@ -1745,6 +1942,7 @@ function resetPendulum() {
   document.getElementById('launchBtn').textContent = '▶ Start';
   drawPendulumScene();
   refreshTable();
+  renderRunLegend();
   log('Pendulum workspace cleared.', 'warn');
 }
 
@@ -1831,29 +2029,31 @@ function pushPendulumChartPoint(t, thetaDeg, ke, pe, energy) {
 }
 
 // ============================================================
-//  UNIFIED DISPATCHER — routes button clicks to active experiment
+//  UNIFIED DISPATCHER
 // ============================================================
 function handleLaunch() {
   if (activeExperiment === 'projectile') {
     launch();
   } else if (activeExperiment === 'pendulum') {
     if (pendulumState.running) {
-      // Pause
       stopPendulum();
+      // Save paused run to completedRuns
+      if (pendulumState.data.length > 1) {
+        const runColor = TRAIL_PALETTE[pendulumState.completedRuns.length % TRAIL_PALETTE.length];
+        pendulumState.completedRuns.push({
+          data: [...pendulumState.data],
+          color: runColor,
+          params: { ...pendulumState.params },
+          visible: true,
+        });
+        if (pendulumState.completedRuns.length > MAX_TRAILS) pendulumState.completedRuns.shift();
+      }
       setUIState('idle');
-      document.getElementById('launchBtn').textContent = '▶ Resume';
-      log('Pendulum paused.', 'warn');
-    } else if (pendulumState.ps !== null) {
-      // Resume from paused state
-      pendulumState.running = true;
-      pendLastTimestamp = null;
-      pendDtAccum = 0;
-      setUIState('running');
-      document.getElementById('launchBtn').textContent = '⏸ Pause';
-      log('Pendulum resumed.');
-      pendulumState.animFrame = requestAnimationFrame(pendulumAnimLoop);
+      document.getElementById('launchBtn').textContent = '▶ Start';
+      renderRunLegend();
+      refreshTable();
+      log('Pendulum stopped.', 'warn');
     } else {
-      // Fresh start
       launchPendulum();
     }
   }
@@ -1870,13 +2070,14 @@ function handleClearTrails() {
     pendulumState.completedRuns = [];
     drawPendulumScene();
     refreshTable();
+    renderRunLegend();
     log('Pendulum trails cleared.', 'warn');
   }
 }
 
 // ---------- SIMULATION LOOP ----------
 let lastTimestamp = null;
-const DT = 1 / 240;   // physics timestep (s) — matches integrator
+const DT = 1 / 240;
 let dtAccum = 0;
 
 function animLoop(timestamp) {
@@ -1898,9 +2099,8 @@ function animLoop(timestamp) {
     const { x, y, vx, vy, speed } = res.point;
 
     if (y < 0 && state.currentTime > 0.02) {
-      // Landed — interpolate impact x (linear between last two steps)
       const prev = state.data.length > 0 ? state.data[state.data.length - 1] : { x: 0, y: 0 };
-      const frac = prev.y / (prev.y - y);   // fraction along last segment to y=0
+      const frac = prev.y / (prev.y - y);
       state.range = prev.x + frac * (x - prev.x);
 
       state.running = false;
@@ -1909,21 +2109,21 @@ function animLoop(timestamp) {
       const finalPoint = { t: state.currentTime, x: state.range, y: 0, vx, vy, speed };
       state.data.push(finalPoint);
 
-      // Save this run to completed trails
-      const runColor = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
+      const runColorVal = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
       state.completedRuns.push({
         data: [...state.data],
-        color: runColor,
+        color: runColorVal,
         range: state.range,
         maxHeight: state.maxHeight,
         params: { ...state.params },
+        visible: true,    // ← new runs start visible
       });
-      // Keep only MAX_TRAILS
       if (state.completedRuns.length > MAX_TRAILS) state.completedRuns.shift();
 
       setUIState('complete');
       updateReadouts(finalPoint);
       drawScene(state.data);
+      renderRunLegend();   // ← update legend after run completes
       log(`Landed — x=${state.range.toFixed(2)}m, t=${state.currentTime.toFixed(2)}s`, 'warn');
       chartHeight.update('none');
       chartSpeed.update('none');
@@ -1938,6 +2138,8 @@ function animLoop(timestamp) {
     if (state.data.length % 4 === 0) pushChartPoint(state.currentTime, y, speed);
     updateReadouts(point);
     maybeRefreshTable();
+
+    if (state.data.length % 60 === 0) renderRunLegend();  // keep live entry current
 
     document.getElementById('timeDisplay').textContent = state.currentTime.toFixed(3);
     document.getElementById('posX').textContent = x.toFixed(1);
@@ -1963,7 +2165,6 @@ function updateReadouts(p) {
 function launch() {
   if (state.running) return;
 
-  // Reset current run data but KEEP completed trails
   state.running = false;
   state.finished = false;
   state.currentTime = 0;
@@ -1976,21 +2177,19 @@ function launch() {
   dtAccum = 0;
   clearCharts();
 
-  // Initialise physics integrator
   state.ps = initPhysicsState(state.params);
   state.running = true;
 
-  // Snapshot first frame
   const { vx, vy } = state.ps;
   const speed0 = Math.hypot(vx, vy);
   state.data.push({ t: 0, x: 0, y: 0, vx, vy, speed: speed0 });
 
   setUIState('running');
+  renderRunLegend();
 
   const c = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
   log(`Launch #${state.completedRuns.length + 1} — v₀=${state.params.velocity}m/s, θ=${state.params.angle}°, m=${state.params.mass}kg`, 'success');
 
-  // Predicted range from numerical simulation
   const preview = simulateRun(state.params);
   const lastPt = preview[preview.length - 1];
   const predRange = (lastPt && lastPt.x > 0) ? lastPt.x.toFixed(2) : '?';
@@ -2001,7 +2200,6 @@ function launch() {
 }
 
 function resetSim() {
-  // Full hard reset — clears trails too
   state.running = false;
   state.finished = false;
   state.currentTime = 0;
@@ -2017,13 +2215,10 @@ function resetSim() {
   setUIState('idle');
   drawScene([]);
   refreshTable();
+  renderRunLegend();
   document.getElementById('timeDisplay').textContent = '0.000';
   document.getElementById('posX').textContent = '0.0';
   document.getElementById('posY').textContent = '0.0';
-  ['r-time','r-x','r-y','r-speed','r-vx','r-vy','r-maxH','r-range'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = '—';
-  });
   log('Workspace cleared.', 'warn');
 }
 
@@ -2045,8 +2240,7 @@ function updateParam(param, value) {
   if (param === 'mass') {
     const m = parseFloat(value);
     document.getElementById('massDisplay').textContent = m.toFixed(1) + ' kg';
-    // Show radius in mm for context
-    const r = Math.pow((3 * m) / (4 * Math.PI * RHO_OBJ), 1/3) * 100; // cm
+    const r = Math.pow((3 * m) / (4 * Math.PI * RHO_OBJ), 1/3) * 100;
     document.getElementById('massRadius').textContent = r.toFixed(1) + 'cm ⌀';
   }
   if (!state.running) drawScene([]);
@@ -2114,14 +2308,14 @@ function renderRunsToTable(allRuns, tbody, meta, countEl, rowFn, labelFn) {
   let html = '';
   allRuns.forEach((run, runIdx) => {
     const c = run.color;
-    const colorHex = `rgb(${c.r},${c.g},${c.b})`;
+    const colorHexStr = `rgb(${c.r},${c.g},${c.b})`;
     const label = labelFn(run.params);
-    html += `<tr><td colspan="7" style="background:#0d1422;color:${colorHex};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid #1e2535;">
-      <span class="run-badge" style="background:${colorHex};"></span>Run ${runIdx+1} &nbsp;·&nbsp; ${label}
+    html += `<tr><td colspan="7" style="background:#0d1422;color:${colorHexStr};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid #1e2535;">
+      <span class="run-badge" style="background:${colorHexStr};"></span>Run ${runIdx+1} &nbsp;·&nbsp; ${label}
     </td></tr>`;
     for (let i = 0; i < run.data.length; i += STEP) {
       const d = run.data[i];
-      html += `<tr><td><span class="run-badge" style="background:${colorHex};"></span>${runIdx+1}</td>${rowFn(d)}</tr>`;
+      html += `<tr><td><span class="run-badge" style="background:${colorHexStr};"></span>${runIdx+1}</td>${rowFn(d)}</tr>`;
       rowCount++;
     }
   });
@@ -2131,7 +2325,6 @@ function renderRunsToTable(allRuns, tbody, meta, countEl, rowFn, labelFn) {
   meta.textContent = `${allRuns.length} run${allRuns.length > 1 ? 's' : ''} · ${total.toLocaleString()} total points · sampled every ${STEP} frames`;
 }
 
-// Live-update table while running (throttled)
 let tableRefreshCounter = 0;
 function maybeRefreshTable() {
   if (activeTab !== 'table') return;
@@ -2140,7 +2333,7 @@ function maybeRefreshTable() {
 }
 
 // ============================================================
-//  READOUT HELPERS — generic indexed readout cells
+//  READOUT HELPERS
 // ============================================================
 function setReadout(i, val, unit) {
   const el = document.getElementById('r-' + i);
@@ -2183,22 +2376,17 @@ function selectExperiment(id, evt) {
     return;
   }
 
-  // Stop whatever is running
   if (state.running) { state.running = false; if (state.animFrame) cancelAnimationFrame(state.animFrame); }
   if (pendulumState.running) stopPendulum();
 
   activeExperiment = id;
   document.getElementById('launchBtn').textContent = id === 'projectile' ? '▶ Launch' : '▶ Start';
 
-  // Swap control panels
   document.getElementById('panelProjectile').style.display = id === 'projectile' ? '' : 'none';
   document.getElementById('panelPendulum').style.display   = id === 'pendulum'   ? '' : 'none';
-
-  // Swap charts
   document.getElementById('chartsProjectile').style.display = id === 'projectile' ? '' : 'none';
   document.getElementById('chartsPendulum').style.display   = id === 'pendulum'   ? '' : 'none';
 
-  // Swap readout labels
   labelReadouts(id === 'projectile' ? READOUT_PROJECTILE : READOUT_PENDULUM);
 
   document.getElementById('toolbarExpName').textContent =
@@ -2212,6 +2400,7 @@ function selectExperiment(id, evt) {
 
   setUIState('idle');
   refreshTable();
+  renderRunLegend();
 
   if (id === 'projectile') {
     drawScene([]);
@@ -2226,6 +2415,7 @@ function selectExperiment(id, evt) {
 function clearTrails() {
   state.completedRuns = [];
   drawScene(state.data.length > 0 ? state.data : []);
+  renderRunLegend();
   log('Trail history cleared.', 'warn');
 }
 
@@ -2320,9 +2510,10 @@ function downloadFile(content, filename, mime) {
 resizeCanvas();
 updateParam('mass', state.params.mass);
 labelReadouts(READOUT_PROJECTILE);
+renderRunLegend();
 log('Canvas initialized at ' + W + '×' + H, 'success');
 log('Projectile Motion loaded. Switch tabs above to try Pendulum!');
-log('Tip: Launch multiple times to overlay trails.');
+log('Tip: Launch multiple times, then toggle trails in the Runs panel.');
 </script>
 </body>
 </html>
