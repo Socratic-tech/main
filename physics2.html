@@ -2,1783 +2,1292 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>OpenPhysics Lab — Version E (Engine + ADA UI)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<title>OpenPhysics Lab — Version E (Engine + ADA UI)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ADA-compliant, high-contrast theme -->
-  <style>
-    :root {
-      --bg: #0E1117;
-      --panel: #161B22;
-      --border: #30363D;
-      --text: #C9D1D9;
-      --text-dim: #8B949E;
-      --accent: #58A6FF;
-      --accent-green: #3FB950;
-      --accent-red: #FF6A6A;
-      --accent-gold: #DAA520;
-
-      /* Accessibility control variables */
-      --font-scale: 1.0;
-      --ui-scale: 1.0;
-      --transition-speed: 180ms;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      :root { --transition-speed: 0ms; }
-    }
-
-    body {
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:"JetBrains Mono", monospace;
-      font-size: calc(14px * var(--font-scale));
-      overflow:hidden;
-    }
-
-    /* ===== Toolbar =================================================== */
-    #toolbar {
-      position:fixed;
-      top:0; left:0; right:0;
-      height:48px;
-      background:var(--panel);
-      border-bottom:1px solid var(--border);
-      display:flex;
-      align-items:center;
-      padding:0 16px;
-      gap:16px;
-      z-index:20;
-    }
-
-    #toolbar select, #toolbar button {
-      background:var(--panel);
-      border:1px solid var(--border);
-      color:var(--text);
-      padding:6px 8px;
-      border-radius:4px;
-      cursor:pointer;
-      font-size: calc(14px * var(--font-scale));
-    }
-
-    #toolbar button:hover,
-    #toolbar select:focus {
-      outline:2px solid var(--accent);
-    }
-
-    /* ===== Sidebar =================================================== */
-    #sidePanel {
-      position:fixed;
-      top:48px; bottom:0; right:0;
-      width:300px;
-      background:var(--panel);
-      border-left:1px solid var(--border);
-      padding:12px;
-      overflow-y:auto;
-      z-index:15;
-    }
-
-    .sectionTitle {
-      font-size: calc(13px * var(--font-scale));
-      color:var(--accent);
-      text-transform:uppercase;
-      margin-top:12px;
-      margin-bottom:6px;
-      border-bottom:1px solid var(--border);
-      padding-bottom:4px;
-      letter-spacing:0.08em;
-    }
-
-    button.actionBtn {
-      width:100%;
-      margin-top:8px;
-      padding:10px;
-      background:var(--panel);
-      border:1px solid var(--border);
-      color:var(--text);
-      border-radius:4px;
-      cursor:pointer;
-      font-size: calc(14px * var(--font-scale));
-    }
-    button.actionBtn:hover,
-    button.actionBtn:focus {
-      outline:2px solid var(--accent);
-    }
-
-    /* ===== Readout grid ============================================= */
-    #readoutGrid .row {
-      display:flex;
-      justify-content:space-between;
-      font-size: calc(14px * var(--font-scale));
-      margin:4px 0;
-    }
-
-    /* ===== Canvas ==================================================== */
-    #simCanvas {
-      position:absolute;
-      left:0; right:300px;
-      top:48px;
-      bottom:0;
-      width:calc(100vw - 300px);
-      height:calc(100vh - 48px);
-      background:var(--bg);
-    }
-
-    /* ===== Bottom drawer (collapsible) =============================== */
-    #drawer {
-      position:fixed;
-      left:0;
-      width:calc(100vw - 300px);
-      height:200px;                /* Min height (your choice) */
-      bottom:-200px;               /* start collapsed */
-      background:var(--panel);
-      border-top:1px solid var(--border);
-      transition:bottom var(--transition-speed) ease;
-      z-index:25;
-      display:flex;
-      flex-direction:column;
-    }
-
-    #drawer.open {
-      bottom:0;
-    }
-
-    #drawerHandle {
-      height:10px;
-      background:var(--border);
-      cursor:ns-resize;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      color:var(--text-dim);
-      user-select:none;
-    }
-
-    #drawerContent {
-      flex:1;
-      overflow:auto;
-      padding:12px;
-    }
-
-    table.runTable {
-      width:100%;
-      border-collapse:collapse;
-    }
-
-    .runTable th {
-      text-align:left;
-      padding:6px 4px;
-      border-bottom:1px solid var(--border);
-      color:var(--text);
-    }
-
-    .runTable td {
-      padding:6px 4px;
-      color:var(--text-dim);
-      border-bottom:1px solid var(--border);
-    }
-
-    /* ===== Accessibility Panel ====================================== */
-    #accessibilityPanel {
-      position:fixed;
-      right:300px; top:48px;
-      width:220px;
-      background:var(--panel);
-      border-left:1px solid var(--border);
-      border-bottom:1px solid var(--border);
-      padding:12px;
-      z-index:30;
-      display:none;
-    }
-
-    #accessibilityPanel.open {
-      display:block;
-    }
-
-    .accOption {
-      margin:6px 0;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-  </style>
-
-  <!-- ============================================================
-       PART 7 — ADA INTERACTION STYLING (CSS Enhancements)
-       High-contrast focus rings, reduced motion handling, UI scaling
-  =============================================================== -->
-  <style>
-
-  /* ============================================================
-     HIGH VISIBILITY FOCUS RINGS
-     WCAG requires clear, non-color-only focus indicators
-  =============================================================== */
-  :focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 2px;
-  }
-
-  /* Buttons */
-  button:focus-visible,
-  select:focus-visible,
-  input[type=range]:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 2px;
-  }
-
-  /* Run list buttons specifically */
-  .visToggle:focus-visible,
-  .delRun:focus-visible {
-      outline: 3px solid var(--accent-gold);
-  }
-
-  /* ============================================================
-     HOVER + ACTIVE STATES (High Contrast, ADA-friendly)
-  =============================================================== */
-  button:hover,
-  select:hover {
-      background: rgba(88,166,255,0.12);
-  }
-
-  button:active,
-  select:active {
-      transform: scale(0.97);
-      transition: transform 80ms ease-out;
-  }
-
-  /* ============================================================
-     SLIDER ACCESSIBILITY
-     - Larger thumb size
-     - High-contrast colors
-  =============================================================== */
-  input[type=range] {
-      height: 24px;
-  }
-
-  input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 18px;
-      width: 18px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid #C9D1D9;
-      cursor: pointer;
-  }
-
-  input[type=range]::-webkit-slider-runnable-track {
-      height: 6px;
-      background: var(--border);
-      border-radius: 6px;
-  }
-
-  /* ============================================================
-     LARGE UI MODE SUPPORT
-  =============================================================== */
+<!-- ===== ADA-compliant, high-contrast theme (kept near top) ===== -->
+<style>
   :root {
-      --ui-scale: 1.0;
+    --bg: #0E1117;
+    --panel: #161B22;
+    --border: #30363D;
+    --text: #C9D1D9;
+    --text-dim: #8B949E;
+    --accent: #58A6FF;
+    --accent-green: #3FB950;
+    --accent-red: #FF6A6A;
+    --accent-gold: #DAA520;
+
+    /* Accessibility control variables */
+    --font-scale: 1.0;
+    --ui-scale: 1.0;          /* kept for future, but no page-level transform */
+    --transition-speed: 180ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root { --transition-speed: 0ms; }
   }
 
   body {
-      transform-origin: top left;
-      transform: scale(var(--ui-scale));
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"JetBrains Mono", monospace;
+    font-size: calc(14px * var(--font-scale));
+    overflow:hidden;
   }
 
-  /* ============================================================
-     REDUCED MOTION SUPPORT
-  =============================================================== */
-  @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-          animation: none !important;
-          transition: none !important;
-      }
+  /* ===== Toolbar =================================================== */
+  #toolbar {
+    position:fixed;
+    top:0; left:0; right:0;
+    height:48px;
+    background:var(--panel);
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    padding:0 16px;
+    gap:16px;
+    z-index:20;
   }
 
-  /* ============================================================
-     TABLE ACCESSIBILITY (Bottom Drawer)
-  =============================================================== */
-  .runTable th,
-  .runTable td {
-      font-size: calc(14px * var(--font-scale));
-      padding: 8px 6px;
+  #toolbar select, #toolbar button {
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:6px 8px;
+    border-radius:4px;
+    cursor:pointer;
+    font-size: calc(14px * var(--font-scale));
   }
 
-  .runTable tr:hover td {
-      background: rgba(88,166,255,0.08);
+  #toolbar button:hover,
+  #toolbar select:focus {
+    outline:2px solid var(--accent);
   }
 
-  .runTable button {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor:pointer;
-      font-size: calc(12px * var(--font-scale));
+  /* ===== Sidebar =================================================== */
+  #sidePanel {
+    position:fixed;
+    top:48px; bottom:0; right:0;
+    width:300px;
+    background:var(--panel);
+    border-left:1px solid var(--border);
+    padding:12px;
+    overflow-y:auto;
+    z-index:15;
   }
 
-  .runTable button:hover {
-      background: rgba(88,166,255,0.15);
-  }
-
-  /* ============================================================
-     RUN LIST ACCESSIBILITY
-  =============================================================== */
-  #runList > div {
-      padding: 4px 0;
-      font-size: calc(14px * var(--font-scale));
-  }
-
-  #runList button {
-      margin-left: 4px;
-      height: 26px;
-      color: var(--text);
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      cursor:pointer;
-      font-size: calc(14px * var(--font-scale));
-  }
-
-  #runList button:hover {
-      background: rgba(88,166,255,0.12);
-  }
-
-  /* ============================================================
-     DRAWER HANDLE ACCESSIBILITY
-  =============================================================== */
-  #drawerHandle {
-      height: 16px;
-      font-size: calc(12px * var(--font-scale));
-      color: var(--text-dim);
-      background: var(--border);
-      cursor: ns-resize;
-      user-select:none;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-  }
-
-  /* When the drawer is open, highlight the handle */
-  #drawer.open #drawerHandle {
-      background: var(--accent);
-      color: black;
-  }
-
-  /* ============================================================
-     ACCESSIBILITY PANEL DIALOG STYLE
-  =============================================================== */
-  #accessibilityPanel {
-      border-left: 3px solid var(--accent);
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-  }
-
-  #accessibilityPanel.open {
-      animation: fadeIn var(--transition-speed) ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity:0; transform:translateY(-8px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-
-  /* ============================================================
-     SIDEBAR TITLES (easier to see)
-  =============================================================== */
   .sectionTitle {
-      font-weight: 700;
-      font-size: calc(15px * var(--font-scale));
-      color: var(--accent);
+    font-size: calc(13px * var(--font-scale));
+    color:var(--accent);
+    text-transform:uppercase;
+    margin-top:12px;
+    margin-bottom:6px;
+    border-bottom:1px solid var(--border);
+    padding-bottom:4px;
+    letter-spacing:0.08em;
   }
 
-  /* ============================================================
-     READOUT GRID
-  =============================================================== */
-  #readoutGrid .row span:last-child {
-      font-weight:700;
-      color: var(--accent-green);
+  button.actionBtn {
+    width:100%;
+    margin-top:8px;
+    padding:10px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:4px;
+    cursor:pointer;
+    font-size: calc(14px * var(--font-scale));
+  }
+  button.actionBtn:hover,
+  button.actionBtn:focus {
+    outline:2px solid var(--accent);
   }
 
-  </style>
-
-  <!-- Import map FIRST: maps inline module IDs to specifiers.
-       Note: Mapping to "#id" assumes a loader/shim that resolves inline modules by ID. -->
-  <script type="importmap">
-  {
-    "imports": {
-      "#engine-camera": "#engine-camera",
-      "#engine-renderer": "#engine-renderer",
-      "#engine-loop": "#engine-loop",
-      "#engine-runmanager": "#engine-runmanager",
-      "#ui-workbench": "#ui-workbench",
-      "#exp-projectile": "#exp-projectile",
-      "#accessibility-controller": "#accessibility-controller",
-      "#drawer-controller": "#drawer-controller",
-      "#final-glue": "#final-glue"
-    }
+  /* ===== Readout grid ============================================= */
+  #readoutGrid .row {
+    display:flex;
+    justify-content:space-between;
+    font-size: calc(14px * var(--font-scale));
+    margin:4px 0;
   }
-  </script>
+
+  /* ===== Canvas ==================================================== */
+  #simCanvas {
+    position:absolute;
+    left:0; right:300px;
+    top:48px;
+    bottom:0;
+    width:calc(100vw - 300px);
+    height:calc(100vh - 48px);
+    background:var(--bg);
+  }
+
+  /* ===== Bottom drawer (collapsible) =============================== */
+  #drawer {
+    position:fixed;
+    left:0;
+    width:calc(100vw - 300px);
+    height:200px;                /* Min height */
+    bottom:-200px;               /* start collapsed */
+    background:var(--panel);
+    border-top:1px solid var(--border);
+    transition:bottom var(--transition-speed) ease;
+    z-index:25;
+    display:flex;
+    flex-direction:column;
+  }
+
+  #drawer.open { bottom:0; }
+
+  #drawerHandle {
+    height:10px;
+    background:var(--border);
+    cursor:ns-resize;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:var(--text-dim);
+    user-select:none;
+  }
+
+  #drawerContent {
+    flex:1;
+    overflow:auto;
+    padding:12px;
+  }
+
+  table.runTable {
+    width:100%;
+    border-collapse:collapse;
+  }
+
+  .runTable th {
+    text-align:left;
+    padding:6px 4px;
+    border-bottom:1px solid var(--border);
+    color:var(--text);
+  }
+  .runTable td {
+    padding:6px 4px;
+    color:var(--text-dim);
+    border-bottom:1px solid var(--border);
+  }
+
+  /* ===== Accessibility Panel ====================================== */
+  #accessibilityPanel {
+    position:fixed;
+    right:300px; top:48px;
+    width:220px;
+    background:var(--panel);
+    border-left:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:12px;
+    z-index:30;
+    display:none;
+  }
+  #accessibilityPanel.open { display:block; }
+
+  .accOption {
+    margin:6px 0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+</style>
+
+<!-- ===== ADA interaction styling (focus rings, tables, etc.) ===== -->
+<style>
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button:focus-visible, select:focus-visible, input[type=range]:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
+  }
+  .visToggle:focus-visible, .delRun:focus-visible { outline: 3px solid var(--accent-gold); }
+  button:hover, select:hover { background: rgba(88,166,255,0.12); }
+  button:active, select:active { transform: scale(0.97); transition: transform 80ms ease-out; }
+
+  input[type=range]{ height:24px; }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;height:18px;width:18px;border-radius:50%;
+    background:var(--accent);border:2px solid #C9D1D9;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:6px;background:var(--border);border-radius:6px;
+  }
+
+  /* NOTE: Removed page-wide transform: scale(var(--ui-scale)) to prevent
+           the “shrunk to top-left” effect. Use font scaling instead. */
+
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after { animation: none !important; transition: none !important; }
+  }
+
+  .runTable th,.runTable td { font-size: calc(14px * var(--font-scale)); padding:8px 6px; }
+  .runTable tr:hover td { background: rgba(88,166,255,0.08); }
+  .runTable button {
+    background: var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:4px 8px; border-radius:4px; cursor:pointer; font-size: calc(12px * var(--font-scale));
+  }
+  .runTable button:hover { background: rgba(88,166,255,0.15); }
+
+  #runList > div { padding:4px 0; font-size: calc(14px * var(--font-scale)); }
+  #runList button {
+    margin-left:4px; height:26px; color:var(--text); background:var(--panel);
+    border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size: calc(14px * var(--font-scale));
+  }
+  #runList button:hover { background: rgba(88,166,255,0.12); }
+
+  #drawerHandle {
+    height:16px; font-size: calc(12px * var(--font-scale));
+    color:var(--text-dim); background:var(--border); cursor:ns-resize;
+    user-select:none; display:flex; justify-content:center; align-items:center;
+  }
+  #drawer.open #drawerHandle { background: var(--accent); color:black; }
+
+  #accessibilityPanel { border-left:3px solid var(--accent); box-shadow: 0 0 20px rgba(0,0,0,0.4); }
+  #accessibilityPanel.open { animation: fadeIn var(--transition-speed) ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+  .sectionTitle { font-weight:700; font-size: calc(15px * var(--font-scale)); color:var(--accent); }
+  #readoutGrid .row span:last-child { font-weight:700; color: var(--accent-green); }
+</style>
+
 </head>
-
 <body>
 
-  <!-- ===== Top Toolbar ===== -->
-  <div id="toolbar">
-    <label for="expSelector">Experiment:</label>
-    <select id="expSelector" aria-label="Experiment Selector">
-      <option value="projectile">Projectile Motion</option>
-    </select>
+<!-- ===== Top Toolbar ===== -->
+<div id="toolbar">
+  <label for="expSelector">Experiment:</label>
+  <select id="expSelector" aria-label="Experiment Selector">
+    <option value="projectile">Projectile Motion</option>
+  </select>
 
-    <button id="btnStart" class="actionBtn">Start</button>
-    <button id="btnPause" class="actionBtn">Pause</button>
-    <button id="btnNewRun" class="actionBtn">Start New Run</button>
-    <button id="btnResetRun" class="actionBtn">Reset Run</button>
-    <button id="btnResetSim" class="actionBtn">Reset Simulation</button>
-    <button id="btnResetParams" class="actionBtn">Reset Parameters</button>
+  <button id="btnStart" class="actionBtn">Start</button>
+  <button id="btnPause" class="actionBtn">Pause</button>
+  <button id="btnNewRun" class="actionBtn">Start New Run</button>
+  <button id="btnResetRun" class="actionBtn">Reset Run</button>
+  <button id="btnResetSim" class="actionBtn">Reset Simulation</button>
+  <button id="btnResetParams" class="actionBtn">Reset Parameters</button>
 
-    <button id="btnAccessibility" class="actionBtn">Accessibility ⚙️</button>
+  <button id="btnAccessibility" class="actionBtn">Accessibility ⚙️</button>
+</div>
+
+<!-- ===== Accessibility Menu ===== -->
+<div id="accessibilityPanel">
+  <div class="sectionTitle">Accessibility</div>
+
+  <div class="accOption">
+    <span>Reduced motion</span>
+    <input type="checkbox" id="accReducedMotion">
   </div>
 
-  <!-- ===== Accessibility Menu ===== -->
-  <div id="accessibilityPanel">
-    <div class="sectionTitle">Accessibility</div>
-
-    <div class="accOption">
-      <span>Reduced motion</span>
-      <input type="checkbox" id="accReducedMotion">
-    </div>
-
-    <div class="accOption">
-      <span>Larger UI</span>
-      <input type="checkbox" id="accLargeUI">
-    </div>
-
-    <div class="accOption">
-      <span>Increase font</span>
-      <button id="accFontUp">A+</button>
-    </div>
-
-    <div class="accOption">
-      <span>Decrease font</span>
-      <button id="accFontDown">A−</button>
-    </div>
-
-    <div class="accOption">
-      <span>Colorblind Trails</span>
-      <input type="checkbox" id="accCBMode">
-    </div>
-
-    <button id="accClose" class="actionBtn">Close</button>
+  <div class="accOption">
+    <span>Larger UI</span>
+    <input type="checkbox" id="accLargeUI">
   </div>
 
-  <!-- ===== Sidebar (Parameters, Readouts, Run History) ===== -->
-  <div id="sidePanel">
-    <div class="sectionTitle">Parameters</div>
-
-    <label>Velocity: <span id="labelVel">25</span> m/s</label>
-    <input type="range" id="sliderVel" min="1" max="80" value="25">
-
-    <label>Angle: <span id="labelAng">45</span>°</label>
-    <input type="range" id="sliderAng" min="1" max="89" value="45">
-
-    <label>Gravity: <span id="labelGrav">9.81</span> m/s²</label>
-    <input type="range" id="sliderGrav" min="0.5" max="20" step="0.01" value="9.81">
-
-    <button id="btnSaveRun" class="actionBtn">Save Run</button>
-    <button id="btnUndoRun" class="actionBtn">Undo Last Run</button>
-
-    <div class="sectionTitle">Readouts</div>
-    <div id="readoutGrid"></div>
-
-    <div class="sectionTitle">Run List</div>
-    <div id="runList"></div>
+  <div class="accOption">
+    <span>Increase font</span>
+    <button id="accFontUp">A+</button>
   </div>
 
-  <!-- ===== Canvas ===== -->
-  <canvas id="simCanvas"></canvas>
-
-  <!-- ===== Bottom Drawer (Data Table) ===== -->
-  <div id="drawer">
-    <div id="drawerHandle">⋮⋮ Drag to Resize ⋮⋮</div>
-    <div id="drawerContent">
-      <table class="runTable" id="runTable"></table>
-    </div>
+  <div class="accOption">
+    <span>Decrease font</span>
+    <button id="accFontDown">A−</button>
   </div>
 
-  <!-- ============================================================
-       SCRIPT MODULE: CAMERA.JS
-       Unified ADA-compliant camera with zoom + pan
-  =============================================================== -->
-  <script type="module" id="engine-camera">
-  export const camera = {
-      x: 0,
-      y: 0,
-      scale: 20,
-      minScale: 0.2,
-      maxScale: 5,
-      reducedMotion: false
-  };
-
-  export function worldToScreen(x, y, canvas) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      return {
-          x: cx + (x - camera.x) * camera.scale,
-          y: cy - (y - camera.y) * camera.scale
-      };
-  }
-
-  export function screenToWorld(px, py, canvas) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      return {
-          x: (px - cx) / camera.scale + camera.x,
-          y: (cy - py) / camera.scale + camera.y
-      };
-  }
-
-  export function applyCameraInput(canvas) {
-      let dragging = false;
-      let last = { x:0, y:0 };
-
-      canvas.addEventListener("wheel", e => {
-          e.preventDefault();
-          const factor = e.deltaY < 0 ? 1.1 : 0.9;
-          camera.scale *= factor;
-          camera.scale = Math.min(camera.maxScale, Math.max(camera.minScale, camera.scale));
-      });
-
-      canvas.addEventListener("mousedown", e => {
-          dragging = true;
-          last = { x:e.clientX, y:e.clientY };
-      });
-
-      window.addEventListener("mouseup", () => dragging = false);
-
-      canvas.addEventListener("mousemove", e => {
-          if (!dragging) return;
-          const dx = (e.clientX - last.x) / camera.scale;
-          const dy = (e.clientY - last.y) / camera.scale;
-          camera.x -= dx;
-          camera.y += dy;
-          last = { x:e.clientX, y:e.clientY };
-      });
-  }
-  </script>
-
-  <!-- ============================================================
-       SCRIPT MODULE: RENDERER.JS
-       Accessible high-contrast renderer
-  =============================================================== -->
-  <script type="module" id="engine-renderer">
-  import { worldToScreen, camera } from "#engine-camera";
-
-  export const renderer = {
-      ctx:null,
-      canvas:null,
-      
-      init(canvas) {
-          this.canvas = canvas;
-          this.ctx = canvas.getContext("2d", { alpha:false });
-      },
-
-      clear() {
-          this.ctx.fillStyle = "#0E1117";
-          this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-      },
-
-      ball(x, y, r, color) {
-          const p = worldToScreen(x, y, this.canvas);
-          this.ctx.fillStyle = color;
-          this.ctx.beginPath();
-          this.ctx.arc(p.x, p.y, r * camera.scale, 0, Math.PI*2);
-          this.ctx.fill();
-      },
-
-      line(x1, y1, x2, y2, color="#C9D1D9", w=2) {
-          const p1 = worldToScreen(x1, y1, this.canvas);
-          const p2 = worldToScreen(x2, y2, this.canvas);
-          this.ctx.strokeStyle = color;
-          this.ctx.lineWidth = w;
-          this.ctx.beginPath();
-          this.ctx.moveTo(p1.x, p1.y);
-          this.ctx.lineTo(p2.x, p2.y);
-          this.ctx.stroke();
-      },
-
-      trail(points, style) {
-          if (points.length < 2) return;
-
-          const { color, width=2, dash=null } = style;
-
-          this.ctx.strokeStyle = color;
-          this.ctx.lineWidth = width;
-          if (dash) this.ctx.setLineDash(dash);
-          else this.ctx.setLineDash([]);
-
-          this.ctx.beginPath();
-          for (let i=1; i<points.length; i++) {
-              const p1 = worldToScreen(points[i-1].x, points[i-1].y, this.canvas);
-              const p2 = worldToScreen(points[i].x, points[i].y, this.canvas);
-              this.ctx.moveTo(p1.x, p1.y);
-              this.ctx.lineTo(p2.x, p2.y);
-          }
-          this.ctx.stroke();
-          this.ctx.setLineDash([]);
-      },
-
-      text(str, x, y, color="#C9D1D9") {
-          const p = worldToScreen(x, y, this.canvas);
-          this.ctx.fillStyle = color;
-          this.ctx.font = "14px JetBrains Mono";
-          this.ctx.fillText(str, p.x + 6, p.y - 6);
-      }
-  };
-  </script>
-
-  <!-- ============================================================
-       SCRIPT MODULE: LOOP.JS
-       One animation loop for all experiments
-  =============================================================== -->
-  <script type="module" id="engine-loop">
-  export let activeExperiment = null;
-
-  let last = 0;
-
-  export function setActiveExperiment(exp) {
-      activeExperiment = exp;
-  }
-
-  export function loop(t) {
-      if (!last) last = t;
-      const dt = Math.min(0.05, (t - last) / 1000);
-      last = t;
-
-      if (activeExperiment) {
-          activeExperiment.update(dt);
-          activeExperiment.draw();
-          if (activeExperiment.updateUI) activeExperiment.updateUI();
-      }
-
-      requestAnimationFrame(loop);
-  }
-  </script>
-
-  <!-- ============================================================
-       SCRIPT MODULE: RUN MANAGER
-       Handles saving, naming, visibility, undo, and table data
-  =============================================================== -->
-  <script type="module" id="engine-runmanager">
-  export const runManager = {
-      runs: [],       // { id, points, params, stats, visible, style }
-      nextId: 1,
-
-      saveRun(points, params, stats, style) {
-          const run = {
-              id: this.nextId++,
-              points: structuredClone(points),
-              params: structuredClone(params),
-              stats: structuredClone(stats),
-              visible: true,
-              style: structuredClone(style)
-          };
-          this.runs.push(run);
-          return run;
-      },
-
-      undo() {
-          return this.runs.pop();
-      },
-
-      toggleVisibility(id) {
-          const run = this.runs.find(r=>r.id===id);
-          if (!run) return;
-          run.visible = !run.visible;
-      },
-
-      deleteRun(id) {
-          this.runs = this.runs.filter(r=>r.id !== id);
-      },
-
-      getStats(points) {
-          // Compute max height, range, duration
-          let maxH = -Infinity;
-          let last = points[points.length-1];
-
-          for (const p of points) maxH = Math.max(maxH, p.y);
-
-          const range = last.x;
-          const duration = last.t;
-
-          return { maxH, range, duration };
-      }
-  };
-  </script>
-
-  <!-- ============================================================
-       SCRIPT MODULE: UI-WORKBENCH
-       - Sidebar controls
-       - Readouts
-       - Run list
-       - Accessibility tools
-       - Bottom drawer (History Table)
-  =============================================================== -->
-  <script type="module" id="ui-workbench">
-
-  import { activeExperiment } from "#engine-loop";
-  import { runManager } from "#engine-runmanager";
-  import { camera } from "#engine-camera";
-
-  /* ------------------------------------------------------------
-     DOM ELEMENTS
-  ------------------------------------------------------------ */
-  const el = {
-      labelVel: document.getElementById("labelVel"),
-      labelAng: document.getElementById("labelAng"),
-      labelGrav: document.getElementById("labelGrav"),
-
-      sliderVel: document.getElementById("sliderVel"),
-      sliderAng: document.getElementById("sliderAng"),
-      sliderGrav: document.getElementById("sliderGrav"),
-
-      btnStart: document.getElementById("btnStart"),
-      btnPause: document.getElementById("btnPause"),
-      btnNewRun: document.getElementById("btnNewRun"),
-      btnResetRun: document.getElementById("btnResetRun"),
-      btnResetSim: document.getElementById("btnResetSim"),
-      btnResetParams: document.getElementById("btnResetParams"),
-
-      btnSaveRun: document.getElementById("btnSaveRun"),
-      btnUndoRun: document.getElementById("btnUndoRun"),
-
-      runList: document.getElementById("runList"),
-      readoutGrid: document.getElementById("readoutGrid"),
-
-      drawer: document.getElementById("drawer"),
-      drawerHandle: document.getElementById("drawerHandle"),
-      runTable: document.getElementById("runTable"),
-
-      accBtn: document.getElementById("btnAccessibility"),
-      accPanel: document.getElementById("accessibilityPanel"),
-      accReducedMotion: document.getElementById("accReducedMotion"),
-      accLargeUI: document.getElementById("accLargeUI"),
-      accFontUp: document.getElementById("accFontUp"),
-      accFontDown: document.getElementById("accFontDown"),
-      accCBMode: document.getElementById("accCBMode"),
-      accClose: document.getElementById("accClose")
-  };
-
-  let drawerHeight = 200;        // default min height
-  const drawerMax = window.innerHeight * 0.70;
-
-  /* ------------------------------------------------------------
-     ACCESSIBILITY CONTROLS
-  ------------------------------------------------------------ */
-  el.accBtn.onclick = () => el.accPanel.classList.toggle("open");
-  el.accClose.onclick = () => el.accPanel.classList.remove("open");
-
-  el.accReducedMotion.onchange = () => {
-      camera.reducedMotion = el.accReducedMotion.checked;
-      document.documentElement.style.setProperty(
-          "--transition-speed", camera.reducedMotion ? "0ms" : "180ms"
-      );
-  };
-
-  el.accLargeUI.onchange = () => {
-      document.documentElement.style.setProperty(
-          "--ui-scale", el.accLargeUI.checked ? "1.2" : "1.0"
-      );
-  };
-
-  let fontScale = 1;
-  function applyFontScaling() {
-      document.documentElement.style.setProperty("--font-scale", fontScale.toString());
-  }
-
-  el.accFontUp.onclick = () => { fontScale = Math.min(1.6, fontScale + 0.1); applyFontScaling(); };
-  el.accFontDown.onclick = () => { fontScale = Math.max(0.8, fontScale - 0.1); applyFontScaling(); };
-
-  el.accCBMode.onchange = () => {
-      if (activeExperiment && activeExperiment.setColorblindMode)
-          activeExperiment.setColorblindMode(el.accCBMode.checked);
-  };
-
-  /* ------------------------------------------------------------
-     DRAWER (DATA TABLE)
-  ------------------------------------------------------------ */
-  let drawerDragging = false;
-  let drawerLastY = 0;
-
-  el.drawerHandle.addEventListener("mousedown", e => {
-      drawerDragging = true;
-      drawerLastY = e.clientY;
-  });
-
-  window.addEventListener("mouseup", () => drawerDragging = false);
-
-  window.addEventListener("mousemove", e => {
-      if (!drawerDragging) return;
-      const dy = drawerLastY - e.clientY;
-      drawerLastY = e.clientY;
-
-      drawerHeight = Math.min(drawerMax, Math.max(200, drawerHeight + dy));
-      el.drawer.style.height = drawerHeight + "px";
-  });
-
-  /* Expand/collapse behavior (toggle drawer) */
-  export function toggleDrawer() {
-      el.drawer.classList.toggle("open");
-  }
-
-  /* ------------------------------------------------------------
-     PARAMETER SLIDERS (UI ONLY — no instant reset)
-  ------------------------------------------------------------ */
-  export const paramsUI = {
-      v0: 25,
-      angle: 45 * Math.PI/180,
-      g: 9.81
-  };
-
-  el.sliderVel.oninput = () => {
-      paramsUI.v0 = +el.sliderVel.value;
-      el.labelVel.textContent = paramsUI.v0;
-  };
-
-  el.sliderAng.oninput = () => {
-      paramsUI.angle = +el.sliderAng.value * Math.PI/180;
-      el.labelAng.textContent = el.sliderAng.value;
-  };
-
-  el.sliderGrav.oninput = () => {
-      paramsUI.g = +el.sliderGrav.value;
-      el.labelGrav.textContent = paramsUI.g.toFixed(2);
-  };
-
-  /* ------------------------------------------------------------
-     RUN CONTROL BUTTONS
-  ------------------------------------------------------------ */
-  el.btnStart.onclick = () => {
-      if (activeExperiment) activeExperiment.startRun(paramsUI);
-  };
-
-  el.btnPause.onclick = () => {
-      if (activeExperiment) activeExperiment.pauseRun();
-  };
-
-  el.btnNewRun.onclick = () => {
-      if (activeExperiment) activeExperiment.startNewRun(paramsUI);
-  };
-
-  el.btnResetRun.onclick = () => {
-      if (activeExperiment) activeExperiment.resetRun(paramsUI, { recenter:true });
-  };
-
-  el.btnResetSim.onclick = () => {
-      if (activeExperiment) activeExperiment.resetSimulation(paramsUI);
-  };
-
-  el.btnResetParams.onclick = () => {
-      el.sliderVel.value = 25;
-      el.sliderAng.value = 45;
-      el.sliderGrav.value = 9.81;
-
-      paramsUI.v0 = 25;
-      paramsUI.angle = 45 * Math.PI/180;
-      paramsUI.g = 9.81;
-
-      el.labelVel.textContent = 25;
-      el.labelAng.textContent = 45;
-      el.labelGrav.textContent = "9.81";
-  };
-
-  el.btnSaveRun.onclick = () => {
-      if (activeExperiment) activeExperiment.saveCurrentRun();
-  };
-
-  el.btnUndoRun.onclick = () => {
-      runManager.undo();
-      refreshRunList();
-      refreshRunTable();
-  };
-
-  /* ------------------------------------------------------------
-     READOUT GRID
-  ------------------------------------------------------------ */
-  export function updateReadout(readouts) {
-      el.readoutGrid.innerHTML = Object.entries(readouts)
-          .map(([key, val]) => `
-              <div class="row">
-                <span>${key}</span>
-                <span>${val}</span>
-              </div>
-          `)
-          .join("");
-  }
-
-  /* ------------------------------------------------------------
-     RUN LIST (SIDEBAR)
-  ------------------------------------------------------------ */
-  export function refreshRunList() {
-      el.runList.innerHTML = "";
-
-      for (const run of runManager.runs) {
-          const row = document.createElement("div");
-          row.style.display = "flex";
-          row.style.justifyContent = "space-between";
-          row.style.margin = "4px 0";
-
-          row.innerHTML = `
-            <span>Run ${run.id}</span>
-            <div>
-              <button data-id="${run.id}" class="visToggle" style="width:40px;">
-                ${run.visible ? "👁" : "🙈"}
-              </button>
-              <button data-id="${run.id}" class="delRun" style="width:40px; color:var(--accent-red);">
-                ✖
-              </button>
+  <div class="accOption">
+    <span>Colorblind Trails</span>
+    <input type="checkbox" id="accCBMode">
+  </div>
+
+  <button id="accClose" class="actionBtn">Close</button>
+</div>
+
+<!-- ===== Sidebar ===== -->
+<div id="sidePanel">
+  <div class="sectionTitle">Parameters</div>
+
+  <label>Velocity: <span id="labelVel">25</span> m/s</label>
+  <input type="range" id="sliderVel" min="1" max="80" value="25">
+
+  <label>Angle: <span id="labelAng">45</span>°</label>
+  <input type="range" id="sliderAng" min="1" max="89" value="45">
+
+  <label>Gravity: <span id="labelGrav">9.81</span> m/s²</label>
+  <input type="range" id="sliderGrav" min="0.5" max="20" step="0.01" value="9.81">
+
+  <button id="btnSaveRun" class="actionBtn">Save Run</button>
+  <button id="btnUndoRun" class="actionBtn">Undo Last Run</button>
+
+  <div class="sectionTitle">Readouts</div>
+  <div id="readoutGrid"></div>
+
+  <div class="sectionTitle">Run List</div>
+  <div id="runList"></div>
+</div>
+
+<!-- ===== Canvas ===== -->
+<canvas id="simCanvas"></canvas>
+
+<!-- ===== Bottom Drawer (Data Table) ===== -->
+<div id="drawer">
+  <div id="drawerHandle">⋮⋮ Drag to Resize ⋮⋮</div>
+  <div id="drawerContent">
+    <table class="runTable" id="runTable"></table>
+  </div>
+</div>
+
+<!-- ============================================================
+     ALL MODULES BELOW ARE "SOURCE ONLY" (not executed yet)
+     The loader at the very end builds an import map and runs #main.
+=============================================================== -->
+
+<!-- CAMERA -->
+<script type="text/x-module-source" id="engine-camera">
+export const camera = {
+    x: 0,
+    y: 0,
+    scale: 20,
+    minScale: 0.2,
+    maxScale: 5,
+    reducedMotion: false
+};
+
+export function worldToScreen(x, y, canvas) {
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    return {
+        x: cx + (x - camera.x) * camera.scale,
+        y: cy - (y - camera.y) * camera.scale
+    };
+}
+
+export function screenToWorld(px, py, canvas) {
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    return {
+        x: (px - cx) / camera.scale + camera.x,
+        y: (cy - py) / camera.scale + camera.y
+    };
+}
+
+export function applyCameraInput(canvas) {
+    let dragging = false;
+    let last = { x:0, y:0 };
+
+    canvas.addEventListener("wheel", e => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.1 : 0.9;
+        camera.scale *= factor;
+        camera.scale = Math.min(camera.maxScale, Math.max(camera.minScale, camera.scale));
+    });
+
+    canvas.addEventListener("mousedown", e => {
+        dragging = true;
+        last = { x:e.clientX, y:e.clientY };
+    });
+
+    window.addEventListener("mouseup", () => dragging = false);
+
+    canvas.addEventListener("mousemove", e => {
+        if (!dragging) return;
+        const dx = (e.clientX - last.x) / camera.scale;
+        const dy = (e.clientY - last.y) / camera.scale;
+        camera.x -= dx;
+        camera.y += dy;
+        last = { x:e.clientX, y:e.clientY };
+    });
+}
+</script>
+
+<!-- RENDERER -->
+<script type="text/x-module-source" id="engine-renderer">
+import { worldToScreen, camera } from "#engine-camera";
+
+export const renderer = {
+    ctx:null,
+    canvas:null,
+    
+    init(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d", { alpha:false });
+    },
+
+    clear() {
+        this.ctx.fillStyle = "#0E1117";
+        this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+    },
+
+    ball(x, y, r, color) {
+        const p = worldToScreen(x, y, this.canvas);
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, r * camera.scale, 0, Math.PI*2);
+        this.ctx.fill();
+    },
+
+    line(x1, y1, x2, y2, color="#C9D1D9", w=2) {
+        const p1 = worldToScreen(x1, y1, this.canvas);
+        const p2 = worldToScreen(x2, y2, this.canvas);
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = w;
+        this.ctx.beginPath();
+        this.ctx.moveTo(p1.x, p1.y);
+        this.ctx.lineTo(p2.x, p2.y);
+        this.ctx.stroke();
+    },
+
+    trail(points, style) {
+        if (points.length < 2) return;
+
+        const { color, width=2, dash=null } = style;
+
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = width;
+        if (dash) this.ctx.setLineDash(dash);
+        else this.ctx.setLineDash([]);
+
+        this.ctx.beginPath();
+        for (let i=1; i<points.length; i++) {
+            const p1 = worldToScreen(points[i-1].x, points[i-1].y, this.canvas);
+            const p2 = worldToScreen(points[i].x, points[i].y, this.canvas);
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.lineTo(p2.x, p2.y);
+        }
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+    },
+
+    text(str, x, y, color="#C9D1D9") {
+        const p = worldToScreen(x, y, this.canvas);
+        this.ctx.fillStyle = color;
+        this.ctx.font = "14px JetBrains Mono";
+        this.ctx.fillText(str, p.x + 6, p.y - 6);
+    }
+};
+</script>
+
+<!-- LOOP -->
+<script type="text/x-module-source" id="engine-loop">
+export let activeExperiment = null;
+
+let last = 0;
+
+export function setActiveExperiment(exp) {
+    activeExperiment = exp;
+}
+
+export function loop(t) {
+    if (!last) last = t;
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+
+    if (activeExperiment) {
+        activeExperiment.update(dt);
+        activeExperiment.draw();
+        if (activeExperiment.updateUI) activeExperiment.updateUI();
+    }
+
+    requestAnimationFrame(loop);
+}
+</script>
+
+<!-- RUN MANAGER -->
+<script type="text/x-module-source" id="engine-runmanager">
+export const runManager = {
+    runs: [],       // { id, points, params, stats, visible, style }
+    nextId: 1,
+
+    saveRun(points, params, stats, style) {
+        const run = {
+            id: this.nextId++,
+            points: structuredClone(points),
+            params: structuredClone(params),
+            stats: structuredClone(stats),
+            visible: true,
+            style: structuredClone(style)
+        };
+        this.runs.push(run);
+        return run;
+    },
+
+    undo() {
+        return this.runs.pop();
+    },
+
+    toggleVisibility(id) {
+        const run = this.runs.find(r=>r.id===id);
+        if (!run) return;
+        run.visible = !run.visible;
+    },
+
+    deleteRun(id) {
+        this.runs = this.runs.filter(r=>r.id !== id);
+    },
+
+    getStats(points) {
+        // Compute max height, range, duration
+        let maxH = -Infinity;
+        let last = points[points.length-1];
+
+        for (const p of points) maxH = Math.max(maxH, p.y);
+
+        const range = last.x;
+        const duration = last.t;
+
+        return { maxH, range, duration };
+    }
+};
+</script>
+
+<!-- UI WORKBENCH -->
+<script type="text/x-module-source" id="ui-workbench">
+import { activeExperiment } from "#engine-loop";
+import { runManager } from "#engine-runmanager";
+import { camera } from "#engine-camera";
+
+/* ------------------------------------------------------------
+   DOM ELEMENTS
+------------------------------------------------------------ */
+const el = {
+    labelVel: document.getElementById("labelVel"),
+    labelAng: document.getElementById("labelAng"),
+    labelGrav: document.getElementById("labelGrav"),
+
+    sliderVel: document.getElementById("sliderVel"),
+    sliderAng: document.getElementById("sliderAng"),
+    sliderGrav: document.getElementById("sliderGrav"),
+
+    btnStart: document.getElementById("btnStart"),
+    btnPause: document.getElementById("btnPause"),
+    btnNewRun: document.getElementById("btnNewRun"),
+    btnResetRun: document.getElementById("btnResetRun"),
+    btnResetSim: document.getElementById("btnResetSim"),
+    btnResetParams: document.getElementById("btnResetParams"),
+
+    btnSaveRun: document.getElementById("btnSaveRun"),
+    btnUndoRun: document.getElementById("btnUndoRun"),
+
+    runList: document.getElementById("runList"),
+    readoutGrid: document.getElementById("readoutGrid"),
+
+    drawer: document.getElementById("drawer"),
+    drawerHandle: document.getElementById("drawerHandle"),
+    runTable: document.getElementById("runTable"),
+
+    accBtn: document.getElementById("btnAccessibility"),
+    accPanel: document.getElementById("accessibilityPanel"),
+    accReducedMotion: document.getElementById("accReducedMotion"),
+    accLargeUI: document.getElementById("accLargeUI"),
+    accFontUp: document.getElementById("accFontUp"),
+    accFontDown: document.getElementById("accFontDown"),
+    accCBMode: document.getElementById("accCBMode"),
+    accClose: document.getElementById("accClose")
+};
+
+let drawerHeight = 200;        // default min height
+const drawerMax = window.innerHeight * 0.70;
+
+/* ------------------------------------------------------------
+   ACCESSIBILITY CONTROLS
+------------------------------------------------------------ */
+el.accBtn.onclick = () => el.accPanel.classList.toggle("open");
+el.accClose.onclick = () => el.accPanel.classList.remove("open");
+
+el.accReducedMotion.onchange = () => {
+    camera.reducedMotion = el.accReducedMotion.checked;
+    document.documentElement.style.setProperty(
+        "--transition-speed", camera.reducedMotion ? "0ms" : "180ms"
+    );
+};
+
+el.accLargeUI.onchange = () => {
+    /* Previously set --ui-scale which did page transform; keep as semantic flag.
+       For classroom readability, we bump font scale instead (non-destructive). */
+    const on = el.accLargeUI.checked;
+    document.documentElement.style.setProperty("--ui-scale", on ? "1.2" : "1.0");
+    document.documentElement.style.setProperty("--font-scale", on ? "1.2" : "1.0");
+};
+
+let fontScale = 1;
+function applyFontScaling() {
+    document.documentElement.style.setProperty("--font-scale", fontScale.toString());
+}
+
+el.accFontUp.onclick = () => { fontScale = Math.min(1.6, fontScale + 0.1); applyFontScaling(); };
+el.accFontDown.onclick = () => { fontScale = Math.max(0.8, fontScale - 0.1); applyFontScaling(); };
+
+el.accCBMode.onchange = () => {
+    if (activeExperiment && activeExperiment.setColorblindMode)
+        activeExperiment.setColorblindMode(el.accCBMode.checked);
+};
+
+/* ------------------------------------------------------------
+   DRAWER (DATA TABLE)
+------------------------------------------------------------ */
+let drawerDragging = false;
+let drawerLastY = 0;
+
+el.drawerHandle.addEventListener("mousedown", e => {
+    drawerDragging = true;
+    drawerLastY = e.clientY;
+});
+
+window.addEventListener("mouseup", () => drawerDragging = false);
+
+window.addEventListener("mousemove", e => {
+    if (!drawerDragging) return;
+    const dy = drawerLastY - e.clientY;
+    drawerLastY = e.clientY;
+
+    drawerHeight = Math.min(drawerMax, Math.max(200, drawerHeight + dy));
+    el.drawer.style.height = drawerHeight + "px";
+});
+
+/* Expand/collapse behavior (toggle drawer) */
+export function toggleDrawer() {
+    el.drawer.classList.toggle("open");
+}
+
+/* ------------------------------------------------------------
+   PARAMETER SLIDERS (UI ONLY — no instant reset)
+------------------------------------------------------------ */
+export const paramsUI = {
+    v0: 25,
+    angle: 45 * Math.PI/180,
+    g: 9.81
+};
+
+el.sliderVel.oninput = () => {
+    paramsUI.v0 = +el.sliderVel.value;
+    el.labelVel.textContent = paramsUI.v0;
+};
+
+el.sliderAng.oninput = () => {
+    paramsUI.angle = +el.sliderAng.value * Math.PI/180;
+    el.labelAng.textContent = el.sliderAng.value;
+};
+
+el.sliderGrav.oninput = () => {
+    paramsUI.g = +el.sliderGrav.value;
+    el.labelGrav.textContent = paramsUI.g.toFixed(2);
+};
+
+/* ------------------------------------------------------------
+   RUN CONTROL BUTTONS
+------------------------------------------------------------ */
+el.btnStart.onclick = () => {
+    if (activeExperiment) activeExperiment.startRun(paramsUI);
+};
+
+el.btnPause.onclick = () => {
+    if (activeExperiment) activeExperiment.pauseRun();
+};
+
+el.btnNewRun.onclick = () => {
+    if (activeExperiment) activeExperiment.startNewRun(paramsUI);
+};
+
+el.btnResetRun.onclick = () => {
+    if (activeExperiment) activeExperiment.resetRun(paramsUI, { recenter:true });
+};
+
+el.btnResetSim.onclick = () => {
+    if (activeExperiment) activeExperiment.resetSimulation(paramsUI);
+};
+
+el.btnResetParams.onclick = () => {
+    el.sliderVel.value = 25;
+    el.sliderAng.value = 45;
+    el.sliderGrav.value = 9.81;
+
+    paramsUI.v0 = 25;
+    paramsUI.angle = 45 * Math.PI/180;
+    paramsUI.g = 9.81;
+
+    el.labelVel.textContent = 25;
+    el.labelAng.textContent = 45;
+    el.labelGrav.textContent = "9.81";
+};
+
+el.btnSaveRun.onclick = () => {
+    if (activeExperiment) activeExperiment.saveCurrentRun();
+};
+
+el.btnUndoRun.onclick = () => {
+    runManager.undo();
+    refreshRunList();
+    refreshRunTable();
+};
+
+/* ------------------------------------------------------------
+   READOUT GRID
+------------------------------------------------------------ */
+export function updateReadout(readouts) {
+    el.readoutGrid.innerHTML = Object.entries(readouts)
+        .map(([key, val]) => `
+            <div class="row">
+              <span>${key}</span>
+              <span>${val}</span>
             </div>
-          `;
+        `)
+        .join("");
+}
 
-          row.querySelector(".visToggle").onclick = () => {
-              runManager.toggleVisibility(run.id);
-              refreshRunList();
-              refreshRunTable();
-          };
+/* ------------------------------------------------------------
+   RUN LIST (SIDEBAR)
+------------------------------------------------------------ */
+export function refreshRunList() {
+    el.runList.innerHTML = "";
 
-          row.querySelector(".delRun").onclick = () => {
-              runManager.deleteRun(run.id);
-              refreshRunList();
-              refreshRunTable();
-          };
+    for (const run of runManager.runs) {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.justifyContent = "space-between";
+        row.style.margin = "4px 0";
 
-          el.runList.appendChild(row);
-      }
+        row.innerHTML = `
+          <span>Run ${run.id}</span>
+          <div>
+            <button data-id="${run.id}" class="visToggle" style="width:40px;">
+              ${run.visible ? "👁" : "🙈"}
+            </button>
+            <button data-id="${run.id}" class="delRun" style="width:40px; color:var(--accent-red);">
+              ✖
+            </button>
+          </div>
+        `;
+
+        row.querySelector(".visToggle").onclick = () => {
+            runManager.toggleVisibility(run.id);
+            refreshRunList();
+            refreshRunTable();
+        };
+
+        row.querySelector(".delRun").onclick = () => {
+            runManager.deleteRun(run.id);
+            refreshRunList();
+            refreshRunTable();
+        };
+
+        el.runList.appendChild(row);
+    }
+}
+
+/* ------------------------------------------------------------
+   HISTORY TABLE IN DRAWER
+------------------------------------------------------------ */
+export function refreshRunTable() {
+    const rows = [];
+
+    rows.push(`
+      <tr>
+        <th>Run #</th>
+        <th>Max Height</th>
+        <th>Range</th>
+        <th>Duration</th>
+        <th>Visible</th>
+        <th>Export</th>
+      </tr>
+    `);
+
+    for (const run of runManager.runs) {
+        rows.push(`
+          <tr>
+            <td>${run.id}</td>
+            <td>${run.stats.maxH.toFixed(2)} m</td>
+            <td>${run.stats.range.toFixed(2)} m</td>
+            <td>${run.stats.duration.toFixed(2)} s</td>
+            <td>${run.visible ? "👁" : "🙈"}</td>
+            <td>
+              <button data-id="${run.id}" class="expCSV">CSV</button>
+              <button data-id="${run.id}" class="expJSON">JSON</button>
+            </td>
+          </tr>
+        `);
+    }
+
+    el.runTable.innerHTML = rows.join("");
+
+    // Export buttons
+    for (const btn of el.runTable.querySelectorAll(".expCSV")) {
+        btn.onclick = () => exportRunCSV(+btn.dataset.id);
+    }
+    for (const btn of el.runTable.querySelectorAll(".expJSON")) {
+        btn.onclick = () => exportRunJSON(+btn.dataset.id);
+    }
+}
+
+/* ------------------------------------------------------------
+   EXPORT UTILITIES
+------------------------------------------------------------ */
+function exportRunCSV(id) {
+    const run = runManager.runs.find(r=>r.id===id);
+    if (!run) return;
+
+    const rows = ["t,x,y,vx,vy"];
+    for (const p of run.points) {
+        rows.push(`${p.t},${p.x},${p.y},${p.vx},${p.vy}`);
+    }
+
+    const blob = new Blob([rows.join("\n")], { type:"text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `run_${id}.csv`;
+    a.click();
+}
+
+function exportRunJSON(id) {
+    const run = runManager.runs.find(r=>r.id===id);
+    if (!run) return;
+
+    const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `run_${id}.json`;
+    a.click();
+}
+</script>
+
+<!-- PROJECTILE EXPERIMENT -->
+<script type="text/x-module-source" id="exp-projectile">
+import { renderer } from "#engine-renderer";
+import { camera } from "#engine-camera";
+import { runManager } from "#engine-runmanager";
+import { updateReadout, refreshRunList, refreshRunTable } from "#ui-workbench";
+
+export class ProjectileExperiment {
+
+    constructor() {
+        this.running = false;
+        this.paused = false;
+        this.points = [];
+        this.colorblindMode = false;
+
+        this.params = { v0: 25, angle: 45 * Math.PI/180, g: 9.81 };
+    }
+
+    _computeStats(points) { return runManager.getStats(points); }
+
+    _style() {
+        if (!this.colorblindMode) {
+            return { color: "#58A6FF", width: 2, dash: null };
+        }
+        return { color: "#58A6FF", width: 2, dash: [6, 4] };
+    }
+
+    setColorblindMode(enabled) { this.colorblindMode = enabled; }
+
+    startRun(paramsUI) {
+        if (this.running && !this.paused) return;
+        this.params = { ...paramsUI };
+        if (this.paused) { this.paused = false; this.running = true; return; }
+        this._beginNewRun();
+    }
+
+    pauseRun() { if (!this.running) return; this.paused = true; this.running = false; }
+
+    startNewRun(paramsUI) { this.params = { ...paramsUI }; this._beginNewRun(); }
+
+    _beginNewRun() {
+        this.running = true; this.paused = false; this.t = 0; this.points = [];
+        const p = this.params; this.x = 0; this.y = 0; this.vx = p.v0 * Math.cos(p.angle); this.vy = p.v0 * Math.sin(p.angle);
+    }
+
+    resetRun(paramsUI, options={}) {
+        const { recenter=false } = options;
+        this.params = { ...paramsUI }; this.running = false; this.paused = false;
+        this.points = []; this.t = 0;
+        const p = this.params; this.x = 0; this.y = 0; this.vx = p.v0 * Math.cos(p.angle); this.vy = p.v0 * Math.sin(p.angle);
+        if (recenter) { camera.x = 0; camera.y = 0; }
+    }
+
+    resetSimulation(paramsUI) { this.resetRun(paramsUI, { recenter:false }); }
+
+    resetParameters() { /* handled in UI */ }
+
+    saveCurrentRun() {
+        if (this.points.length < 2) return;
+        const stats = this._computeStats(this.points);
+        runManager.saveRun(this.points, this.params, stats, this._style());
+        refreshRunList(); refreshRunTable();
+    }
+
+    update(dt) {
+        if (!this.running || this.paused) return;
+        const p = this.params;
+        this.t += dt; this.vy -= p.g * dt;
+        this.x += this.vx * dt; this.y += this.vy * dt;
+        this.points.push({ t:this.t, x:this.x, y:this.y, vx:this.vx, vy:this.vy });
+
+        if (this.y <= 0 && this.t > 0.05) {
+            this.running = false; this.paused = false;
+            const stats = this._computeStats(this.points);
+            runManager.saveRun(this.points, this.params, stats, this._style());
+            refreshRunList(); refreshRunTable();
+        }
+        this.updateUI();
+    }
+
+    draw() {
+        renderer.clear();
+        renderer.line(-500, 0, 500, 0, "#8B949E", 2);
+        for (const run of runManager.runs) if (run.visible) renderer.trail(run.points, run.style);
+        renderer.trail(this.points, this._style());
+        renderer.ball(this.x, this.y, 0.15, "#58A6FF");
+    }
+
+    updateUI() {
+        const speed = Math.hypot(this.vx, this.vy);
+        updateReadout({
+            Time: this.t.toFixed(2) + " s",
+            X: this.x.toFixed(2) + " m",
+            Y: this.y.toFixed(2) + " m",
+            Vx: this.vx.toFixed(2) + " m/s",
+            Vy: this.vy.toFixed(2) + " m/s",
+            Speed: speed.toFixed(2) + " m/s"
+        });
+    }
+}
+</script>
+
+<!-- ACCESSIBILITY CONTROLLER -->
+<script type="text/x-module-source" id="accessibility-controller">
+import { camera } from "#engine-camera";
+import { activeExperiment } from "#engine-loop";
+
+/* ELEMENT REFS */
+const accPanel = document.getElementById("accessibilityPanel");
+const btnAccessibility = document.getElementById("btnAccessibility");
+const accReducedMotion = document.getElementById("accReducedMotion");
+const accLargeUI = document.getElementById("accLargeUI");
+const accFontUp = document.getElementById("accFontUp");
+const accFontDown = document.getElementById("accFontDown");
+const accCBMode = document.getElementById("accCBMode");
+const accClose = document.getElementById("accClose");
+
+/* MENU OPEN/CLOSE */
+btnAccessibility.addEventListener("click", () => {
+    accPanel.classList.toggle("open");
+    accPanel.setAttribute("aria-expanded", accPanel.classList.contains("open"));
+});
+accClose.addEventListener("click", () => {
+    accPanel.classList.remove("open");
+    accPanel.setAttribute("aria-expanded", "false");
+});
+
+/* REDUCED MOTION */
+accReducedMotion.addEventListener("change", () => {
+    const enabled = accReducedMotion.checked;
+    camera.reducedMotion = enabled;
+    document.documentElement.style.setProperty("--transition-speed", enabled ? "0ms" : "180ms");
+});
+
+/* LARGE UI: bump font-scale instead of page transform */
+accLargeUI.addEventListener("change", () => {
+    const enabled = accLargeUI.checked;
+    document.documentElement.style.setProperty("--ui-scale", enabled ? "1.20" : "1.0");
+    document.documentElement.style.setProperty("--font-scale", enabled ? "1.20" : "1.0");
+});
+
+/* FONT SIZE */
+let fontScale = 1.0;
+function applyFontScale(){ document.documentElement.style.setProperty("--font-scale", fontScale.toString()); }
+accFontUp.addEventListener("click", () => { fontScale = Math.min(1.8, fontScale + 0.1); applyFontScale(); });
+accFontDown.addEventListener("click", () => { fontScale = Math.max(0.6, fontScale - 0.1); applyFontScale(); });
+
+/* COLORBLIND MODE */
+accCBMode.addEventListener("change", () => {
+    const enabled = accCBMode.checked;
+    if (activeExperiment && activeExperiment.setColorblindMode) activeExperiment.setColorblindMode(enabled);
+    if (activeExperiment && activeExperiment.restyleRunsForColorblindMode) activeExperiment.restyleRunsForColorblindMode(enabled);
+});
+
+/* ARIA */
+accPanel.setAttribute("role", "dialog");
+accPanel.setAttribute("aria-labelledby", "Accessibility Settings");
+btnAccessibility.setAttribute("aria-haspopup", "true");
+btnAccessibility.setAttribute("aria-controls", "accessibilityPanel");
+accReducedMotion.setAttribute("aria-label", "Toggle Reduced Motion");
+accLargeUI.setAttribute("aria-label", "Toggle Larger UI Mode");
+accCBMode.setAttribute("aria-label", "Toggle Colorblind-Friendly Trails");
+accFontUp.setAttribute("aria-label", "Increase Font Size");
+accFontDown.setAttribute("aria-label", "Decrease Font Size");
+accClose.setAttribute("aria-label", "Close Accessibility Menu");
+</script>
+
+<!-- DRAWER CONTROLLER -->
+<script type="text/x-module-source" id="drawer-controller">
+import { activeExperiment } from "#engine-loop";
+import { runManager } from "#engine-runmanager";
+import { camera } from "#engine-camera";
+import { refreshRunTable } from "#ui-workbench";
+
+/* DOM */
+const drawer = document.getElementById("drawer");
+const drawerHandle = document.getElementById("drawerHandle");
+const drawerContent = document.getElementById("drawerContent");
+const drawerTable = document.getElementById("runTable");
+
+const btnToggleDrawer = document.createElement("button");
+btnToggleDrawer.textContent = "Run Table ▼";
+btnToggleDrawer.className = "actionBtn";
+btnToggleDrawer.style.marginLeft = "auto";
+btnToggleDrawer.style.width = "140px";
+document.getElementById("toolbar").appendChild(btnToggleDrawer);
+
+/* TOGGLE */
+function toggleDrawer() {
+    drawer.classList.toggle("open");
+    const open = drawer.classList.contains("open");
+    btnToggleDrawer.textContent = open ? "Run Table ▲" : "Run Table ▼";
+    btnToggleDrawer.setAttribute("aria-expanded", open);
+    if (open) refreshRunTable();
+}
+btnToggleDrawer.onclick = toggleDrawer;
+btnToggleDrawer.setAttribute("aria-haspopup", "true");
+btnToggleDrawer.setAttribute("aria-controls", "drawerContent");
+
+/* Keyboard for toggle */
+btnToggleDrawer.onkeydown = (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleDrawer(); }
+};
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawer.classList.contains("open")) {
+        drawer.classList.remove("open");
+        btnToggleDrawer.textContent = "Run Table ▼";
+        btnToggleDrawer.setAttribute("aria-expanded", "false");
+    }
+});
+
+/* Center camera on run */
+function centerCameraOnRun(run) {
+    if (!run || run.points.length === 0) return;
+    const midpointIndex = Math.floor(run.points.length / 2);
+    const mid = run.points[midpointIndex];
+    camera.x = mid.x; camera.y = mid.y;
+}
+
+/* Click row -> highlight */
+drawerTable.onclick = (e) => {
+    const row = e.target.closest("tr");
+    if (!row || !row.dataset.runId) return;
+    const runId = Number(row.dataset.runId);
+    const run = runManager.runs.find(r => r.id === runId);
+    if (!run) return;
+    activeExperiment.highlightRun(runId);
+    centerCameraOnRun(run);
+    refreshRunTable();
+};
+
+/* Interactive render (kept export) */
+export function renderRunTableInteractive() {
+    const rows = [];
+    rows.push(`
+      <tr role="row">
+        <th role="columnheader">Run #</th>
+        <th role="columnheader">Max Height</th>
+        <th role="columnheader">Range</th>
+        <th role="columnheader">Duration</th>
+        <th role="columnheader">Visible</th>
+        <th role="columnheader">Export</th>
+      </tr>
+    `);
+
+    for (const run of runManager.runs) {
+        const vis = run.visible ? "👁" : "🙈";
+        rows.push(`
+          <tr role="row" data-run-id="${run.id}" tabindex="0" aria-label="Run ${run.id} summary">
+            <td>${run.id}</td>
+            <td>${run.stats.maxH.toFixed(2)} m</td>
+            <td>${run.stats.range.toFixed(2)} m</td>
+            <td>${run.stats.duration.toFixed(2)} s</td>
+            <td>${vis}</td>
+            <td><button data-expcsv="${run.id}">CSV</button> <button data-expjson="${run.id}">JSON</button></td>
+          </tr>
+        `);
+    }
+
+    drawerTable.innerHTML = rows.join("");
+    for (const btn of drawerTable.querySelectorAll("[data-expcsv]")) btn.onclick = () => exportRunCSV(+btn.dataset.expcsv);
+    for (const btn of drawerTable.querySelectorAll("[data-expjson]")) btn.onclick = () => exportRunJSON(+btn.dataset.expjson);
+}
+
+/* Keyboard nav */
+drawerTable.onkeydown = (e) => {
+    if (!drawer.classList.contains("open")) return;
+    const rows = [...drawerTable.querySelectorAll("tr[data-run-id]")];
+    const current = document.activeElement;
+    if (!rows.includes(current)) return;
+    const idx = rows.indexOf(current);
+    if (e.key === "ArrowDown") { e.preventDefault(); rows[Math.min(idx+1, rows.length-1)].focus(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); rows[Math.max(idx-1, 0)].focus(); }
+};
+
+/* Export helpers */
+function exportRunCSV(id) {
+    const run = runManager.runs.find(r => r.id === id);
+    if (!run) return;
+    const rows = ["t,x,y,vx,vy"];
+    for (const p of run.points) rows.push(`${p.t},${p.x},${p.y},${p.vx},${p.vy}`);
+    const blob = new Blob([rows.join("\n")], { type:"text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `run_${id}.csv`; a.click();
+}
+function exportRunJSON(id) {
+    const run = runManager.runs.find(r => r.id === id); if (!run) return;
+    const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `run_${id}.json`; a.click();
+}
+</script>
+
+<!-- FINAL GLUE -->
+<script type="text/x-module-source" id="final-glue">
+import { activeExperiment } from "#engine-loop";
+import { runManager } from "#engine-runmanager";
+import { refreshRunTable, refreshRunList } from "#ui-workbench";
+
+/* Provide default behaviors safely only when activeExperiment exists */
+if (activeExperiment && !activeExperiment.highlightRun) {
+    activeExperiment.highlightRun = function(runId) {
+        for (const run of runManager.runs) {
+            if (run.id === runId) {
+                run.style.width = 4;
+                run.style.color = "#3FB950";
+            } else {
+                run.style.width = 1.5;
+                if (!document.getElementById("accCBMode").checked) run.style.color = "#8B949E";
+                else run.style.dash = [3,3];
+            }
+        }
+    };
+}
+
+if (activeExperiment && !activeExperiment.restyleRunsForColorblindMode) {
+    activeExperiment.restyleRunsForColorblindMode = function(enabled) {
+        for (const run of runManager.runs) {
+            if (enabled) run.style = { color:"#58A6FF", width:2, dash:[6,4] };
+            else run.style = { color:"#58A6FF", width:2, dash:null };
+        }
+        refreshRunList(); refreshRunTable();
+    };
+}
+
+/* Re-apply highlight after table changes */
+function applyCurrentHighlight() {
+    const highlighted = runManager.runs.find(r => r.style.width >= 4);
+    if (highlighted && activeExperiment && activeExperiment.highlightRun) {
+        activeExperiment.highlightRun(highlighted.id);
+    }
+}
+
+/* Events around run changes */
+document.addEventListener("runsUpdated", () => {
+    refreshRunList();
+    refreshRunTable();
+    applyCurrentHighlight();
+});
+
+/* Wrap runManager to dispatch updates */
+const originalSaveRun = runManager.saveRun;
+runManager.saveRun = function(...args) {
+    const out = originalSaveRun.apply(runManager, args);
+    document.dispatchEvent(new Event("runsUpdated")); return out;
+};
+const originalDeleteRun = runManager.deleteRun;
+runManager.deleteRun = function(id) {
+    originalDeleteRun.call(runManager, id);
+    document.dispatchEvent(new Event("runsUpdated"));
+};
+const originalUndoRun = runManager.undo;
+runManager.undo = function() {
+    const out = originalUndoRun.call(runManager);
+    document.dispatchEvent(new Event("runsUpdated")); return out;
+};
+
+/* Optional hook for future switches */
+export function onExperimentChange() {
+    for (const run of runManager.runs) { run.style.width = 2; run.style.color = "#58A6FF"; run.style.dash = null; }
+    refreshRunList(); refreshRunTable();
+}
+
+/* ARIA */
+document.getElementById("drawer").setAttribute("role", "region");
+document.getElementById("drawerContent").setAttribute("aria-label", "Run History Table");
+</script>
+
+<!-- MAIN (kept as a single source block with the required id) -->
+<script type="text/x-module-source" id="main">
+/* Import engine modules */
+import { camera, applyCameraInput } from "#engine-camera";
+import { renderer } from "#engine-renderer";
+import { setActiveExperiment, loop, activeExperiment } from "#engine-loop";
+
+/* UI workbench */
+import { paramsUI, refreshRunList, refreshRunTable } from "#ui-workbench";
+
+/* Experiments */
+import { ProjectileExperiment } from "#exp-projectile";
+
+/* DOM refs */
+const canvas = document.getElementById("simCanvas");
+const expSelector = document.getElementById("expSelector");
+
+/* Registry */
+const experiments = { projectile: new ProjectileExperiment() };
+
+/* Canvas + Renderer */
+function resizeCanvas() {
+    canvas.width = window.innerWidth - 300;
+    canvas.height = window.innerHeight - 48;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+renderer.init(canvas);
+applyCameraInput(canvas);
+
+/* Switch experiment */
+function switchExperiment(id) {
+    if (!experiments[id]) return;
+    setActiveExperiment(experiments[id]);
+    activeExperiment.resetRun(paramsUI, { recenter:true });
+    refreshRunList(); refreshRunTable();
+}
+expSelector.onchange = () => { switchExperiment(expSelector.value); };
+
+/* Init + loop */
+switchExperiment("projectile");
+requestAnimationFrame(loop);
+</script>
+
+<!-- ============================================================
+     BOOTSTRAP LOADER (last): builds import map and runs #main
+=============================================================== -->
+<script type="module">
+/**
+ * Build a Blob-backed import map from inline module sources, then run #main.
+ * This keeps the file single and preserves each module's code.
+ */
+(function bootstrap() {
+  const sources = [...document.querySelectorAll('script[type="text/x-module-source"][id]')];
+  const imports = {};
+  for (const s of sources) {
+    const code = s.textContent;
+    const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+    imports[`#${s.id}`] = url;
   }
-
-  /* ------------------------------------------------------------
-     HISTORY TABLE IN DRAWER
-  ------------------------------------------------------------ */
-  export function refreshRunTable() {
-      const rows = [];
-
-      rows.push(`
-        <tr>
-          <th>Run #</th>
-          <th>Max Height</th>
-          <th>Range</th>
-          <th>Duration</th>
-          <th>Visible</th>
-          <th>Export</th>
-        </tr>
-      `);
-
-      for (const run of runManager.runs) {
-          rows.push(`
-            <tr>
-              <td>${run.id}</td>
-              <td>${run.stats.maxH.toFixed(2)} m</td>
-              <td>${run.stats.range.toFixed(2)} m</td>
-              <td>${run.stats.duration.toFixed(2)} s</td>
-              <td>${run.visible ? "👁" : "🙈"}</td>
-              <td>
-                <button data-id="${run.id}" class="expCSV">CSV</button>
-                <button data-id="${run.id}" class="expJSON">JSON</button>
-              </td>
-            </tr>
-          `);
-      }
-
-      el.runTable.innerHTML = rows.join("");
-
-      // Export buttons
-      for (const btn of el.runTable.querySelectorAll(".expCSV")) {
-          btn.onclick = () => exportRunCSV(+btn.dataset.id);
-      }
-      for (const btn of el.runTable.querySelectorAll(".expJSON")) {
-          btn.onclick = () => exportRunJSON(+btn.dataset.id);
-      }
-  }
-
-  /* ------------------------------------------------------------
-     EXPORT UTILITIES
-  ------------------------------------------------------------ */
-  function exportRunCSV(id) {
-      const run = runManager.runs.find(r=>r.id===id);
-      if (!run) return;
-
-      const rows = ["t,x,y,vx,vy"];
-      for (const p of run.points) {
-          rows.push(`${p.t},${p.x},${p.y},${p.vx},${p.vy}`);
-      }
-
-      const blob = new Blob([rows.join("\n")], { type:"text/csv" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `run_${id}.csv`;
-      a.click();
-  }
-
-  function exportRunJSON(id) {
-      const run = runManager.runs.find(r=>r.id===id);
-      if (!run) return;
-
-      const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `run_${id}.json`;
-      a.click();
-  }
-
-  </script>
-
-  <!-- ============================================================
-       SCRIPT MODULE: PROJECTILE EXPERIMENT (Version E)
-  =============================================================== -->
-  <script type="module" id="exp-projectile">
-
-  import { renderer } from "#engine-renderer";
-  import { camera } from "#engine-camera";
-  import { runManager } from "#engine-runmanager";
-  import { updateReadout, refreshRunList, refreshRunTable } from "#ui-workbench";
-
-  export class ProjectileExperiment {
-
-      constructor() {
-          this.running = false;
-          this.paused = false;
-          this.points = [];
-          this.colorblindMode = false;
-
-          // Current run parameters
-          this.params = {
-              v0: 25,
-              angle: 45 * Math.PI/180,
-              g: 9.81
-          };
-      }
-
-      /* ----------------------------------------------------------
-         INTERNAL HELPERS
-      ---------------------------------------------------------- */
-      _computeStats(points) {
-          return runManager.getStats(points);
-      }
-
-      _style() {
-          // Colorblind-mode safe patterns
-          if (!this.colorblindMode) {
-              return {
-                  color: "#58A6FF",
-                  width: 2,
-                  dash: null
-              };
-          }
-          return {
-              color: "#58A6FF",
-              width: 2,
-              dash: [6, 4]      // dotted pattern for CB mode
-          };
-      }
-
-      setColorblindMode(enabled) {
-          this.colorblindMode = enabled;
-      }
-
-      /* ----------------------------------------------------------
-         RUN CONTROL API REQUIRED BY VERSION-E
-      ---------------------------------------------------------- */
-
-      startRun(paramsUI) {
-          if (this.running && !this.paused) return;  // already running
-
-          // Update run params (does not affect saved runs)
-          this.params = { ...paramsUI };
-
-          // If paused → resume
-          if (this.paused) {
-              this.paused = false;
-              this.running = true;
-              return;
-          }
-
-          // If not paused → start fresh run
-          this._beginNewRun();
-      }
-
-      pauseRun() {
-          if (!this.running) return;
-          this.paused = true;
-          this.running = false;
-      }
-
-      startNewRun(paramsUI) {
-          // Start a completely new run (without saving current one)
-          this.params = { ...paramsUI };
-          this._beginNewRun();
-      }
-
-      _beginNewRun() {
-          this.running = true;
-          this.paused = false;
-          this.t = 0;
-          this.points = [];
-
-          // Initial state
-          const p = this.params;
-          this.x = 0;
-          this.y = 0;
-          this.vx = p.v0 * Math.cos(p.angle);
-          this.vy = p.v0 * Math.sin(p.angle);
-      }
-
-      resetRun(paramsUI, options={}) {
-          // Only resets the ACTIVE run. Saved runs remain intact.
-          const { recenter=false } = options;
-
-          this.params = { ...paramsUI };
-          this.running = false;
-          this.paused = false;
-
-          this.points = [];
-          this.t = 0;
-
-          const p = this.params;
-
-          this.x = 0;
-          this.y = 0;
-          this.vx = p.v0 * Math.cos(p.angle);
-          this.vy = p.v0 * Math.sin(p.angle);
-
-          if (recenter) {
-              camera.x = 0;
-              camera.y = 0;
-          }
-      }
-
-      resetSimulation(paramsUI) {
-          // Reset ONLY active run — KEEP saved runs.
-          this.resetRun(paramsUI, { recenter:false });
-          // UI will redraw them automatically.
-      }
-
-      resetParameters() {
-          // Already handled in UI module; nothing else to do here.
-      }
-
-      saveCurrentRun() {
-          if (this.points.length < 2) return;
-
-          const stats = this._computeStats(this.points);
-
-          runManager.saveRun(
-              this.points,
-              this.params,
-              stats,
-              this._style()
-          );
-
-          refreshRunList();
-          refreshRunTable();
-      }
-
-      /* ----------------------------------------------------------
-         UPDATE + DRAW
-      ---------------------------------------------------------- */
-      update(dt) {
-          if (!this.running || this.paused) return;
-
-          const p = this.params;
-
-          // Physics
-          this.t += dt;
-          this.vy -= p.g * dt;
-
-          this.x += this.vx * dt;
-          this.y += this.vy * dt;
-
-          this.points.push({
-              t: this.t,
-              x: this.x,
-              y: this.y,
-              vx: this.vx,
-              vy: this.vy
-          });
-
-          // Stop condition: projectile hits the ground
-          if (this.y <= 0 && this.t > 0.05) {
-              this.running = false;
-              this.paused = false;
-
-              // Auto-save run when it ends
-              const stats = this._computeStats(this.points);
-              runManager.saveRun(this.points, this.params, stats, this._style());
-
-              refreshRunList();
-              refreshRunTable();
-          }
-
-          // Update readout
-          this.updateUI();
-      }
-
-      draw() {
-          renderer.clear();
-
-          // Draw ground
-          renderer.line(-500, 0, 500, 0, "#8B949E", 2);
-
-          // Draw saved runs
-          for (const run of runManager.runs) {
-              if (run.visible) {
-                  renderer.trail(run.points, run.style);
-              }
-          }
-
-          // Draw current run (live)
-          renderer.trail(this.points, this._style());
-          renderer.ball(this.x, this.y, 0.15, "#58A6FF");
-      }
-
-      /* ----------------------------------------------------------
-         Readouts
-      ---------------------------------------------------------- */
-      updateUI() {
-          const speed = Math.hypot(this.vx, this.vy);
-
-          updateReadout({
-              Time: this.t.toFixed(2) + " s",
-              X: this.x.toFixed(2) + " m",
-              Y: this.y.toFixed(2) + " m",
-              Vx: this.vx.toFixed(2) + " m/s",
-              Vy: this.vy.toFixed(2) + " m/s",
-              Speed: speed.toFixed(2) + " m/s"
-          });
-      }
-  }
-
-  </script>
-
-  <!-- ============================================================
-       PART 8 — ACCESSIBILITY PANEL LOGIC (JS)
-       Handles colorblind mode, reduced motion,
-       font scaling, UI scaling, and global propagation.
-  =============================================================== -->
-  <script type="module" id="accessibility-controller">
-
-  import { camera } from "#engine-camera";
-  import { activeExperiment } from "#engine-loop";
-
-  /* ELEMENT REFS */
-  const accPanel = document.getElementById("accessibilityPanel");
-  const btnAccessibility = document.getElementById("btnAccessibility");
-  const accReducedMotion = document.getElementById("accReducedMotion");
-  const accLargeUI = document.getElementById("accLargeUI");
-  const accFontUp = document.getElementById("accFontUp");
-  const accFontDown = document.getElementById("accFontDown");
-  const accCBMode = document.getElementById("accCBMode");
-  const accClose = document.getElementById("accClose");
-
-  /* ============================================================
-     ACCESSIBILITY MENU OPEN / CLOSE
-  =============================================================== */
-  btnAccessibility.addEventListener("click", () => {
-      accPanel.classList.toggle("open");
-      accPanel.setAttribute("aria-expanded", accPanel.classList.contains("open"));
-  });
-
-  accClose.addEventListener("click", () => {
-      accPanel.classList.remove("open");
-      accPanel.setAttribute("aria-expanded", "false");
-  });
-
-
-  /* ============================================================
-     REDUCED MOTION TOGGLE
-  =============================================================== */
-  accReducedMotion.addEventListener("change", () => {
-      const enabled = accReducedMotion.checked;
-      camera.reducedMotion = enabled;
-
-      document.documentElement.style.setProperty(
-          "--transition-speed",
-          enabled ? "0ms" : "180ms"
-      );
-  });
-
-
-  /* ============================================================
-     LARGE UI TOGGLE
-     Scales the entire UI by 20%
-  =============================================================== */
-  accLargeUI.addEventListener("change", () => {
-      const enabled = accLargeUI.checked;
-      document.documentElement.style.setProperty(
-          "--ui-scale",
-          enabled ? "1.20" : "1.0"
-      );
-  });
-
-
-  /* ============================================================
-     FONT SIZE CONTROL
-  =============================================================== */
-  let fontScale = 1.0;
-
-  function applyFontScale() {
-      document.documentElement.style.setProperty("--font-scale", fontScale.toString());
-  }
-
-  accFontUp.addEventListener("click", () => {
-      fontScale = Math.min(1.8, fontScale + 0.1);
-      applyFontScale();
-  });
-
-  accFontDown.addEventListener("click", () => {
-      fontScale = Math.max(0.6, fontScale - 0.1);
-      applyFontScale();
-  });
-
-
-  /* ============================================================
-     COLORBLIND MODE TOGGLE
-     Will update trail patterns in each experiment
-  =============================================================== */
-  accCBMode.addEventListener("change", () => {
-      const enabled = accCBMode.checked;
-
-      if (activeExperiment && activeExperiment.setColorblindMode) {
-          activeExperiment.setColorblindMode(enabled);
-      }
-
-      // Also update saved runs to colorblind-safe styling
-      if (activeExperiment && activeExperiment.restyleRunsForColorblindMode) {
-          activeExperiment.restyleRunsForColorblindMode(enabled);
-      }
-  });
-
-
-  /* ============================================================
-     ACCESSIBILITY ARIA LABELS + KEYBOARD SUPPORT
-  =============================================================== */
-  accPanel.setAttribute("role", "dialog");
-  accPanel.setAttribute("aria-labelledby", "Accessibility Settings");
-
-  btnAccessibility.setAttribute("aria-haspopup", "true");
-  btnAccessibility.setAttribute("aria-controls", "accessibilityPanel");
-
-  accReducedMotion.setAttribute("aria-label", "Toggle Reduced Motion");
-  accLargeUI.setAttribute("aria-label", "Toggle Larger UI Mode");
-  accCBMode.setAttribute("aria-label", "Toggle Colorblind-Friendly Trails");
-
-  accFontUp.setAttribute("aria-label", "Increase Font Size");
-  accFontDown.setAttribute("aria-label", "Decrease Font Size");
-
-  accClose.setAttribute("aria-label", "Close Accessibility Menu");
-
-  </script>
-
-  <!-- ============================================================
-       PART 9 — DRAWER CONTROL + RUN TABLE INTERACTIONS
-  =============================================================== -->
-  <script type="module" id="drawer-controller">
-
-  import { activeExperiment } from "#engine-loop";
-  import { runManager } from "#engine-runmanager";
-  import { camera } from "#engine-camera";
-  import { refreshRunTable } from "#ui-workbench";
-
-  /* DOM References */
-  const drawer = document.getElementById("drawer");
-  const drawerHandle = document.getElementById("drawerHandle");
-  const drawerContent = document.getElementById("drawerContent");
-  const drawerTable = document.getElementById("runTable");
-
-  const btnToggleDrawer = document.createElement("button");
-  btnToggleDrawer.textContent = "Run Table ▼";
-  btnToggleDrawer.className = "actionBtn";
-  btnToggleDrawer.style.marginLeft = "auto";
-  btnToggleDrawer.style.width = "140px";
-
-  document.getElementById("toolbar").appendChild(btnToggleDrawer);
-
-  /* ============================================================
-     DRAWER TOGGLE
-  =============================================================== */
-  function toggleDrawer() {
-      drawer.classList.toggle("open");
-
-      const open = drawer.classList.contains("open");
-      btnToggleDrawer.textContent = open ? "Run Table ▲" : "Run Table ▼";
-      btnToggleDrawer.setAttribute("aria-expanded", open);
-
-      if (open) refreshRunTable();
-  }
-
-  btnToggleDrawer.onclick = toggleDrawer;
-  btnToggleDrawer.setAttribute("aria-haspopup", "true");
-  btnToggleDrawer.setAttribute("aria-controls", "drawerContent");
-
-  /* Keyboard support */
-  btnToggleDrawer.onkeydown = (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          toggleDrawer();
-      }
-  };
-
-  document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && drawer.classList.contains("open")) {
-          drawer.classList.remove("open");
-          btnToggleDrawer.textContent = "Run Table ▼";
-          btnToggleDrawer.setAttribute("aria-expanded", "false");
-      }
-  });
-
-  /* ============================================================
-     RUN TABLE INTERACTIONS
-  =============================================================== */
-
-  function centerCameraOnRun(run) {
-      if (!run || run.points.length === 0) return;
-      const midpointIndex = Math.floor(run.points.length / 2);
-      const mid = run.points[midpointIndex];
-
-      camera.x = mid.x;
-      camera.y = mid.y;
-  }
-
-  /* Click → highlight run */
-  drawerTable.onclick = (e) => {
-      const row = e.target.closest("tr");
-      if (!row || !row.dataset.runId) return;
-
-      const runId = Number(row.dataset.runId);
-      const run = runManager.runs.find(r => r.id === runId);
-      if (!run) return;
-
-      // Highlight this run visually
-      activeExperiment.highlightRun(runId);
-
-      // Center camera for accessibility/visibility
-      centerCameraOnRun(run);
-
-      refreshRunTable();
-  };
-
-  /* ============================================================
-     TABLE POPULATION OVERRIDE (adds data-run-id)
-  =============================================================== */
-  export function renderRunTableInteractive() {
-      const rows = [];
-
-      rows.push(`
-        <tr role="row">
-          <th role="columnheader">Run #</th>
-          <th role="columnheader">Max Height</th>
-          <th role="columnheader">Range</th>
-          <th role="columnheader">Duration</th>
-          <th role="columnheader">Visible</th>
-          <th role="columnheader">Export</th>
-        </tr>
-      `);
-
-      for (const run of runManager.runs) {
-
-          const vis = run.visible ? "👁" : "🙈";
-
-          rows.push(`
-            <tr role="row" 
-                data-run-id="${run.id}"
-                tabindex="0"
-                aria-label="Run ${run.id} summary">
-              <td>${run.id}</td>
-              <td>${run.stats.maxH.toFixed(2)} m</td>
-              <td>${run.stats.range.toFixed(2)} m</td>
-              <td>${run.stats.duration.toFixed(2)} s</td>
-              <td>${vis}</td>
-              <td>
-                <button data-expcsv="${run.id}">CSV</button>
-                <button data-expjson="${run.id}">JSON</button>
-              </td>
-            </tr>
-          `);
-      }
-
-      drawerTable.innerHTML = rows.join("");
-
-      /* Attach export buttons */
-      for (const btn of drawerTable.querySelectorAll("[data-expcsv]")) {
-          btn.onclick = () => exportRunCSV(+btn.dataset.expcsv);
-      }
-
-      for (const btn of drawerTable.querySelectorAll("[data-expjson]")) {
-          btn.onclick = () => exportRunJSON(+btn.dataset.expjson);
-      }
-  }
-
-  /* Keyboard navigation */
-  drawerTable.onkeydown = (e) => {
-      if (!drawer.classList.contains("open")) return;
-
-      const rows = [...drawerTable.querySelectorAll("tr[data-run-id]")];
-      const current = document.activeElement;
-
-      if (!rows.includes(current)) return;
-
-      const idx = rows.indexOf(current);
-
-      if (e.key === "ArrowDown") {
-          e.preventDefault();
-          rows[Math.min(idx+1, rows.length-1)].focus();
-      }
-      else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          rows[Math.max(idx-1, 0)].focus();
-      }
-  };
-
-  /* ============================================================
-     EXPORT HELPERS (dupes of UI, kept here for independence)
-  =============================================================== */
-  function exportRunCSV(id) {
-      const run = runManager.runs.find(r => r.id === id);
-      if (!run) return;
-
-      const rows = ["t,x,y,vx,vy"];
-      for (const p of run.points) {
-          rows.push(`${p.t},${p.x},${p.y},${p.vx},${p.vy}`);
-      }
-
-      const blob = new Blob([rows.join("\n")], { type:"text/csv" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `run_${id}.csv`;
-      a.click();
-  }
-
-  function exportRunJSON(id) {
-      const run = runManager.runs.find(r => r.id === id);
-      if (!run) return;
-
-      const blob = new Blob([JSON.stringify(run, null, 2)], { type:"application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `run_${id}.json`;
-      a.click();
-  }
-
-  </script>
-
-  <!-- ============================================================
-       PART 10 — FINAL WIRING + HIGHLIGHT LOGIC
-       Adds highlight behavior to experiments, ensures proper
-       propagation of colorblind modes, and finalizes the engine.
-  =============================================================== -->
-  <script type="module" id="final-glue">
-
-  import { activeExperiment } from "#engine-loop";
-  import { runManager } from "#engine-runmanager";
-  import { refreshRunTable, refreshRunList } from "#ui-workbench";
-
-  /* ============================================================
-     Extend experiment prototypes with shared optional behaviors
-  =============================================================== */
-
-  /**
-   * highlightRun(runId)
-   * Called when user clicks a run in the history table.
-   * The experiment must visually emphasize the target run.
-   */
-  if (!activeExperiment.highlightRun) {
-      activeExperiment.highlightRun = function(runId) {
-          // Default implementation:
-          // Highlight = increase line thickness of that run,
-          // and dim all others.
-          for (const run of runManager.runs) {
-              if (run.id === runId) {
-                  run.style.width = 4;                  // emphasize
-                  run.style.color = "#3FB950";          // ADA green highlight
-              } else {
-                  run.style.width = 1.5;                // de-emphasize
-                  if (!document.getElementById("accCBMode").checked)
-                      run.style.color = "#8B949E";      // muted gray
-                  else
-                      run.style.dash = [3,3];           // colorblind-friendly
-              }
-          }
-      };
-  }
-
-  /**
-   * restyleRunsForColorblindMode(enabled)
-   * Called whenever colorblind mode toggles.
-   */
-  if (!activeExperiment.restyleRunsForColorblindMode) {
-      activeExperiment.restyleRunsForColorblindMode = function(enabled) {
-          for (const run of runManager.runs) {
-              if (enabled) {
-                  // Replace styling with CB-friendly options
-                  run.style = {
-                      color: "#58A6FF",
-                      width: 2,
-                      dash: [6, 4]
-                  };
-              } else {
-                  // Restore typical run style
-                  run.style = {
-                      color: "#58A6FF",
-                      width: 2,
-                      dash: null
-                  };
-              }
-          }
-          refreshRunList();
-          refreshRunTable();
-      };
-  }
-
-  /* ============================================================
-     HOOK: whenever run list/table changes, recalc highlight states
-  =============================================================== */
-  function applyCurrentHighlight() {
-      // Try to find the last clicked run and apply highlight
-      const highlighted = runManager.runs.find(r => r.style.width >= 4);
-      if (highlighted && activeExperiment.highlightRun) {
-          activeExperiment.highlightRun(highlighted.id);
-      }
-  }
-
-  /* Listen for redraw triggers */
-  document.addEventListener("runsUpdated", () => {
-      refreshRunList();
-      refreshRunTable();
-      applyCurrentHighlight();
-  });
-
-  /* Fire a custom event whenever runs change */
-  const originalSaveRun = runManager.saveRun;
-  runManager.saveRun = function(...args) {
-      const out = originalSaveRun.apply(runManager, args);
-      document.dispatchEvent(new Event("runsUpdated"));
-      return out;
-  };
-
-  const originalDeleteRun = runManager.deleteRun;
-  runManager.deleteRun = function(id) {
-      originalDeleteRun.call(runManager, id);
-      document.dispatchEvent(new Event("runsUpdated"));
-  };
-
-  const originalUndoRun = runManager.undo;
-  runManager.undo = function() {
-      const out = originalUndoRun.call(runManager);
-      document.dispatchEvent(new Event("runsUpdated"));
-      return out;
-  };
-
-  /* ============================================================
-     HOOK FOR FUTURE EXPERIMENTS
-     Allows experiment switching with persistent UI functionality.
-  =============================================================== */
-
-  export function onExperimentChange() {
-      // Reset highlight state
-      for (const run of runManager.runs) {
-          run.style.width = 2;
-          run.style.color = "#58A6FF";
-          run.style.dash = null;
-      }
-      refreshRunList();
-      refreshRunTable();
-  }
-
-  /* Shared ARIA attributes */
-  document.getElementById("drawer").setAttribute("role", "region");
-  document.getElementById("drawerContent").setAttribute("aria-label", "Run History Table");
-
-  </script>
-
-  <!-- ============================================================
-       SCRIPT MODULE: MAIN (Register Experiments + Boot Engine)
-       (single instance; moved to the end)
-  =============================================================== -->
-  <script type="module" id="main">
-
-  /* Import engine modules */
-  import { camera, applyCameraInput } from "#engine-camera";
-  import { renderer } from "#engine-renderer";
-  import { setActiveExperiment, loop } from "#engine-loop";
-
-  /* UI workbench */
-  import { paramsUI, refreshRunList, refreshRunTable } from "#ui-workbench";
-
-  /* Experiments */
-  import { ProjectileExperiment } from "#exp-projectile";
-
-  /* ------------------------------------------------------------
-     DOM references
-  ------------------------------------------------------------ */
-  const canvas = document.getElementById("simCanvas");
-  const expSelector = document.getElementById("expSelector");
-
-  /* ------------------------------------------------------------
-     Experiment registry
-     Future additions:
-     - PendulumExperiment
-     - SpringExperiment
-     - InclineExperiment
-     - CollisionExperiment
-     - FluidExperiment (future)
-  ------------------------------------------------------------ */
-  const experiments = {
-      projectile: new ProjectileExperiment()
-  };
-
-  /* ------------------------------------------------------------
-     Canvas + Renderer Setup
-  ------------------------------------------------------------ */
-  function resizeCanvas() {
-      canvas.width = window.innerWidth - 300;
-      canvas.height = window.innerHeight - 48;
-  }
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
-
-  renderer.init(canvas);
-  applyCameraInput(canvas);
-
-  /* ------------------------------------------------------------
-     ACTIVE EXPERIMENT SWITCHING
-  ------------------------------------------------------------ */
-  function switchExperiment(id) {
-      if (!experiments[id]) return;
-      setActiveExperiment(experiments[id]);
-
-      // Reset and initialize with UI parameters
-      activeExperiment.resetRun(paramsUI, { recenter:true });
-
-      refreshRunList();
-      refreshRunTable();
-  }
-
-  expSelector.onchange = () => {
-      switchExperiment(expSelector.value);
-  };
-
-  /* ------------------------------------------------------------
-     INITIALIZE FIRST EXPERIMENT
-  ------------------------------------------------------------ */
-  switchExperiment("projectile");
-
-  /* ------------------------------------------------------------
-     START MAIN LOOP
-  ------------------------------------------------------------ */
-  requestAnimationFrame(loop);
-
-  </script>
+  const im = document.createElement('script');
+  im.type = 'importmap';
+  im.textContent = JSON.stringify({ imports }, null, 2);
+  document.head.appendChild(im);
+})();
+
+// Now import and run main (which will import others by the map above)
+import('#main');
+</script>
 
 </body>
 </html>
