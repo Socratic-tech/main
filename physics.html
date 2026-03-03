@@ -244,6 +244,47 @@
   .slider.amber::-webkit-slider-thumb { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.5); }
   .slider.pink::-webkit-slider-thumb { background: #f472b6; box-shadow: 0 0 8px rgba(244,114,182,0.5); }
   .slider.teal::-webkit-slider-thumb { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+  .slider.amber::-webkit-slider-thumb { background: #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.5); }
+
+  /* ── COMPARE MODE ── */
+  .canvas-wrap.compare-mode { display: grid; grid-template-columns: 1fr 1fr; }
+  .canvas-wrap.compare-mode canvas#simCanvas { display: none; }
+  .compare-pane {
+    position: relative; overflow: hidden;
+    border-right: 1px solid var(--border-bright);
+  }
+  .compare-pane:last-child { border-right: none; }
+  .compare-pane canvas { position: absolute; top:0; left:0; width:100%; height:100%; }
+  .compare-label {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #546880; background: var(--bg); border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 3px; pointer-events: none; z-index: 2;
+    font-family: var(--mono);
+  }
+  .exp-tab#compareTab.active { color: #f59e0b; background: rgba(245,158,11,0.1); }
+
+  /* ── COLLISION MODE TOGGLE ── */
+  .mode-row {
+    display: flex; gap: 6px; margin-bottom: 16px;
+  }
+  .mode-btn {
+    flex: 1; padding: 6px 4px; font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.06em; text-transform: uppercase; border-radius: 4px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-dim); cursor: pointer; transition: all 0.12s; text-align: center;
+  }
+  .mode-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(0,229,255,0.07); }
+  .mode-btn:hover:not(.active) { color: var(--text); border-color: #3a4a5e; }
+
+  /* collision CoR presets */
+  .preset-row { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+  .preset-btn {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em;
+    padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border);
+    background: transparent; color: #546880; cursor: pointer; transition: all 0.12s;
+  }
+  .preset-btn:hover { color: #94a3b8; border-color: #334155; background: rgba(255,255,255,0.03); }
 
   .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
@@ -476,7 +517,7 @@
   <div class="logo">
     <div class="logo-icon"></div>
     <span class="logo-text">Open<span>Physics</span> Lab</span>
-    <span class="badge">MVP v0.3</span>
+    <span class="badge">MVP v0.4</span>
   </div>
 
   <div class="exp-selector">
@@ -484,7 +525,8 @@
     <button class="exp-tab" onclick="selectExperiment('pendulum', event)">Simple Pendulum</button>
     <button class="exp-tab" onclick="selectExperiment('spring', event)">Spring-Mass</button>
     <button class="exp-tab" onclick="selectExperiment('incline', event)">Inclined Plane</button>
-    <button class="exp-tab" onclick="selectExperiment('collision', event)">Collisions <span class="coming-soon">soon</span></button>
+    <button class="exp-tab" onclick="selectExperiment('collision', event)">Collisions</button>
+    <button class="exp-tab" id="compareTab" onclick="toggleCompareMode(event)" style="border-left:2px solid var(--border-bright);">⊞ Compare</button>
   </div>
 
   <div class="header-right">
@@ -667,6 +709,83 @@
         </div>
       </div>
 
+      <!-- COLLISION CONTROLS -->
+      <div id="panelCollision" style="display:none;">
+        <div class="formula-box" style="border-left-color:#facc15;">
+          <div class="formula-title" style="color:#facc15;">Collisions — Exact CoR</div>
+          <div class="formula-line">p = <em>m₁v₁ + m₂v₂</em> (conserved)</div>
+          <div class="formula-line">e = <em>(v₂'−v₁')/(v₁−v₂)</em></div>
+          <div class="formula-line">v₁' = <em>(m₁−em₂)v₁+(1+e)m₂v₂</em> / M</div>
+          <div class="formula-line">v₂' = <em>(m₂−em₁)v₂+(1+e)m₁v₁</em> / M</div>
+        </div>
+
+        <div class="mode-row">
+          <button class="mode-btn active" id="cMode1D" onclick="setCollisionMode('1d')">1D Track</button>
+          <button class="mode-btn" id="cMode2D" onclick="setCollisionMode('2d')">2D Plane</button>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Coeff. of Restitution e</span><span class="control-value" style="color:#facc15;" id="cCorDisplay">1.00</span></div>
+          <input type="range" class="slider amber" id="cCor" min="0" max="1" value="1" step="0.01"
+            oninput="updateCollisionParam('cor', this.value)" />
+          <div class="preset-row">
+            <button class="preset-btn" onclick="setCoR(1.0)">e=1 Elastic</button>
+            <button class="preset-btn" onclick="setCoR(0.7)">e=0.7 Ball</button>
+            <button class="preset-btn" onclick="setCoR(0.3)">e=0.3 Clay</button>
+            <button class="preset-btn" onclick="setCoR(0.0)">e=0 Stick</button>
+          </div>
+        </div>
+
+        <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#8aaabf;font-weight:600;margin-bottom:8px;">Ball A</div>
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Mass A</span><span class="control-value" style="color:#00e5ff;" id="cMassADisplay">2.0 kg</span></div>
+          <input type="range" class="slider" id="cMassA" min="0.1" max="10" value="2" step="0.1"
+            oninput="updateCollisionParam('massA', this.value)" />
+        </div>
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Velocity A</span><span class="control-value" style="color:#00e5ff;" id="cVelADisplay">+4.0 m/s</span></div>
+          <input type="range" class="slider" id="cVelA" min="-12" max="12" value="4" step="0.1"
+            oninput="updateCollisionParam('velA', this.value)" />
+        </div>
+
+        <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#8aaabf;font-weight:600;margin-bottom:8px;">Ball B</div>
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Mass B</span><span class="control-value" style="color:#ff6b35;" id="cMassBDisplay">2.0 kg</span></div>
+          <input type="range" class="slider orange" id="cMassB" min="0.1" max="10" value="2" step="0.1"
+            oninput="updateCollisionParam('massB', this.value)" />
+        </div>
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Velocity B</span><span class="control-value" style="color:#ff6b35;" id="cVelBDisplay">−2.0 m/s</span></div>
+          <input type="range" class="slider orange" id="cVelB" min="-12" max="12" value="-2" step="0.1"
+            oninput="updateCollisionParam('velB', this.value)" />
+        </div>
+
+        <!-- 2D angle controls (hidden in 1D) -->
+        <div id="cAngleControls" style="display:none;">
+          <div class="control-group">
+            <div class="control-label"><span class="control-name">Angle A (from →)</span><span class="control-value" style="color:#00e5ff;" id="cAngADisplay">0°</span></div>
+            <input type="range" class="slider" id="cAngA" min="-180" max="180" value="0" step="1"
+              oninput="updateCollisionParam('angA', this.value)" />
+          </div>
+          <div class="control-group">
+            <div class="control-label"><span class="control-name">Angle B (from →)</span><span class="control-value" style="color:#ff6b35;" id="cAngBDisplay">180°</span></div>
+            <input type="range" class="slider orange" id="cAngB" min="-180" max="180" value="180" step="1"
+              oninput="updateCollisionParam('angB', this.value)" />
+          </div>
+          <div class="control-group">
+            <div class="control-label"><span class="control-name">Impact offset b</span><span class="control-value" style="color:#a78bfa;" id="cImpactDisplay">0.0 m</span></div>
+            <input type="range" class="slider purple" id="cImpact" min="-2" max="2" value="0" step="0.05"
+              oninput="updateCollisionParam('impact', this.value)" />
+            <div style="margin-top:5px;font-size:9px;color:#547080;">0 = head-on · ±r = glancing</div>
+          </div>
+        </div>
+
+        <div style="padding:8px 10px;background:#0d1220;border:1px solid var(--border-bright);border-radius:4px;font-size:9px;color:#7a9ab5;margin-bottom:4px;letter-spacing:0.04em;">
+          <div style="color:#facc15;font-weight:600;margin-bottom:3px;">Pre-collision momentum</div>
+          p = <span id="cMomentumPre">—</span> kg·m/s &nbsp;·&nbsp; KE = <span id="cKEPre">—</span> J
+        </div>
+      </div>
+
       <div class="divider"></div>
 
       <div class="btn-group">
@@ -710,10 +829,19 @@
         <span class="toolbar-info" id="toolbarInfo2">pos: (<span id="posX">0.0</span>, <span id="posY">0.0</span>)</span>
       </div>
     </div>
-    <div class="canvas-wrap">
+    <div class="canvas-wrap" id="canvasWrap">
       <div class="grid-overlay" id="gridOverlay"></div>
       <canvas id="simCanvas"></canvas>
       <div class="origin-marker" id="originMarker">⊕ Origin</div>
+      <!-- Compare mode split panes -->
+      <div class="compare-pane" id="comparePane0" style="display:none;">
+        <canvas id="compareCanvas0"></canvas>
+        <div class="compare-label" id="compareLabel0">Experiment A</div>
+      </div>
+      <div class="compare-pane" id="comparePane1" style="display:none;">
+        <canvas id="compareCanvas1"></canvas>
+        <div class="compare-label" id="compareLabel1">Experiment B</div>
+      </div>
     </div>
   </div>
 
@@ -794,6 +922,39 @@
               </div>
             </div>
             <canvas class="chart-canvas" id="chartInclineForces" style="margin-top:8px;"></canvas>
+          </div>
+        </div>
+        <div id="chartsCollision" style="display:none;">
+          <div class="chart-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="chart-title" style="margin-bottom:0">Velocity vs Time</div>
+              <div style="display:flex;gap:8px;font-size:9px;font-family:var(--mono);">
+                <span style="color:#00e5ff;">━ Ball A</span>
+                <span style="color:#ff6b35;">━ Ball B</span>
+              </div>
+            </div>
+            <canvas class="chart-canvas" id="chartCollVel" style="margin-top:8px;"></canvas>
+          </div>
+          <div class="chart-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="chart-title" style="margin-bottom:0">Momentum vs Time</div>
+              <div style="display:flex;gap:8px;font-size:9px;font-family:var(--mono);">
+                <span style="color:#facc15;">━ Total p</span>
+                <span style="color:#00e5ff;">━ pA</span>
+                <span style="color:#ff6b35;">━ pB</span>
+              </div>
+            </div>
+            <canvas class="chart-canvas" id="chartCollMom" style="margin-top:8px;"></canvas>
+          </div>
+          <div class="chart-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="chart-title" style="margin-bottom:0">Kinetic Energy vs Time</div>
+              <div style="display:flex;gap:8px;font-size:9px;font-family:var(--mono);">
+                <span style="color:#facc15;">━ Total KE</span>
+                <span style="color:#a78bfa;">━ ΔKE lost</span>
+              </div>
+            </div>
+            <canvas class="chart-canvas" id="chartCollKE" style="margin-top:8px;"></canvas>
           </div>
         </div>
           <div class="chart-container"><div class="chart-title">Displacement vs Time</div><canvas class="chart-canvas" id="chartDisp"></canvas></div>
@@ -1681,15 +1842,18 @@ function renderRunLegend() {
   const runs = activeExperiment === 'projectile' ? state.completedRuns
              : activeExperiment === 'pendulum'   ? pendulumState.completedRuns
              : activeExperiment === 'spring'     ? springState.completedRuns
-             :                                     inclineState.completedRuns;
+             : activeExperiment === 'incline'    ? inclineState.completedRuns
+             :                                     collisionState.completedRuns;
   const isRunning = activeExperiment === 'projectile' ? state.running
                   : activeExperiment === 'pendulum'   ? pendulumState.running
                   : activeExperiment === 'spring'     ? springState.running
-                  :                                     inclineState.running;
+                  : activeExperiment === 'incline'    ? inclineState.running
+                  :                                     collisionState.running;
   const activeData = activeExperiment === 'projectile' ? state.data
                    : activeExperiment === 'pendulum'   ? pendulumState.data
                    : activeExperiment === 'spring'     ? springState.data
-                   :                                     inclineState.data;
+                   : activeExperiment === 'incline'    ? inclineState.data
+                   :                                     collisionState.data;
 
   if (runs.length === 0 && !isRunning) { list.innerHTML = ''; list.appendChild(empty); empty.style.display=''; return; }
   empty.style.display = 'none';
@@ -1700,7 +1864,8 @@ function renderRunLegend() {
     const liveParams = activeExperiment === 'projectile' ? {...state.params}
                      : activeExperiment === 'pendulum'   ? {...pendulumState.params}
                      : activeExperiment === 'spring'     ? {...springState.params}
-                     :                                     {...inclineState.params};
+                     : activeExperiment === 'incline'    ? {...inclineState.params}
+                     :                                     {...collisionState.params};
     items.push({ run: { color: liveColor, params: liveParams, visible: true }, index: runs.length, isActive: true });
   }
 
@@ -1716,8 +1881,10 @@ function renderRunLegend() {
       const p = run.params; meta = `L=${p.length}m θ₀=${p.angle}° b=${p.damping}`;
     } else if (activeExperiment === 'spring') {
       const p = run.params; meta = `k=${p.k} m=${p.mass} b=${p.damping}`;
-    } else {
+    } else if (activeExperiment === 'incline') {
       const p = run.params; meta = `θ=${p.angle}° μs=${p.muS} μk=${p.muK} m=${p.mass}kg`;
+    } else {
+      const p = run.params; meta = `e=${p.cor} mA=${p.massA} mB=${p.massB} ${collisionState.mode.toUpperCase()}`;
     }
     return `<div class="run-item${!isVisible?' hidden':''}${isActive?' active-run':''}" style="--run-color:${hex}">
       <div class="run-color-dot" style="background:${hex};--run-color:${hex}"></div>
@@ -1731,7 +1898,8 @@ function toggleRunVisible(index) {
   const runs = activeExperiment === 'projectile' ? state.completedRuns
              : activeExperiment === 'pendulum'   ? pendulumState.completedRuns
              : activeExperiment === 'spring'     ? springState.completedRuns
-             :                                     inclineState.completedRuns;
+             : activeExperiment === 'incline'    ? inclineState.completedRuns
+             :                                     collisionState.completedRuns;
   if (index < 0 || index >= runs.length) return;
   runs[index].visible = runs[index].visible === false ? true : false;
   renderRunLegend(); drawScene();
@@ -1741,13 +1909,15 @@ function setAllRunsVisible(visible) {
   const runs = activeExperiment === 'projectile' ? state.completedRuns
              : activeExperiment === 'pendulum'   ? pendulumState.completedRuns
              : activeExperiment === 'spring'     ? springState.completedRuns
-             :                                     inclineState.completedRuns;
+             : activeExperiment === 'incline'    ? inclineState.completedRuns
+             :                                     collisionState.completedRuns;
   runs.forEach(r => r.visible = visible);
   renderRunLegend();
   if (activeExperiment === 'projectile') drawScene(state.data.length>0?state.data:[]);
   else if (activeExperiment === 'pendulum') drawPendulumScene();
   else if (activeExperiment === 'spring') drawSpringScene();
-  else drawInclineScene();
+  else if (activeExperiment === 'incline') drawInclineScene();
+  else drawCollisionScene();
 }
 
 // ============================================================
@@ -1772,6 +1942,8 @@ function handleLaunch() {
     launchSpring();
   } else if (activeExperiment === 'incline') {
     launchIncline();
+  } else if (activeExperiment === 'collision') {
+    launchCollision();
   }
 }
 
@@ -1780,6 +1952,7 @@ function handleReset() {
   else if (activeExperiment === 'pendulum') resetPendulum();
   else if (activeExperiment === 'spring') resetSpring();
   else if (activeExperiment === 'incline') resetIncline();
+  else if (activeExperiment === 'collision') resetCollision();
 }
 
 function handleClearTrails() {
@@ -1787,6 +1960,7 @@ function handleClearTrails() {
   else if (activeExperiment === 'pendulum') { pendulumState.completedRuns=[]; drawPendulumScene(); renderRunLegend(); log('Pendulum trails cleared.','warn'); }
   else if (activeExperiment === 'spring')   { springState.completedRuns=[]; drawSpringScene(); renderRunLegend(); refreshTable(); log('Spring trails cleared.','warn'); }
   else if (activeExperiment === 'incline')  { inclineState.completedRuns=[]; drawInclineScene(); renderRunLegend(); refreshTable(); log('Incline trails cleared.','warn'); }
+  else if (activeExperiment === 'collision') { collisionState.completedRuns=[]; drawCollisionScene(); renderRunLegend(); refreshTable(); log('Collision trails cleared.','warn'); }
 }
 
 // ============================================================
@@ -1883,15 +2057,16 @@ function updatePendulumParam(param, value) {
 
 function toggleTrail() {
   const v = document.getElementById('showTrail').checked;
-  state.showTrail = v; pendulumState.showTrail = v; springState.showTrail = v; inclineState.showTrail = v;
+  state.showTrail = v; pendulumState.showTrail = v; springState.showTrail = v; inclineState.showTrail = v; collisionState.showTrail = v;
 }
 
 function toggleSlowMo() { state.slowMo = document.getElementById('slowMo').checked; }
 
 function drawScene(simState) {
-  if (activeExperiment==='pendulum') { drawPendulumScene(); return; }
-  if (activeExperiment==='spring')   { drawSpringScene(); return; }
-  if (activeExperiment==='incline')  { drawInclineScene(); return; }
+  if (activeExperiment==='pendulum')  { drawPendulumScene(); return; }
+  if (activeExperiment==='spring')    { drawSpringScene(); return; }
+  if (activeExperiment==='incline')   { drawInclineScene(); return; }
+  if (activeExperiment==='collision') { drawCollisionScene(); return; }
   _drawProjectileScene(simState);
 }
 
@@ -1923,32 +2098,34 @@ const _drawProjectileScene = (function() {
 //  EXPERIMENT SELECTOR
 // ============================================================
 function selectExperiment(id, evt) {
-  if (id==='collision') { log('Collisions coming soon!','warn'); return; }
   if (state.running) { state.running=false; if(state.animFrame) cancelAnimationFrame(state.animFrame); }
   if (pendulumState.running) stopPendulum();
   if (springState.running) stopSpring();
   if (inclineState.running) stopIncline();
+  if (collisionState.running) stopCollision();
 
   activeExperiment = id;
-  const btnLabels = { projectile:'▶ Launch', pendulum:'▶ Start', spring:'▶ Start', incline:'▶ Start' };
+  const btnLabels = { projectile:'▶ Launch', pendulum:'▶ Start', spring:'▶ Start', incline:'▶ Start', collision:'▶ Start' };
   document.getElementById('launchBtn').textContent = btnLabels[id] || '▶ Start';
 
   document.getElementById('panelProjectile').style.display   = id==='projectile'?'':'none';
   document.getElementById('panelPendulum').style.display     = id==='pendulum'?'':'none';
   document.getElementById('panelSpring').style.display       = id==='spring'?'':'none';
   document.getElementById('panelIncline').style.display      = id==='incline'?'':'none';
+  document.getElementById('panelCollision').style.display    = id==='collision'?'':'none';
   document.getElementById('chartsProjectile').style.display  = id==='projectile'?'':'none';
   document.getElementById('chartsPendulum').style.display    = id==='pendulum'?'':'none';
   document.getElementById('chartsSpring').style.display      = id==='spring'?'':'none';
   document.getElementById('chartsIncline').style.display     = id==='incline'?'':'none';
+  document.getElementById('chartsCollision').style.display   = id==='collision'?'':'none';
 
   const readoutSets = {
     projectile: READOUT_PROJECTILE, pendulum: READOUT_PENDULUM,
-    spring: READOUT_SPRING, incline: READOUT_INCLINE
+    spring: READOUT_SPRING, incline: READOUT_INCLINE, collision: READOUT_COLLISION
   };
   labelReadouts(readoutSets[id] || READOUT_PROJECTILE);
 
-  const expNames = { projectile:'Projectile Motion', pendulum:'Simple Pendulum', spring:'Spring-Mass SHM', incline:'Inclined Plane + Friction' };
+  const expNames = { projectile:'Projectile Motion', pendulum:'Simple Pendulum', spring:'Spring-Mass SHM', incline:'Inclined Plane + Friction', collision:'Collisions — 1D & 2D' };
   document.getElementById('toolbarExpName').textContent = expNames[id] || id;
   document.getElementById('gridOverlay').style.opacity  = id==='projectile'?'':'0';
   document.getElementById('originMarker').style.display = id==='projectile'?'':'none';
@@ -1960,8 +2137,12 @@ function selectExperiment(id, evt) {
 
   if (id==='projectile') { _drawProjectileScene([]); log('Switched to Projectile Motion.'); }
   else if (id==='pendulum') { initPendulumCharts(); drawPendulumScene(); log('Switched to Simple Pendulum — RK4.'); }
-  else if (id==='spring') { initSpringCharts(); drawSpringScene(); log('Switched to Spring-Mass — RK4 · SHM simulator.'); updateSpringParam('k', springState.params.k); }
-  else if (id==='incline') { initInclineCharts(); drawInclineScene(); updateInclineInfoPanel(); log('Switched to Inclined Plane — static/kinetic friction model.'); log('Tip: Set θ > θ_repose to watch the block slide. Compare μ_s vs μ_k effects!'); }
+  else if (id==='spring')   { initSpringCharts(); drawSpringScene(); log('Switched to Spring-Mass — RK4 · SHM simulator.'); updateSpringParam('k', springState.params.k); }
+  else if (id==='incline')  { initInclineCharts(); drawInclineScene(); updateInclineInfoPanel(); log('Switched to Inclined Plane — static/kinetic friction model.'); }
+  else if (id==='collision') { initCollisionCharts(); drawCollisionScene(); updateCollisionInfoPanel();
+    log('Switched to Collisions — exact CoR solver · 1D & 2D.', 'success');
+    log('Tip: e=1 elastic preserves KE. e=0 perfectly inelastic. Watch momentum stay constant!');
+  }
 }
 
 // ============================================================
@@ -1998,6 +2179,11 @@ const READOUT_SPRING = [
 const READOUT_INCLINE = [
   {label:'Time',unit:'s'},{label:'Position s',unit:'m'},{label:'Velocity v',unit:'m/s'},{label:'Accel a',unit:'m/s²'},
   {label:'Normal N',unit:'N'},{label:'Friction f',unit:'N'},{label:'KE',unit:'J'},{label:'PE (grav)',unit:'J'},
+];
+
+const READOUT_COLLISION = [
+  {label:'Time',unit:'s'},{label:'Vel A',unit:'m/s'},{label:'Vel B',unit:'m/s'},{label:'p_A',unit:'kg·m/s'},
+  {label:'p_B',unit:'kg·m/s'},{label:'p_total',unit:'kg·m/s'},{label:'KE total',unit:'J'},{label:'ΔKE lost',unit:'J'},
 ];
 
 // ============================================================
@@ -2041,6 +2227,10 @@ function refreshTable() {
     thead.innerHTML='<th>Run</th><th>t (s)</th><th>s (m)</th><th>v (m/s)</th><th>a (m/s²)</th><th>N (N)</th><th>f (N)</th>';
     const allRuns=[...inclineState.completedRuns,...(inclineState.data.length>1?[{data:inclineState.data,color:TRAIL_PALETTE[inclineState.completedRuns.length%TRAIL_PALETTE.length],params:{...inclineState.params}}]:[])];
     renderRunsToTable(allRuns,tbody,meta,countEl,(d)=>`<td>${d.t.toFixed(3)}</td><td>${d.x.toFixed(4)}</td><td>${d.v.toFixed(4)}</td><td>${d.a.toFixed(4)}</td><td>${d.N.toFixed(3)}</td><td>${Math.abs(d.friction).toFixed(3)}</td>`,(p)=>`θ=${p.angle}° μs=${p.muS} μk=${p.muK}`);
+  } else if (activeExperiment==='collision') {
+    thead.innerHTML='<th>Run</th><th>t (s)</th><th>vA (m/s)</th><th>vB (m/s)</th><th>pA</th><th>pB</th><th>p_tot</th><th>KE (J)</th>';
+    const allRuns=[...collisionState.completedRuns,...(collisionState.data.length>1?[{data:collisionState.data,color:TRAIL_PALETTE[collisionState.completedRuns.length%TRAIL_PALETTE.length],params:{...collisionState.params}}]:[])];
+    renderRunsToTable(allRuns,tbody,meta,countEl,(d)=>`<td>${d.t.toFixed(3)}</td><td>${d.vA.toFixed(3)}</td><td>${d.vB.toFixed(3)}</td><td>${d.pA.toFixed(3)}</td><td>${d.pB.toFixed(3)}</td><td>${d.ptot.toFixed(3)}</td><td>${d.ke.toFixed(3)}</td>`,(p)=>`e=${p.cor} mA=${p.massA} mB=${p.massB}`);
   }
 }
 
@@ -2073,10 +2263,14 @@ function exportCSV() {
     if(!springState.data.length){log('No data.','warn');return;}
     const rows=['t,x_m,v_ms,ke_J,pe_J,energy_J',...springState.data.map(p=>`${p.t.toFixed(4)},${p.x.toFixed(4)},${p.v.toFixed(4)},${p.ke.toFixed(4)},${p.pe.toFixed(4)},${p.energy.toFixed(4)}`)];
     downloadFile(rows.join('\n'),'spring_data.csv','text/csv'); log('CSV exported.','success');
-  } else {
+  } else if (activeExperiment==='incline') {
     if(!inclineState.data.length){log('No data.','warn');return;}
     const rows=['t,s_m,v_ms,a_ms2,N_N,friction_N,regime',...inclineState.data.map(p=>`${p.t.toFixed(4)},${p.x.toFixed(4)},${p.v.toFixed(4)},${p.a.toFixed(4)},${p.N.toFixed(3)},${p.friction.toFixed(3)},${p.regime}`)];
     downloadFile(rows.join('\n'),'incline_data.csv','text/csv'); log('CSV exported.','success');
+  } else {
+    if(!collisionState.data.length){log('No data.','warn');return;}
+    const rows=['t,vA_ms,vB_ms,pA,pB,p_total,KE_J',...collisionState.data.map(p=>`${p.t.toFixed(4)},${p.vA.toFixed(4)},${p.vB.toFixed(4)},${p.pA.toFixed(4)},${p.pB.toFixed(4)},${p.ptot.toFixed(4)},${p.ke.toFixed(4)}`)];
+    downloadFile(rows.join('\n'),'collision_data.csv','text/csv'); log('CSV exported.','success');
   }
 }
 
@@ -2093,11 +2287,16 @@ function exportJSON() {
     if(!springState.data.length){log('No data.','warn');return;}
     downloadFile(JSON.stringify({experiment:'spring_mass_rk4',version:'0.3',params:springState.params,computed:{omega0:springOmega0(springState.params),period:springPeriod(springState.params),bcrit:springBcrit(springState.params)},data:springState.data.map(p=>({t:+p.t.toFixed(4),x:+p.x.toFixed(4),v:+p.v.toFixed(4),ke:+p.ke.toFixed(4),pe:+p.pe.toFixed(4),energy:+p.energy.toFixed(4)}))},null,2),'spring_data.json','application/json');
     log('JSON exported.','success');
-  } else {
+  } else if (activeExperiment==='incline') {
     if(!inclineState.data.length){log('No data.','warn');return;}
-    const theta = inclineState.params.angle * Math.PI / 180;
-    const { angle, mass: m, gravity: g, muS, muK } = inclineState.params;
-    downloadFile(JSON.stringify({experiment:'inclined_plane_friction',version:'0.3',physics:{model:'static_kinetic_friction',notes:'muK clamped <= muS'},params:inclineState.params,computed:{angleOfRepose:inclineAngleOfRepose(inclineState.params),N:m*g*Math.cos(theta),Fg_parallel:m*g*Math.sin(theta),fk:muK*m*g*Math.cos(theta),fs_max:muS*m*g*Math.cos(theta)},data:inclineState.data.map(p=>({t:+p.t.toFixed(4),s:+p.x.toFixed(4),v:+p.v.toFixed(4),a:+p.a.toFixed(4),N:+p.N.toFixed(3),friction:+p.friction.toFixed(3),regime:p.regime}))},null,2),'incline_data.json','application/json');
+    const theta=inclineState.params.angle*Math.PI/180;
+    const {angle,mass:m,gravity:g,muS,muK}=inclineState.params;
+    downloadFile(JSON.stringify({experiment:'inclined_plane_friction',version:'0.4',params:inclineState.params,computed:{angleOfRepose:inclineAngleOfRepose(inclineState.params),N:m*g*Math.cos(theta),Fg_parallel:m*g*Math.sin(theta),fk:muK*m*g*Math.cos(theta),fs_max:muS*m*g*Math.cos(theta)},data:inclineState.data.map(p=>({t:+p.t.toFixed(4),s:+p.x.toFixed(4),v:+p.v.toFixed(4),a:+p.a.toFixed(4),N:+p.N.toFixed(3),friction:+p.friction.toFixed(3),regime:p.regime}))},null,2),'incline_data.json','application/json');
+    log('JSON exported.','success');
+  } else {
+    if(!collisionState.data.length){log('No data.','warn');return;}
+    const evts=collisionState.collisionEvents.map(e=>({t:+e.t.toFixed(4)}));
+    downloadFile(JSON.stringify({experiment:'collision_exact_cor',version:'0.4',mode:collisionState.mode,params:collisionState.params,collisionEvents:evts,data:collisionState.data.map(p=>({t:+p.t.toFixed(4),vA:+p.vA.toFixed(4),vB:+p.vB.toFixed(4),pA:+p.pA.toFixed(4),pB:+p.pB.toFixed(4),ptot:+p.ptot.toFixed(4),ke:+p.ke.toFixed(4)}))},null,2),'collision_data.json','application/json');
     log('JSON exported.','success');
   }
 }
@@ -2121,12 +2320,18 @@ function exportTableCSV() {
     const rows=['run,k_Nm,mass_kg,damping,x0_m,v0_ms,t_s,x_m,v_ms,ke_J,pe_J,energy_J'];
     allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,p.k,p.mass,p.damping,p.x0,p.v0,d.t.toFixed(4),d.x.toFixed(4),d.v.toFixed(4),d.ke.toFixed(4),d.pe.toFixed(4),d.energy.toFixed(4)].join(','))); });
     downloadFile(rows.join('\n'),'spring_table.csv','text/csv'); log('Table exported.','success');
-  } else {
+  } else if (activeExperiment==='incline') {
     const allRuns=[...inclineState.completedRuns,...(inclineState.data.length>1?[{data:inclineState.data,params:{...inclineState.params}}]:[])];
     if(!allRuns.length){log('No data.','warn');return;}
     const rows=['run,angle_deg,mass_kg,gravity_ms2,muS,muK,v0_ms,t_s,s_m,v_ms,a_ms2,N_N,friction_N,regime'];
     allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,p.angle,p.mass,p.gravity,p.muS,p.muK,p.v0,d.t.toFixed(4),d.x.toFixed(4),d.v.toFixed(4),d.a.toFixed(4),d.N.toFixed(3),d.friction.toFixed(3),d.regime].join(','))); });
     downloadFile(rows.join('\n'),'incline_table.csv','text/csv'); log('Table exported.','success');
+  } else {
+    const allRuns=[...collisionState.completedRuns,...(collisionState.data.length>1?[{data:collisionState.data,params:{...collisionState.params}}]:[])];
+    if(!allRuns.length){log('No data.','warn');return;}
+    const rows=['run,mode,cor,massA_kg,massB_kg,velA_ms,velB_ms,t_s,vA_ms,vB_ms,pA,pB,ptot,ke_J'];
+    allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,collisionState.mode,p.cor,p.massA,p.massB,p.velA,p.velB,d.t.toFixed(4),d.vA.toFixed(4),d.vB.toFixed(4),d.pA.toFixed(4),d.pB.toFixed(4),d.ptot.toFixed(4),d.ke.toFixed(4)].join(','))); });
+    downloadFile(rows.join('\n'),'collision_table.csv','text/csv'); log('Table exported.','success');
   }
 }
 
@@ -2695,6 +2900,789 @@ function clearInclineCharts() {
 }
 
 // ============================================================
+//  COLLISION ENGINE — Exact analytic solver
+// ============================================================
+const collisionState = {
+  mode: '1d',   // '1d' | '2d'
+  params: {
+    massA: 2.0, velA: 4.0, angA: 0,
+    massB: 2.0, velB: -2.0, angB: 180,
+    cor: 1.0, impact: 0.0,    // impact = b parameter (off-centre offset in metres)
+    gravity: 0,               // frictionless plane
+    radius: 0.4,              // visual radius, used in 2D collision detect
+  },
+  running: false,
+  data: [], completedRuns: [],
+  ballA: null, ballB: null,
+  collisionEvents: [],        // [{t, vA_pre, vB_pre, vA_post, vB_post}]
+  currentTime: 0,
+  animFrame: null,
+  showTrail: true,
+};
+
+let collLastTimestamp = null, collDtAccum = 0;
+const COLL_DT = 1/960;       // high precision for exact collision time
+const TRACK_LEN = 14;        // 1D track length in metres
+const BALL_R = 0.4;          // default radius metres
+
+// ── Analytic 1D post-collision velocities ──
+function solve1DCollision(mA, mB, vA, vB, e) {
+  const M = mA + mB;
+  const vA2 = ((mA - e*mB)*vA + (1+e)*mB*vB) / M;
+  const vB2 = ((mB - e*mA)*vB + (1+e)*mA*vA) / M;
+  return { vA2, vB2 };
+}
+
+// ── Analytic 2D post-collision velocities (CoR along normal) ──
+function solve2DCollision(mA, mB, vAx, vAy, vBx, vBy, nx, ny, e) {
+  // nx,ny = unit normal from A→B at contact
+  const tx = -ny, ty = nx;  // tangent
+
+  // Decompose into normal/tangential components
+  const vAn = vAx*nx + vAy*ny;
+  const vAt = vAx*tx + vAy*ty;
+  const vBn = vBx*nx + vBy*ny;
+  const vBt = vBx*tx + vBy*ty;
+
+  // 1D collision along normal only; tangential unchanged (frictionless)
+  const { vA2: vAn2, vB2: vBn2 } = solve1DCollision(mA, mB, vAn, vBn, e);
+
+  return {
+    vAx2: vAn2*nx + vAt*tx,
+    vAy2: vAn2*ny + vAt*ty,
+    vBx2: vBn2*nx + vBt*tx,
+    vBy2: vBn2*ny + vBt*ty,
+  };
+}
+
+// ── Exact continuous collision detection (1D) ──
+// Returns time dt* ∈ [0, dt] when balls touch, or null
+function collisionTime1D(xA, xB, vA, vB, rA, rB, dt) {
+  // Solve |xB + vB*t - xA - vA*t| = rA + rB
+  const dx = xB - xA, dv = vB - vA, sep = rA + rB;
+  // (dx + dv*t)² = sep²  → quadratic: dv²t² + 2dx*dv*t + dx²-sep² = 0
+  if (Math.abs(dv) < 1e-10) return null; // parallel
+  const a = dv*dv, b2 = dx*dv, c = dx*dx - sep*sep;
+  const disc = b2*b2 - a*c;
+  if (disc < 0) return null;
+  const sd = Math.sqrt(disc);
+  const t1 = (-b2 - sd) / a;
+  const t2 = (-b2 + sd) / a;
+  // We want the smallest positive t in [0, dt] where they're approaching
+  const candidates = [t1, t2].filter(t => t >= -1e-8 && t <= dt + 1e-8);
+  if (!candidates.length) return null;
+  const tc = Math.min(...candidates);
+  // Verify they're approaching at tc
+  const dxAtTc = dx + dv * tc;
+  if (dxAtTc * dv >= 0) return null; // separating
+  return Math.max(0, tc);
+}
+
+// ── Exact collision detection (2D) ──
+function collisionTime2D(pA, pB, vA, vB, rA, rB, dt) {
+  const dx = pB.x - pA.x, dy = pB.y - pA.y;
+  const dvx = vB.x - vA.x, dvy = vB.y - vA.y;
+  const sep = rA + rB;
+  const a = dvx*dvx + dvy*dvy;
+  if (a < 1e-10) return null;
+  const b2 = dx*dvx + dy*dvy;
+  const c = dx*dx + dy*dy - sep*sep;
+  const disc = b2*b2 - a*c;
+  if (disc < 0) return null;
+  const sd = Math.sqrt(disc);
+  const t1 = (-b2 - sd) / a;
+  const t2 = (-b2 + sd) / a;
+  const candidates = [t1, t2].filter(t => t >= -1e-8 && t <= dt + 1e-8);
+  if (!candidates.length) return null;
+  // Approaching check: relative velocity · normal < 0
+  const tc = Math.max(0, Math.min(...candidates));
+  const nx = dx + dvx*tc, ny = dy + dvy*tc;
+  if (nx*dvx + ny*dvy >= 0) return null;
+  return tc;
+}
+
+function collisionKE(state) {
+  const { ballA: a, ballB: b, params: p } = state;
+  const keA = 0.5 * p.massA * (a.vx*a.vx + a.vy*a.vy);
+  const keB = 0.5 * p.massB * (b.vx*b.vx + b.vy*b.vy);
+  return keA + keB;
+}
+
+function collisionMomentum(state) {
+  const { ballA: a, ballB: b, params: p } = state;
+  return { px: p.massA*a.vx + p.massB*b.vx, py: p.massA*a.vy + p.massB*b.vy };
+}
+
+// ── Integration step with embedded collision detection ──
+function stepCollision(cs, dt) {
+  const p = cs.params;
+  let a = { ...cs.ballA }, b = { ...cs.ballB };
+  const rA = p.radius, rB = p.radius;
+  let remaining = dt;
+  let collided = false;
+
+  for (let iter = 0; iter < 4 && remaining > 1e-8; iter++) {
+    if (cs.mode === '1d') {
+      const tc = collisionTime1D(a.x, b.x, a.vx, b.vx, rA, rB, remaining);
+      if (tc !== null && tc <= remaining) {
+        // Advance to contact
+        a.x += a.vx * tc; b.x += b.vx * tc;
+        const vA_pre = a.vx, vB_pre = b.vx;
+        const { vA2, vB2 } = solve1DCollision(p.massA, p.massB, a.vx, b.vx, p.cor);
+        a.vx = vA2; b.vx = vB2;
+        cs.collisionEvents.push({ t: cs.currentTime + (dt - remaining + tc), vA_pre, vB_pre, vA_post: vA2, vB_post: vB2 });
+        remaining -= tc; collided = true;
+      } else { break; }
+    } else {
+      const pA = { x: a.x, y: a.y }, pB = { x: b.x, y: b.y };
+      const vA2d = { x: a.vx, y: a.vy }, vB2d = { x: b.vx, y: b.vy };
+      const tc = collisionTime2D(pA, pB, vA2d, vB2d, rA, rB, remaining);
+      if (tc !== null && tc <= remaining) {
+        a.x += a.vx*tc; a.y += a.vy*tc;
+        b.x += b.vx*tc; b.y += b.vy*tc;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+        const nx = dx/dist, ny = dy/dist;
+        const pre = { vAx: a.vx, vAy: a.vy, vBx: b.vx, vBy: b.vy };
+        const post = solve2DCollision(p.massA, p.massB, a.vx, a.vy, b.vx, b.vy, nx, ny, p.cor);
+        a.vx = post.vAx2; a.vy = post.vAy2;
+        b.vx = post.vBx2; b.vy = post.vBy2;
+        cs.collisionEvents.push({ t: cs.currentTime + (dt - remaining + tc), ...pre, ...post });
+        remaining -= tc; collided = true;
+      } else { break; }
+    }
+  }
+
+  // Advance remaining time
+  a.x += a.vx * remaining; a.y += a.vy * remaining;
+  b.x += b.vx * remaining; b.y += b.vy * remaining;
+
+  // 1D wall bounces (keep balls on track)
+  if (cs.mode === '1d') {
+    if (a.x - rA < -TRACK_LEN/2) { a.x = -TRACK_LEN/2 + rA; a.vx = Math.abs(a.vx); }
+    if (a.x + rA > TRACK_LEN/2)  { a.x =  TRACK_LEN/2 - rA; a.vx = -Math.abs(a.vx); }
+    if (b.x - rB < -TRACK_LEN/2) { b.x = -TRACK_LEN/2 + rB; b.vx = Math.abs(b.vx); }
+    if (b.x + rB > TRACK_LEN/2)  { b.x =  TRACK_LEN/2 - rB; b.vx = -Math.abs(b.vx); }
+  } else {
+    // 2D box walls
+    const HW = 8, HH = 5.5;
+    if (a.x - rA < -HW) { a.x = -HW+rA; a.vx = Math.abs(a.vx); }
+    if (a.x + rA > HW)  { a.x =  HW-rA; a.vx = -Math.abs(a.vx); }
+    if (a.y - rA < -HH) { a.y = -HH+rA; a.vy = Math.abs(a.vy); }
+    if (a.y + rA > HH)  { a.y =  HH-rA; a.vy = -Math.abs(a.vy); }
+    if (b.x - rB < -HW) { b.x = -HW+rB; b.vx = Math.abs(b.vx); }
+    if (b.x + rB > HW)  { b.x =  HW-rB; b.vx = -Math.abs(b.vx); }
+    if (b.y - rB < -HH) { b.y = -HH+rB; b.vy = Math.abs(b.vy); }
+    if (b.y + rB > HH)  { b.y =  HH-rB; b.vy = -Math.abs(b.vy); }
+  }
+
+  return { ballA: a, ballB: b, collided };
+}
+
+let collLastKE0 = null;
+
+function collisionAnimLoop(timestamp) {
+  if (!collisionState.running) return;
+  if (!collLastTimestamp) collLastTimestamp = timestamp;
+  let wd = (timestamp - collLastTimestamp) / 1000;
+  collLastTimestamp = timestamp;
+  if (document.getElementById('slowMo').checked) wd *= 0.15;
+  wd = Math.min(wd, 0.05);
+  collDtAccum += wd;
+
+  while (collDtAccum >= COLL_DT && collisionState.running) {
+    collDtAccum -= COLL_DT;
+    const res = stepCollision(collisionState, COLL_DT);
+    collisionState.ballA = res.ballA;
+    collisionState.ballB = res.ballB;
+    collisionState.currentTime += COLL_DT;
+
+    const ke = collisionKE(collisionState);
+    const mom = collisionMomentum(collisionState);
+    const pA = collisionState.params.massA * collisionState.ballA.vx;
+    const pB = collisionState.params.massB * collisionState.ballB.vx;
+
+    const point = {
+      t: collisionState.currentTime,
+      vA: collisionState.ballA.vx, vB: collisionState.ballB.vx,
+      vAy: collisionState.ballA.vy, vBy: collisionState.ballB.vy,
+      pA, pB, ptot: mom.px, ke,
+      xA: collisionState.ballA.x, xB: collisionState.ballB.x,
+      yA: collisionState.ballA.y, yB: collisionState.ballB.y,
+    };
+    collisionState.data.push(point);
+
+    if (collisionState.data.length % 12 === 0) {
+      const label = collisionState.currentTime.toFixed(2);
+      const ke0 = collLastKE0 || ke;
+      chartCollVel.data.labels.push(label);
+      chartCollVel.data.datasets[0].data.push(+point.vA.toFixed(3));
+      chartCollVel.data.datasets[1].data.push(+point.vB.toFixed(3));
+      chartCollMom.data.labels.push(label);
+      chartCollMom.data.datasets[0].data.push(+point.ptot.toFixed(4));
+      chartCollMom.data.datasets[1].data.push(+point.pA.toFixed(4));
+      chartCollMom.data.datasets[2].data.push(+point.pB.toFixed(4));
+      chartCollKE.data.labels.push(label);
+      chartCollKE.data.datasets[0].data.push(+ke.toFixed(4));
+      chartCollKE.data.datasets[1].data.push(+(ke0 - ke).toFixed(4));
+    }
+    if (collisionState.data.length % 60 === 0) {
+      chartCollVel.update('none');
+      chartCollMom.update('none');
+      chartCollKE.update('none');
+      updateCollisionReadouts(point);
+      renderRunLegend();
+    }
+    // Auto-stop after 20 seconds
+    if (collisionState.currentTime > 20) {
+      stopCollision();
+      const rc = TRAIL_PALETTE[collisionState.completedRuns.length % TRAIL_PALETTE.length];
+      collisionState.completedRuns.push({ data:[...collisionState.data], color: rc, params:{...collisionState.params}, visible:true });
+      if (collisionState.completedRuns.length > MAX_TRAILS) collisionState.completedRuns.shift();
+      setUIState('complete'); document.getElementById('launchBtn').textContent = '▶ Start';
+      renderRunLegend(); refreshTable();
+      log('Collision simulation complete.', 'warn');
+      return;
+    }
+  }
+
+  drawCollisionScene();
+  collisionState.animFrame = requestAnimationFrame(collisionAnimLoop);
+}
+
+function stopCollision() {
+  collisionState.running = false;
+  if (collisionState.animFrame) cancelAnimationFrame(collisionState.animFrame);
+  collisionState.animFrame = null; collLastTimestamp = null;
+}
+
+function resetCollision() {
+  stopCollision();
+  collisionState.data = []; collisionState.completedRuns = [];
+  collisionState.currentTime = 0; collisionState.ballA = null; collisionState.ballB = null;
+  collisionState.collisionEvents = []; collLastKE0 = null;
+  clearCollisionCharts(); setUIState('idle');
+  document.getElementById('launchBtn').textContent = '▶ Start';
+  drawCollisionScene(); refreshTable(); renderRunLegend();
+  updateCollisionInfoPanel();
+  log('Collision workspace cleared.', 'warn');
+}
+
+function launchCollision() {
+  if (collisionState.running) {
+    stopCollision();
+    if (collisionState.data.length > 1) {
+      const rc = TRAIL_PALETTE[collisionState.completedRuns.length % TRAIL_PALETTE.length];
+      collisionState.completedRuns.push({ data:[...collisionState.data], color:rc, params:{...collisionState.params}, visible:true });
+      if (collisionState.completedRuns.length > MAX_TRAILS) collisionState.completedRuns.shift();
+    }
+    setUIState('complete'); document.getElementById('launchBtn').textContent = '▶ Start';
+    renderRunLegend(); refreshTable(); log('Collision paused.', 'warn');
+    return;
+  }
+
+  stopCollision();
+  collisionState.data = []; collisionState.currentTime = 0;
+  collisionState.collisionEvents = []; collLastTimestamp = null; collDtAccum = 0;
+  clearCollisionCharts();
+
+  const { massA, velA, angA, massB, velB, angB, cor, impact, radius } = collisionState.params;
+  const aRad = angA * Math.PI/180, bRad = angB * Math.PI/180;
+
+  if (collisionState.mode === '1d') {
+    collisionState.ballA = { x: -TRACK_LEN/4, y: 0, vx: velA, vy: 0, trailX: [], trailY: [] };
+    collisionState.ballB = { x:  TRACK_LEN/4, y: 0, vx: velB, vy: 0, trailX: [], trailY: [] };
+  } else {
+    // Place balls so they'll collide near centre accounting for impact parameter
+    const sepDist = TRACK_LEN/2;
+    const nx0 = Math.cos(aRad), ny0 = Math.sin(aRad);
+    const bx = impact !== 0 ? Math.sqrt(Math.max(0, (2*radius)**2 - impact**2)) : 2*radius;
+    collisionState.ballA = { x: -sepDist*nx0 - impact*ny0, y: -sepDist*ny0 + impact*nx0, vx: velA*nx0, vy: velA*ny0, trailX: [], trailY: [] };
+    collisionState.ballB = { x:  sepDist*Math.cos(bRad*1),  y: sepDist*Math.sin(bRad*1), vx: velB*Math.cos(bRad), vy: velB*Math.sin(bRad), trailX: [], trailY: [] };
+  }
+
+  const ke0 = collisionKE(collisionState);
+  collLastKE0 = ke0;
+  const mom0 = collisionMomentum(collisionState);
+  collisionState.running = true;
+  setUIState('running');
+  document.getElementById('launchBtn').textContent = '⏸ Pause';
+
+  const eLabel = cor === 1 ? 'perfectly elastic' : cor === 0 ? 'perfectly inelastic' : `partially inelastic (e=${cor})`;
+  log(`Collision started — ${collisionState.mode.toUpperCase()} · ${eLabel}`, 'success');
+  log(`mA=${massA}kg vA=${velA}m/s · mB=${massB}kg vB=${velB}m/s · p₀=${mom0.px.toFixed(3)} kg·m/s · KE₀=${ke0.toFixed(3)} J`);
+
+  // Log predicted post-collision velocities for 1D head-on
+  if (collisionState.mode === '1d') {
+    const { vA2, vB2 } = solve1DCollision(massA, massB, velA, velB, cor);
+    const kePost = 0.5*massA*vA2*vA2 + 0.5*massB*vB2*vB2;
+    log(`Predicted: vA'=${vA2.toFixed(3)} m/s · vB'=${vB2.toFixed(3)} m/s · ΔKE=${(kePost-ke0).toFixed(3)} J`);
+  }
+
+  renderRunLegend();
+  collisionState.animFrame = requestAnimationFrame(collisionAnimLoop);
+}
+
+function updateCollisionParam(param, value) {
+  collisionState.params[param] = parseFloat(value);
+  const v = parseFloat(value);
+  if (param === 'cor')    document.getElementById('cCorDisplay').textContent   = v.toFixed(2);
+  if (param === 'massA')  document.getElementById('cMassADisplay').textContent = v.toFixed(1)+' kg';
+  if (param === 'massB')  document.getElementById('cMassBDisplay').textContent = v.toFixed(1)+' kg';
+  if (param === 'velA')   document.getElementById('cVelADisplay').textContent  = (v>=0?'+':'')+v.toFixed(1)+' m/s';
+  if (param === 'velB')   document.getElementById('cVelBDisplay').textContent  = (v>=0?'+':'')+v.toFixed(1)+' m/s';
+  if (param === 'angA')   document.getElementById('cAngADisplay').textContent  = v.toFixed(0)+'°';
+  if (param === 'angB')   document.getElementById('cAngBDisplay').textContent  = v.toFixed(0)+'°';
+  if (param === 'impact') document.getElementById('cImpactDisplay').textContent= v.toFixed(2)+' m';
+  updateCollisionInfoPanel();
+  if (!collisionState.running) drawCollisionScene();
+}
+
+function setCoR(val) {
+  collisionState.params.cor = val;
+  document.getElementById('cCor').value = val;
+  document.getElementById('cCorDisplay').textContent = val.toFixed(2);
+  updateCollisionInfoPanel();
+  if (!collisionState.running) drawCollisionScene();
+}
+
+function setCollisionMode(mode) {
+  collisionState.mode = mode;
+  document.getElementById('cMode1D').classList.toggle('active', mode==='1d');
+  document.getElementById('cMode2D').classList.toggle('active', mode==='2d');
+  document.getElementById('cAngleControls').style.display = mode==='2d' ? '' : 'none';
+  if (!collisionState.running) { drawCollisionScene(); }
+  updateCollisionInfoPanel();
+  log(`Switched to ${mode==='1d'?'1D track':'2D plane'} collision mode.`);
+}
+
+function updateCollisionInfoPanel() {
+  const { massA, velA, massB, velB, cor } = collisionState.params;
+  const p0 = massA*velA + massB*velB;
+  const ke0 = 0.5*massA*velA*velA + 0.5*massB*velB*velB;
+  document.getElementById('cMomentumPre').textContent = p0.toFixed(3);
+  document.getElementById('cKEPre').textContent = ke0.toFixed(3);
+}
+
+function updateCollisionReadouts(p) {
+  const { massA, massB } = collisionState.params;
+  const speed = Math.sqrt(p.vA*p.vA + (p.vAy||0)**2);
+  const speedB = Math.sqrt(p.vB*p.vB + (p.vBy||0)**2);
+  setReadout(0, p.t.toFixed(2), 's');
+  setReadout(1, p.vA.toFixed(3), 'm/s');
+  setReadout(2, p.vB.toFixed(3), 'm/s');
+  setReadout(3, p.pA.toFixed(3), 'kg·m/s');
+  setReadout(4, p.pB.toFixed(3), 'kg·m/s');
+  setReadout(5, p.ptot.toFixed(3), 'kg·m/s');
+  setReadout(6, p.ke.toFixed(3), 'J');
+  setReadout(7, (collLastKE0 ? collLastKE0 - p.ke : 0).toFixed(3), 'J');
+}
+
+// ── Canvas drawing ──
+const COLL_SCALE = 38;  // pixels per metre
+
+function collWorld(mx, my) {
+  return { x: W/2 + mx*COLL_SCALE, y: H/2 - my*COLL_SCALE };
+}
+
+function drawCollisionScene() {
+  if (!W) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const p = collisionState.params;
+  const mode = collisionState.mode;
+  const colorA = { r:0, g:229, b:255 };   // cyan
+  const colorB = { r:255, g:107, b:53 };  // orange
+
+  if (mode === '1d') {
+    // Track
+    const ty = H/2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 3; ctx.setLineDash([]);
+    ctx.beginPath();
+    const t0 = collWorld(-TRACK_LEN/2, 0), t1 = collWorld(TRACK_LEN/2, 0);
+    ctx.moveTo(t0.x, ty+1); ctx.lineTo(t1.x, ty+1); ctx.stroke();
+
+    // Wall bumpers
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(t0.x-6, ty-30, 8, 60);
+    ctx.fillRect(t1.x-2, ty-30, 8, 60);
+
+    // Track tick marks (metres)
+    for (let m = -Math.floor(TRACK_LEN/2); m <= Math.floor(TRACK_LEN/2); m++) {
+      const tx = collWorld(m, 0).x;
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(tx, ty-4); ctx.lineTo(tx, ty+4); ctx.stroke();
+    }
+
+    // Centre line
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.setLineDash([4,6]);
+    ctx.beginPath(); ctx.moveTo(W/2, 20); ctx.lineTo(W/2, H-20); ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (!collisionState.ballA) {
+      // Preview
+      drawCollBall(collWorld(-TRACK_LEN/4, 0), BALL_R*COLL_SCALE, colorA, p.massA, `→ ${p.velA.toFixed(1)}`);
+      drawCollBall(collWorld( TRACK_LEN/4, 0), BALL_R*COLL_SCALE, colorB, p.massB, `← ${Math.abs(p.velB).toFixed(1)}`);
+      return;
+    }
+
+    // Trails
+    if (collisionState.showTrail) {
+      drawCollTrail1D(collisionState.data, colorA, 'xA');
+      drawCollTrail1D(collisionState.data, colorB, 'xB');
+    }
+
+    // Balls
+    const posA = collWorld(collisionState.ballA.x, 0);
+    const posB = collWorld(collisionState.ballB.x, 0);
+    drawCollBall(posA, BALL_R*COLL_SCALE, colorA, p.massA, `${collisionState.ballA.vx.toFixed(2)}`);
+    drawCollBall(posB, BALL_R*COLL_SCALE, colorB, p.massB, `${collisionState.ballB.vx.toFixed(2)}`);
+
+    // Velocity arrows
+    drawVelArrow(posA.x, posA.y, collisionState.ballA.vx * 8, 0, colorA);
+    drawVelArrow(posB.x, posB.y, collisionState.ballB.vx * 8, 0, colorB);
+
+    // Collision flash markers
+    const now = collisionState.currentTime;
+    for (const ev of collisionState.collisionEvents) {
+      const age = now - ev.t;
+      if (age < 0.4) {
+        const alpha = 1 - age/0.4;
+        ctx.fillStyle = `rgba(250,204,21,${alpha * 0.25})`;
+        ctx.beginPath(); ctx.arc(W/2, H/2, 60 * (1-alpha) + 20, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+  } else {
+    // 2D plane — box boundary
+    const HW = 8, HH = 5.5;
+    const box0 = collWorld(-HW, HH), box1 = collWorld(HW, -HH);
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+    ctx.strokeRect(box0.x, box0.y, box1.x-box0.x, box1.y-box0.y);
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    ctx.fillRect(box0.x, box0.y, box1.x-box0.x, box1.y-box0.y);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 1;
+    for (let gx = -HW+1; gx < HW; gx++) {
+      const sx = collWorld(gx, 0).x;
+      ctx.beginPath(); ctx.moveTo(sx, box0.y); ctx.lineTo(sx, box1.y); ctx.stroke();
+    }
+    for (let gy = -Math.floor(HH)+1; gy < HH; gy++) {
+      const sy = collWorld(0, gy).y;
+      ctx.beginPath(); ctx.moveTo(box0.x, sy); ctx.lineTo(box1.x, sy); ctx.stroke();
+    }
+
+    if (!collisionState.ballA) {
+      const aPos = collWorld(-3, 0), bPos = collWorld(3, 0);
+      drawCollBall(aPos, BALL_R*COLL_SCALE, colorA, p.massA, 'A');
+      drawCollBall(bPos, BALL_R*COLL_SCALE, colorB, p.massB, 'B');
+      return;
+    }
+
+    // Trails
+    if (collisionState.showTrail) {
+      drawCollTrail2D(collisionState.data, colorA, 'xA', 'yA');
+      drawCollTrail2D(collisionState.data, colorB, 'xB', 'yB');
+    }
+
+    const posA = collWorld(collisionState.ballA.x, collisionState.ballA.y);
+    const posB = collWorld(collisionState.ballB.x, collisionState.ballB.y);
+    drawCollBall(posA, BALL_R*COLL_SCALE, colorA, p.massA, `${Math.hypot(collisionState.ballA.vx,collisionState.ballA.vy).toFixed(1)}`);
+    drawCollBall(posB, BALL_R*COLL_SCALE, colorB, p.massB, `${Math.hypot(collisionState.ballB.vx,collisionState.ballB.vy).toFixed(1)}`);
+    drawVelArrow(posA.x, posA.y, collisionState.ballA.vx*8, -collisionState.ballA.vy*8, colorA);
+    drawVelArrow(posB.x, posB.y, collisionState.ballB.vx*8, -collisionState.ballB.vy*8, colorB);
+
+    // Collision flash
+    for (const ev of collisionState.collisionEvents) {
+      const age = collisionState.currentTime - ev.t;
+      if (age < 0.5) {
+        const alpha = 1 - age/0.5;
+        ctx.fillStyle = `rgba(250,204,21,${alpha*0.3})`;
+        ctx.beginPath(); ctx.arc(W/2, H/2, 80*(1-alpha)+20, 0, Math.PI*2); ctx.fill();
+      }
+    }
+  }
+
+  // Collision event log overlay
+  const now = collisionState.currentTime;
+  let yOff = 18;
+  for (let ci = collisionState.collisionEvents.length-1; ci >= 0 && yOff < 80; ci--) {
+    const ev = collisionState.collisionEvents[ci];
+    const age = now - ev.t;
+    if (age > 4) break;
+    const alpha = Math.min(1, 1 - (age-2)/2);
+    ctx.fillStyle = `rgba(250,204,21,${alpha})`;
+    ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'left';
+    ctx.fillText(`t=${ev.t.toFixed(2)}s collision #${ci+1}`, 12, yOff);
+    yOff += 14;
+  }
+
+  // CoR badge
+  ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono'; ctx.textAlign = 'right';
+  ctx.fillText(`e = ${p.cor.toFixed(2)}`, W-12, 18);
+}
+
+function drawCollBall(pos, r, color, mass, label) {
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.arc(pos.x+3, pos.y+3, r, 0, Math.PI*2); ctx.fill();
+
+  // Ball gradient
+  const grad = ctx.createRadialGradient(pos.x-r*0.3, pos.y-r*0.3, r*0.1, pos.x, pos.y, r);
+  grad.addColorStop(0, `rgba(${color.r},${color.g},${color.b},0.95)`);
+  grad.addColorStop(0.6, `rgba(${Math.floor(color.r*0.6)},${Math.floor(color.g*0.6)},${Math.floor(color.b*0.6)},0.9)`);
+  grad.addColorStop(1, `rgba(${Math.floor(color.r*0.2)},${Math.floor(color.g*0.2)},${Math.floor(color.b*0.2)},0.8)`);
+  ctx.fillStyle = grad;
+  ctx.shadowColor = `rgb(${color.r},${color.g},${color.b})`;
+  ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.arc(pos.x, pos.y, r, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Border
+  ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},0.7)`;
+  ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(pos.x, pos.y, r, 0, Math.PI*2); ctx.stroke();
+
+  // Specular highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath(); ctx.arc(pos.x-r*0.3, pos.y-r*0.3, r*0.28, 0, Math.PI*2); ctx.fill();
+
+  // Mass label
+  ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.font = `bold ${Math.max(8,Math.min(12,r*0.55))}px JetBrains Mono`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`${mass.toFixed(1)}kg`, pos.x, pos.y+2);
+  // Velocity label
+  ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},0.9)`;
+  ctx.font = '9px JetBrains Mono';
+  ctx.fillText(label, pos.x, pos.y + r + 13);
+}
+
+function drawVelArrow(x, y, dx, dy, color) {
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 2) return;
+  ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},0.6)`;
+  ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+dx, y+dy); ctx.stroke();
+  ctx.setLineDash([]);
+  const ang = Math.atan2(dy, dx);
+  ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},0.7)`;
+  ctx.beginPath();
+  ctx.moveTo(x+dx, y+dy);
+  ctx.lineTo(x+dx-9*Math.cos(ang-0.4), y+dy-9*Math.sin(ang-0.4));
+  ctx.lineTo(x+dx-9*Math.cos(ang+0.4), y+dy-9*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fill();
+}
+
+function drawCollTrail1D(data, color, xKey) {
+  if (data.length < 2) return;
+  const SEG = Math.max(1, Math.floor(data.length/120));
+  ctx.lineWidth = 1.2; ctx.setLineDash([]);
+  for (let i = SEG; i < data.length; i += SEG) {
+    const prog = i / data.length;
+    const p0 = collWorld(data[i-SEG][xKey], 0);
+    const p1 = collWorld(data[i][xKey], 0);
+    ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${0.08 + prog*0.25})`;
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+  }
+}
+
+function drawCollTrail2D(data, color, xKey, yKey) {
+  if (data.length < 2) return;
+  const SEG = Math.max(1, Math.floor(data.length/100));
+  ctx.lineWidth = 1.2; ctx.setLineDash([]);
+  for (let i = SEG; i < data.length; i += SEG) {
+    const prog = i / data.length;
+    const p0 = collWorld(data[i-SEG][xKey], data[i-SEG][yKey]);
+    const p1 = collWorld(data[i][xKey], data[i][yKey]);
+    ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${0.05 + prog*0.35})`;
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+  }
+}
+
+// ── Charts ──
+let chartCollVel, chartCollMom, chartCollKE;
+
+function initCollisionCharts() {
+  if (chartCollVel) chartCollVel.destroy();
+  if (chartCollMom) chartCollMom.destroy();
+  if (chartCollKE)  chartCollKE.destroy();
+
+  chartCollVel = new Chart(document.getElementById('chartCollVel'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label:'vA', data:[], borderColor:'#00e5ff', borderWidth:1.5, pointRadius:0, tension:0.1 },
+      { label:'vB', data:[], borderColor:'#ff6b35', borderWidth:1.5, pointRadius:0, tension:0.1 },
+    ]},
+    options: { ...chartDefaults }
+  });
+  chartCollMom = new Chart(document.getElementById('chartCollMom'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label:'p_total', data:[], borderColor:'#facc15', borderWidth:2,   pointRadius:0, tension:0.1 },
+      { label:'pA',      data:[], borderColor:'#00e5ff', borderWidth:1,   pointRadius:0, tension:0.1 },
+      { label:'pB',      data:[], borderColor:'#ff6b35', borderWidth:1,   pointRadius:0, tension:0.1 },
+    ]},
+    options: { ...chartDefaults }
+  });
+  chartCollKE = new Chart(document.getElementById('chartCollKE'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label:'KE total', data:[], borderColor:'#facc15', borderWidth:1.5, pointRadius:0, tension:0.1 },
+      { label:'ΔKE lost', data:[], borderColor:'#a78bfa', borderWidth:1.5, pointRadius:0, tension:0.1 },
+    ]},
+    options: { ...chartDefaults }
+  });
+}
+
+function clearCollisionCharts() {
+  if (!chartCollVel) return;
+  [chartCollVel, chartCollMom, chartCollKE].forEach(c => {
+    c.data.labels = []; c.data.datasets.forEach(d => d.data = []); c.update('none');
+  });
+}
+
+// ============================================================
+//  COMPARE MODE
+// ============================================================
+let compareActive = false;
+let compareExps = ['projectile', 'pendulum'];  // two experiment IDs
+let compareCtx0, compareCtx1;
+let compareAnimFrame = null;
+
+function toggleCompareMode(evt) {
+  compareActive = !compareActive;
+  const btn = document.getElementById('compareTab');
+  btn.classList.toggle('active', compareActive);
+
+  const wrap = document.getElementById('canvasWrap');
+  const mainCanvas = document.getElementById('simCanvas');
+  const pane0 = document.getElementById('comparePane0');
+  const pane1 = document.getElementById('comparePane1');
+  const rightPanel = document.querySelector('.panel-right');
+
+  if (compareActive) {
+    // Stop any running experiments
+    if (state.running) { state.running=false; cancelAnimationFrame(state.animFrame); }
+    if (pendulumState.running) stopPendulum();
+    if (springState.running) stopSpring();
+    if (inclineState.running) stopIncline();
+    if (collisionState.running) stopCollision();
+
+    wrap.classList.add('compare-mode');
+    mainCanvas.style.display = 'none';
+    pane0.style.display = pane1.style.display = '';
+
+    // Size the compare canvases
+    const c0 = document.getElementById('compareCanvas0');
+    const c1 = document.getElementById('compareCanvas1');
+    c0.width = Math.floor(wrap.clientWidth / 2);
+    c0.height = wrap.clientHeight;
+    c1.width = c0.width; c1.height = c0.height;
+    compareCtx0 = c0.getContext('2d');
+    compareCtx1 = c1.getContext('2d');
+
+    openCompareDialog();
+    log('Compare mode active — select two experiments to run side by side.', 'success');
+  } else {
+    wrap.classList.remove('compare-mode');
+    mainCanvas.style.display = '';
+    pane0.style.display = pane1.style.display = 'none';
+    if (compareAnimFrame) { cancelAnimationFrame(compareAnimFrame); compareAnimFrame = null; }
+    log('Compare mode deactivated.', 'warn');
+    resizeCanvas(); drawScene([]);
+  }
+}
+
+function openCompareDialog() {
+  // Show a quick in-canvas prompt to pick experiments
+  // We'll render it directly onto the compare canvases
+  const expList = ['projectile', 'pendulum', 'spring', 'incline', 'collision'];
+  const expNames = { projectile:'Projectile', pendulum:'Pendulum', spring:'Spring-Mass', incline:'Inclined Plane', collision:'Collisions' };
+
+  // Build a small overlay UI
+  let existing = document.getElementById('compareDialog');
+  if (existing) existing.remove();
+
+  const dlg = document.createElement('div');
+  dlg.id = 'compareDialog';
+  dlg.style.cssText = `
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:var(--surface); border:1px solid var(--border-bright); border-radius:8px;
+    padding:20px 24px; z-index:100; font-family:var(--mono); min-width:320px; text-align:center;
+  `;
+  dlg.innerHTML = `
+    <div style="color:var(--accent);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px;font-weight:600;">⊞ Compare Mode — Choose Experiments</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <div style="font-size:9px;color:#547080;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Pane A</div>
+        <select id="cmpSelA" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border-bright);padding:6px;border-radius:4px;font-family:var(--mono);font-size:11px;">
+          ${expList.map(e=>`<option value="${e}" ${e===compareExps[0]?'selected':''}>${expNames[e]}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:9px;color:#547080;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Pane B</div>
+        <select id="cmpSelB" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border-bright);padding:6px;border-radius:4px;font-family:var(--mono);font-size:11px;">
+          ${expList.map(e=>`<option value="${e}" ${e===compareExps[1]?'selected':''}>${expNames[e]}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button onclick="startCompare()" style="background:rgba(0,229,255,0.1);color:var(--accent);border:1px solid var(--accent);padding:7px 20px;border-radius:4px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;cursor:pointer;">▶ Start</button>
+      <button onclick="document.getElementById('compareDialog').remove()" style="background:transparent;color:#547080;border:1px solid var(--border);padding:7px 16px;border-radius:4px;font-family:var(--mono);font-size:10px;cursor:pointer;">Cancel</button>
+    </div>
+  `;
+  document.getElementById('canvasWrap').appendChild(dlg);
+}
+
+function startCompare() {
+  const selA = document.getElementById('cmpSelA').value;
+  const selB = document.getElementById('cmpSelB').value;
+  compareExps = [selA, selB];
+  document.getElementById('compareDialog').remove();
+
+  const expNames = { projectile:'Projectile Motion', pendulum:'Simple Pendulum', spring:'Spring-Mass', incline:'Inclined Plane', collision:'Collisions' };
+  document.getElementById('compareLabel0').textContent = expNames[selA];
+  document.getElementById('compareLabel1').textContent = expNames[selB];
+
+  log(`Comparing: ${expNames[selA]} vs ${expNames[selB]}`, 'success');
+  runCompareLoop();
+}
+
+function runCompareLoop() {
+  if (compareAnimFrame) cancelAnimationFrame(compareAnimFrame);
+
+  function drawComparePane(ctx2d, expId) {
+    const cw = ctx2d.canvas.width, ch = ctx2d.canvas.height;
+    ctx2d.clearRect(0, 0, cw, ch);
+
+    // Save global canvas context, temporarily draw to compare canvas
+    const savedCtx = window.ctx, savedW = W, savedH = H;
+    window.ctx = ctx2d; W = cw; H = ch;
+    originX = cw * ORIGIN_X_FRAC; originY = ch * ORIGIN_Y_FRAC;
+
+    try {
+      if (expId === 'projectile') _drawProjectileScene(state.data.length > 0 ? state.data : []);
+      else if (expId === 'pendulum') drawPendulumScene();
+      else if (expId === 'spring') drawSpringScene();
+      else if (expId === 'incline') drawInclineScene();
+      else if (expId === 'collision') drawCollisionScene();
+    } catch(e) {}
+
+    window.ctx = savedCtx; W = savedW; H = savedH;
+    originX = W * ORIGIN_X_FRAC; originY = H * ORIGIN_Y_FRAC;
+  }
+
+  function compareLoop() {
+    if (!compareActive) return;
+    if (compareCtx0) drawComparePane(compareCtx0, compareExps[0]);
+    if (compareCtx1) drawComparePane(compareCtx1, compareExps[1]);
+    compareAnimFrame = requestAnimationFrame(compareLoop);
+  }
+
+  compareAnimFrame = requestAnimationFrame(compareLoop);
+}
+
+// ============================================================
 //  INIT — Incline info panel on load
 // ============================================================
 // ============================================================
@@ -2704,8 +3692,9 @@ labelReadouts(READOUT_PROJECTILE);
 renderRunLegend();
 updateInclineInfoPanel();
 log('Canvas initialized at '+W+'×'+H, 'success');
-log('v0.3: Projectile · Pendulum · Spring-Mass · Inclined Plane loaded.');
-log('Inclined Plane: observe static vs kinetic friction, angle of repose, and real-time force vectors!');
+log('v0.4: Projectile · Pendulum · Spring-Mass · Inclined Plane · Collisions loaded.', 'success');
+log('NEW — Collisions: exact analytic CoR solver, 1D & 2D, elastic through perfectly inelastic.');
+log('NEW — Compare Mode: click ⊞ Compare to run two experiments side by side.');
 </script>
 </body>
 </html>
