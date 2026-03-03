@@ -243,6 +243,7 @@
   .slider.green::-webkit-slider-thumb { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
   .slider.amber::-webkit-slider-thumb { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.5); }
   .slider.pink::-webkit-slider-thumb { background: #f472b6; box-shadow: 0 0 8px rgba(244,114,182,0.5); }
+  .slider.teal::-webkit-slider-thumb { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
 
   .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
@@ -475,13 +476,14 @@
   <div class="logo">
     <div class="logo-icon"></div>
     <span class="logo-text">Open<span>Physics</span> Lab</span>
-    <span class="badge">MVP v0.2</span>
+    <span class="badge">MVP v0.3</span>
   </div>
 
   <div class="exp-selector">
     <button class="exp-tab active" onclick="selectExperiment('projectile', event)">Projectile Motion</button>
     <button class="exp-tab" onclick="selectExperiment('pendulum', event)">Simple Pendulum</button>
     <button class="exp-tab" onclick="selectExperiment('spring', event)">Spring-Mass</button>
+    <button class="exp-tab" onclick="selectExperiment('incline', event)">Inclined Plane</button>
     <button class="exp-tab" onclick="selectExperiment('collision', event)">Collisions <span class="coming-soon">soon</span></button>
   </div>
 
@@ -607,6 +609,64 @@
         </div>
       </div>
 
+      <!-- INCLINED PLANE CONTROLS -->
+      <div id="panelIncline" style="display:none;">
+        <div class="formula-box" style="border-left-color: #34d399;">
+          <div class="formula-title" style="color:#34d399;">Inclined Plane — Full Friction</div>
+          <div class="formula-line">N = <em>mg·cos(θ)</em></div>
+          <div class="formula-line">f_s ≤ <em>μ_s · N</em>  (static)</div>
+          <div class="formula-line">f_k = <em>μ_k · N</em>  (kinetic)</div>
+          <div class="formula-line">a = <em>g(sin θ − μ_k cos θ)</em></div>
+          <div class="formula-line">θ_repose = <em>arctan(μ_s)</em></div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Incline Angle θ</span><span class="control-value" style="color:#34d399;" id="iAngleDisplay">30.0°</span></div>
+          <input type="range" class="slider teal" id="iAngle" min="1" max="85" value="30" step="0.5"
+            oninput="updateInclineParam('angle', this.value)" />
+          <div style="margin-top:5px; font-size:9px; color:#547080;">
+            Repose angle: <span id="iReposeAngle" style="color:#34d399;">—</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Mass</span><span class="control-value green" id="iMassDisplay">5.0 kg</span></div>
+          <input type="range" class="slider green" id="iMass" min="0.1" max="20" value="5" step="0.1"
+            oninput="updateInclineParam('mass', this.value)" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Gravity</span><span class="control-value purple" id="iGravDisplay">9.81 m/s²</span></div>
+          <input type="range" class="slider purple" id="iGravity" min="0.5" max="25" value="9.81" step="0.1"
+            oninput="updateInclineParam('gravity', this.value)" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Static Friction μ_s</span><span class="control-value orange" id="iMuSDisplay">0.40</span></div>
+          <input type="range" class="slider orange" id="iMuS" min="0" max="1.5" value="0.4" step="0.01"
+            oninput="updateInclineParam('muS', this.value)" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Kinetic Friction μ_k</span><span class="control-value" style="color:#fb923c;" id="iMuKDisplay">0.30</span></div>
+          <input type="range" class="slider orange" id="iMuK" min="0" max="1.5" value="0.3" step="0.01"
+            oninput="updateInclineParam('muK', this.value)" />
+          <div style="margin-top:5px; font-size:9px; color:#547080;">μ_k is always ≤ μ_s physically</div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span class="control-name">Initial Velocity</span><span class="control-value" style="color:#94a3b8;" id="iV0Display">0.00 m/s</span></div>
+          <input type="range" class="slider" id="iV0" min="-10" max="10" value="0" step="0.1"
+            oninput="updateInclineParam('v0', this.value)" />
+          <div style="margin-top:5px; font-size:9px; color:#547080;">Negative = pushed up the ramp</div>
+        </div>
+
+        <div style="padding:8px 10px; background:#0d1220; border:1px solid var(--border-bright); border-radius:4px; font-size:9px; color:#7a9ab5; letter-spacing:0.04em; margin-bottom:4px;">
+          <div id="iStatusLine" style="color:#34d399; font-weight:600; margin-bottom:3px;">— Set params and launch —</div>
+          F_grav∥ = <span id="iForceGrav">—</span> N &nbsp;·&nbsp; F_fric = <span id="iForceFric">—</span> N &nbsp;·&nbsp; F_net = <span id="iForceNet">—</span> N
+        </div>
+      </div>
+
       <div class="divider"></div>
 
       <div class="btn-group">
@@ -714,6 +774,28 @@
         </div>
 
         <div id="chartsSpring" style="display:none;">
+
+        <div id="chartsIncline" style="display:none;">
+          <div class="chart-container">
+            <div class="chart-title">Position Along Ramp vs Time</div>
+            <canvas class="chart-canvas" id="chartInclinePos"></canvas>
+          </div>
+          <div class="chart-container">
+            <div class="chart-title">Velocity vs Time</div>
+            <canvas class="chart-canvas" id="chartInclineVel"></canvas>
+          </div>
+          <div class="chart-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="chart-title" style="margin-bottom:0">Forces vs Time</div>
+              <div style="display:flex;gap:8px;font-size:9px;font-family:var(--mono);">
+                <span style="color:#34d399;">━ Grav∥</span>
+                <span style="color:#ff6b35;">━ Friction</span>
+                <span style="color:#00e5ff;">━ Net</span>
+              </div>
+            </div>
+            <canvas class="chart-canvas" id="chartInclineForces" style="margin-top:8px;"></canvas>
+          </div>
+        </div>
           <div class="chart-container"><div class="chart-title">Displacement vs Time</div><canvas class="chart-canvas" id="chartDisp"></canvas></div>
           <div class="chart-container">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1598,13 +1680,16 @@ function renderRunLegend() {
   const empty = document.getElementById('runListEmpty');
   const runs = activeExperiment === 'projectile' ? state.completedRuns
              : activeExperiment === 'pendulum'   ? pendulumState.completedRuns
-             :                                     springState.completedRuns;
+             : activeExperiment === 'spring'     ? springState.completedRuns
+             :                                     inclineState.completedRuns;
   const isRunning = activeExperiment === 'projectile' ? state.running
                   : activeExperiment === 'pendulum'   ? pendulumState.running
-                  :                                     springState.running;
+                  : activeExperiment === 'spring'     ? springState.running
+                  :                                     inclineState.running;
   const activeData = activeExperiment === 'projectile' ? state.data
                    : activeExperiment === 'pendulum'   ? pendulumState.data
-                   :                                     springState.data;
+                   : activeExperiment === 'spring'     ? springState.data
+                   :                                     inclineState.data;
 
   if (runs.length === 0 && !isRunning) { list.innerHTML = ''; list.appendChild(empty); empty.style.display=''; return; }
   empty.style.display = 'none';
@@ -1614,7 +1699,8 @@ function renderRunLegend() {
     const liveColor = TRAIL_PALETTE[runs.length % TRAIL_PALETTE.length];
     const liveParams = activeExperiment === 'projectile' ? {...state.params}
                      : activeExperiment === 'pendulum'   ? {...pendulumState.params}
-                     :                                     {...springState.params};
+                     : activeExperiment === 'spring'     ? {...springState.params}
+                     :                                     {...inclineState.params};
     items.push({ run: { color: liveColor, params: liveParams, visible: true }, index: runs.length, isActive: true });
   }
 
@@ -1628,8 +1714,10 @@ function renderRunLegend() {
       if (!isActive && run.range>0) meta += ` · R=${run.range.toFixed(1)}m`;
     } else if (activeExperiment === 'pendulum') {
       const p = run.params; meta = `L=${p.length}m θ₀=${p.angle}° b=${p.damping}`;
-    } else {
+    } else if (activeExperiment === 'spring') {
       const p = run.params; meta = `k=${p.k} m=${p.mass} b=${p.damping}`;
+    } else {
+      const p = run.params; meta = `θ=${p.angle}° μs=${p.muS} μk=${p.muK} m=${p.mass}kg`;
     }
     return `<div class="run-item${!isVisible?' hidden':''}${isActive?' active-run':''}" style="--run-color:${hex}">
       <div class="run-color-dot" style="background:${hex};--run-color:${hex}"></div>
@@ -1642,7 +1730,8 @@ function renderRunLegend() {
 function toggleRunVisible(index) {
   const runs = activeExperiment === 'projectile' ? state.completedRuns
              : activeExperiment === 'pendulum'   ? pendulumState.completedRuns
-             :                                     springState.completedRuns;
+             : activeExperiment === 'spring'     ? springState.completedRuns
+             :                                     inclineState.completedRuns;
   if (index < 0 || index >= runs.length) return;
   runs[index].visible = runs[index].visible === false ? true : false;
   renderRunLegend(); drawScene();
@@ -1651,12 +1740,14 @@ function toggleRunVisible(index) {
 function setAllRunsVisible(visible) {
   const runs = activeExperiment === 'projectile' ? state.completedRuns
              : activeExperiment === 'pendulum'   ? pendulumState.completedRuns
-             :                                     springState.completedRuns;
+             : activeExperiment === 'spring'     ? springState.completedRuns
+             :                                     inclineState.completedRuns;
   runs.forEach(r => r.visible = visible);
   renderRunLegend();
   if (activeExperiment === 'projectile') drawScene(state.data.length>0?state.data:[]);
   else if (activeExperiment === 'pendulum') drawPendulumScene();
-  else drawSpringScene();
+  else if (activeExperiment === 'spring') drawSpringScene();
+  else drawInclineScene();
 }
 
 // ============================================================
@@ -1679,6 +1770,8 @@ function handleLaunch() {
     }
   } else if (activeExperiment === 'spring') {
     launchSpring();
+  } else if (activeExperiment === 'incline') {
+    launchIncline();
   }
 }
 
@@ -1686,12 +1779,14 @@ function handleReset() {
   if (activeExperiment === 'projectile') resetSim();
   else if (activeExperiment === 'pendulum') resetPendulum();
   else if (activeExperiment === 'spring') resetSpring();
+  else if (activeExperiment === 'incline') resetIncline();
 }
 
 function handleClearTrails() {
   if (activeExperiment === 'projectile') { state.completedRuns=[]; drawScene(state.data.length>0?state.data:[]); renderRunLegend(); log('Trails cleared.','warn'); }
   else if (activeExperiment === 'pendulum') { pendulumState.completedRuns=[]; drawPendulumScene(); renderRunLegend(); log('Pendulum trails cleared.','warn'); }
   else if (activeExperiment === 'spring')   { springState.completedRuns=[]; drawSpringScene(); renderRunLegend(); refreshTable(); log('Spring trails cleared.','warn'); }
+  else if (activeExperiment === 'incline')  { inclineState.completedRuns=[]; drawInclineScene(); renderRunLegend(); refreshTable(); log('Incline trails cleared.','warn'); }
 }
 
 // ============================================================
@@ -1755,10 +1850,10 @@ function setUIState(s) {
   const ind = document.getElementById('stateIndicator');
   const txt = document.getElementById('stateText');
   ind.className = 'state-indicator '+s;
-  const isPend = activeExperiment==='pendulum', isSpring = activeExperiment==='spring';
+  const isLaunch = activeExperiment === 'projectile';
   txt.textContent = s==='running' ? 'SIMULATION RUNNING'
-                  : s==='complete' ? (isPend?'STOPPED — DATA READY':(isSpring?'COMPLETE — DATA READY':'LANDED — DATA READY'))
-                  : (isPend||isSpring ? 'READY TO START' : 'READY TO LAUNCH');
+                  : s==='complete' ? (isLaunch ? 'LANDED — DATA READY' : 'COMPLETE — DATA READY')
+                  : (isLaunch ? 'READY TO LAUNCH' : 'READY TO START');
 }
 
 function updateParam(param, value) {
@@ -1788,7 +1883,7 @@ function updatePendulumParam(param, value) {
 
 function toggleTrail() {
   const v = document.getElementById('showTrail').checked;
-  state.showTrail = v; pendulumState.showTrail = v; springState.showTrail = v;
+  state.showTrail = v; pendulumState.showTrail = v; springState.showTrail = v; inclineState.showTrail = v;
 }
 
 function toggleSlowMo() { state.slowMo = document.getElementById('slowMo').checked; }
@@ -1796,6 +1891,7 @@ function toggleSlowMo() { state.slowMo = document.getElementById('slowMo').check
 function drawScene(simState) {
   if (activeExperiment==='pendulum') { drawPendulumScene(); return; }
   if (activeExperiment==='spring')   { drawSpringScene(); return; }
+  if (activeExperiment==='incline')  { drawInclineScene(); return; }
   _drawProjectileScene(simState);
 }
 
@@ -1831,23 +1927,29 @@ function selectExperiment(id, evt) {
   if (state.running) { state.running=false; if(state.animFrame) cancelAnimationFrame(state.animFrame); }
   if (pendulumState.running) stopPendulum();
   if (springState.running) stopSpring();
+  if (inclineState.running) stopIncline();
 
   activeExperiment = id;
-  const btnLabels = { projectile:'▶ Launch', pendulum:'▶ Start', spring:'▶ Start' };
-  document.getElementById('launchBtn').textContent = btnLabels[id];
+  const btnLabels = { projectile:'▶ Launch', pendulum:'▶ Start', spring:'▶ Start', incline:'▶ Start' };
+  document.getElementById('launchBtn').textContent = btnLabels[id] || '▶ Start';
 
   document.getElementById('panelProjectile').style.display   = id==='projectile'?'':'none';
   document.getElementById('panelPendulum').style.display     = id==='pendulum'?'':'none';
   document.getElementById('panelSpring').style.display       = id==='spring'?'':'none';
+  document.getElementById('panelIncline').style.display      = id==='incline'?'':'none';
   document.getElementById('chartsProjectile').style.display  = id==='projectile'?'':'none';
   document.getElementById('chartsPendulum').style.display    = id==='pendulum'?'':'none';
   document.getElementById('chartsSpring').style.display      = id==='spring'?'':'none';
+  document.getElementById('chartsIncline').style.display     = id==='incline'?'':'none';
 
-  const readoutSets = { projectile: READOUT_PROJECTILE, pendulum: READOUT_PENDULUM, spring: READOUT_SPRING };
-  labelReadouts(readoutSets[id]);
+  const readoutSets = {
+    projectile: READOUT_PROJECTILE, pendulum: READOUT_PENDULUM,
+    spring: READOUT_SPRING, incline: READOUT_INCLINE
+  };
+  labelReadouts(readoutSets[id] || READOUT_PROJECTILE);
 
-  const expNames = { projectile:'Projectile Motion', pendulum:'Simple Pendulum', spring:'Spring-Mass SHM' };
-  document.getElementById('toolbarExpName').textContent = expNames[id];
+  const expNames = { projectile:'Projectile Motion', pendulum:'Simple Pendulum', spring:'Spring-Mass SHM', incline:'Inclined Plane + Friction' };
+  document.getElementById('toolbarExpName').textContent = expNames[id] || id;
   document.getElementById('gridOverlay').style.opacity  = id==='projectile'?'':'0';
   document.getElementById('originMarker').style.display = id==='projectile'?'':'none';
 
@@ -1859,6 +1961,7 @@ function selectExperiment(id, evt) {
   if (id==='projectile') { _drawProjectileScene([]); log('Switched to Projectile Motion.'); }
   else if (id==='pendulum') { initPendulumCharts(); drawPendulumScene(); log('Switched to Simple Pendulum — RK4.'); }
   else if (id==='spring') { initSpringCharts(); drawSpringScene(); log('Switched to Spring-Mass — RK4 · SHM simulator.'); updateSpringParam('k', springState.params.k); }
+  else if (id==='incline') { initInclineCharts(); drawInclineScene(); updateInclineInfoPanel(); log('Switched to Inclined Plane — static/kinetic friction model.'); log('Tip: Set θ > θ_repose to watch the block slide. Compare μ_s vs μ_k effects!'); }
 }
 
 // ============================================================
@@ -1890,6 +1993,11 @@ const READOUT_PENDULUM = [
 const READOUT_SPRING = [
   {label:'Time',unit:'s'},{label:'Position x',unit:'m'},{label:'Velocity v',unit:'m/s'},{label:'KE',unit:'J'},
   {label:'PE',unit:'J'},{label:'Total E',unit:'J'},{label:'ω₀',unit:'rad/s'},{label:'Period T',unit:'s'},
+];
+
+const READOUT_INCLINE = [
+  {label:'Time',unit:'s'},{label:'Position s',unit:'m'},{label:'Velocity v',unit:'m/s'},{label:'Accel a',unit:'m/s²'},
+  {label:'Normal N',unit:'N'},{label:'Friction f',unit:'N'},{label:'KE',unit:'J'},{label:'PE (grav)',unit:'J'},
 ];
 
 // ============================================================
@@ -1925,10 +2033,14 @@ function refreshTable() {
     thead.innerHTML='<th>Run</th><th>t (s)</th><th>θ (°)</th><th>ω (rad/s)</th><th>KE (J)</th><th>PE (J)</th><th>E (J)</th>';
     const allRuns=[...pendulumState.completedRuns,...(pendulumState.data.length>1?[{data:pendulumState.data,color:TRAIL_PALETTE[pendulumState.completedRuns.length%TRAIL_PALETTE.length],params:{...pendulumState.params}}]:[])];
     renderRunsToTable(allRuns,tbody,meta,countEl,(d)=>`<td>${d.t.toFixed(3)}</td><td>${(d.theta*180/Math.PI).toFixed(2)}</td><td>${d.omega.toFixed(4)}</td><td>${d.ke.toFixed(4)}</td><td>${d.pe.toFixed(4)}</td><td>${d.energy.toFixed(4)}</td>`,(p)=>`L=${p.length}m θ₀=${p.angle}°`);
-  } else {
+  } else if (activeExperiment==='spring') {
     thead.innerHTML='<th>Run</th><th>t (s)</th><th>x (m)</th><th>v (m/s)</th><th>KE (J)</th><th>PE (J)</th><th>E (J)</th>';
     const allRuns=[...springState.completedRuns,...(springState.data.length>1?[{data:springState.data,color:TRAIL_PALETTE[springState.completedRuns.length%TRAIL_PALETTE.length],params:{...springState.params}}]:[])];
     renderRunsToTable(allRuns,tbody,meta,countEl,(d)=>`<td>${d.t.toFixed(3)}</td><td>${d.x.toFixed(4)}</td><td>${d.v.toFixed(4)}</td><td>${d.ke.toFixed(4)}</td><td>${d.pe.toFixed(4)}</td><td>${d.energy.toFixed(4)}</td>`,(p)=>`k=${p.k} m=${p.mass} b=${p.damping}`);
+  } else if (activeExperiment==='incline') {
+    thead.innerHTML='<th>Run</th><th>t (s)</th><th>s (m)</th><th>v (m/s)</th><th>a (m/s²)</th><th>N (N)</th><th>f (N)</th>';
+    const allRuns=[...inclineState.completedRuns,...(inclineState.data.length>1?[{data:inclineState.data,color:TRAIL_PALETTE[inclineState.completedRuns.length%TRAIL_PALETTE.length],params:{...inclineState.params}}]:[])];
+    renderRunsToTable(allRuns,tbody,meta,countEl,(d)=>`<td>${d.t.toFixed(3)}</td><td>${d.x.toFixed(4)}</td><td>${d.v.toFixed(4)}</td><td>${d.a.toFixed(4)}</td><td>${d.N.toFixed(3)}</td><td>${Math.abs(d.friction).toFixed(3)}</td>`,(p)=>`θ=${p.angle}° μs=${p.muS} μk=${p.muK}`);
   }
 }
 
@@ -1957,25 +2069,35 @@ function exportCSV() {
     if(!pendulumState.data.length){log('No data.','warn');return;}
     const rows=['t,theta_deg,omega,ke,pe,energy',...pendulumState.data.map(p=>`${p.t.toFixed(4)},${(p.theta*180/Math.PI).toFixed(4)},${p.omega.toFixed(4)},${p.ke.toFixed(4)},${p.pe.toFixed(4)},${p.energy.toFixed(4)}`)];
     downloadFile(rows.join('\n'),'pendulum_data.csv','text/csv'); log('CSV exported.','success');
-  } else {
+  } else if (activeExperiment==='spring') {
     if(!springState.data.length){log('No data.','warn');return;}
     const rows=['t,x_m,v_ms,ke_J,pe_J,energy_J',...springState.data.map(p=>`${p.t.toFixed(4)},${p.x.toFixed(4)},${p.v.toFixed(4)},${p.ke.toFixed(4)},${p.pe.toFixed(4)},${p.energy.toFixed(4)}`)];
     downloadFile(rows.join('\n'),'spring_data.csv','text/csv'); log('CSV exported.','success');
+  } else {
+    if(!inclineState.data.length){log('No data.','warn');return;}
+    const rows=['t,s_m,v_ms,a_ms2,N_N,friction_N,regime',...inclineState.data.map(p=>`${p.t.toFixed(4)},${p.x.toFixed(4)},${p.v.toFixed(4)},${p.a.toFixed(4)},${p.N.toFixed(3)},${p.friction.toFixed(3)},${p.regime}`)];
+    downloadFile(rows.join('\n'),'incline_data.csv','text/csv'); log('CSV exported.','success');
   }
 }
 
 function exportJSON() {
   if (activeExperiment==='projectile') {
     if(!state.data.length){log('No data.','warn');return;}
-    downloadFile(JSON.stringify({experiment:'projectile_motion_with_drag',version:'0.2',params:state.params,computed:{maxHeight:state.maxHeight,range:state.range},data:state.data.map(p=>({t:+p.t.toFixed(4),x:+p.x.toFixed(4),y:+p.y.toFixed(4),vx:+p.vx.toFixed(4),vy:+p.vy.toFixed(4),speed:+p.speed.toFixed(4)}))},null,2),'projectile_data.json','application/json');
+    downloadFile(JSON.stringify({experiment:'projectile_motion_with_drag',version:'0.3',params:state.params,computed:{maxHeight:state.maxHeight,range:state.range},data:state.data.map(p=>({t:+p.t.toFixed(4),x:+p.x.toFixed(4),y:+p.y.toFixed(4),vx:+p.vx.toFixed(4),vy:+p.vy.toFixed(4),speed:+p.speed.toFixed(4)}))},null,2),'projectile_data.json','application/json');
     log('JSON exported.','success');
   } else if (activeExperiment==='pendulum') {
     if(!pendulumState.data.length){log('No data.','warn');return;}
-    downloadFile(JSON.stringify({experiment:'simple_pendulum_rk4',version:'0.2',params:pendulumState.params,data:pendulumState.data.map(p=>({t:+p.t.toFixed(4),theta_deg:+(p.theta*180/Math.PI).toFixed(4),omega:+p.omega.toFixed(4),ke:+p.ke.toFixed(4),pe:+p.pe.toFixed(4),energy:+p.energy.toFixed(4)}))},null,2),'pendulum_data.json','application/json');
+    downloadFile(JSON.stringify({experiment:'simple_pendulum_rk4',version:'0.3',params:pendulumState.params,data:pendulumState.data.map(p=>({t:+p.t.toFixed(4),theta_deg:+(p.theta*180/Math.PI).toFixed(4),omega:+p.omega.toFixed(4),ke:+p.ke.toFixed(4),pe:+p.pe.toFixed(4),energy:+p.energy.toFixed(4)}))},null,2),'pendulum_data.json','application/json');
+    log('JSON exported.','success');
+  } else if (activeExperiment==='spring') {
+    if(!springState.data.length){log('No data.','warn');return;}
+    downloadFile(JSON.stringify({experiment:'spring_mass_rk4',version:'0.3',params:springState.params,computed:{omega0:springOmega0(springState.params),period:springPeriod(springState.params),bcrit:springBcrit(springState.params)},data:springState.data.map(p=>({t:+p.t.toFixed(4),x:+p.x.toFixed(4),v:+p.v.toFixed(4),ke:+p.ke.toFixed(4),pe:+p.pe.toFixed(4),energy:+p.energy.toFixed(4)}))},null,2),'spring_data.json','application/json');
     log('JSON exported.','success');
   } else {
-    if(!springState.data.length){log('No data.','warn');return;}
-    downloadFile(JSON.stringify({experiment:'spring_mass_rk4',version:'0.2',params:springState.params,computed:{omega0:springOmega0(springState.params),period:springPeriod(springState.params),bcrit:springBcrit(springState.params)},data:springState.data.map(p=>({t:+p.t.toFixed(4),x:+p.x.toFixed(4),v:+p.v.toFixed(4),ke:+p.ke.toFixed(4),pe:+p.pe.toFixed(4),energy:+p.energy.toFixed(4)}))},null,2),'spring_data.json','application/json');
+    if(!inclineState.data.length){log('No data.','warn');return;}
+    const theta = inclineState.params.angle * Math.PI / 180;
+    const { angle, mass: m, gravity: g, muS, muK } = inclineState.params;
+    downloadFile(JSON.stringify({experiment:'inclined_plane_friction',version:'0.3',physics:{model:'static_kinetic_friction',notes:'muK clamped <= muS'},params:inclineState.params,computed:{angleOfRepose:inclineAngleOfRepose(inclineState.params),N:m*g*Math.cos(theta),Fg_parallel:m*g*Math.sin(theta),fk:muK*m*g*Math.cos(theta),fs_max:muS*m*g*Math.cos(theta)},data:inclineState.data.map(p=>({t:+p.t.toFixed(4),s:+p.x.toFixed(4),v:+p.v.toFixed(4),a:+p.a.toFixed(4),N:+p.N.toFixed(3),friction:+p.friction.toFixed(3),regime:p.regime}))},null,2),'incline_data.json','application/json');
     log('JSON exported.','success');
   }
 }
@@ -1986,19 +2108,25 @@ function exportTableCSV() {
     if(!allRuns.length){log('No data.','warn');return;}
     const rows=['run,v0_ms,angle_deg,mass_kg,gravity_ms2,t_s,x_m,y_m,vx_ms,vy_ms,speed_ms'];
     allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,p.velocity,p.angle,p.mass,p.gravity,d.t.toFixed(4),d.x.toFixed(4),d.y.toFixed(4),d.vx.toFixed(4),d.vy.toFixed(4),d.speed.toFixed(4)].join(','))); });
-    downloadFile(rows.join('\n'),'projectile_table.csv','text/csv'); log(`Table exported.`,'success');
+    downloadFile(rows.join('\n'),'projectile_table.csv','text/csv'); log('Table exported.','success');
   } else if (activeExperiment==='pendulum') {
     const allRuns=[...pendulumState.completedRuns,...(pendulumState.data.length>1?[{data:pendulumState.data,params:{...pendulumState.params}}]:[])];
     if(!allRuns.length){log('No data.','warn');return;}
     const rows=['run,length_m,angle_deg,gravity_ms2,damping,mass_kg,t_s,theta_deg,omega,ke_J,pe_J,energy_J'];
     allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,p.length,p.angle,p.gravity,p.damping,p.mass,d.t.toFixed(4),(d.theta*180/Math.PI).toFixed(4),d.omega.toFixed(4),d.ke.toFixed(4),d.pe.toFixed(4),d.energy.toFixed(4)].join(','))); });
-    downloadFile(rows.join('\n'),'pendulum_table.csv','text/csv'); log(`Table exported.`,'success');
-  } else {
+    downloadFile(rows.join('\n'),'pendulum_table.csv','text/csv'); log('Table exported.','success');
+  } else if (activeExperiment==='spring') {
     const allRuns=[...springState.completedRuns,...(springState.data.length>1?[{data:springState.data,params:{...springState.params}}]:[])];
     if(!allRuns.length){log('No data.','warn');return;}
     const rows=['run,k_Nm,mass_kg,damping,x0_m,v0_ms,t_s,x_m,v_ms,ke_J,pe_J,energy_J'];
     allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,p.k,p.mass,p.damping,p.x0,p.v0,d.t.toFixed(4),d.x.toFixed(4),d.v.toFixed(4),d.ke.toFixed(4),d.pe.toFixed(4),d.energy.toFixed(4)].join(','))); });
-    downloadFile(rows.join('\n'),'spring_table.csv','text/csv'); log(`Table exported.`,'success');
+    downloadFile(rows.join('\n'),'spring_table.csv','text/csv'); log('Table exported.','success');
+  } else {
+    const allRuns=[...inclineState.completedRuns,...(inclineState.data.length>1?[{data:inclineState.data,params:{...inclineState.params}}]:[])];
+    if(!allRuns.length){log('No data.','warn');return;}
+    const rows=['run,angle_deg,mass_kg,gravity_ms2,muS,muK,v0_ms,t_s,s_m,v_ms,a_ms2,N_N,friction_N,regime'];
+    allRuns.forEach((run,ri)=>{ const p=run.params; run.data.forEach(d=>rows.push([ri+1,p.angle,p.mass,p.gravity,p.muS,p.muK,p.v0,d.t.toFixed(4),d.x.toFixed(4),d.v.toFixed(4),d.a.toFixed(4),d.N.toFixed(3),d.friction.toFixed(3),d.regime].join(','))); });
+    downloadFile(rows.join('\n'),'incline_table.csv','text/csv'); log('Table exported.','success');
   }
 }
 
@@ -2020,15 +2148,564 @@ function log(msg, type='') {
 }
 
 // ============================================================
-//  INIT
+//  INCLINED PLANE — State & Physics
+// ============================================================
+const inclineState = {
+  params: { angle: 30, mass: 5.0, gravity: 9.81, muS: 0.40, muK: 0.30, v0: 0 },
+  running: false, showTrail: true,
+  currentTime: 0, data: [], completedRuns: [],
+  ps: null, animFrame: null,
+  planeLength: 8,   // metres of ramp rendered
+};
+
+let incLastTimestamp = null, incDtAccum = 0;
+const INC_DT = 1/480;
+
+// Returns the full physics regime and forces at a given state
+function inclinePhysics(ps, params) {
+  const { angle, mass: m, gravity: g, muS, muK } = params;
+  const theta = angle * Math.PI / 180;
+  const N     = m * g * Math.cos(theta);           // Normal force
+  const Fg    = m * g * Math.sin(theta);           // Gravity component along plane (positive = down)
+  const fsMax = muS * N;                           // Max static friction
+  const fk    = muK * N;                           // Kinetic friction magnitude
+
+  let regime, a, friction;
+
+  if (ps.moving) {
+    // Block is sliding
+    // Friction always opposes motion
+    friction = ps.v >= 0 ? -fk : +fk;
+    a        = (Fg + friction) / m;                // net along plane / mass
+    // Check if block would stop this step
+    regime = ps.v >= 0 ? 'sliding-down' : 'sliding-up';
+  } else {
+    // Check if gravity overcomes static friction
+    if (Math.abs(Fg) > fsMax) {
+      // Starts sliding — gravity wins
+      friction = Fg > 0 ? -fk : +fk;
+      a        = (Fg + friction) / m;
+      regime   = 'breakaway';
+    } else {
+      // Truly static — friction exactly cancels gravity component
+      friction = -Fg;
+      a        = 0;
+      regime   = 'static';
+    }
+  }
+
+  return { N, Fg, fk, fsMax, friction, a, regime };
+}
+
+function inclineAngleOfRepose(params) {
+  return Math.atan(params.muS) * 180 / Math.PI;
+}
+
+function stepIncline(ps, params, dt) {
+  const { a, regime, Fg, friction, N, fk, fsMax } = inclinePhysics(ps, params);
+
+  let newV = ps.v + a * dt;
+  let newX = ps.x + ps.v * dt + 0.5 * a * dt * dt;
+  let moving = ps.moving;
+
+  // Transition: sliding → stopped (velocity crosses zero)
+  if (ps.moving && ps.v !== 0 && Math.sign(newV) !== Math.sign(ps.v)) {
+    // Block just reversed sign — check if static friction holds
+    const theta  = params.angle * Math.PI / 180;
+    const Fg2    = params.mass * params.gravity * Math.sin(theta);
+    const fsMax2 = params.muS * params.mass * params.gravity * Math.cos(theta);
+    if (Math.abs(Fg2) <= fsMax2) {
+      newV   = 0;
+      moving = false;
+    }
+  }
+
+  // Regime update: breakaway makes moving=true
+  if (regime === 'breakaway') moving = true;
+
+  // Hard floor at x=0 (bottom of ramp) — bounce not modelled, just stop
+  if (newX <= 0) { newX = 0; newV = 0; moving = false; }
+
+  return {
+    ps: { x: newX, v: newV, moving },
+    point: { x: newX, v: newV, a, Fg, friction, N, fk, fsMax, regime }
+  };
+}
+
+function inclineAnimLoop(timestamp) {
+  if (!inclineState.running) return;
+  if (!incLastTimestamp) incLastTimestamp = timestamp;
+  let wd = (timestamp - incLastTimestamp) / 1000;
+  incLastTimestamp = timestamp;
+  if (document.getElementById('slowMo').checked) wd *= 0.15;
+  incDtAccum += wd;
+
+  while (incDtAccum >= INC_DT && inclineState.running) {
+    incDtAccum -= INC_DT;
+    const res = stepIncline(inclineState.ps, inclineState.params, INC_DT);
+    inclineState.ps = res.ps;
+    inclineState.currentTime += INC_DT;
+    const point = { t: inclineState.currentTime, ...res.point };
+    inclineState.data.push(point);
+
+    // Feed charts every 8 steps
+    if (inclineState.data.length % 8 === 0) {
+      const label = inclineState.currentTime.toFixed(2);
+      chartInclinePos.data.labels.push(label);
+      chartInclinePos.data.datasets[0].data.push(+res.point.x.toFixed(4));
+      chartInclineVel.data.labels.push(label);
+      chartInclineVel.data.datasets[0].data.push(+res.point.v.toFixed(4));
+      chartInclineForces.data.labels.push(label);
+      chartInclineForces.data.datasets[0].data.push(+res.point.Fg.toFixed(3));
+      chartInclineForces.data.datasets[1].data.push(+Math.abs(res.point.friction).toFixed(3));
+      chartInclineForces.data.datasets[2].data.push(+(res.point.Fg + res.point.friction).toFixed(3));
+    }
+    if (inclineState.data.length % 30 === 0) {
+      chartInclinePos.update('none');
+      chartInclineVel.update('none');
+      chartInclineForces.update('none');
+      updateInclineReadouts(point);
+      renderRunLegend();
+    }
+    if (inclineState.data.length % 120 === 0) maybeRefreshTable();
+
+    // Auto-stop if static for a sustained period or fallen off the bottom
+    if (!res.ps.moving && inclineState.data.length > 100) {
+      const last20 = inclineState.data.slice(-100);
+      if (last20.every(p => !p.moving || Math.abs(p.v) < 1e-6)) {
+        finalizeInclineRun('Block reached equilibrium.');
+        return;
+      }
+    }
+    // Off bottom of ramp
+    if (res.ps.x <= 0 && res.ps.v === 0 && inclineState.currentTime > 0.05) {
+      finalizeInclineRun('Block reached bottom of ramp.');
+      return;
+    }
+    // Max time guard
+    if (inclineState.currentTime > 30) {
+      finalizeInclineRun('Max simulation time reached.');
+      return;
+    }
+  }
+
+  drawInclineScene();
+  inclineState.animFrame = requestAnimationFrame(inclineAnimLoop);
+}
+
+function finalizeInclineRun(reason) {
+  inclineState.running = false;
+  chartInclinePos.update('none');
+  chartInclineVel.update('none');
+  chartInclineForces.update('none');
+  const rc = TRAIL_PALETTE[inclineState.completedRuns.length % TRAIL_PALETTE.length];
+  inclineState.completedRuns.push({
+    data: [...inclineState.data], color: rc,
+    params: { ...inclineState.params }, visible: true
+  });
+  if (inclineState.completedRuns.length > MAX_TRAILS) inclineState.completedRuns.shift();
+  setUIState('complete');
+  renderRunLegend(); refreshTable();
+  document.getElementById('launchBtn').textContent = '▶ Start';
+  log(reason + ` t=${inclineState.currentTime.toFixed(2)}s, x=${inclineState.ps.x.toFixed(3)}m`, 'warn');
+}
+
+function stopIncline() {
+  inclineState.running = false;
+  if (inclineState.animFrame) cancelAnimationFrame(inclineState.animFrame);
+  inclineState.animFrame = null; incLastTimestamp = null;
+}
+
+function resetIncline() {
+  stopIncline();
+  inclineState.data = []; inclineState.completedRuns = [];
+  inclineState.currentTime = 0; inclineState.ps = null;
+  clearInclineCharts(); setUIState('idle');
+  document.getElementById('launchBtn').textContent = '▶ Start';
+  drawInclineScene(); refreshTable(); renderRunLegend();
+  updateInclineInfoPanel();
+  log('Inclined plane workspace cleared.', 'warn');
+}
+
+function launchIncline() {
+  if (inclineState.running) {
+    // Pause / save
+    stopIncline();
+    if (inclineState.data.length > 1) {
+      const rc = TRAIL_PALETTE[inclineState.completedRuns.length % TRAIL_PALETTE.length];
+      inclineState.completedRuns.push({ data:[...inclineState.data], color:rc, params:{...inclineState.params}, visible:true });
+      if (inclineState.completedRuns.length > MAX_TRAILS) inclineState.completedRuns.shift();
+    }
+    setUIState('complete');
+    document.getElementById('launchBtn').textContent = '▶ Start';
+    renderRunLegend(); refreshTable(); log('Incline paused.', 'warn');
+    return;
+  }
+
+  stopIncline();
+  inclineState.data = []; inclineState.currentTime = 0;
+  incLastTimestamp = null; incDtAccum = 0;
+  clearInclineCharts();
+
+  const { v0, angle, mass: m, gravity: g, muS, muK } = inclineState.params;
+  const theta = angle * Math.PI / 180;
+  const N    = m * g * Math.cos(theta);
+  const Fg   = m * g * Math.sin(theta);
+  const fsMax = muS * N;
+  const fk   = muK * N;
+
+  // Determine initial moving state
+  const startMoving = v0 !== 0 || Math.abs(Fg) > fsMax;
+  inclineState.ps = {
+    x: v0 < 0 ? 2.0 : 0.5,   // start slightly up ramp if pushed down, near bottom if launched
+    v: v0,
+    moving: startMoving,
+  };
+
+  const point0 = { t: 0, x: inclineState.ps.x, v: v0, a: 0, Fg, friction: startMoving ? -fk : -Fg, N, fk, fsMax, regime: startMoving ? 'sliding' : 'static' };
+  inclineState.data.push(point0);
+  inclineState.running = true;
+  setUIState('running');
+  document.getElementById('launchBtn').textContent = '⏸ Pause';
+
+  const repose = inclineAngleOfRepose(inclineState.params).toFixed(1);
+  const regime = !startMoving ? 'STATIC (θ < θ_repose)' : Math.abs(Fg) > fsMax ? `SLIDING (θ > θ_repose of ${repose}°)` : 'SLIDING (pushed)';
+  log(`Incline started — θ=${angle}°, m=${m}kg, μ_s=${muS}, μ_k=${muK}`, 'success');
+  log(`Regime: ${regime} · N=${N.toFixed(2)}N · F_grav∥=${Fg.toFixed(2)}N · f_s,max=${fsMax.toFixed(2)}N`);
+  renderRunLegend();
+  inclineState.animFrame = requestAnimationFrame(inclineAnimLoop);
+}
+
+function updateInclineReadouts(p) {
+  const theta = inclineState.params.angle * Math.PI / 180;
+  const m = inclineState.params.mass, g = inclineState.params.gravity;
+  const KE = 0.5 * m * p.v * p.v;
+  const PE_grav = m * g * p.x * Math.sin(theta);
+  setReadout(0, p.t.toFixed(3), 's');
+  setReadout(1, p.x.toFixed(3), 'm');
+  setReadout(2, p.v.toFixed(3), 'm/s');
+  setReadout(3, p.a.toFixed(3), 'm/s²');
+  setReadout(4, p.N.toFixed(2), 'N');
+  setReadout(5, Math.abs(p.friction).toFixed(2), 'N');
+  setReadout(6, KE.toFixed(3), 'J');
+  setReadout(7, PE_grav.toFixed(3), 'J');
+  document.getElementById('timeDisplay').textContent = p.t.toFixed(3);
+  document.getElementById('posX').textContent = p.x.toFixed(2);
+  document.getElementById('posY').textContent = p.v.toFixed(2);
+}
+
+function updateInclineParam(param, value) {
+  inclineState.params[param] = parseFloat(value);
+  const v = parseFloat(value);
+  if (param === 'angle')   document.getElementById('iAngleDisplay').textContent = v.toFixed(1) + '°';
+  if (param === 'mass')    document.getElementById('iMassDisplay').textContent  = v.toFixed(1) + ' kg';
+  if (param === 'gravity') document.getElementById('iGravDisplay').textContent  = v.toFixed(2) + ' m/s²';
+  if (param === 'muS') {
+    document.getElementById('iMuSDisplay').textContent = v.toFixed(2);
+    // Enforce muK <= muS
+    if (inclineState.params.muK > v) {
+      inclineState.params.muK = v;
+      document.getElementById('iMuK').value = v;
+      document.getElementById('iMuKDisplay').textContent = v.toFixed(2);
+    }
+  }
+  if (param === 'muK') {
+    // Enforce muK <= muS
+    const clamp = Math.min(v, inclineState.params.muS);
+    inclineState.params.muK = clamp;
+    document.getElementById('iMuKDisplay').textContent = clamp.toFixed(2);
+    document.getElementById('iMuK').value = clamp;
+  }
+  if (param === 'v0') document.getElementById('iV0Display').textContent = v.toFixed(2) + ' m/s';
+  updateInclineInfoPanel();
+  if (!inclineState.running) drawInclineScene();
+}
+
+function updateInclineInfoPanel() {
+  const { angle, mass: m, gravity: g, muS, muK } = inclineState.params;
+  const theta  = angle * Math.PI / 180;
+  const N      = m * g * Math.cos(theta);
+  const Fg     = m * g * Math.sin(theta);
+  const fsMax  = muS * N;
+  const fk     = muK * N;
+  const Fnet   = Math.abs(Fg) > fsMax ? Fg - Math.sign(Fg) * fk : 0;
+  const repose = inclineAngleOfRepose(inclineState.params).toFixed(1);
+  const moving = Math.abs(Fg) > fsMax;
+
+  document.getElementById('iReposeAngle').textContent = repose + '°';
+  document.getElementById('iForceGrav').textContent   = Fg.toFixed(2);
+  document.getElementById('iForceFric').textContent   = (moving ? fk : Math.min(fsMax, Math.abs(Fg))).toFixed(2);
+  document.getElementById('iForceNet').textContent    = Fnet.toFixed(2);
+  const statusEl = document.getElementById('iStatusLine');
+  if (moving) {
+    statusEl.textContent = `⚠ Will SLIDE — θ (${angle}°) > θ_repose (${repose}°)`;
+    statusEl.style.color = '#ff6b35';
+  } else {
+    statusEl.textContent = `✓ STATIC — θ (${angle}°) ≤ θ_repose (${repose}°)`;
+    statusEl.style.color = '#34d399';
+  }
+}
+
+// ============================================================
+//  DRAWING — INCLINED PLANE
+// ============================================================
+function drawInclineScene() {
+  if (!W) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const { angle, mass: m } = inclineState.params;
+  const theta = angle * Math.PI / 180;
+  const currentColor = TRAIL_PALETTE[inclineState.completedRuns.length % TRAIL_PALETTE.length];
+
+  // Ramp geometry — anchored bottom-left, tip upper-right
+  const PAD   = 60;
+  const rampW = W - PAD * 2;
+  const rampH = rampW * Math.tan(theta);
+  const maxH  = H * 0.72;
+
+  // Scale so ramp fits vertically
+  const scale = rampH > maxH ? maxH / rampH : 1;
+  const rW = rampW * scale;
+  const rH = rampH * scale;
+
+  const BX = PAD;          // bottom-left x
+  const BY = H - 80;       // bottom-left y
+  const TX = BX + rW;      // top-right x
+  const TY = BY - rH;      // top-right y
+
+  // Ground
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fillRect(0, BY + 2, W, H - BY - 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(0, BY + 2); ctx.lineTo(W, BY + 2); ctx.stroke();
+
+  // Ramp surface (filled triangle)
+  ctx.fillStyle = 'rgba(52,211,153,0.06)';
+  ctx.beginPath(); ctx.moveTo(BX, BY); ctx.lineTo(TX, TY); ctx.lineTo(TX, BY); ctx.closePath(); ctx.fill();
+
+  // Ramp surface line
+  ctx.strokeStyle = 'rgba(52,211,153,0.55)'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(BX, BY); ctx.lineTo(TX, TY); ctx.stroke();
+
+  // Ramp right edge (vertical)
+  ctx.strokeStyle = 'rgba(52,211,153,0.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(TX, TY); ctx.lineTo(TX, BY); ctx.stroke();
+
+  // Angle arc
+  const arcR = 38;
+  ctx.strokeStyle = 'rgba(52,211,153,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(TX, BY, arcR, -Math.PI, -Math.PI + theta, false); ctx.stroke();
+  ctx.fillStyle = 'rgba(52,211,153,0.8)'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+  const midAngle = -Math.PI + theta * 0.5;
+  ctx.fillText(angle.toFixed(1) + '°', TX + (arcR + 14) * Math.cos(midAngle), BY + (arcR + 14) * Math.sin(midAngle));
+
+  // Ramp hatch marks (texture)
+  ctx.strokeStyle = 'rgba(52,211,153,0.12)'; ctx.lineWidth = 1;
+  const rampLen = Math.sqrt(rW * rW + rH * rH);
+  const steps   = Math.floor(rampLen / 22);
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const hx = BX + t * rW, hy = BY - t * rH;
+    const perp = 10;
+    ctx.beginPath();
+    ctx.moveTo(hx + perp * Math.sin(theta), hy + perp * Math.cos(theta));
+    ctx.lineTo(hx, hy);
+    ctx.stroke();
+  }
+
+  // Ramp scale — metre markers along the ramp
+  const pixPerMetre = rampLen / inclineState.planeLength;
+  ctx.fillStyle = '#547080'; ctx.font = '8px JetBrains Mono'; ctx.textAlign = 'center';
+  for (let d = 1; d <= inclineState.planeLength; d++) {
+    const t = d / inclineState.planeLength;
+    const mx = BX + t * rW, my = BY - t * rH;
+    const nx = Math.sin(theta) * 5, ny = Math.cos(theta) * 5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + nx, my + ny); ctx.stroke();
+    if (d % 2 === 0) ctx.fillText(d + 'm', mx + nx * 3, my + ny * 3 + 2);
+  }
+
+  // ── Draw completed run trail-markers ──
+  for (let ri = 0; ri < inclineState.completedRuns.length; ri++) {
+    const run = inclineState.completedRuns[ri];
+    if (run.visible === false) continue;
+    const age = inclineState.completedRuns.length - 1 - ri;
+    const maxAge = Math.max(1, inclineState.completedRuns.length - 1);
+    const fade = 1 - (age / maxAge) * 0.8;
+    drawInclineTrail(run.data, run.params, run.color, fade * 0.4, rampLen, BX, BY, rW, rH);
+  }
+
+  const ps = inclineState.ps;
+  if (!ps) {
+    // Preview: draw static block at start
+    drawInclineBlock(0.5, theta, BX, BY, rW, rH, currentColor, inclineState.planeLength, m, 'static');
+    return;
+  }
+
+  // Live trail
+  if (inclineState.showTrail && inclineState.data.length > 1) {
+    drawInclineTrail(inclineState.data, inclineState.params, currentColor, 0.65, rampLen, BX, BY, rW, rH);
+  }
+
+  const { a, Fg, friction, N, fk, fsMax, regime } = inclinePhysics(ps, inclineState.params);
+  drawInclineBlock(ps.x, theta, BX, BY, rW, rH, currentColor, inclineState.planeLength, m, regime);
+
+  // Force vectors on block
+  const blockFrac = ps.x / inclineState.planeLength;
+  const blockX    = BX + blockFrac * rW;
+  const blockY    = BY - blockFrac * rH;
+  const fScale    = 2.5;
+
+  // Gravity component along plane (down the ramp)
+  if (Math.abs(Fg) > 0.01) {
+    drawForceArrow(ctx, blockX, blockY, Math.cos(Math.PI + theta) * Fg * fScale, Math.sin(Math.PI + theta) * Fg * fScale, 'rgba(255,100,80,0.8)', 'Fg∥');
+  }
+  // Friction (along plane)
+  if (Math.abs(friction) > 0.01) {
+    const fDir = friction > 0 ? 1 : -1;
+    drawForceArrow(ctx, blockX, blockY, Math.cos(theta) * Math.abs(friction) * fScale * fDir, -Math.sin(theta) * Math.abs(friction) * fScale * fDir, 'rgba(255,180,50,0.8)', 'Ff');
+  }
+  // Normal force (perpendicular to ramp, outward)
+  drawForceArrow(ctx, blockX, blockY, -Math.sin(theta) * N * fScale * 0.4, -Math.cos(theta) * N * fScale * 0.4, 'rgba(80,200,255,0.8)', 'N');
+
+  // Regime badge
+  const regimeColor = regime === 'static' ? '#34d399' : regime.includes('up') ? '#a78bfa' : '#ff6b35';
+  ctx.fillStyle = regimeColor; ctx.font = 'bold 10px JetBrains Mono'; ctx.textAlign = 'right';
+  ctx.fillText(regime.toUpperCase(), W - 16, 30);
+
+  // Energy bar
+  const KE = 0.5 * m * ps.v * ps.v;
+  const PE = m * inclineState.params.gravity * ps.x * Math.sin(theta);
+  drawEnergyBars(KE, PE, KE + PE > 0 ? KE + PE : inclineState.params.mass * inclineState.params.gravity * inclineState.planeLength * Math.sin(theta));
+
+  ctx.fillStyle = '#8aaabf'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText(`v = ${ps.v.toFixed(3)} m/s`, 12, H - 12);
+}
+
+function drawInclineBlock(xMetres, theta, BX, BY, rW, rH, color, planeLen, mass, regime) {
+  const frac   = Math.min(1, Math.max(0, xMetres / planeLen));
+  const cx     = BX + frac * rW;
+  const cy     = BY - frac * rH;
+  const bSize  = Math.max(18, Math.min(30, 12 + Math.cbrt(mass) * 5));
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-theta);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(-bSize/2 + 3, -bSize + 3, bSize, bSize);
+
+  // Block fill
+  const grad = ctx.createLinearGradient(-bSize/2, -bSize, bSize/2, 0);
+  grad.addColorStop(0, `rgba(${color.r},${color.g},${color.b},0.9)`);
+  grad.addColorStop(1, `rgba(${Math.floor(color.r*0.4)},${Math.floor(color.g*0.4)},${Math.floor(color.b*0.4)},0.9)`);
+  ctx.fillStyle = grad;
+  ctx.shadowColor = `rgb(${color.r},${color.g},${color.b})`;
+  ctx.shadowBlur = 16;
+  ctx.fillRect(-bSize/2, -bSize, bSize, bSize);
+  ctx.shadowBlur = 0;
+
+  // Block border
+  ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},0.85)`;
+  ctx.lineWidth = 1.5; ctx.setLineDash([]);
+  ctx.strokeRect(-bSize/2, -bSize, bSize, bSize);
+
+  // Mass label
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.font = `bold ${Math.max(7, bSize * 0.28)}px JetBrains Mono`;
+  ctx.textAlign = 'center';
+  ctx.fillText(mass.toFixed(1)+'kg', 0, -bSize * 0.45);
+
+  ctx.restore();
+}
+
+function drawInclineTrail(data, params, color, alpha, rampLen, BX, BY, rW, rH) {
+  if (data.length < 2) return;
+  const SEG = Math.max(1, Math.floor(data.length / 80));
+  const theta = params.angle * Math.PI / 180;
+  ctx.lineWidth = 2; ctx.setLineDash([]);
+  for (let i = SEG; i < data.length; i += SEG) {
+    const progress = i / data.length;
+    const f0 = data[i-SEG].x / params.planeLength || data[i-SEG].x / 8;
+    const f1 = data[i].x    / params.planeLength || data[i].x    / 8;
+    const x0 = BX + Math.min(1, f0) * rW, y0 = BY - Math.min(1, f0) * rH;
+    const x1 = BX + Math.min(1, f1) * rW, y1 = BY - Math.min(1, f1) * rH;
+    ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${alpha * (0.1 + progress * 0.9)})`;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+}
+
+function drawForceArrow(ctx, x, y, dx, dy, color, label) {
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 2) return;
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = 2; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+dx, y+dy); ctx.stroke();
+  // Arrowhead
+  const angle = Math.atan2(dy, dx);
+  const hLen = 8;
+  ctx.beginPath();
+  ctx.moveTo(x+dx, y+dy);
+  ctx.lineTo(x+dx - hLen*Math.cos(angle-0.4), y+dy - hLen*Math.sin(angle-0.4));
+  ctx.lineTo(x+dx - hLen*Math.cos(angle+0.4), y+dy - hLen*Math.sin(angle+0.4));
+  ctx.closePath(); ctx.fill();
+  // Label
+  ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
+  ctx.fillText(label, x + dx + Math.cos(angle)*12, y + dy + Math.sin(angle)*12);
+}
+
+// ============================================================
+//  INCLINE — Charts
+// ============================================================
+let chartInclinePos, chartInclineVel, chartInclineForces;
+
+function initInclineCharts() {
+  if (chartInclinePos)    chartInclinePos.destroy();
+  if (chartInclineVel)    chartInclineVel.destroy();
+  if (chartInclineForces) chartInclineForces.destroy();
+
+  chartInclinePos = new Chart(document.getElementById('chartInclinePos'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ data: [], borderColor: '#34d399', borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: { target: 'origin', above: 'rgba(52,211,153,0.05)' } }] },
+    options: { ...chartDefaults }
+  });
+
+  chartInclineVel = new Chart(document.getElementById('chartInclineVel'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ data: [], borderColor: '#a78bfa', borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: { target: 'origin', above: 'rgba(167,139,250,0.05)' } }] },
+    options: { ...chartDefaults }
+  });
+
+  chartInclineForces = new Chart(document.getElementById('chartInclineForces'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Grav∥', data: [], borderColor: '#34d399', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+      { label: 'Friction', data: [], borderColor: '#ff6b35', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+      { label: 'Net',     data: [], borderColor: '#00e5ff', borderWidth: 1,   pointRadius: 0, tension: 0.2 },
+    ]},
+    options: { ...chartDefaults }
+  });
+}
+
+function clearInclineCharts() {
+  if (!chartInclinePos) return;
+  [chartInclinePos, chartInclineVel].forEach(c => { c.data.labels = []; c.data.datasets[0].data = []; c.update('none'); });
+  chartInclineForces.data.labels = []; chartInclineForces.data.datasets.forEach(d => d.data = []); chartInclineForces.update('none');
+}
+
+// ============================================================
+//  INIT — Incline info panel on load
+// ============================================================
 // ============================================================
 resizeCanvas();
 updateParam('mass', state.params.mass);
 labelReadouts(READOUT_PROJECTILE);
 renderRunLegend();
+updateInclineInfoPanel();
 log('Canvas initialized at '+W+'×'+H, 'success');
-log('v0.2: Projectile · Pendulum · Spring-Mass SHM loaded.');
-log('Spring-Mass: compare undamped, underdamped, and overdamped regimes side by side!');
+log('v0.3: Projectile · Pendulum · Spring-Mass · Inclined Plane loaded.');
+log('Inclined Plane: observe static vs kinetic friction, angle of repose, and real-time force vectors!');
 </script>
 </body>
 </html>
