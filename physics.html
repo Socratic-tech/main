@@ -286,6 +286,26 @@
   }
   .preset-btn:hover { color: #94a3b8; border-color: #334155; background: rgba(255,255,255,0.03); }
 
+  /* ── DEMO PRESETS ── */
+  .demo-section {
+    margin-bottom: 14px;
+  }
+  .demo-label {
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #546880; font-weight: 600; margin-bottom: 6px; font-family: var(--mono);
+  }
+  .demo-row { display: flex; flex-direction: column; gap: 5px; }
+  .demo-btn {
+    width: 100%; text-align: left; padding: 6px 10px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.03em;
+    border-radius: 4px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02); color: #7a9ab5;
+    cursor: pointer; transition: all 0.12s; line-height: 1.4;
+  }
+  .demo-btn:hover { color: var(--accent); border-color: var(--accent); background: rgba(0,229,255,0.05); }
+  .demo-btn .demo-name { display: block; color: inherit; font-weight: 600; }
+  .demo-btn .demo-desc { display: block; font-size: 9px; color: #546880; margin-top: 1px; }
+
   .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
   .btn-group { display: flex; flex-direction: column; gap: 8px; }
@@ -578,6 +598,24 @@
           <input type="range" class="slider green" id="mass" min="0.1" max="20" value="1" step="0.1" oninput="updateParam('mass', this.value)" />
           <div style="margin-top:5px; font-size:9px; color:#547080;">Sphere ⌀ <span id="massRadius">13.1cm ⌀</span> · heavier = less drag</div>
         </div>
+
+        <div class="demo-section">
+          <div class="demo-label">▸ Try These</div>
+          <div class="demo-row">
+            <button class="demo-btn" onclick="loadProjectileDemo(0)">
+              <span class="demo-name">🏀 Basketball Shot</span>
+              <span class="demo-desc">v=12 m/s · 55° · m=0.62 kg · drag visible</span>
+            </button>
+            <button class="demo-btn" onclick="loadProjectileDemo(1)">
+              <span class="demo-name">🎯 Max Range</span>
+              <span class="demo-desc">v=40 m/s · 45° · m=1 kg · classic optimum</span>
+            </button>
+            <button class="demo-btn" onclick="loadProjectileDemo(2)">
+              <span class="demo-name">🌕 Moon Launch</span>
+              <span class="demo-desc">v=50 m/s · 30° · g=1.62 m/s² · low gravity</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- PENDULUM CONTROLS -->
@@ -611,6 +649,24 @@
           <div class="control-label"><span class="control-name">Mass</span><span class="control-value green" id="pMassDisplay">1.0 kg</span></div>
           <input type="range" class="slider green" id="pMass" min="0.1" max="10" value="1" step="0.1" oninput="updatePendulumParam('mass', this.value)" />
           <div style="margin-top:5px; font-size:9px; color:#547080;">Affects energy magnitude only</div>
+        </div>
+
+        <div class="demo-section">
+          <div class="demo-label">▸ Try These</div>
+          <div class="demo-row">
+            <button class="demo-btn" onclick="loadPendulumDemo(0)">
+              <span class="demo-name">⏱ Seconds Pendulum</span>
+              <span class="demo-desc">L=0.993 m · 15° · T≈2.0 s · ideal clock</span>
+            </button>
+            <button class="demo-btn" onclick="loadPendulumDemo(1)">
+              <span class="demo-name">🌊 Large Angle</span>
+              <span class="demo-desc">L=1.5 m · 150° · T deviates from formula</span>
+            </button>
+            <button class="demo-btn" onclick="loadPendulumDemo(2)">
+              <span class="demo-name">💨 Damped Swing</span>
+              <span class="demo-desc">L=2 m · 60° · b=0.4 · watch energy decay</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -648,6 +704,24 @@
         </div>
         <div style="margin-top:4px; padding: 8px 10px; background:#0d1220; border:1px solid var(--border-bright); border-radius:4px; font-size:9px; color:#7a9ab5; letter-spacing:0.04em;">
           ω₀ = <span id="sOmega0">4.47</span> rad/s &nbsp;·&nbsp; T = <span id="sPeriod">1.41</span> s &nbsp;·&nbsp; b_crit = <span id="sBcrit">8.94</span>
+        </div>
+
+        <div class="demo-section" style="margin-top:14px;">
+          <div class="demo-label">▸ Try These</div>
+          <div class="demo-row">
+            <button class="demo-btn" onclick="loadSpringDemo(0)">
+              <span class="demo-name">🌀 Ideal SHM</span>
+              <span class="demo-desc">k=20 · m=2 · b=0 · perfect energy conservation</span>
+            </button>
+            <button class="demo-btn" onclick="loadSpringDemo(1)">
+              <span class="demo-name">📉 Critically Damped</span>
+              <span class="demo-desc">k=25 · m=1 · b=10 · fastest return, no oscillation</span>
+            </button>
+            <button class="demo-btn" onclick="loadSpringDemo(2)">
+              <span class="demo-name">🎸 Stiff Spring</span>
+              <span class="demo-desc">k=150 · m=0.5 · b=0.2 · fast oscillation</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -696,16 +770,41 @@
           <div style="margin-top:5px; font-size:9px; color:#547080;">μ_k is always ≤ μ_s physically</div>
         </div>
 
-        <div class="control-group">
-          <div class="control-label"><span class="control-name">Initial Velocity</span><span class="control-value" style="color:#94a3b8;" id="iV0Display">0.00 m/s</span></div>
-          <input type="range" class="slider" id="iV0" min="-10" max="10" value="0" step="0.1"
-            oninput="updateInclineParam('v0', this.value)" />
-          <div style="margin-top:5px; font-size:9px; color:#547080;">Negative = pushed up the ramp</div>
+        <div class="mode-row" style="margin-bottom:14px;">
+          <button class="mode-btn active" id="iDirDown" onclick="setInclineDirection('down')">↓ Slide Down</button>
+          <button class="mode-btn"        id="iDirUp"   onclick="setInclineDirection('up')">↑ Push Up</button>
+        </div>
+
+        <div id="iLaunchSpeedGroup" style="display:none;">
+          <div class="control-group">
+            <div class="control-label"><span class="control-name">Launch Speed</span><span class="control-value" style="color:#94a3b8;" id="iV0Display">3.00 m/s</span></div>
+            <input type="range" class="slider" id="iV0" min="0.1" max="12" value="3" step="0.1"
+              oninput="updateInclineParam('v0', this.value)" />
+            <div style="margin-top:5px; font-size:9px; color:#547080;">Speed at which block is pushed up the ramp</div>
+          </div>
         </div>
 
         <div style="padding:8px 10px; background:#0d1220; border:1px solid var(--border-bright); border-radius:4px; font-size:9px; color:#7a9ab5; letter-spacing:0.04em; margin-bottom:4px;">
           <div id="iStatusLine" style="color:#34d399; font-weight:600; margin-bottom:3px;">— Set params and launch —</div>
           F_grav∥ = <span id="iForceGrav">—</span> N &nbsp;·&nbsp; F_fric = <span id="iForceFric">—</span> N &nbsp;·&nbsp; F_net = <span id="iForceNet">—</span> N
+        </div>
+
+        <div class="demo-section" style="margin-top:10px;">
+          <div class="demo-label">▸ Try These</div>
+          <div class="demo-row">
+            <button class="demo-btn" onclick="loadInclineDemo(0)">
+              <span class="demo-name">📐 Angle of Repose</span>
+              <span class="demo-desc">θ=22° · μs=0.40 · just past tipping point</span>
+            </button>
+            <button class="demo-btn" onclick="loadInclineDemo(1)">
+              <span class="demo-name">🧱 μs vs μk Gap</span>
+              <span class="demo-desc">θ=40° · μs=0.50 · μk=0.25 · watch friction drop</span>
+            </button>
+            <button class="demo-btn" onclick="loadInclineDemo(2)">
+              <span class="demo-name">🏔 Push Up & Return</span>
+              <span class="demo-desc">θ=20° · μs=0.30 · push up 5 m/s · slides back</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -783,6 +882,24 @@
         <div style="padding:8px 10px;background:#0d1220;border:1px solid var(--border-bright);border-radius:4px;font-size:9px;color:#7a9ab5;margin-bottom:4px;letter-spacing:0.04em;">
           <div style="color:#facc15;font-weight:600;margin-bottom:3px;">Pre-collision momentum</div>
           p = <span id="cMomentumPre">—</span> kg·m/s &nbsp;·&nbsp; KE = <span id="cKEPre">—</span> J
+        </div>
+
+        <div class="demo-section" style="margin-top:10px;">
+          <div class="demo-label">▸ Try These</div>
+          <div class="demo-row">
+            <button class="demo-btn" onclick="loadCollisionDemo(0)">
+              <span class="demo-name">🎱 Equal Mass Swap</span>
+              <span class="demo-desc">e=1 · mA=mB=2 · velocities fully exchange</span>
+            </button>
+            <button class="demo-btn" onclick="loadCollisionDemo(1)">
+              <span class="demo-name">🚛 Heavy vs Light</span>
+              <span class="demo-desc">e=0.8 · mA=8 · mB=1 · asymmetric transfer</span>
+            </button>
+            <button class="demo-btn" onclick="loadCollisionDemo(2)">
+              <span class="demo-name">🤝 Perfectly Inelastic</span>
+              <span class="demo-desc">e=0 · mA=3 · mB=1 · stick together, max ΔKE</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2136,12 +2253,30 @@ function selectExperiment(id, evt) {
   setUIState('idle'); refreshTable(); renderRunLegend();
 
   if (id==='projectile') { _drawProjectileScene([]); log('Switched to Projectile Motion.'); }
-  else if (id==='pendulum') { initPendulumCharts(); drawPendulumScene(); log('Switched to Simple Pendulum — RK4.'); }
-  else if (id==='spring')   { initSpringCharts(); drawSpringScene(); log('Switched to Spring-Mass — RK4 · SHM simulator.'); updateSpringParam('k', springState.params.k); }
-  else if (id==='incline')  { initInclineCharts(); drawInclineScene(); updateInclineInfoPanel(); log('Switched to Inclined Plane — static/kinetic friction model.'); }
-  else if (id==='collision') { initCollisionCharts(); drawCollisionScene(); updateCollisionInfoPanel();
+  else if (id==='pendulum') {
+    initPendulumCharts(); drawPendulumScene();
+    log('Switched to Simple Pendulum — RK4.');
+    if (!pendulumState.running && pendulumState.completedRuns.length === 0 && pendulumState.data.length === 0)
+      setTimeout(() => loadPendulumDemo(0), 120);
+  }
+  else if (id==='spring') {
+    initSpringCharts(); drawSpringScene(); updateSpringParam('k', springState.params.k);
+    log('Switched to Spring-Mass — RK4 · SHM simulator.');
+    if (!springState.running && springState.completedRuns.length === 0 && springState.data.length === 0)
+      setTimeout(() => loadSpringDemo(0), 120);
+  }
+  else if (id==='incline') {
+    initInclineCharts(); drawInclineScene(); updateInclineInfoPanel();
+    log('Switched to Inclined Plane — static/kinetic friction model.');
+    if (!inclineState.running && inclineState.completedRuns.length === 0 && inclineState.data.length === 0)
+      setTimeout(() => loadInclineDemo(0), 120);
+  }
+  else if (id==='collision') {
+    initCollisionCharts(); drawCollisionScene(); updateCollisionInfoPanel();
     log('Switched to Collisions — exact CoR solver · 1D & 2D.', 'success');
     log('Tip: e=1 elastic preserves KE. e=0 perfectly inelastic. Watch momentum stay constant!');
+    if (!collisionState.running && collisionState.completedRuns.length === 0 && collisionState.data.length === 0)
+      setTimeout(() => loadCollisionDemo(0), 120);
   }
 }
 
@@ -2355,12 +2490,14 @@ function log(msg, type='') {
 // ============================================================
 //  INCLINED PLANE — State & Physics
 // ============================================================
+const INCLINE_PLANE_LENGTH = 5;   // metres of ramp
+
 const inclineState = {
-  params: { angle: 30, mass: 5.0, gravity: 9.81, muS: 0.40, muK: 0.30, v0: 0 },
+  params: { angle: 30, mass: 5.0, gravity: 9.81, muS: 0.40, muK: 0.30, v0: 3.0 },
+  direction: 'down',   // 'down' | 'up'
   running: false, showTrail: true,
   currentTime: 0, data: [], completedRuns: [],
   ps: null, animFrame: null,
-  planeLength: 8,   // metres of ramp rendered
 };
 
 let incLastTimestamp = null, incDtAccum = 0;
@@ -2506,7 +2643,7 @@ function finalizeInclineRun(reason) {
   const rc = TRAIL_PALETTE[inclineState.completedRuns.length % TRAIL_PALETTE.length];
   inclineState.completedRuns.push({
     data: [...inclineState.data], color: rc,
-    params: { ...inclineState.params }, visible: true
+    params: { ...inclineState.params }, planeLength: INCLINE_PLANE_LENGTH, visible: true
   });
   if (inclineState.completedRuns.length > MAX_TRAILS) inclineState.completedRuns.shift();
   setUIState('complete');
@@ -2538,7 +2675,7 @@ function launchIncline() {
     stopIncline();
     if (inclineState.data.length > 1) {
       const rc = TRAIL_PALETTE[inclineState.completedRuns.length % TRAIL_PALETTE.length];
-      inclineState.completedRuns.push({ data:[...inclineState.data], color:rc, params:{...inclineState.params}, visible:true });
+      inclineState.completedRuns.push({ data:[...inclineState.data], color:rc, params:{...inclineState.params}, planeLength: INCLINE_PLANE_LENGTH, visible:true });
       if (inclineState.completedRuns.length > MAX_TRAILS) inclineState.completedRuns.shift();
     }
     setUIState('complete');
@@ -2559,24 +2696,42 @@ function launchIncline() {
   const fsMax = muS * N;
   const fk   = muK * N;
 
-  // Determine initial moving state
-  const startMoving = v0 !== 0 || Math.abs(Fg) > fsMax;
-  inclineState.ps = {
-    x: v0 < 0 ? 2.0 : 0.5,   // start slightly up ramp if pushed down, near bottom if launched
-    v: v0,
-    moving: startMoving,
-  };
+  const dir = inclineState.direction;
+  let startX, startV, startMoving;
 
-  const point0 = { t: 0, x: inclineState.ps.x, v: v0, a: 0, Fg, friction: startMoving ? -fk : -Fg, N, fk, fsMax, regime: startMoving ? 'sliding' : 'static' };
+  if (dir === 'down') {
+    // Block starts near top; gravity decides whether it slides
+    startX      = INCLINE_PLANE_LENGTH * 0.85;
+    startV      = 0;
+    startMoving = Math.abs(Fg) > fsMax;
+  } else {
+    // Push Up: block starts near bottom, pushed up the ramp (x increases toward top)
+    startX      = 0.1;
+    startV      = v0;   // positive = moving toward top
+    startMoving = true;
+  }
+
+  inclineState.ps = { x: startX, v: startV, moving: startMoving };
+
+  const initRegime = startMoving ? (dir === 'up' ? 'sliding-up' : 'sliding-down') : 'static';
+  const initFric   = startMoving ? -fk * Math.sign(startV || -1) : -Fg;
+  const point0 = { t: 0, x: startX, v: startV, a: 0, Fg, friction: initFric, N, fk, fsMax, regime: initRegime };
   inclineState.data.push(point0);
   inclineState.running = true;
   setUIState('running');
   document.getElementById('launchBtn').textContent = '⏸ Pause';
 
   const repose = inclineAngleOfRepose(inclineState.params).toFixed(1);
-  const regime = !startMoving ? 'STATIC (θ < θ_repose)' : Math.abs(Fg) > fsMax ? `SLIDING (θ > θ_repose of ${repose}°)` : 'SLIDING (pushed)';
-  log(`Incline started — θ=${angle}°, m=${m}kg, μ_s=${muS}, μ_k=${muK}`, 'success');
-  log(`Regime: ${regime} · N=${N.toFixed(2)}N · F_grav∥=${Fg.toFixed(2)}N · f_s,max=${fsMax.toFixed(2)}N`);
+  let regimeMsg;
+  if (dir === 'up') {
+    regimeMsg = `PUSHED UP at ${v0.toFixed(1)} m/s`;
+  } else {
+    regimeMsg = !startMoving
+      ? `STATIC — θ (${angle}°) ≤ θ_repose (${repose}°)`
+      : `SLIDING DOWN — θ (${angle}°) > θ_repose (${repose}°)`;
+  }
+  log(`Incline started — θ=${angle}°, m=${m}kg, μ_s=${muS}, μ_k=${muK} · ${dir}`, 'success');
+  log(`${regimeMsg} · N=${N.toFixed(2)}N · F_grav∥=${Fg.toFixed(2)}N · f_s,max=${fsMax.toFixed(2)}N`);
   renderRunLegend();
   inclineState.animFrame = requestAnimationFrame(inclineAnimLoop);
 }
@@ -2626,6 +2781,15 @@ function updateInclineParam(param, value) {
   if (!inclineState.running) drawInclineScene();
 }
 
+function setInclineDirection(dir) {
+  inclineState.direction = dir;
+  document.getElementById('iDirDown').classList.toggle('active', dir === 'down');
+  document.getElementById('iDirUp').classList.toggle('active', dir === 'up');
+  document.getElementById('iLaunchSpeedGroup').style.display = dir === 'up' ? '' : 'none';
+  updateInclineInfoPanel();
+  if (!inclineState.running) drawInclineScene();
+}
+
 function updateInclineInfoPanel() {
   const { angle, mass: m, gravity: g, muS, muK } = inclineState.params;
   const theta  = angle * Math.PI / 180;
@@ -2642,8 +2806,11 @@ function updateInclineInfoPanel() {
   document.getElementById('iForceFric').textContent   = (moving ? fk : Math.min(fsMax, Math.abs(Fg))).toFixed(2);
   document.getElementById('iForceNet').textContent    = Fnet.toFixed(2);
   const statusEl = document.getElementById('iStatusLine');
-  if (moving) {
-    statusEl.textContent = `⚠ Will SLIDE — θ (${angle}°) > θ_repose (${repose}°)`;
+  if (inclineState.direction === 'up') {
+    statusEl.textContent = `↑ PUSH UP at ${inclineState.params.v0.toFixed(1)} m/s — will slide back if θ > ${repose}°`;
+    statusEl.style.color = '#a78bfa';
+  } else if (moving) {
+    statusEl.textContent = `⚠ Will SLIDE DOWN — θ (${angle}°) > θ_repose (${repose}°)`;
     statusEl.style.color = '#ff6b35';
   } else {
     statusEl.textContent = `✓ STATIC — θ (${angle}°) ≤ θ_repose (${repose}°)`;
@@ -2662,21 +2829,21 @@ function drawInclineScene() {
   const theta = angle * Math.PI / 180;
   const currentColor = TRAIL_PALETTE[inclineState.completedRuns.length % TRAIL_PALETTE.length];
 
-  // Ramp geometry — anchored bottom-left, tip upper-right
-  const PAD   = 60;
-  const rampW = W - PAD * 2;
+  // Ramp geometry — asymmetric padding for max canvas usage
+  const PAD_L = 80, PAD_R = 60, PAD_T = 60, PAD_B = 90;
+  const rampW = W - PAD_L - PAD_R;
   const rampH = rampW * Math.tan(theta);
-  const maxH  = H * 0.72;
+  const maxH  = H - PAD_T - PAD_B;
 
-  // Scale so ramp fits vertically
+  // Scale so ramp fits vertically while preserving angle
   const scale = rampH > maxH ? maxH / rampH : 1;
   const rW = rampW * scale;
   const rH = rampH * scale;
 
-  const BX = PAD;          // bottom-left x
-  const BY = H - 80;       // bottom-left y
-  const TX = BX + rW;      // top-right x
-  const TY = BY - rH;      // top-right y
+  const BX = PAD_L;          // bottom-left x
+  const BY = H - PAD_B;      // bottom-left y
+  const TX = BX + rW;        // top-right x
+  const TY = BY - rH;        // top-right y
 
   // Ground
   ctx.fillStyle = 'rgba(255,255,255,0.04)';
@@ -2718,16 +2885,17 @@ function drawInclineScene() {
     ctx.stroke();
   }
 
-  // Ramp scale — metre markers along the ramp
-  const pixPerMetre = rampLen / inclineState.planeLength;
+  // Ramp scale — tick marks every 0.5m
   ctx.fillStyle = '#547080'; ctx.font = '8px JetBrains Mono'; ctx.textAlign = 'center';
-  for (let d = 1; d <= inclineState.planeLength; d++) {
-    const t = d / inclineState.planeLength;
+  for (let d = 0.5; d <= INCLINE_PLANE_LENGTH; d += 0.5) {
+    const t = d / INCLINE_PLANE_LENGTH;
     const mx = BX + t * rW, my = BY - t * rH;
     const nx = Math.sin(theta) * 5, ny = Math.cos(theta) * 5;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+    const isMetre = Math.abs(d - Math.round(d)) < 0.01;
+    ctx.strokeStyle = isMetre ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + nx, my + ny); ctx.stroke();
-    if (d % 2 === 0) ctx.fillText(d + 'm', mx + nx * 3, my + ny * 3 + 2);
+    if (isMetre) ctx.fillText(d.toFixed(0) + 'm', mx + nx * 3.5, my + ny * 3.5 + 2);
   }
 
   // ── Draw completed run trail-markers ──
@@ -2737,26 +2905,27 @@ function drawInclineScene() {
     const age = inclineState.completedRuns.length - 1 - ri;
     const maxAge = Math.max(1, inclineState.completedRuns.length - 1);
     const fade = 1 - (age / maxAge) * 0.8;
-    drawInclineTrail(run.data, run.params, run.color, fade * 0.4, rampLen, BX, BY, rW, rH);
+    drawInclineTrail(run.data, run.planeLength || INCLINE_PLANE_LENGTH, run.color, fade * 0.4, BX, BY, rW, rH);
   }
 
   const ps = inclineState.ps;
   if (!ps) {
-    // Preview: draw static block at start
-    drawInclineBlock(0.5, theta, BX, BY, rW, rH, currentColor, inclineState.planeLength, m, 'static');
+    // Preview: draw static block at appropriate start position
+    const previewX = inclineState.direction === 'up' ? 0.1 : INCLINE_PLANE_LENGTH * 0.85;
+    drawInclineBlock(previewX, theta, BX, BY, rW, rH, currentColor, INCLINE_PLANE_LENGTH, m, 'static');
     return;
   }
 
   // Live trail
   if (inclineState.showTrail && inclineState.data.length > 1) {
-    drawInclineTrail(inclineState.data, inclineState.params, currentColor, 0.65, rampLen, BX, BY, rW, rH);
+    drawInclineTrail(inclineState.data, INCLINE_PLANE_LENGTH, currentColor, 0.65, BX, BY, rW, rH);
   }
 
   const { a, Fg, friction, N, fk, fsMax, regime } = inclinePhysics(ps, inclineState.params);
-  drawInclineBlock(ps.x, theta, BX, BY, rW, rH, currentColor, inclineState.planeLength, m, regime);
+  drawInclineBlock(ps.x, theta, BX, BY, rW, rH, currentColor, INCLINE_PLANE_LENGTH, m, regime);
 
   // Force vectors on block
-  const blockFrac = ps.x / inclineState.planeLength;
+  const blockFrac = ps.x / INCLINE_PLANE_LENGTH;
   const blockX    = BX + blockFrac * rW;
   const blockY    = BY - blockFrac * rH;
   const fScale    = 2.5;
@@ -2781,7 +2950,7 @@ function drawInclineScene() {
   // Energy bar
   const KE = 0.5 * m * ps.v * ps.v;
   const PE = m * inclineState.params.gravity * ps.x * Math.sin(theta);
-  drawEnergyBars(KE, PE, KE + PE > 0 ? KE + PE : inclineState.params.mass * inclineState.params.gravity * inclineState.planeLength * Math.sin(theta));
+  drawEnergyBars(KE, PE, KE + PE > 0 ? KE + PE : inclineState.params.mass * inclineState.params.gravity * INCLINE_PLANE_LENGTH * Math.sin(theta));
 
   ctx.fillStyle = '#8aaabf'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
   ctx.fillText(`v = ${ps.v.toFixed(3)} m/s`, 12, H - 12);
@@ -2825,15 +2994,14 @@ function drawInclineBlock(xMetres, theta, BX, BY, rW, rH, color, planeLen, mass,
   ctx.restore();
 }
 
-function drawInclineTrail(data, params, color, alpha, rampLen, BX, BY, rW, rH) {
+function drawInclineTrail(data, planeLength, color, alpha, BX, BY, rW, rH) {
   if (data.length < 2) return;
   const SEG = Math.max(1, Math.floor(data.length / 80));
-  const theta = params.angle * Math.PI / 180;
   ctx.lineWidth = 2; ctx.setLineDash([]);
   for (let i = SEG; i < data.length; i += SEG) {
     const progress = i / data.length;
-    const f0 = data[i-SEG].x / params.planeLength || data[i-SEG].x / 8;
-    const f1 = data[i].x    / params.planeLength || data[i].x    / 8;
+    const f0 = data[i-SEG].x / planeLength;
+    const f1 = data[i].x    / planeLength;
     const x0 = BX + Math.min(1, f0) * rW, y0 = BY - Math.min(1, f0) * rH;
     const x1 = BX + Math.min(1, f1) * rW, y1 = BY - Math.min(1, f1) * rH;
     ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${alpha * (0.1 + progress * 0.9)})`;
@@ -3683,6 +3851,132 @@ function runCompareLoop() {
 }
 
 // ============================================================
+//  DEMO PRESETS
+// ============================================================
+
+// Helper: set a slider value and fire its oninput handler
+function setSlider(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  el.dispatchEvent(new Event('input'));
+}
+
+// ── Projectile demos ──
+const PROJECTILE_DEMOS = [
+  { name:'Basketball Shot',   velocity:12,  angle:55, mass:0.62, gravity:9.81 },
+  { name:'Max Range',         velocity:40,  angle:45, mass:1.0,  gravity:9.81 },
+  { name:'Moon Launch',       velocity:50,  angle:30, mass:1.0,  gravity:1.62 },
+];
+function loadProjectileDemo(i) {
+  const d = PROJECTILE_DEMOS[i];
+  if (activeExperiment !== 'projectile') selectExperiment('projectile', null);
+  if (state.running) { state.running=false; cancelAnimationFrame(state.animFrame); }
+  resetSim();
+  setSlider('velocity', d.velocity);
+  setSlider('angle',    d.angle);
+  setSlider('mass',     d.mass);
+  setSlider('gravity',  d.gravity);
+  log(`Demo: ${d.name} — v=${d.velocity} m/s, θ=${d.angle}°, m=${d.mass}kg, g=${d.gravity}`, 'success');
+  setTimeout(() => launch(), 80);
+}
+
+// ── Pendulum demos ──
+const PENDULUM_DEMOS = [
+  { name:'Seconds Pendulum', length:0.993, angle:15,  gravity:9.81, damping:0,    mass:1.0 },
+  { name:'Large Angle',      length:1.5,   angle:150, gravity:9.81, damping:0.02, mass:1.0 },
+  { name:'Damped Swing',     length:2.0,   angle:60,  gravity:9.81, damping:0.4,  mass:1.0 },
+];
+function loadPendulumDemo(i) {
+  const d = PENDULUM_DEMOS[i];
+  if (activeExperiment !== 'pendulum') selectExperiment('pendulum', null);
+  if (pendulumState.running) stopPendulum();
+  resetPendulum();
+  setSlider('pLength',  d.length);
+  setSlider('pAngle',   d.angle);
+  setSlider('pGravity', d.gravity);
+  setSlider('pDamping', d.damping);
+  setSlider('pMass',    d.mass);
+  log(`Demo: ${d.name} — L=${d.length}m, θ₀=${d.angle}°, b=${d.damping}`, 'success');
+  setTimeout(() => launchPendulum(), 80);
+}
+
+// ── Spring demos ──
+const SPRING_DEMOS = [
+  { name:'Ideal SHM',         k:20,  mass:2.0, damping:0,    x0:1.5,  v0:0 },
+  { name:'Critically Damped', k:25,  mass:1.0, damping:10.0, x0:2.0,  v0:0 },
+  { name:'Stiff Spring',      k:150, mass:0.5, damping:0.2,  x0:0.8,  v0:0 },
+];
+function loadSpringDemo(i) {
+  const d = SPRING_DEMOS[i];
+  if (activeExperiment !== 'spring') selectExperiment('spring', null);
+  if (springState.running) stopSpring();
+  resetSpring();
+  setSlider('sK',       d.k);
+  setSlider('sMass',    d.mass);
+  setSlider('sDamping', d.damping);
+  setSlider('sDisp',    d.x0);
+  setSlider('sV0',      d.v0);
+  log(`Demo: ${d.name} — k=${d.k} N/m, m=${d.mass}kg, b=${d.damping}`, 'success');
+  setTimeout(() => launchSpring(), 80);
+}
+
+// ── Incline demos ──
+const INCLINE_DEMOS = [
+  { name:'Angle of Repose', angle:22,  mass:5.0, gravity:9.81, muS:0.40, muK:0.30, dir:'down', v0:3.0 },
+  { name:'μs vs μk Gap',    angle:40,  mass:5.0, gravity:9.81, muS:0.50, muK:0.25, dir:'down', v0:3.0 },
+  { name:'Push Up & Return',angle:20,  mass:3.0, gravity:9.81, muS:0.30, muK:0.22, dir:'up',   v0:5.0 },
+];
+function loadInclineDemo(i) {
+  const d = INCLINE_DEMOS[i];
+  if (activeExperiment !== 'incline') selectExperiment('incline', null);
+  if (inclineState.running) stopIncline();
+  resetIncline();
+  setSlider('iAngle',   d.angle);
+  setSlider('iMass',    d.mass);
+  setSlider('iGravity', d.gravity);
+  setSlider('iMuS',     d.muS);
+  setSlider('iMuK',     d.muK);
+  setSlider('iV0',      d.v0);
+  setInclineDirection(d.dir);
+  log(`Demo: ${d.name} — θ=${d.angle}°, μs=${d.muS}, μk=${d.muK}, dir=${d.dir}`, 'success');
+  setTimeout(() => launchIncline(), 80);
+}
+
+// ── Collision demos ──
+const COLLISION_DEMOS = [
+  { name:'Equal Mass Swap',       mode:'1d', cor:1.0, massA:2.0, velA:5.0,  massB:2.0, velB:-2.0, angA:0, angB:180, impact:0 },
+  { name:'Heavy vs Light',        mode:'1d', cor:0.8, massA:8.0, velA:4.0,  massB:1.0, velB:0.0,  angA:0, angB:180, impact:0 },
+  { name:'Perfectly Inelastic',   mode:'1d', cor:0.0, massA:3.0, velA:5.0,  massB:1.0, velB:-1.0, angA:0, angB:180, impact:0 },
+];
+function loadCollisionDemo(i) {
+  const d = COLLISION_DEMOS[i];
+  if (activeExperiment !== 'collision') selectExperiment('collision', null);
+  if (collisionState.running) stopCollision();
+  resetCollision();
+  setCollisionMode(d.mode);
+  setSlider('cCor',   d.cor);
+  setSlider('cMassA', d.massA);
+  setSlider('cVelA',  d.velA);
+  setSlider('cMassB', d.massB);
+  setSlider('cVelB',  d.velB);
+  if (d.mode === '2d') {
+    setSlider('cAngA',   d.angA);
+    setSlider('cAngB',   d.angB);
+    setSlider('cImpact', d.impact);
+  }
+  // Manually sync displays that dispatchEvent('input') might miss
+  document.getElementById('cCorDisplay').textContent   = (+d.cor).toFixed(2);
+  document.getElementById('cMassADisplay').textContent = (+d.massA).toFixed(1)+' kg';
+  document.getElementById('cMassBDisplay').textContent = (+d.massB).toFixed(1)+' kg';
+  document.getElementById('cVelADisplay').textContent  = (d.velA>=0?'+':'')+d.velA.toFixed(1)+' m/s';
+  document.getElementById('cVelBDisplay').textContent  = (d.velB>=0?'+':'')+d.velB.toFixed(1)+' m/s';
+  updateCollisionInfoPanel();
+  log(`Demo: ${d.name} — e=${d.cor}, mA=${d.massA}, mB=${d.massB}, vA=${d.velA}, vB=${d.velB}`, 'success');
+  setTimeout(() => launchCollision(), 80);
+}
+
+// ============================================================
 //  INIT — Incline info panel on load
 // ============================================================
 // ============================================================
@@ -3692,9 +3986,11 @@ labelReadouts(READOUT_PROJECTILE);
 renderRunLegend();
 updateInclineInfoPanel();
 log('Canvas initialized at '+W+'×'+H, 'success');
-log('v0.4: Projectile · Pendulum · Spring-Mass · Inclined Plane · Collisions loaded.', 'success');
-log('NEW — Collisions: exact analytic CoR solver, 1D & 2D, elastic through perfectly inelastic.');
-log('NEW — Compare Mode: click ⊞ Compare to run two experiments side by side.');
+log('v0.5: Projectile · Pendulum · Spring-Mass · Inclined Plane · Collisions — all systems go.', 'success');
+log('Click any ▸ Try These demo to instantly load and run a preset experiment.');
+
+// Auto-launch a demo on startup so there\'s something moving right away
+setTimeout(() => loadProjectileDemo(0), 200);
 </script>
 </body>
 </html>
