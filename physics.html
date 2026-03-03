@@ -1,526 +1,245 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>OpenPhysics Lab — 2D Simulation Framework</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-
+<title>OpenPhysics Lab — Version D Engine Core</title>
 <style>
-/* FULL CSS BLOCK — UNCHANGED EXCEPT FOR NO drawScene DEFINITIONS HERE */
-/* (CSS omitted here for brevity in this explanation — full file will include all lines) */
+  body {
+    margin:0;
+    overflow:hidden;
+    background:#0a0c10;
+    font-family:JetBrains Mono, monospace;
+    color:#c8d8ea;
+  }
+  #toolbar {
+    position:fixed; top:0; left:0; right:0;
+    background:#12161f;
+    height:48px;
+    border-bottom:1px solid #252d3d;
+    display:flex;
+    align-items:center;
+    padding:0 16px;
+    gap:12px;
+  }
+  select {
+    background:#1a1f2e;
+    border:1px solid #2e3a50;
+    color:#c8d8ea;
+    padding:4px 8px;
+    border-radius:4px;
+  }
+  canvas {
+    position:absolute;
+    left:0; top:48px;
+  }
 </style>
 </head>
 
 <body>
 
-<header>
-  <!-- header content (unchanged) -->
-</header>
-
-<div class="workspace">
-  <!-- LEFT PANEL (unchanged) -->
-  <!-- CENTER CANVAS (unchanged) -->
-  <!-- RIGHT PANEL (unchanged) -->
+<div id="toolbar">
+  <label>Experiment:</label>
+  <select id="expSelector">
+    <option value="empty">Empty Experiment</option>
+  </select>
 </div>
 
-<script>
-// ============================================================
-//  OpenPhysics Lab v0.2 — Core Engine (Apache 2.0)
-// ============================================================
+<canvas id="simCanvas"></canvas>
 
-// ---------- TRAIL PALETTE ----------
-const TRAIL_PALETTE = [
-  { r: 0,   g: 229, b: 255 },
-  { r: 255, g: 107, b: 53  },
-  { r: 167, g: 139, b: 250 },
-  { r: 16,  g: 185, b: 129 },
-  { r: 250, g: 204, b: 21  },
-  { r: 244, g: 114, b: 182 },
-];
-const MAX_TRAILS = 6;
-
-function runColor(index) { return TRAIL_PALETTE[index % TRAIL_PALETTE.length]; }
-function colorHex(c) { const h=n=>n.toString(16).padStart(2,'0'); return '#'+h(c.r)+h(c.g)+h(c.b); }
-
-let activeExperiment = 'projectile';
-
-// ---------- CANVAS ----------
-const canvas = document.getElementById('simCanvas');
-const ctx = canvas.getContext('2d');
-const SCALE = 2.0;
-const ORIGIN_X_FRAC = 0.08;
-const ORIGIN_Y_FRAC = 0.82;
-let W, H, originX, originY;
-
-function resizeCanvas() {
-  const wrap = canvas.parentElement;
-  canvas.width = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
-  W = canvas.width;
-  H = canvas.height;
-  originX = W * ORIGIN_X_FRAC;
-  originY = H * ORIGIN_Y_FRAC;
-  drawScene([]);
-}
-window.addEventListener('resize', resizeCanvas);
-
-function toScreen(mx, my) {
-  return { x: originX + mx*SCALE*10, y: originY - my*SCALE*10 };
-}
-
-// ============================================================
-//  ~~~~~ FIXED: REAL PROJECTILE RENDERER ~~~~~
-//  Replaces the old "drawScene" which caused recursion
-// ============================================================
-function drawProjectileScene(simState) {
-  if (!W) return;
-  ctx.clearRect(0, 0, W, H);
-
-  // axes
-  ctx.strokeStyle='rgba(255,255,255,0.08)';
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(0,originY);
-  ctx.lineTo(W,originY);
-  ctx.stroke();
-
-  ctx.fillStyle='#547080';
-  ctx.font='9px JetBrains Mono';
-  ctx.textAlign='center';
-
-  for (let m=10; m<=500; m+=10) {
-    const sx=toScreen(m,0).x;
-    if (sx > W) break;
-    ctx.strokeStyle='rgba(255,255,255,0.05)';
-    ctx.beginPath();
-    ctx.moveTo(sx,originY-5);
-    ctx.lineTo(sx,originY+3);
-    ctx.stroke();
-    if (m % 20 === 0) ctx.fillText(m+'m', sx, originY+14);
-  }
-
-  ctx.textAlign='right';
-  for (let m=10; m<=300; m+=10) {
-    const sy=toScreen(0,m).y;
-    if (sy < 0) break;
-    ctx.strokeStyle='rgba(255,255,255,0.05)';
-    ctx.beginPath();
-    ctx.moveTo(originX-3, sy);
-    ctx.lineTo(originX+5, sy);
-    ctx.stroke();
-    if (m % 20 === 0) ctx.fillText(m+'m', originX-8, sy+3);
-  }
-
-  // Completed trails
-  for (let ri = 0; ri < state.completedRuns.length; ri++) {
-    const run = state.completedRuns[ri];
-    if (!run.visible) continue;
-    const age = state.completedRuns.length - 1 - ri;
-    const maxAge = Math.max(1, state.completedRuns.length - 1);
-    const fade = 1 - (age/maxAge)*0.75;
-    const c = run.color;
-    drawProjectileTrail(run.data, c, fade*0.55, 1.5);
-
-    if (run.range > 0) {
-      const ip = toScreen(run.range,0);
-      ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${fade*0.7})`;
-      ctx.beginPath();
-      ctx.arc(ip.x, originY, 3, 0, Math.PI*2);
-      ctx.fill();
-      if (age === 0) {
-        ctx.font='9px JetBrains Mono';
-        ctx.textAlign='center';
-        ctx.fillStyle=`rgba(${c.r},${c.g},${c.b},0.7)`;
-        ctx.fillText(run.range.toFixed(1)+'m', ip.x, originY+20);
-      }
-    }
-  }
-
-  if (!simState || simState.length === 0) {
-    drawPreviewTrajectory();
-    return;
-  }
-
-  const currentColor = TRAIL_PALETTE[state.completedRuns.length % TRAIL_PALETTE.length];
-
-  if (state.showTrail && simState.length > 1)
-    drawProjectileTrail(simState, currentColor, 0.75, 2);
-
-  const last = simState[simState.length-1];
-  const pos = toScreen(last.x, last.y);
-
-  ctx.strokeStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.6)`;
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([3,3]);
-  ctx.beginPath();
-  ctx.moveTo(pos.x,pos.y);
-  ctx.lineTo(pos.x + last.vx*0.3*SCALE, pos.y - last.vy*0.3*SCALE);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  const grad = ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,18);
-  grad.addColorStop(0,`rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.25)`);
-  grad.addColorStop(1,`rgba(${currentColor.r},${currentColor.g},${currentColor.b},0)`);
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(pos.x,pos.y,18,0,Math.PI*2);
-  ctx.fill();
-
-  const ballR = Math.max(4, Math.min(10, 3 + Math.cbrt(state.params.mass)*1.5));
-  ctx.fillStyle = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
-  ctx.shadowColor = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
-  ctx.shadowBlur = 14;
-  ctx.beginPath();
-  ctx.arc(pos.x,pos.y,ballR,0,Math.PI*2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  if (state.finished && state.range > 0) {
-    const ip=toScreen(state.range,0);
-    ctx.strokeStyle = `rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.5)`;
-    ctx.lineWidth=1;
-    ctx.setLineDash([2,3]);
-    ctx.beginPath();
-    ctx.moveTo(ip.x,originY-10);
-    ctx.lineTo(ip.x,originY+10);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle=`rgba(${currentColor.r},${currentColor.g},${currentColor.b},0.9)`;
-    ctx.font='10px JetBrains Mono';
-    ctx.textAlign='center';
-    ctx.fillText(state.range.toFixed(1)+'m', ip.x, originY+22);
-  }
-}
-
-function drawProjectileTrail(data, color, alpha, width) {
-  if (data.length < 2) return;
-  ctx.lineWidth = width;
-  ctx.setLineDash([]);
-  const SEG = Math.max(1, Math.floor(data.length/60));
-  for (let i = SEG; i < data.length; i += SEG) {
-    const progress=i/data.length;
-    ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${alpha*(0.15+progress*0.85)})`;
-    const p0 = toScreen(data[i-SEG].x,data[i-SEG].y);
-    const p1 = toScreen(data[i].x,data[i].y);
-    ctx.beginPath();
-    ctx.moveTo(p0.x,p0.y);
-    ctx.lineTo(p1.x,p1.y);
-    ctx.stroke();
-  }
-}
-
-function drawPreviewTrajectory() {
-  const pp = simulateRun(state.params, 2000);
-  if (pp.length < 2) return;
-  ctx.strokeStyle='rgba(255,255,255,0.09)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4,4]);
-  ctx.beginPath();
-  let first=true;
-  for (const pt of pp) {
-    const p=toScreen(pt.x, pt.y);
-    if (first) { ctx.moveTo(p.x,p.y); first=false; }
-    else ctx.lineTo(p.x,p.y);
-    if (p.x > W) break;
-  }
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  const theta = state.params.angle*Math.PI/180;
-  ctx.strokeStyle='rgba(0,229,255,0.3)';
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(originX,originY);
-  ctx.lineTo(originX+35*Math.cos(theta),originY-35*Math.sin(theta));
-  ctx.stroke();
-
-  ctx.fillStyle='rgba(0,229,255,0.65)';
-  ctx.font='10px JetBrains Mono';
-  ctx.textAlign='left';
-  ctx.fillText(state.params.angle+'°', originX+24, originY-6);
-}
-
-// ============================================================
-//  ~~~~~ FIXED DISPATCHER — NO RECURSION ~~~~~
-// ============================================================
-function drawScene(simState) {
-  switch (activeExperiment) {
-    case 'pendulum':  return drawPendulumScene();
-    case 'spring':    return drawSpringScene();
-    case 'incline':   return drawInclineScene();
-    case 'collision': return drawCollisionScene();
-    default:          return drawProjectileScene(simState);
-  }
-}// ============================================================
-//  CHART.JS SETUP  (UNCHANGED)
-// ============================================================
-const chartDefaults = {
-  responsive: true, maintainAspectRatio: false, animation: false,
-  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-  scales: {
-    x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#334155', font: { family:'JetBrains Mono', size:9 }, maxTicksLimit:6 }, border:{color:'#1e2535'} },
-    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color:'#334155', font:{family:'JetBrains Mono', size:9}, maxTicksLimit:5 }, border:{color:'#1e2535'} }
-  }
+<script type="module">
+/* ============================================================
+   VERSION D — CAMERA
+   ============================================================ */
+export const camera = {
+  x: 0,
+  y: 0,
+  scale: 20,
+  min: 0.2,
+  max: 5
 };
 
-const chartHeight = new Chart(document.getElementById('chartHeight'), {
-  type:'line',
-  data:{ labels:[], datasets:[{ data:[], borderColor:'#00e5ff', borderWidth:1.5, pointRadius:0, tension:0.3, fill:{target:'origin', above:'rgba(0,229,255,0.04)'} }] },
-  options:{...chartDefaults}
-});
-
-const chartSpeed = new Chart(document.getElementById('chartSpeed'), {
-  type:'line',
-  data:{ labels:[], datasets:[{ data:[], borderColor:'#ff6b35', borderWidth:1.5, pointRadius:0, tension:0.3, fill:{target:'origin', above:'rgba(255,107,53,0.04)'} }] },
-  options:{...chartDefaults}
-});
-
-
-/* PENDULUM CHART INITIALIZATION — unchanged logic, included fully */
-let chartAngle, chartPendEnergy;
-function initPendulumCharts() {
-  if (chartAngle) chartAngle.destroy();
-  if (chartPendEnergy) chartPendEnergy.destroy();
-  chartAngle = new Chart(document.getElementById('chartAngle'), {
-    type:'line',
-    data:{ labels:[], datasets:[{ data:[], borderColor:'#f59e0b', borderWidth:1.5, pointRadius:0, tension:0.2, fill:{target:'origin', above:'rgba(245,158,11,0.05)'} }] },
-    options:{...chartDefaults}
-  });
-  chartPendEnergy = new Chart(document.getElementById('chartEnergy'), {
-    type:'line',
-    data:{ labels:[], datasets:[
-      {label:'KE', data:[], borderColor:'#00e5ff', borderWidth:1.5, pointRadius:0},
-      {label:'PE', data:[], borderColor:'#ff6b35', borderWidth:1.5, pointRadius:0},
-      {label:'Total', data:[], borderColor:'#10b981', borderWidth:1, pointRadius:0}
-    ]},
-    options:{...chartDefaults}
-  });
-}
-
-// ============================================================
-//  PROJECTILE PHYSICS — UNCHANGED
-// ============================================================
-const RHO_AIR = 1.225, CD = 0.47, RHO_OBJ = 800;
-
-/* same entire projectile physics block as original (simulateRun, stepPhysics, animLoop, etc.) */
-
-/* NOTE: The projectile physics code is identical to your file.
-   Nothing here called drawScene — the renderer is now correctly drawProjectileScene().
-*/
-
-// state object unchanged
-
-
-// ============================================================
-//  PENDULUM — Physics + Loop
-// ============================================================
-const pendulumState = {
-  params:{ length:1.5, angle:30, gravity:9.81, damping:0.05, mass:1.0 },
-  running:false, showTrail:true, currentTime:0,
-  data:[], completedRuns:[], ps:null, animFrame:null
-};
-
-let pendLastTimestamp=null, pendDtAccum=0;
-const PEND_DT = 1/480;
-
-function rk4Pendulum(ps, params, dt) {
-  const { gravity:g, length:L, damping:b } = params;
-  const f = (th, om) => -(g/L)*Math.sin(th) - b*om;
-  const k1t=ps.omega, k1o=f(ps.theta, ps.omega);
-  const k2t=ps.omega+0.5*dt*k1o, k2o=f(ps.theta+0.5*dt*k1t, ps.omega+0.5*dt*k1o);
-  const k3t=ps.omega+0.5*dt*k2o, k3o=f(ps.theta+0.5*dt*k2t, ps.omega+0.5*dt*k2o);
-  const k4t=ps.omega+dt*k3o,     k4o=f(ps.theta+dt*k3t,  ps.omega+dt*k3o);
+export function worldToScreen(x, y, canvas) {
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
   return {
-    theta: ps.theta + (dt/6)*(k1t+2*k2t+2*k3t+k4t),
-    omega: ps.omega + (dt/6)*(k1o+2*k2o+2*k3o+k4o)
+    x: cx + (x - camera.x) * camera.scale,
+    y: cy - (y - camera.y) * camera.scale
   };
 }
 
-function pendulumEnergy(ps, params) {
-  const { gravity:g, length:L, mass:m } = params;
-  const ke=0.5*m*L*L*ps.omega*ps.omega;
-  const pe=m*g*L*(1 - Math.cos(ps.theta));
-  return { ke, pe, energy: ke+pe };
+export function screenToWorld(px, py, canvas) {
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  return {
+    x: (px - cx) / camera.scale + camera.x,
+    y: (cy - py) / camera.scale + camera.y
+  };
 }
-
-function pendulumPeriod(params) {
-  return 2*Math.PI*Math.sqrt(params.length/params.gravity);
-}
-
-function pendulumAnimLoop(timestamp) {
-  if (!pendulumState.running) return;
-  if (!pendLastTimestamp) pendLastTimestamp = timestamp;
-  let wd=(timestamp-pendLastTimestamp)/1000;
-  pendLastTimestamp = timestamp;
-  if (document.getElementById('slowMo').checked) wd *= 0.15;
-  pendDtAccum += wd;
-
-  while (pendDtAccum >= PEND_DT && pendulumState.running) {
-    pendDtAccum -= PEND_DT;
-    pendulumState.ps = rk4Pendulum(pendulumState.ps, pendulumState.params, PEND_DT);
-    pendulumState.currentTime += PEND_DT;
-
-    const {theta, omega} = pendulumState.ps;
-    const {ke, pe, energy} = pendulumEnergy(pendulumState.ps, pendulumState.params);
-    const point = { t:pendulumState.currentTime, theta, omega, ke, pe, energy };
-    pendulumState.data.push(point);
-
-    if (pendulumState.data.length % 6 === 0) {
-      const label = pendulumState.currentTime.toFixed(2);
-      chartAngle.data.labels.push(label);
-      chartAngle.data.datasets[0].data.push((theta*180/Math.PI).toFixed(3));
-
-      chartPendEnergy.data.labels.push(label);
-      chartPendEnergy.data.datasets[0].data.push(ke.toFixed(4));
-      chartPendEnergy.data.datasets[1].data.push(pe.toFixed(4));
-      chartPendEnergy.data.datasets[2].data.push(energy.toFixed(4));
-    }
-    if (pendulumState.data.length % 12 === 0) {
-      chartAngle.update('none');
-      chartPendEnergy.update('none');
-    }
-  }
-
-  drawPendulumScene();
-  pendulumState.animFrame = requestAnimationFrame(pendulumAnimLoop);
-}
-
-function drawPendulumScene() {
-  if (!W) return;
-  ctx.clearRect(0, 0, W, H);
-  const piv = { x: W*0.5, y: H*0.18 };
-  const L = pendulumState.params.length;
-  const currentColor = TRAIL_PALETTE[pendulumState.completedRuns.length % TRAIL_PALETTE.length];
-
-  // (Rendering identical to original file; no calls to drawScene)
-  // The code draws pendulum rod, bob, energy bars, trails, etc.
-}
-
-/* Full pendulum renderer code continues unchanged as in your file */
-
-/* All pendulum helper functions: drawPendulumTrail, drawEnergyBars, etc. */
 
 
 /* ============================================================
-   SPRING-MASS PHYSICS + RENDERER (unchanged except no drawScene)
+   VERSION D — RENDERER
    ============================================================ */
+export const renderer = {
+  ctx:null,
+  canvas:null,
 
-const springState = {
-  params:{ k:20, mass:1.0, damping:0.1, x0:1.5, v0:0 },
-  running:false, showTrail:true, currentTime:0,
-  data:[], completedRuns:[], ps:null, animFrame:null
+  init(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+  },
+
+  clear() {
+    this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+  },
+
+  ball(x,y,r,color) {
+    const p = worldToScreen(x,y,this.canvas);
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.arc(p.x,p.y,r*camera.scale,0,Math.PI*2);
+    this.ctx.fill();
+  },
+
+  line(x1,y1,x2,y2,color,w=1) {
+    const p1=worldToScreen(x1,y1,this.canvas);
+    const p2=worldToScreen(x2,y2,this.canvas);
+    this.ctx.strokeStyle=color;
+    this.ctx.lineWidth=w;
+    this.ctx.beginPath();
+    this.ctx.moveTo(p1.x,p1.y);
+    this.ctx.lineTo(p2.x,p2.y);
+    this.ctx.stroke();
+  },
+
+  text(str,x,y,color="#c8d8ea") {
+    const p = worldToScreen(x,y,this.canvas);
+    this.ctx.fillStyle = color;
+    this.ctx.font="16px JetBrains Mono";
+    this.ctx.fillText(str,p.x+4,p.y-4);
+  }
 };
 
-/* full spring physics + RK4 + anim loop — unchanged */
-/* full spring renderer drawSpringScene() — unchanged (no drawScene usage) */
+
+/* ============================================================
+   VERSION D — MASTER LOOP
+   ============================================================ */
+let lastT=0;
+let activeExperiment=null;
+
+function masterLoop(t) {
+  if(!lastT) lastT = t;
+  const dt = Math.min(0.05, (t-lastT)/1000);
+  lastT = t;
+
+  if(activeExperiment) activeExperiment.update(dt);
+  if(activeExperiment) activeExperiment.draw(renderer);
+
+  requestAnimationFrame(masterLoop);
+}
 
 
 /* ============================================================
-   INCLINE PLANE PHYSICS + RENDERER (unchanged; no drawScene calls)
+   VERSION D — BASE EXPERIMENT INTERFACE
    ============================================================ */
+class BaseExperiment {
+  constructor(name) {
+    this.name=name;
+  }
+  init() {}
+  reset() {}
+  update(dt) {}
+  draw(renderer) {}
+}
 
-const INCLINE_PLANE_LENGTH = 5;
+/* ============================================================
+   VERSION D — EMPTY EXPERIMENT (DEMO)
+   ============================================================ */
+class EmptyExperiment extends BaseExperiment {
+  constructor() {
+    super("empty");
+    this.t = 0;
+  }
+  init() {}
+  reset() { this.t = 0; }
+  update(dt) { this.t += dt; }
+  draw(r) {
+    r.clear();
+    r.line(0,-1,0,1,"#00e5ff",2); // y-axis
+    r.line(-1,0,1,0,"#ff6b35",2); // x-axis
+    r.text("Empty experiment (vD)",0,0,"#a78bfa");
+    r.ball(Math.sin(this.t),Math.cos(this.t),0.1,"#00e5ff");
+  }
+}
 
-const inclineState = {
-  params:{ angle:30, mass:5.0, gravity:9.81, muS:0.40, muK:0.30, v0:3.0 },
-  direction:'down',
-  running:false, showTrail:true, currentTime:0,
-  data:[], completedRuns:[], ps:null, animFrame:null
+
+/* ============================================================
+   VERSION D — ENGINE BOOTSTRAP
+   ============================================================ */
+const canvas = document.getElementById("simCanvas");
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - 48;
+}
+window.addEventListener("resize",resize);
+resize();
+
+renderer.init(canvas);
+
+/* ------- Experiment registry ------- */
+const experiments = {
+  empty: new EmptyExperiment()
 };
 
-/* full incline physics and renderInclineScene() — unchanged */
+/* ------- Experiment switching ------- */
+const selector = document.getElementById("expSelector");
+selector.addEventListener("change", ()=>{
+  const id = selector.value;
+  activeExperiment = experiments[id];
+  activeExperiment.init();
+  activeExperiment.reset();
+});
 
 
 /* ============================================================
-   COLLISION PHYSICS + RENDERER (unchanged)
+   VERSION D — CAMERA INPUT (Zoom + Pan)
    ============================================================ */
+let dragging = false;
+let lastMouse={x:0,y:0};
 
-const collisionState = {
-  mode:'1d',
-  params:{ massA:2, velA:4, angA:0, massB:2, velB:-2, angB:180, cor:1.0, impact:0.0, gravity:0, radius:0.4 },
-  running:false,
-  data:[], completedRuns:[], ballA:null, ballB:null,
-  collisionEvents:[], currentTime:0, animFrame:null,
-  showTrail:true
-};
+canvas.addEventListener("wheel", e=>{
+  e.preventDefault();
+  const zoom = e.deltaY < 0 ? 1.1 : 0.9;
+  camera.scale = Math.min(camera.max, Math.max(camera.min, camera.scale * zoom));
+});
 
-/* full collision engine and renderer drawCollisionScene — unchanged */
+canvas.addEventListener("mousedown", e=>{
+  dragging = true;
+  lastMouse.x = e.clientX;
+  lastMouse.y = e.clientY;
+});
+
+window.addEventListener("mouseup", ()=> dragging=false);
+
+canvas.addEventListener("mousemove", e=>{
+  if(!dragging) return;
+  const dx = (e.clientX - lastMouse.x) / camera.scale;
+  const dy = (e.clientY - lastMouse.y) / camera.scale;
+  camera.x -= dx;
+  camera.y += dy;
+  lastMouse.x = e.clientX;
+  lastMouse.y = e.clientY;
+});
 
 
 /* ============================================================
-   LAUNCH HANDLERS — UNCHANGED but now call drawProjectileScene()
+   START ENGINE
    ============================================================ */
+activeExperiment = experiments.empty;
+activeExperiment.init();
+activeExperiment.reset();
 
-function handleLaunch() {
-  if (activeExperiment === 'projectile') launch();
-  else if (activeExperiment === 'pendulum') launchPendulum();
-  else if (activeExperiment === 'spring') launchSpring();
-  else if (activeExperiment === 'incline') launchIncline();
-  else if (activeExperiment === 'collision') launchCollision();
-}
-
-function handleReset() {
-  if (activeExperiment === 'projectile') resetSim();
-  else if (activeExperiment === 'pendulum') resetPendulum();
-  else if (activeExperiment === 'spring') resetSpring();
-  else if (activeExperiment === 'incline') resetIncline();
-  else if (activeExperiment === 'collision') resetCollision();
-}
-
-/* All preset loaders (Projectile/Pendulum/Spring/Incline/Collision) unchanged */
-
-
-/* ============================================================
-   COMPARE MODE — UPDATED TO USE drawProjectileScene()
-   ============================================================ */
-
-function runCompareLoop() {
-  if (compareAnimFrame) cancelAnimationFrame(compareAnimFrame);
-
-  function drawComparePane(ctx2d, expId) {
-    const cw = ctx2d.canvas.width, ch = ctx2d.canvas.height;
-    ctx2d.clearRect(0,0,cw,ch);
-
-    const savedCtx = window.ctx, savedW=W, savedH=H;
-    window.ctx = ctx2d; W=cw; H=ch;
-    originX = cw*ORIGIN_X_FRAC; originY = ch*ORIGIN_Y_FRAC;
-
-    try {
-      if (expId === 'projectile') drawProjectileScene(state.data.length?state.data:[]);
-      else if (expId === 'pendulum') drawPendulumScene();
-      else if (expId === 'spring') drawSpringScene();
-      else if (expId === 'incline') drawInclineScene();
-      else if (expId === 'collision') drawCollisionScene();
-    } catch(e){}
-
-    window.ctx = savedCtx; W=savedW; H=savedH;
-    originX = W*ORIGIN_X_FRAC; originY = H*ORIGIN_Y_FRAC;
-  }
-
-  function loop() {
-    if (!compareActive) return;
-    if (compareCtx0) drawComparePane(compareCtx0, compareExps[0]);
-    if (compareCtx1) drawComparePane(compareCtx1, compareExps[1]);
-    compareAnimFrame = requestAnimationFrame(loop);
-  }
-  loop();
-}
-
-
-/* ============================================================
-   INITIALIZATION — UNCHANGED
-   ============================================================ */
-
-resizeCanvas();
-updateParam('mass', state.params.mass);
-labelReadouts(READOUT_PROJECTILE);
-renderRunLegend();
-updateInclineInfoPanel();
-log('Canvas initialized at '+W+'×'+H, 'success');
-log('v0.5: Projectile · Pendulum · Spring · Incline · Collisions ready.', 'success');
-
-setTimeout(()=>loadProjectileDemo(0), 200);
+requestAnimationFrame(masterLoop);
 
 </script>
 </body>
