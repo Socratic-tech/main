@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8" />
-<title>OpenPhysics Lab — Version D Engine Core</title>
+<title>OpenPhysics Lab — Version D (Projectile Experiment)</title>
 <style>
   body {
     margin:0;
@@ -20,6 +20,7 @@
     align-items:center;
     padding:0 16px;
     gap:12px;
+    z-index:10;
   }
   select {
     background:#1a1f2e;
@@ -30,25 +31,28 @@
   }
   canvas {
     position:absolute;
-    left:0; top:48px;
+    top:48px; left:0;
   }
 </style>
 </head>
 
 <body>
 
+<!-- Toolbar UI -->
 <div id="toolbar">
   <label>Experiment:</label>
   <select id="expSelector">
     <option value="empty">Empty Experiment</option>
+    <option value="projectile">Projectile Motion</option>
   </select>
 </div>
 
+<!-- Main canvas -->
 <canvas id="simCanvas"></canvas>
 
 <script type="module">
 /* ============================================================
-   VERSION D — CAMERA
+   VERSION D — CAMERA SYSTEM
    ============================================================ */
 export const camera = {
   x: 0,
@@ -75,7 +79,6 @@ export function screenToWorld(px, py, canvas) {
     y: (cy - py) / camera.scale + camera.y
   };
 }
-
 
 /* ============================================================
    VERSION D — RENDERER
@@ -112,14 +115,27 @@ export const renderer = {
     this.ctx.stroke();
   },
 
+  trail(points,color) {
+    if(points.length < 2) return;
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    for(let i=1; i<points.length; i++){
+      const p1 = worldToScreen(points[i-1].x,points[i-1].y,this.canvas);
+      const p2 = worldToScreen(points[i].x,points[i].y,this.canvas);
+      this.ctx.moveTo(p1.x,p1.y);
+      this.ctx.lineTo(p2.x,p2.y);
+    }
+    this.ctx.stroke();
+  },
+
   text(str,x,y,color="#c8d8ea") {
     const p = worldToScreen(x,y,this.canvas);
     this.ctx.fillStyle = color;
-    this.ctx.font="16px JetBrains Mono";
+    this.ctx.font="14px JetBrains Mono";
     this.ctx.fillText(str,p.x+4,p.y-4);
   }
 };
-
 
 /* ============================================================
    VERSION D — MASTER LOOP
@@ -128,98 +144,149 @@ let lastT=0;
 let activeExperiment=null;
 
 function masterLoop(t) {
-  if(!lastT) lastT = t;
-  const dt = Math.min(0.05, (t-lastT)/1000);
+  if(!lastT) lastT=t;
+  const dt = Math.min(0.05,(t-lastT)/1000);
   lastT = t;
 
-  if(activeExperiment) activeExperiment.update(dt);
-  if(activeExperiment) activeExperiment.draw(renderer);
+  if(activeExperiment){
+    activeExperiment.update(dt);
+    activeExperiment.draw(renderer);
+  }
 
   requestAnimationFrame(masterLoop);
 }
 
-
 /* ============================================================
-   VERSION D — BASE EXPERIMENT INTERFACE
+   BASE EXPERIMENT CLASS
    ============================================================ */
 class BaseExperiment {
-  constructor(name) {
-    this.name=name;
-  }
-  init() {}
+  constructor(name){ this.name=name; }
+  init(engine) {}
   reset() {}
   update(dt) {}
   draw(renderer) {}
 }
 
 /* ============================================================
-   VERSION D — EMPTY EXPERIMENT (DEMO)
+   EMPTY EXPERIMENT (for testing camera)
    ============================================================ */
 class EmptyExperiment extends BaseExperiment {
-  constructor() {
-    super("empty");
-    this.t = 0;
-  }
-  init() {}
-  reset() { this.t = 0; }
-  update(dt) { this.t += dt; }
-  draw(r) {
+  constructor(){ super("empty"); }
+
+  init(engine){ this.engine = engine; this.reset(); }
+  reset(){ this.t=0; }
+  update(dt){ this.t += dt; }
+
+  draw(r){
     r.clear();
-    r.line(0,-1,0,1,"#00e5ff",2); // y-axis
-    r.line(-1,0,1,0,"#ff6b35",2); // x-axis
-    r.text("Empty experiment (vD)",0,0,"#a78bfa");
-    r.ball(Math.sin(this.t),Math.cos(this.t),0.1,"#00e5ff");
+    r.line(-5,0,5,0,"#ff6b35",2);
+    r.line(0,-5,0,5,"#00e5ff",2);
+    r.text("Empty Experiment",0,0,"#a78bfa");
   }
 }
 
+/* ============================================================
+   PROJECTILE EXPERIMENT (Version D)
+   ============================================================ */
+class ProjectileExperiment extends BaseExperiment {
+  constructor(){ super("projectile"); }
+
+  init(engine){
+    this.engine = engine;
+    this.params = {
+      v0: 25,
+      angle: 45*Math.PI/180,
+      g: 9.81,
+      drag: false,
+      k: 0.15
+    };
+    this.reset();
+  }
+
+  reset(){
+    this.t = 0;
+    this.points = [];
+    this.x = 0;
+    this.y = 0;
+    this.vx = this.params.v0 * Math.cos(this.params.angle);
+    this.vy = this.params.v0 * Math.sin(this.params.angle);
+  }
+
+  update(dt){
+    this.t += dt;
+
+    if(this.params.drag){
+      const v = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+      const ax = -this.params.k * v * this.vx;
+      const ay = -this.params.g - this.params.k * v * this.vy;
+      this.vx += ax*dt;
+      this.vy += ay*dt;
+    }else{
+      this.vy -= this.params.g * dt;
+    }
+
+    this.x += this.vx*dt;
+    this.y += this.vy*dt;
+
+    this.points.push({x:this.x,y:this.y});
+
+    if(this.y < 0 && this.t > 0.2){
+      this.vx = 0;
+      this.vy = 0;
+    }
+  }
+
+  draw(r){
+    r.clear();
+    r.line(-200,0,200,0,"#2e3a50",2);
+    r.trail(this.points,"#00e5ff");
+    r.ball(this.x,this.y,0.12,"#00e5ff");
+    r.text(`t=${this.t.toFixed(2)}s`,this.x+1,this.y+1);
+  }
+}
 
 /* ============================================================
-   VERSION D — ENGINE BOOTSTRAP
+   ENGINE BOOTSTRAP
    ============================================================ */
 const canvas = document.getElementById("simCanvas");
-function resize() {
+function resize(){
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight - 48;
 }
-window.addEventListener("resize",resize);
 resize();
+window.addEventListener("resize",resize);
 
 renderer.init(canvas);
 
-/* ------- Experiment registry ------- */
+/* Register experiments */
 const experiments = {
-  empty: new EmptyExperiment()
+  empty: new EmptyExperiment(),
+  projectile: new ProjectileExperiment()
 };
 
-/* ------- Experiment switching ------- */
+/* UI selection */
 const selector = document.getElementById("expSelector");
-selector.addEventListener("change", ()=>{
-  const id = selector.value;
-  activeExperiment = experiments[id];
-  activeExperiment.init();
-  activeExperiment.reset();
+selector.addEventListener("change",()=>{
+  activeExperiment = experiments[selector.value];
+  activeExperiment.init({ renderer, canvas });
 });
 
-
-/* ============================================================
-   VERSION D — CAMERA INPUT (Zoom + Pan)
-   ============================================================ */
+/* Camera control (pan + zoom) */
 let dragging = false;
 let lastMouse={x:0,y:0};
 
 canvas.addEventListener("wheel", e=>{
   e.preventDefault();
-  const zoom = e.deltaY < 0 ? 1.1 : 0.9;
-  camera.scale = Math.min(camera.max, Math.max(camera.min, camera.scale * zoom));
+  camera.scale *= e.deltaY < 0 ? 1.1 : 0.9;
+  camera.scale = Math.max(camera.min, Math.min(camera.max, camera.scale));
 });
 
 canvas.addEventListener("mousedown", e=>{
   dragging = true;
-  lastMouse.x = e.clientX;
-  lastMouse.y = e.clientY;
+  lastMouse = { x:e.clientX, y:e.clientY };
 });
 
-window.addEventListener("mouseup", ()=> dragging=false);
+window.addEventListener("mouseup",()=> dragging=false);
 
 canvas.addEventListener("mousemove", e=>{
   if(!dragging) return;
@@ -227,16 +294,12 @@ canvas.addEventListener("mousemove", e=>{
   const dy = (e.clientY - lastMouse.y) / camera.scale;
   camera.x -= dx;
   camera.y += dy;
-  lastMouse.x = e.clientX;
-  lastMouse.y = e.clientY;
+  lastMouse = { x:e.clientX, y:e.clientY };
 });
 
-
-/* ============================================================
-   START ENGINE
-   ============================================================ */
+/* Start simulation */
 activeExperiment = experiments.empty;
-activeExperiment.init();
+activeExperiment.init({ renderer, canvas });
 activeExperiment.reset();
 
 requestAnimationFrame(masterLoop);
