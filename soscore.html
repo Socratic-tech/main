@@ -22,7 +22,7 @@
     --subtle: #cbd5e1;   /* slate-300 */
     --primary: #38bdf8;  /* sky-400 */
     --warn-border: #a16207; /* amber-700 */
-    --warn-bg: #78350f22;   /* amber-900 @ 13% alpha */
+    --warn-bg: #78350f22;   /* amber-900 @ ~13% alpha */
   }
   * { box-sizing: border-box; }
   body {
@@ -31,18 +31,20 @@
     color: var(--text);
     font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   }
+
   .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 1.875rem; font-weight: 800; margin: 0 0 8px; }
-  .subtext { color: var(--subtle); font-size: 0.9rem; margin-bottom: 16px; }
+  h1 { font-size: clamp(1.4rem, 2.5vw, 1.9rem); font-weight: 800; margin: 0 0 8px; }
+  .subtext { color: var(--subtle); font-size: .95rem; margin-bottom: 16px; }
 
   .panel { background-color: var(--panel); border-radius: 8px; padding: 12px; }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
   .toolbar-left { display: flex; gap: 10px; align-items: center; }
   .toolbar-right { display: flex; gap: 10px; align-items: center; margin-left: auto; }
 
   .btn {
     background-color: var(--primary); color: #000; font-weight: 700;
     padding: 8px 12px; border-radius: 6px; border: 0; cursor: pointer;
+    white-space: nowrap;
   }
   .btn:hover { filter: brightness(1.05); }
   .input {
@@ -55,30 +57,84 @@
   .input:focus { outline: 2px solid var(--primary); }
   .label { font-weight: 700; margin-right: 6px; }
 
+  /* --- Responsive scoring grid --- */
+
+  /* Grid container wraps in a scroll shell so it always fits the screen */
+  .grid-shell {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;            /* clips sticky header bottom borders nicely */
+  }
+  .grid-scroll {
+    overflow-x: auto;            /* horizontal scroll on narrow screens */
+    overflow-y: auto;
+    max-height: min(72vh, 1200px); /* keep room for toolbar on small screens */
+  }
+
+  /* 15-column grid with sensible min widths; shrinks but remains readable */
   .score-grid {
     display: grid;
     grid-template-columns:
-      3rem      /* ID */
-      1.3fr     /* Team Name */
-      4.7rem 4.7rem 4.7rem /* F1 T1..T3 */
-      4rem      /* 2B1 */
-      6rem      /* Log1 */
-      4.7rem 4.7rem 4.7rem /* F2 T1..T3 */
-      4rem      /* 2B2 */
-      6rem      /* Log2 */
-      5rem      /* Penalty */
-      6rem      /* Score */
-      4rem;     /* Rank */
+      minmax(2.8rem, 3rem)           /* ID */
+      minmax(12rem, 1.3fr)           /* Team Name */
+      minmax(4.2rem, 5.2rem)         /* F1 T1 */
+      minmax(4.2rem, 5.2rem)         /* F1 T2 */
+      minmax(4.2rem, 5.2rem)         /* F1 T3 */
+      minmax(3.6rem, 4.2rem)         /* 2B1 */
+      minmax(5.2rem, 6.4rem)         /* Log1 */
+      minmax(4.2rem, 5.2rem)         /* F2 T1 */
+      minmax(4.2rem, 5.2rem)         /* F2 T2 */
+      minmax(4.2rem, 5.2rem)         /* F2 T3 */
+      minmax(3.6rem, 4.2rem)         /* 2B2 */
+      minmax(5.2rem, 6.4rem)         /* Log2 */
+      minmax(4.2rem, 5.2rem)         /* Penalty */
+      minmax(5.0rem, 6.0rem)         /* Score */
+      minmax(3.6rem, 4.2rem);        /* Rank */
     gap: .5rem;
     align-items: center;
+    padding: 8px 12px;
   }
-  .header { font-weight: 700; border-bottom: 1px solid var(--line2); padding: .5rem 0; }
-  .score-row { border-bottom: 1px solid var(--line); padding: .45rem 0; }
-  .group-label { text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; color: #93c5fd; text-align: center; }
-  .subtle-warn { border-color: var(--warn-border) !important; background-color: var(--warn-bg) !important; }
-  .text-primary { color: var(--primary); }
 
-  .fallback { padding: 16px; }
+  .header {
+    font-weight: 700;
+    background: #0f172aee; /* sticky bg to cover rows when stuck */
+    backdrop-filter: saturate(1.2);
+    border-bottom: 1px solid var(--line2);
+  }
+  .row {
+    border-bottom: 1px solid var(--line);
+    padding-top: 6px; padding-bottom: 6px;
+  }
+
+  /* Two-row sticky header */
+  .sticky {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .sticky.second {
+    top: 36px; /* sits just below the group header row */
+    z-index: 6;
+  }
+
+  .group-label {
+    text-transform: uppercase; font-size: .75rem; letter-spacing: .04em;
+    color: #93c5fd; text-align: center;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* simple column-span utilities used for group labels */
+  .span-5 { grid-column: span 5; }
+
+  .subtle-warn { border-color: var(--warn-border) !important; background-color: var(--warn-bg) !important; }
+  .text-primary { color: var(--primary); font-weight: 800; text-align: center; }
+
+  /* Keep buttons and inputs readable at small widths */
+  @media (max-width: 640px) {
+    .toolbar-right { width: 100%; justify-content: flex-start; }
+    .btn { padding: 8px 10px; font-size: .92rem; }
+    .input { font-size: .95rem; }
+  }
 </style>
 </head>
 
@@ -88,12 +144,12 @@
 <script>
 "use strict";
 
-/* ---- Guard: if React failed to load, show a helpful message instead of a blank page ---- */
+/* ---- Guard: if React failed to load, show a helpful message ---- */
 (function ensureReactLoaded(){
   const ok = !!(window.React && window.ReactDOM);
   if (!ok) {
     document.getElementById('root').innerHTML =
-      '<div class="fallback">Could not load React from CDN. Check your internet connection and reload.</div>';
+      '<div style="padding:16px">Could not load React from CDN. Check internet and reload.</div>';
   }
 })();
 
@@ -102,7 +158,7 @@ const e = React.createElement;
 /* =========================================================================
    Storage (per-division persistence)
    ========================================================================= */
-const STORAGE_KEY = "scioly_helicopter_v2";
+const STORAGE_KEY = "scioly_helicopter_v3";
 
 const defaultState = () => ({
   eventName: "Berrien County Science Olympiad Helicopter",
@@ -114,15 +170,10 @@ const defaultState = () => ({
 });
 
 const loadAll = () => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : defaultState();
-  } catch { return defaultState(); }
+  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : defaultState(); }
+  catch { return defaultState(); }
 };
-
-const saveAll = (data) => { try {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-} catch {} };
+const saveAll = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {} };
 
 /* =========================================================================
    Scoring Logic
@@ -181,7 +232,7 @@ function TeamRow({ team, onChange }) {
   };
   const warn = (v) => (v === "" ? "input subtle-warn w-full" : "input w-full");
 
-  return e("div", { className: "score-grid score-row" },
+  return e("div", { className: "score-grid row" },
     e("div", null, team.id),
 
     e("input", { className: "input w-full", value: team.name, placeholder: "Team Name",
@@ -222,11 +273,10 @@ function TeamRow({ team, onChange }) {
     e("input", { className: "input w-full", type: "number", step: "0.01", min: "0", max: "1",
       value: team.penalty, onChange: ev => setField("penalty", ev.target.value) }),
 
-    e("div", { className: "text-primary", style: { textAlign: "center", fontWeight: 800 } },
+    e("div", { className: "text-primary" },
       (typeof finalScore === "number") ? finalScore.toFixed(2) : "--"),
 
-    e("div", { className: "text-primary", style: { textAlign: "center", fontWeight: 800 } },
-      team.rank ?? "--")
+    e("div", { className: "text-primary" }, team.rank ?? "--")
   );
 }
 
@@ -359,7 +409,7 @@ function ScoringPage({ data, setData }) {
     pdf.save(`Supervisor_Packet_Div_${activeDivision}.pdf`);
   };
 
-  // Controls (inside scoring section, per your preference)
+  // Controls (inside scoring section)
   const controlsBar = e("div", { className: "panel toolbar" },
     e("div", { className: "toolbar-left" },
       e("span", { className: "label" }, "Division:"),
@@ -407,26 +457,36 @@ function ScoringPage({ data, setData }) {
     )
   );
 
-  // Headers
-  const headerTop = e("div", { className: "score-grid header" },
-    e("div"), e("div"),
-    e("div", { className: "group-label", style: { gridColumn: "3 / span 5" } }, "Flight 1"),
-    e("div", { className: "group-label", style: { gridColumn: "8 / span 5" } }, "Flight 2"),
-    e("div"), e("div"), e("div")
+  // ===== Two-row sticky headers (clean alignment) =====
+  const headerTop = e(
+    "div",
+    { className: "score-grid header sticky" },
+    // 15 total columns: 2 placeholders, 5 F1, 5 F2, 3 placeholders
+    e("div", null),          // ID placeholder
+    e("div", null),          // Team placeholder
+    e("div", { className: "group-label span-5" }, "FLIGHT 1"),
+    e("div", { className: "group-label span-5" }, "FLIGHT 2"),
+    e("div", null),          // PEN placeholder
+    e("div", null),          // Score placeholder
+    e("div", null)           // Rank placeholder
   );
-  const headerSecond = e("div", { className: "score-grid header" },
+
+  const headerSecond = e(
+    "div",
+    { className: "score-grid header sticky second" },
     "ID", "Team",
-    "T1", "T2", "T3", "2B", "Log",
-    "T1", "T2", "T3", "2B", "Log",
+    "F1 T1", "F1 T2", "F1 T3", "2B1", "Log1",
+    "F2 T1", "F2 T2", "F2 T3", "2B2", "Log2",
     "PEN", "Score", "Rank"
   );
 
-  // While division is being initialized (prompt just fired), show placeholder
+  // While division initializes (prompt fired), render placeholder with toolbar
   if (!divData.initialized) {
     return e("div", { className: "container" },
       e("h1", null, data.eventName),
-      e("div", { className: "subtext" }, `Initializing Division ${activeDivision}…`),
-      controlsBar
+      e("div", { className: "subtext" }, "Switch divisions inside the scoring section. Each division has its own teams and scores."),
+      controlsBar,
+      e("div", { className: "panel" }, `Initializing Division ${activeDivision}…`)
     );
   }
 
@@ -434,12 +494,23 @@ function ScoringPage({ data, setData }) {
     e("h1", null, data.eventName),
     e("div", { className: "subtext" }, "Switch divisions inside the scoring section. Each division has its own teams and scores."),
     controlsBar,
-    headerTop,
-    headerSecond,
-    ...derivedTeams.map((t, i) =>
-      e(TeamRow, { key: t.id, team: t, onChange: (newTeam) => {
-        const arr = [...teams]; arr[i] = newTeam; updateTeams(arr);
-      }})
+
+    // Responsive shell: sticky headers + scrollable grid body
+    e("div", { className: "grid-shell" },
+      headerTop,
+      headerSecond,
+      e("div", { className: "grid-scroll" },
+        // rows
+        ...derivedTeams.map((t, i) =>
+          e(TeamRow, {
+            key: t.id,
+            team: t,
+            onChange: (newTeam) => {
+              const arr = [...teams]; arr[i] = newTeam; updateTeams(arr);
+            }
+          })
+        )
+      )
     )
   );
 }
