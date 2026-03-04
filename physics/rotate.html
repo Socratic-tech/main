@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Rotational Equilibrium Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --bg:#1a1d23; --panel:#21252e; --panel2:#272b35;
+  --border:#343844; --text:#d4d8e2; --dim:#6b7280;
+  --accent:#4f9cf0; --green:#34d058; --red:#f87171; --orange:#fb923c;
+  --yellow:#fbbf24; --purple:#a78bfa;
+  --canvas-bg:#ffffff;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HEADER ── */
+#header{height:48px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;}
+#header h1{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);letter-spacing:.04em;white-space:nowrap;}
+#header h1 span{color:var(--dim);font-weight:400;}
+.hbtn{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:5px 11px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'IBM Plex Sans',sans-serif;transition:border-color .15s,color .15s;}
+.hbtn:hover{border-color:var(--accent);color:var(--accent);}
+.hbtn.primary{background:#1a3a5c;border-color:var(--accent);color:var(--accent);}
+.hbtn.primary:hover{background:#1e4570;}
+.hbtn.danger:hover{border-color:var(--red);color:var(--red);}
+#header-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+
+/* ── MAIN LAYOUT ── */
+#main{flex:1;display:flex;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:260px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+#sidebar-scroll{flex:1;overflow-y:auto;padding:10px;}
+#sidebar-scroll::-webkit-scrollbar{width:3px;}
+#sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border);}
+
+.sec-hdr{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.sec-hdr:first-child{margin-top:0;}
+
+/* Tool buttons */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.toolbtn{background:var(--panel2);border:1px solid var(--border);color:var(--dim);padding:7px 4px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'IBM Plex Sans',sans-serif;text-align:center;transition:all .15s;line-height:1.3;}
+.toolbtn:hover{border-color:var(--accent);color:var(--text);}
+.toolbtn.active{background:#1a2d47;border-color:var(--accent);color:var(--accent);}
+.toolbtn .icon{font-size:18px;display:block;margin-bottom:2px;}
+
+/* Props panel */
+#propsPanel{padding:10px;border-top:1px solid var(--border);background:var(--panel2);min-height:80px;}
+.prop-row{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
+.prop-row label{color:var(--dim);font-size:11px;width:80px;flex-shrink:0;}
+.prop-row input[type=number],.prop-row input[type=text],.prop-row select{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:3px;font-size:12px;font-family:'IBM Plex Mono',monospace;}
+.prop-row input[type=color]{width:36px;height:26px;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:none;padding:1px;}
+.prop-row input[type=range]{flex:1;accent-color:var(--accent);}
+.prop-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);font-weight:600;margin-bottom:8px;}
+.prop-none{color:var(--dim);font-size:11px;padding:6px 0;}
+.delbtn{background:none;border:1px solid var(--border);color:var(--red);padding:4px 8px;border-radius:3px;cursor:pointer;font-size:11px;width:100%;margin-top:4px;}
+.delbtn:hover{background:#2a1515;}
+
+/* Torque display */
+#torquePanel{padding:10px;border-top:1px solid var(--border);background:#0f1318;}
+.torque-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.torque-row{display:flex;justify-content:space-between;font-size:11px;margin:2px 0;font-family:'IBM Plex Mono',monospace;}
+.torque-row .lbl{color:var(--dim);}
+.torque-cw{color:var(--orange);}
+.torque-ccw{color:var(--purple);}
+.torque-net{color:var(--green);font-weight:600;}
+.torque-net.nonzero{color:var(--red);}
+.torque-divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
+
+/* ── CANVAS AREA ── */
+#canvasWrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#13161c;}
+#canvasToolbar{height:36px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;font-size:11px;color:var(--dim);flex-shrink:0;}
+#canvasToolbar label{display:flex;align-items:center;gap:4px;}
+#canvasToolbar input[type=checkbox]{accent-color:var(--accent);}
+#canvasToolbar select{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:3px;font-size:11px;font-family:'IBM Plex Sans',sans-serif;}
+#canvasOuter{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:20px;}
+#diagramCanvas{background:white;box-shadow:0 4px 24px rgba(0,0,0,.5);cursor:crosshair;}
+#diagramCanvas.grab{cursor:grab;}
+#diagramCanvas.grabbing{cursor:grabbing;}
+#statusBar{height:24px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 10px;font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;gap:16px;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <h1>⚖ Rotational Equilibrium <span>Builder</span></h1>
+  <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+  <button class="hbtn" id="btnTemplate">Templates</button>
+  <button class="hbtn" id="btnClear" class="danger">Clear</button>
+  <div id="header-right">
+    <label style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;">
+      <input type="checkbox" id="chkWhiteMode" checked> White bg (print)
+    </label>
+    <button class="hbtn primary" id="btnExportPNG">⬇ Export PNG</button>
+    <button class="hbtn primary" id="btnExportSVG">⬇ Export SVG</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-scroll">
+
+      <div class="sec-hdr">Add Elements</div>
+      <div class="tool-grid">
+        <button class="toolbtn" id="tool-select" data-tool="select"><span class="icon">↖</span>Select</button>
+        <button class="toolbtn" id="tool-beam" data-tool="beam"><span class="icon">━</span>Beam</button>
+        <button class="toolbtn" id="tool-pivot" data-tool="pivot"><span class="icon">▲</span>Pivot</button>
+        <button class="toolbtn" id="tool-force" data-tool="force"><span class="icon">↓</span>Force</button>
+        <button class="toolbtn" id="tool-weight" data-tool="weight"><span class="icon">W</span>Weight</button>
+        <button class="toolbtn" id="tool-label" data-tool="label"><span class="icon">T</span>Label</button>
+        <button class="toolbtn" id="tool-dimension" data-tool="dimension"><span class="icon">↔</span>Dimension</button>
+        <button class="toolbtn" id="tool-angle" data-tool="angle"><span class="icon">∠</span>Angle Arc</button>
+      </div>
+
+      <div class="sec-hdr">Elements</div>
+      <div id="elemList" style="font-size:11px;color:var(--dim);">No elements yet.</div>
+
+    </div>
+
+    <!-- PROPERTIES -->
+    <div id="propsPanel">
+      <div class="prop-none" id="propNone">Select an element to edit its properties.</div>
+      <div id="propFields" style="display:none;"></div>
+    </div>
+
+    <!-- TORQUE SUMMARY -->
+    <div id="torquePanel">
+      <div class="torque-title">Torque Summary</div>
+      <div id="torqueSummary"><span style="color:var(--dim);font-size:11px;">Add a pivot and forces to see torques.</span></div>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvasWrap">
+    <div id="canvasToolbar">
+      <label><input type="checkbox" id="chkGrid" checked> Grid</label>
+      <label><input type="checkbox" id="chkSnap" checked> Snap</label>
+      <label><input type="checkbox" id="chkLabels" checked> Labels</label>
+      <label><input type="checkbox" id="chkTorqueArcs" checked> Torque arcs</label>
+      <span style="margin-left:auto;">Canvas:</span>
+      <select id="canvasSize">
+        <option value="800x400">800 × 400</option>
+        <option value="1000x500" selected>1000 × 500</option>
+        <option value="1200x600">1200 × 600</option>
+        <option value="1400x700">1400 × 700</option>
+      </select>
+      <span>Zoom:</span>
+      <select id="zoomSel">
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1" selected>100%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+      </select>
+    </div>
+    <div id="canvasOuter">
+      <canvas id="diagramCanvas"></canvas>
+    </div>
+    <div id="statusBar">
+      <span id="statusTool">Tool: Select</span>
+      <span id="statusPos">x: — y: —</span>
+      <span id="statusSel">Nothing selected</span>
+      <span style="margin-left:auto;">Click to place • Drag to move • Delete key to remove</span>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;width:480px;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent);">Templates</div>
+      <button id="btnModalClose" class="hbtn">✕ Close</button>
+    </div>
+    <div id="templateList" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════════════
+const canvas = document.getElementById('diagramCanvas');
+const ctx = canvas.getContext('2d');
+let CW = 1000, CH = 500;
+let zoom = 1;
+let elements = [];   // all diagram objects
+let selected = null; // selected element id
+let activeTool = 'select';
+let nextId = 1;
+let isDragging = false, dragOffX = 0, dragOffY = 0;
+let snapEnabled = true, gridEnabled = true, labelsEnabled = true, torqueArcsEnabled = true;
+const GRID = 20; // grid spacing in canvas px
+
+// ═══════════════════════════════════════════════════════════════
+//  CANVAS SIZING
+// ═══════════════════════════════════════════════════════════════
+function setCanvasSize(w, h) {
+  CW = w; CH = h;
+  canvas.width = w; canvas.height = h;
+  canvas.style.width = (w * zoom) + 'px';
+  canvas.style.height = (h * zoom) + 'px';
+  redraw();
+}
+document.getElementById('canvasSize').onchange = e => {
+  const [w,h] = e.target.value.split('x').map(Number);
+  setCanvasSize(w, h);
+};
+document.getElementById('zoomSel').onchange = e => {
+  zoom = parseFloat(e.target.value);
+  canvas.style.width = (CW * zoom) + 'px';
+  canvas.style.height = (CH * zoom) + 'px';
+};
+setCanvasSize(1000, 500);
+
+// ═══════════════════════════════════════════════════════════════
+//  SNAP & COORD HELPERS
+// ═══════════════════════════════════════════════════════════════
+function snap(v) { return snapEnabled ? Math.round(v / GRID) * GRID : v; }
+function canvasCoord(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / zoom, y: (e.clientY - r.top) / zoom };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ELEMENT FACTORY
+// ═══════════════════════════════════════════════════════════════
+function mkBeam(x1, y1, x2, y2) {
+  return { id: nextId++, type: 'beam', x1, y1, x2, y2,
+    thickness: 8, color: '#1a1a2e', label: '', labelOffset: -14 };
+}
+function mkPivot(x, y) {
+  return { id: nextId++, type: 'pivot', x, y, size: 18, color: '#1a1a2e', label: 'P', showLabel: true };
+}
+function mkForce(x, y, magnitude, angle, label) {
+  // angle in degrees, 270 = downward
+  return { id: nextId++, type: 'force', x, y,
+    magnitude: magnitude || 10, angle: angle !== undefined ? angle : 270,
+    length: 80, color: '#c0392b', label: label || 'F', showLabel: true,
+    arrowSize: 10, lineWidth: 2.5 };
+}
+function mkWeight(x, y, magnitude) {
+  return { id: nextId++, type: 'weight', x, y,
+    magnitude: magnitude || 10, length: 70, color: '#2c3e8c', label: 'W',
+    showLabel: true, arrowSize: 10, lineWidth: 2.5 };
+}
+function mkLabel(x, y, text) {
+  return { id: nextId++, type: 'label', x, y, text: text || 'Label',
+    fontSize: 16, color: '#1a1a2e', bold: false };
+}
+function mkDimension(x1, y1, x2, y2) {
+  return { id: nextId++, type: 'dimension', x1, y1, x2, y2,
+    offset: -30, label: '', color: '#555', unit: 'm', value: '' };
+}
+function mkAngle(x, y, startDeg, endDeg) {
+  return { id: nextId++, type: 'angle', x, y,
+    startDeg: startDeg || 0, endDeg: endDeg || 45, radius: 30,
+    color: '#27ae60', label: 'θ', showLabel: true };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DRAWING PRIMITIVES
+// ═══════════════════════════════════════════════════════════════
+function drawArrow(x1, y1, x2, y2, color, lineWidth, arrowSize) {
+  const dx = x2-x1, dy = y2-y1, len = Math.hypot(dx,dy);
+  if (len < 1) return;
+  const ux = dx/len, uy = dy/len;
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const ax = arrowSize, s = arrowSize * 0.4;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ux*ax - uy*s, y2 - uy*ax + ux*s);
+  ctx.lineTo(x2 - ux*ax + uy*s, y2 - uy*ax - ux*s);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawElement(el, isSelected) {
+  ctx.save();
+  const SEL_COLOR = '#3b82f6';
+
+  if (el.type === 'beam') {
+    // Shadow beam for selection glow
+    if (isSelected) {
+      ctx.strokeStyle = SEL_COLOR; ctx.lineWidth = el.thickness + 6;
+      ctx.lineCap = 'round'; ctx.globalAlpha = 0.3;
+      ctx.beginPath(); ctx.moveTo(el.x1,el.y1); ctx.lineTo(el.x2,el.y2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = el.color; ctx.lineWidth = el.thickness; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(el.x1,el.y1); ctx.lineTo(el.x2,el.y2); ctx.stroke();
+    // Hash marks at ends
+    const ang = Math.atan2(el.y2-el.y1, el.x2-el.x1);
+    [[el.x1,el.y1],[el.x2,el.y2]].forEach(([ex,ey])=>{
+      ctx.strokeStyle = el.color; ctx.lineWidth = 2;
+      const perp = ang + Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(ex + Math.cos(perp)*8, ey + Math.sin(perp)*8);
+      ctx.lineTo(ex - Math.cos(perp)*8, ey - Math.sin(perp)*8);
+      ctx.stroke();
+    });
+    if (labelsEnabled && el.label) {
+      const mx = (el.x1+el.x2)/2, my = (el.y1+el.y2)/2;
+      ctx.fillStyle = el.color; ctx.font = 'italic 14px IBM Plex Sans, serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const perp = ang + Math.PI/2;
+      ctx.fillText(el.label, mx + Math.cos(perp)*Math.abs(el.labelOffset), my + Math.sin(perp)*Math.abs(el.labelOffset));
+    }
+  }
+
+  else if (el.type === 'pivot') {
+    if (isSelected) {
+      ctx.fillStyle = SEL_COLOR; ctx.globalAlpha = 0.25;
+      ctx.beginPath(); ctx.arc(el.x, el.y, el.size + 6, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    const s = el.size;
+    // Triangle pivot
+    ctx.fillStyle = el.color; ctx.strokeStyle = el.color; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(el.x, el.y);
+    ctx.lineTo(el.x - s, el.y + s*1.4);
+    ctx.lineTo(el.x + s, el.y + s*1.4);
+    ctx.closePath(); ctx.fill();
+    // Base line
+    ctx.beginPath(); ctx.moveTo(el.x-s*1.3, el.y+s*1.4); ctx.lineTo(el.x+s*1.3, el.y+s*1.4); ctx.stroke();
+    // Hatching under base
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(el.x + i*6, el.y+s*1.4);
+      ctx.lineTo(el.x + i*6 - 5, el.y+s*1.4+6);
+      ctx.strokeStyle = el.color; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // Dot at pivot point
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(el.x, el.y, 3, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = el.color; ctx.lineWidth = 1.5; ctx.stroke();
+    if (labelsEnabled && el.showLabel && el.label) {
+      ctx.fillStyle = el.color; ctx.font = 'bold 13px IBM Plex Mono, monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(el.label, el.x, el.y - s*0.5);
+    }
+  }
+
+  else if (el.type === 'force' || el.type === 'weight') {
+    const rad = (el.angle * Math.PI / 180);
+    const ex = el.x + Math.cos(rad) * el.length;
+    const ey = el.y + Math.sin(rad) * el.length;
+    if (isSelected) {
+      ctx.strokeStyle = SEL_COLOR; ctx.lineWidth = (el.lineWidth||2)+4; ctx.globalAlpha=0.3;
+      ctx.beginPath(); ctx.moveTo(el.x,el.y); ctx.lineTo(ex,ey); ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+    drawArrow(el.x, el.y, ex, ey, el.color, el.lineWidth||2.5, el.arrowSize||10);
+    if (labelsEnabled && el.showLabel && el.label) {
+      ctx.fillStyle = el.color;
+      const isBold = el.type === 'weight';
+      ctx.font = `${isBold?'bold ':''} 14px IBM Plex Sans, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const lx = el.x + Math.cos(rad)*(el.length*0.5) + Math.cos(rad+Math.PI/2)*20;
+      const ly = el.y + Math.sin(rad)*(el.length*0.5) + Math.sin(rad+Math.PI/2)*20;
+      const labelText = el.label + (el.magnitude ? ' = ' + el.magnitude + ' N' : '');
+      ctx.fillText(labelText, lx, ly);
+    }
+  }
+
+  else if (el.type === 'label') {
+    ctx.fillStyle = el.color;
+    ctx.font = `${el.bold?'bold ':''}${el.fontSize||16}px IBM Plex Sans, sans-serif`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    if (isSelected) {
+      ctx.strokeStyle = SEL_COLOR; ctx.lineWidth = 1;
+      const m = ctx.measureText(el.text);
+      ctx.strokeRect(el.x-2, el.y-2, m.width+4, (el.fontSize||16)+4);
+    }
+    ctx.fillText(el.text, el.x, el.y);
+  }
+
+  else if (el.type === 'dimension') {
+    const dx=el.x2-el.x1, dy=el.y2-el.y1;
+    const len=Math.hypot(dx,dy);
+    const ang=Math.atan2(dy,dx);
+    const perp=ang+Math.PI/2;
+    const ox=Math.cos(perp)*el.offset, oy=Math.sin(perp)*el.offset;
+    const lx1=el.x1+ox, ly1=el.y1+oy, lx2=el.x2+ox, ly2=el.y2+oy;
+    ctx.strokeStyle=el.color; ctx.lineWidth=1; ctx.setLineDash([]);
+    // Extension lines
+    [[el.x1,el.y1],[el.x2,el.y2]].forEach(([bx,by],i)=>{
+      ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+ox,by+oy); ctx.stroke();
+    });
+    // Main line with arrows
+    drawArrow(lx1,ly1,lx2,ly2,el.color,1,7);
+    drawArrow(lx2,ly2,lx1,ly1,el.color,1,7);
+    // Label
+    if (labelsEnabled) {
+      const lbl = el.value ? `${el.value} ${el.unit}` : (el.label || '?');
+      ctx.fillStyle=el.color; ctx.font='12px IBM Plex Mono, monospace';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const mx=lx1+(lx2-lx1)/2, my=ly1+(ly2-ly1)/2;
+      ctx.fillStyle='white'; ctx.fillRect(mx-22,my-8,44,16);
+      ctx.fillStyle=el.color; ctx.fillText(lbl, mx, my);
+    }
+    if (isSelected) {
+      ctx.strokeStyle=SEL_COLOR; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.strokeRect(Math.min(lx1,lx2)-4, Math.min(ly1,ly2)-4, Math.abs(lx2-lx1)+8, Math.abs(ly2-ly1)+8);
+      ctx.setLineDash([]);
+    }
+  }
+
+  else if (el.type === 'angle') {
+    const r=el.radius;
+    ctx.strokeStyle=el.color; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.arc(el.x, el.y, r, el.startDeg*Math.PI/180, el.endDeg*Math.PI/180);
+    ctx.stroke();
+    if (labelsEnabled && el.showLabel && el.label) {
+      const midAng=((el.startDeg+el.endDeg)/2)*Math.PI/180;
+      ctx.fillStyle=el.color; ctx.font='italic 13px IBM Plex Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(el.label, el.x+Math.cos(midAng)*(r+12), el.y+Math.sin(midAng)*(r+12));
+    }
+    if (isSelected) {
+      ctx.strokeStyle=SEL_COLOR; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.arc(el.x,el.y,r+4,el.startDeg*Math.PI/180,el.endDeg*Math.PI/180); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TORQUE ARC DRAWING
+// ═══════════════════════════════════════════════════════════════
+function drawTorqueArcs() {
+  const pivot = elements.find(e => e.type === 'pivot');
+  if (!pivot) return;
+  const forces = elements.filter(e => e.type === 'force' || e.type === 'weight');
+  forces.forEach(f => {
+    const rad = f.angle * Math.PI / 180;
+    const fx = Math.cos(rad), fy = Math.sin(rad);
+    const rx = f.x - pivot.x, ry = f.y - pivot.y;
+    const torque = rx * fy * f.magnitude - ry * fx * f.magnitude;
+    if (Math.abs(torque) < 0.01) return;
+    const isCCW = torque > 0;
+    const r = Math.hypot(rx, ry) * 0.45 + 20;
+    const angleToForce = Math.atan2(ry, rx);
+    ctx.save();
+    ctx.strokeStyle = isCCW ? '#7c3aed' : '#c2410c';
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.arc(pivot.x, pivot.y, r, angleToForce - 0.4, angleToForce + 0.4);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Small curved arrow head
+    const endAng = angleToForce + (isCCW ? 0.4 : -0.4);
+    const hx = pivot.x + Math.cos(endAng) * r;
+    const hy = pivot.y + Math.sin(endAng) * r;
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = isCCW ? '#7c3aed' : '#c2410c';
+    ctx.beginPath(); ctx.arc(hx, hy, 4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TORQUE CALCULATION
+// ═══════════════════════════════════════════════════════════════
+function calcTorques() {
+  const pivot = elements.find(e => e.type === 'pivot');
+  const panel = document.getElementById('torqueSummary');
+  if (!pivot) {
+    panel.innerHTML = '<span style="color:var(--dim);font-size:11px;">Add a pivot to calculate torques.</span>';
+    return;
+  }
+  const forces = elements.filter(e => e.type === 'force' || e.type === 'weight');
+  if (!forces.length) {
+    panel.innerHTML = '<span style="color:var(--dim);font-size:11px;">Add forces to calculate torques.</span>';
+    return;
+  }
+
+  let html = '';
+  let cwTotal = 0, ccwTotal = 0;
+  const scale = 1 / GRID; // 1 grid unit = 1 m
+
+  forces.forEach(f => {
+    const rad = f.angle * Math.PI / 180;
+    const fx = Math.cos(rad), fy = Math.sin(rad);
+    const rx = (f.x - pivot.x) * scale;
+    const ry = (f.y - pivot.y) * scale;
+    // τ = r × F = rx*Fy - ry*Fx (2D cross product)
+    const torque = rx * fy * f.magnitude - ry * fx * f.magnitude;
+    const absT = Math.abs(torque);
+    const dir = torque > 0 ? 'CCW' : torque < 0 ? 'CW' : '—';
+    const cls = torque > 0 ? 'torque-ccw' : torque < 0 ? 'torque-cw' : '';
+    if (torque > 0) ccwTotal += absT;
+    else if (torque < 0) cwTotal += absT;
+    html += `<div class="torque-row"><span class="lbl">${f.label}:</span><span class="${cls}">${dir} ${absT.toFixed(2)} N·m</span></div>`;
+  });
+
+  html += '<hr class="torque-divider">';
+  html += `<div class="torque-row"><span class="lbl">Σ CW:</span><span class="torque-cw">${cwTotal.toFixed(2)} N·m</span></div>`;
+  html += `<div class="torque-row"><span class="lbl">Σ CCW:</span><span class="torque-ccw">${ccwTotal.toFixed(2)} N·m</span></div>`;
+  const net = ccwTotal - cwTotal;
+  const netCls = Math.abs(net) < 0.05 ? 'torque-net' : 'torque-net nonzero';
+  const netLabel = Math.abs(net) < 0.05 ? '✓ Equilibrium!' : `${net > 0 ? 'CCW' : 'CW'} ${Math.abs(net).toFixed(2)} N·m`;
+  html += `<div class="torque-row" style="margin-top:3px;"><span class="lbl">Net τ:</span><span class="${netCls}">${netLabel}</span></div>`;
+
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MAIN REDRAW
+// ═══════════════════════════════════════════════════════════════
+function redraw() {
+  const bg = document.getElementById('chkWhiteMode').checked ? '#ffffff' : '#f8f9fc';
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
+
+  // Grid
+  if (gridEnabled) {
+    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 0.5;
+    for (let x = 0; x <= CW; x += GRID) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
+    }
+    for (let y = 0; y <= CH; y += GRID) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+    }
+    // Major grid every 5
+    ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 0.8;
+    for (let x = 0; x <= CW; x += GRID*5) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
+    }
+    for (let y = 0; y <= CH; y += GRID*5) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+    }
+  }
+
+  // Draw non-selected elements first, then selected on top
+  elements.filter(e => e.id !== (selected?.id)).forEach(e => drawElement(e, false));
+  if (selected) drawElement(selected, true);
+
+  // Torque arcs
+  if (torqueArcsEnabled) drawTorqueArcs();
+
+  calcTorques();
+  refreshElemList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HIT TESTING
+// ═══════════════════════════════════════════════════════════════
+function hitTest(x, y) {
+  // Test in reverse order (top = last drawn)
+  for (let i = elements.length - 1; i >= 0; i--) {
+    const el = elements[i];
+    if (el.type === 'beam') {
+      const d = distToSegment(x, y, el.x1, el.y1, el.x2, el.y2);
+      if (d < 10) return el;
+    } else if (el.type === 'pivot') {
+      if (Math.hypot(x-el.x, y-el.y) < el.size * 1.5) return el;
+    } else if (el.type === 'force' || el.type === 'weight') {
+      const rad = el.angle * Math.PI / 180;
+      const ex = el.x + Math.cos(rad)*el.length;
+      const ey = el.y + Math.sin(rad)*el.length;
+      const d = distToSegment(x, y, el.x, el.y, ex, ey);
+      if (d < 12 || Math.hypot(x-el.x, y-el.y) < 12) return el;
+    } else if (el.type === 'label') {
+      ctx.font = `${el.fontSize||16}px IBM Plex Sans`;
+      const w = ctx.measureText(el.text).width;
+      if (x >= el.x-4 && x <= el.x+w+4 && y >= el.y-4 && y <= el.y+(el.fontSize||16)+4) return el;
+    } else if (el.type === 'dimension') {
+      const ang = Math.atan2(el.y2-el.y1, el.x2-el.x1);
+      const perp = ang + Math.PI/2;
+      const ox = Math.cos(perp)*el.offset, oy = Math.sin(perp)*el.offset;
+      const d = distToSegment(x, y, el.x1+ox, el.y1+oy, el.x2+ox, el.y2+oy);
+      if (d < 10) return el;
+    } else if (el.type === 'angle') {
+      if (Math.abs(Math.hypot(x-el.x, y-el.y) - el.radius) < 10) return el;
+    }
+  }
+  return null;
+}
+
+function distToSegment(px, py, x1, y1, x2, y2) {
+  const dx = x2-x1, dy = y2-y1, len2 = dx*dx+dy*dy;
+  if (len2 === 0) return Math.hypot(px-x1, py-y1);
+  let t = ((px-x1)*dx + (py-y1)*dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1+t*dx), py - (y1+t*dy));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PLACEMENT STATE (for two-click tools)
+// ═══════════════════════════════════════════════════════════════
+let placing = null; // { type, x1, y1 } for beam/dimension
+
+// ═══════════════════════════════════════════════════════════════
+//  CANVAS MOUSE EVENTS
+// ═══════════════════════════════════════════════════════════════
+canvas.addEventListener('mousedown', e => {
+  const {x, y} = canvasCoord(e);
+  const sx = snap(x), sy = snap(y);
+
+  if (activeTool === 'select') {
+    const hit = hitTest(x, y);
+    if (hit) {
+      selected = hit;
+      isDragging = true;
+      if (hit.type === 'beam' || hit.type === 'dimension') {
+        dragOffX = x - hit.x1; dragOffY = y - hit.y1;
+      } else if (hit.type === 'force' || hit.type === 'weight') {
+        dragOffX = x - hit.x; dragOffY = y - hit.y;
+      } else {
+        dragOffX = x - (hit.x || hit.x1); dragOffY = y - (hit.y || hit.y1);
+      }
+    } else {
+      selected = null;
+    }
+    showProps();
+    redraw();
+    return;
+  }
+
+  // Two-click tools: beam, dimension
+  if (activeTool === 'beam' || activeTool === 'dimension') {
+    if (!placing) {
+      placing = { type: activeTool, x1: sx, y1: sy };
+    } else {
+      if (activeTool === 'beam') elements.push(mkBeam(placing.x1, placing.y1, sx, sy));
+      else elements.push(mkDimension(placing.x1, placing.y1, sx, sy));
+      placing = null;
+      redraw();
+    }
+    return;
+  }
+
+  // Single-click tools
+  if (activeTool === 'pivot') {
+    elements.push(mkPivot(sx, sy));
+  } else if (activeTool === 'force') {
+    elements.push(mkForce(sx, sy, 10, 270, 'F' + (elements.filter(e=>e.type==='force').length+1)));
+  } else if (activeTool === 'weight') {
+    elements.push(mkWeight(sx, sy, 10));
+  } else if (activeTool === 'label') {
+    const text = prompt('Enter label text:', 'Label');
+    if (text) elements.push(mkLabel(sx, sy, text));
+  } else if (activeTool === 'angle') {
+    elements.push(mkAngle(sx, sy, 0, 45));
+  }
+  redraw();
+});
+
+canvas.addEventListener('mousemove', e => {
+  const {x, y} = canvasCoord(e);
+  document.getElementById('statusPos').textContent = `x: ${Math.round(x)}  y: ${Math.round(y)}`;
+
+  if (isDragging && selected) {
+    const sx = snap(x), sy = snap(y);
+    const dx = snap(x) - snap(dragOffX + (selected.x1 ?? selected.x ?? 0));
+    // Move element
+    if (selected.type === 'beam' || selected.type === 'dimension') {
+      const ddx = sx - snap(selected.x1 + dragOffX), ddy = sy - snap(selected.y1 + dragOffY);
+      selected.x1 = snap(x - dragOffX); selected.y1 = snap(y - dragOffY);
+      selected.x2 = snap(selected.x2 + ddx); selected.y2 = snap(selected.y2 + ddy);
+    } else if (selected.type === 'pivot' || selected.type === 'force' ||
+               selected.type === 'weight' || selected.type === 'angle') {
+      selected.x = snap(x - dragOffX); selected.y = snap(y - dragOffY);
+    } else if (selected.type === 'label') {
+      selected.x = snap(x - dragOffX); selected.y = snap(y - dragOffY);
+    }
+    dragOffX = x - (selected.x ?? selected.x1);
+    dragOffY = y - (selected.y ?? selected.y1);
+    showProps();
+    redraw();
+    return;
+  }
+
+  // Preview while placing two-click elements
+  if (placing) {
+    redraw();
+    ctx.save();
+    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(placing.x1, placing.y1); ctx.lineTo(snap(x), snap(y)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(placing.x1, placing.y1, 4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  const hit = hitTest(x, y);
+  canvas.style.cursor = isDragging ? 'grabbing' : (hit && activeTool === 'select') ? 'grab' : 'crosshair';
+});
+
+canvas.addEventListener('mouseup', () => { isDragging = false; });
+canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+// Delete key
+window.addEventListener('keydown', e => {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selected &&
+      document.activeElement === document.body) {
+    elements = elements.filter(el => el.id !== selected.id);
+    selected = null; showProps(); redraw();
+  }
+  if (e.key === 'Escape') { placing = null; redraw(); }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  PROPERTIES PANEL
+// ═══════════════════════════════════════════════════════════════
+function showProps() {
+  const el = selected;
+  document.getElementById('propNone').style.display = el ? 'none' : '';
+  document.getElementById('propFields').style.display = el ? '' : 'none';
+  if (!el) return;
+
+  const f = document.getElementById('propFields');
+  const field = (label, inputHtml) =>
+    `<div class="prop-row"><label>${label}</label>${inputHtml}</div>`;
+
+  let html = `<div class="prop-title">${el.type.toUpperCase()} #${el.id}</div>`;
+
+  if (el.type === 'beam') {
+    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+    html += field('Thickness', `<input type="range" id="pc-thick" min="2" max="20" value="${el.thickness}">`);
+    html += field('Label', `<input type="text" id="pc-label" value="${el.label}" placeholder="e.g. beam">`);
+    html += field('x1', `<input type="number" id="pc-x1" value="${el.x1}" step="${GRID}">`);
+    html += field('y1', `<input type="number" id="pc-y1" value="${el.y1}" step="${GRID}">`);
+    html += field('x2', `<input type="number" id="pc-x2" value="${el.x2}" step="${GRID}">`);
+    html += field('y2', `<input type="number" id="pc-y2" value="${el.y2}" step="${GRID}">`);
+  } else if (el.type === 'pivot') {
+    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+    html += field('Label', `<input type="text" id="pc-label" value="${el.label}">`);
+    html += field('Size', `<input type="range" id="pc-size" min="8" max="36" value="${el.size}">`);
+    html += field('x', `<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`);
+    html += field('y', `<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`);
+  } else if (el.type === 'force' || el.type === 'weight') {
+    html += field('Label', `<input type="text" id="pc-label" value="${el.label}">`);
+    html += field('Magnitude', `<input type="number" id="pc-mag" value="${el.magnitude}" min="0" step="1"> N`);
+    html += field('Angle (°)', `<input type="number" id="pc-angle" value="${el.angle}" min="0" max="360">`);
+    html += field('Length', `<input type="range" id="pc-len" min="20" max="200" value="${el.length}">`);
+    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+    html += field('x', `<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`);
+    html += field('y', `<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`);
+    html += `<div style="font-size:10px;color:var(--dim);margin-bottom:4px;">0°=right 90°=down 180°=left 270°=up</div>`;
+  } else if (el.type === 'label') {
+    html += field('Text', `<input type="text" id="pc-text" value="${el.text}">`);
+    html += field('Font size', `<input type="range" id="pc-fontsize" min="8" max="48" value="${el.fontSize||16}">`);
+    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+    html += field('x', `<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`);
+    html += field('y', `<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`);
+  } else if (el.type === 'dimension') {
+    html += field('Value', `<input type="text" id="pc-val" value="${el.value}" placeholder="e.g. 2.5">`);
+    html += field('Unit', `<input type="text" id="pc-unit" value="${el.unit}">`);
+    html += field('Offset', `<input type="range" id="pc-offset" min="-80" max="80" value="${el.offset}">`);
+    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+  } else if (el.type === 'angle') {
+    html += field('Label', `<input type="text" id="pc-label" value="${el.label}">`);
+    html += field('Start °', `<input type="number" id="pc-startdeg" value="${el.startDeg}" min="0" max="360">`);
+    html += field('End °', `<input type="number" id="pc-enddeg" value="${el.endDeg}" min="0" max="360">`);
+    html += field('Radius', `<input type="range" id="pc-radius" min="10" max="100" value="${el.radius}">`);
+    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+  }
+
+  html += `<button class="delbtn" id="pc-del">🗑 Delete</button>`;
+  f.innerHTML = html;
+
+  // Wire up all prop inputs
+  const bind = (id, key, parse) => {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    inp.addEventListener('input', () => {
+      el[key] = parse ? parse(inp.value) : inp.value;
+      redraw();
+    });
+  };
+  bind('pc-color','color'); bind('pc-thick','thickness',Number);
+  bind('pc-label','label'); bind('pc-size','size',Number);
+  bind('pc-x','x',Number); bind('pc-y','y',Number);
+  bind('pc-x1','x1',Number); bind('pc-y1','y1',Number);
+  bind('pc-x2','x2',Number); bind('pc-y2','y2',Number);
+  bind('pc-mag','magnitude',Number); bind('pc-angle','angle',Number);
+  bind('pc-len','length',Number); bind('pc-text','text');
+  bind('pc-fontsize','fontSize',Number); bind('pc-val','value');
+  bind('pc-unit','unit'); bind('pc-offset','offset',Number);
+  bind('pc-startdeg','startDeg',Number); bind('pc-enddeg','endDeg',Number);
+  bind('pc-radius','radius',Number);
+
+  document.getElementById('pc-del').onclick = () => {
+    elements = elements.filter(e => e.id !== el.id);
+    selected = null; showProps(); redraw();
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ELEMENT LIST (sidebar)
+// ═══════════════════════════════════════════════════════════════
+function refreshElemList() {
+  const el = document.getElementById('elemList');
+  if (!elements.length) { el.textContent = 'No elements yet.'; return; }
+  el.innerHTML = elements.map(e => {
+    const isSel = selected && selected.id === e.id;
+    const icon = {beam:'━',pivot:'▲',force:'↓',weight:'W',label:'T',dimension:'↔',angle:'∠'}[e.type]||'?';
+    const lbl = e.label || e.text || e.type;
+    return `<div onclick="selectElem(${e.id})" style="padding:3px 5px;border-radius:3px;cursor:pointer;margin-bottom:2px;
+      background:${isSel?'#1a2d47':'transparent'};color:${isSel?'var(--accent)':'var(--dim)'};
+      border:1px solid ${isSel?'var(--accent)':'transparent'};font-size:11px;display:flex;gap:5px;align-items:center;">
+      <span style="font-size:13px">${icon}</span> ${e.type} · ${lbl}
+    </div>`;
+  }).join('');
+}
+window.selectElem = id => {
+  selected = elements.find(e => e.id === id) || null;
+  showProps(); redraw();
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  TOOL SELECTION
+// ═══════════════════════════════════════════════════════════════
+document.querySelectorAll('.toolbtn').forEach(btn => {
+  btn.onclick = () => {
+    activeTool = btn.dataset.tool;
+    placing = null;
+    document.querySelectorAll('.toolbtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('statusTool').textContent = 'Tool: ' + btn.dataset.tool;
+  };
+});
+document.getElementById('tool-select').classList.add('active');
+
+// ═══════════════════════════════════════════════════════════════
+//  TOGGLES
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('chkGrid').onchange = e => { gridEnabled = e.target.checked; redraw(); };
+document.getElementById('chkSnap').onchange = e => { snapEnabled = e.target.checked; };
+document.getElementById('chkLabels').onchange = e => { labelsEnabled = e.target.checked; redraw(); };
+document.getElementById('chkTorqueArcs').onchange = e => { torqueArcsEnabled = e.target.checked; redraw(); };
+document.getElementById('chkWhiteMode').onchange = () => redraw();
+
+// ═══════════════════════════════════════════════════════════════
+//  CLEAR
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('btnClear').onclick = () => {
+  if (!elements.length || confirm('Clear all elements?')) {
+    elements = []; selected = null; placing = null;
+    showProps(); redraw();
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('btnExportPNG').onclick = () => {
+  // Render clean version (no grid, white bg)
+  const oldGrid = gridEnabled;
+  gridEnabled = false;
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,CW,CH);
+  elements.forEach(el => drawElement(el, false));
+  if (torqueArcsEnabled) drawTorqueArcs();
+  gridEnabled = oldGrid;
+
+  const a = document.createElement('a');
+  a.download = 'rotational-equilibrium.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  redraw();
+};
+
+document.getElementById('btnExportSVG').onclick = () => {
+  // Build a clean SVG representation
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH}" viewBox="0 0 ${CW} ${CH}">`;
+  svg += `<rect width="${CW}" height="${CH}" fill="white"/>`;
+
+  elements.forEach(el => {
+    if (el.type === 'beam') {
+      svg += `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x2}" y2="${el.y2}" stroke="${el.color}" stroke-width="${el.thickness}" stroke-linecap="round"/>`;
+      if (el.label) {
+        const mx=(el.x1+el.x2)/2, my=(el.y1+el.y2)/2;
+        svg += `<text x="${mx}" y="${my-14}" text-anchor="middle" font-family="serif" font-size="14" fill="${el.color}" font-style="italic">${el.label}</text>`;
+      }
+    } else if (el.type === 'pivot') {
+      const s=el.size;
+      svg += `<polygon points="${el.x},${el.y} ${el.x-s},${el.y+s*1.4} ${el.x+s},${el.y+s*1.4}" fill="${el.color}"/>`;
+      svg += `<line x1="${el.x-s*1.3}" y1="${el.y+s*1.4}" x2="${el.x+s*1.3}" y2="${el.y+s*1.4}" stroke="${el.color}" stroke-width="1.5"/>`;
+      svg += `<circle cx="${el.x}" cy="${el.y}" r="3" fill="white" stroke="${el.color}" stroke-width="1.5"/>`;
+      if (el.label) svg += `<text x="${el.x}" y="${el.y-s*0.5}" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="${el.color}">${el.label}</text>`;
+    } else if (el.type === 'force' || el.type === 'weight') {
+      const rad=el.angle*Math.PI/180;
+      const ex=el.x+Math.cos(rad)*el.length, ey=el.y+Math.sin(rad)*el.length;
+      const ux=Math.cos(rad),uy=Math.sin(rad), as=el.arrowSize||10, ss=as*0.4;
+      svg += `<line x1="${el.x}" y1="${el.y}" x2="${ex}" y2="${ey}" stroke="${el.color}" stroke-width="${el.lineWidth||2.5}"/>`;
+      svg += `<polygon points="${ex},${ey} ${ex-ux*as-uy*ss},${ey-uy*as+ux*ss} ${ex-ux*as+uy*ss},${ey-uy*as-ux*ss}" fill="${el.color}"/>`;
+      if (el.label) {
+        const lx=el.x+Math.cos(rad)*(el.length*0.5)+Math.cos(rad+Math.PI/2)*20;
+        const ly=el.y+Math.sin(rad)*(el.length*0.5)+Math.sin(rad+Math.PI/2)*20;
+        svg += `<text x="${lx}" y="${ly}" text-anchor="middle" font-family="sans-serif" font-size="14" fill="${el.color}">${el.label} = ${el.magnitude} N</text>`;
+      }
+    } else if (el.type === 'label') {
+      svg += `<text x="${el.x}" y="${el.y+(el.fontSize||16)}" font-family="sans-serif" font-size="${el.fontSize||16}" fill="${el.color}" ${el.bold?'font-weight="bold"':''}>${el.text}</text>`;
+    } else if (el.type === 'dimension') {
+      const ang=Math.atan2(el.y2-el.y1,el.x2-el.x1), perp=ang+Math.PI/2;
+      const ox=Math.cos(perp)*el.offset, oy=Math.sin(perp)*el.offset;
+      svg += `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x1+ox}" y2="${el.y1+oy}" stroke="${el.color}" stroke-width="1"/>`;
+      svg += `<line x1="${el.x2}" y1="${el.y2}" x2="${el.x2+ox}" y2="${el.y2+oy}" stroke="${el.color}" stroke-width="1"/>`;
+      svg += `<line x1="${el.x1+ox}" y1="${el.y1+oy}" x2="${el.x2+ox}" y2="${el.y2+oy}" stroke="${el.color}" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>`;
+      const lbl=el.value?`${el.value} ${el.unit}`:(el.label||'');
+      const mx=(el.x1+el.x2)/2+ox, my=(el.y1+el.y2)/2+oy;
+      svg += `<rect x="${mx-22}" y="${my-8}" width="44" height="16" fill="white"/>`;
+      svg += `<text x="${mx}" y="${my+4}" text-anchor="middle" font-family="monospace" font-size="12" fill="${el.color}">${lbl}</text>`;
+    }
+  });
+
+  svg += '</svg>';
+  const blob = new Blob([svg], {type:'image/svg+xml'});
+  const a = document.createElement('a');
+  a.download = 'rotational-equilibrium.svg';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  TEMPLATES
+// ═══════════════════════════════════════════════════════════════
+const TEMPLATES = [
+  {
+    name: 'Simple Lever', icon: '━▲━',
+    desc: 'Beam on center pivot with two forces',
+    build: () => {
+      elements = [];
+      elements.push(mkBeam(200, 250, 800, 250));
+      elements.push(mkPivot(500, 250));
+      const f1 = mkForce(300, 250, 20, 90, 'F₁'); f1.color='#c0392b'; elements.push(f1);
+      const f2 = mkForce(700, 250, 10, 90, 'F₂'); f2.color='#2980b9'; elements.push(f2);
+      elements.push(mkDimension(300, 250, 500, 250));
+      elements[elements.length-1].value='2'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-40;
+      elements.push(mkDimension(500, 250, 700, 250));
+      elements[elements.length-1].value='4'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-40;
+    }
+  },
+  {
+    name: 'Off-Center Pivot', icon: '━▲━━',
+    desc: 'Beam with pivot offset from center',
+    build: () => {
+      elements = [];
+      elements.push(mkBeam(150, 250, 850, 250));
+      elements.push(mkPivot(350, 250));
+      const f1 = mkForce(200, 250, 30, 90, 'F₁'); f1.color='#c0392b'; elements.push(f1);
+      const f2 = mkForce(650, 250, 15, 90, 'F₂'); f2.color='#27ae60'; elements.push(f2);
+      const w = mkWeight(500, 250, 20); w.label='W'; elements.push(w);
+    }
+  },
+  {
+    name: 'Angled Force', icon: '↗ ━▲━',
+    desc: 'Horizontal beam with diagonal applied force',
+    build: () => {
+      elements = [];
+      elements.push(mkBeam(200, 300, 800, 300));
+      elements.push(mkPivot(200, 300));
+      const f1 = mkForce(700, 300, 25, 225, 'F'); f1.color='#8e44ad'; elements.push(f1);
+      const w = mkWeight(500, 300, 15); elements.push(w);
+      elements.push(mkAngle(700, 300, 180, 225));
+      elements[elements.length-1].label='θ=45°';
+      elements.push(mkLabel(350, 200, 'Rotational Equilibrium'));
+      elements[elements.length-1].fontSize=18; elements[elements.length-1].color='#1a1a2e';
+    }
+  },
+  {
+    name: 'Seesaw', icon: '↓ ━▲━ ↓',
+    desc: 'Classic seesaw with two weights',
+    build: () => {
+      elements = [];
+      elements.push(mkBeam(180, 280, 820, 280));
+      elements.push(mkPivot(500, 280));
+      const w1 = mkWeight(250, 280, 40); w1.label='W₁ = 40 N'; elements.push(w1);
+      const w2 = mkWeight(700, 280, 25); w2.label='W₂ = 25 N'; elements.push(w2);
+      elements.push(mkDimension(250, 280, 500, 280));
+      elements[elements.length-1].value='2.5'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-50;
+      elements.push(mkDimension(500, 280, 700, 280));
+      elements[elements.length-1].value='?'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-50;
+      elements.push(mkLabel(390, 150, 'Find x for equilibrium'));
+      elements[elements.length-1].fontSize=15; elements[elements.length-1].color='#555';
+    }
+  },
+  {
+    name: 'Wall Bracket', icon: '|━',
+    desc: 'Horizontal beam attached to wall with angled cable',
+    build: () => {
+      elements = [];
+      // Wall line
+      elements.push(mkBeam(200, 160, 200, 380));
+      elements[elements.length-1].thickness=14; elements[elements.length-1].color='#555';
+      // Horizontal beam
+      elements.push(mkBeam(200, 280, 700, 280));
+      elements.push(mkPivot(200, 280));
+      // Weight at end
+      const w = mkWeight(700, 280, 50); w.label='W = 50 N'; elements.push(w);
+      // Tension cable (diagonal)
+      const t = mkForce(700, 280, 40, 233, 'T'); t.color='#e67e22'; elements.push(t);
+      elements.push(mkAngle(200, 280, 0, -37));
+      elements[elements.length-1].startDeg=323; elements[elements.length-1].endDeg=360;
+      elements[elements.length-1].label='37°';
+    }
+  },
+  {
+    name: 'Torque Problem', icon: '∑τ=0',
+    desc: 'Multi-force torque equilibrium setup',
+    build: () => {
+      elements = [];
+      elements.push(mkBeam(100, 260, 900, 260));
+      elements.push(mkPivot(400, 260));
+      const f1=mkForce(200, 260, 30, 90, 'F₁'); f1.color='#e74c3c'; elements.push(f1);
+      const f2=mkForce(600, 260, 20, 90, 'F₂'); f2.color='#3498db'; elements.push(f2);
+      const f3=mkForce(800, 260, 15, 270, 'F₃'); f3.color='#27ae60'; elements.push(f3);
+      elements.push(mkDimension(200, 260, 400, 260));
+      elements[elements.length-1].value='2'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-45;
+      elements.push(mkDimension(400, 260, 600, 260));
+      elements[elements.length-1].value='2'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-45;
+      elements.push(mkDimension(400, 260, 800, 260));
+      elements[elements.length-1].value='4'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=45;
+    }
+  }
+];
+
+const modal = document.getElementById('modalOverlay');
+document.getElementById('btnTemplate').onclick = () => {
+  const list = document.getElementById('templateList');
+  list.innerHTML = TEMPLATES.map((t,i) =>
+    `<div onclick="loadTemplate(${i})" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:12px;cursor:pointer;transition:border-color .15s;"
+      onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:20px;margin-bottom:5px;font-family:monospace;">${t.icon}</div>
+      <div style="font-weight:600;font-size:12px;margin-bottom:3px;">${t.name}</div>
+      <div style="font-size:11px;color:var(--dim);">${t.desc}</div>
+    </div>`).join('');
+  modal.style.display = 'flex';
+};
+window.loadTemplate = i => {
+  TEMPLATES[i].build();
+  selected = null; showProps(); redraw();
+  modal.style.display = 'none';
+};
+document.getElementById('btnModalClose').onclick = () => modal.style.display = 'none';
+modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+TEMPLATES[0].build(); // Load simple lever on startup
+selected = null; showProps(); redraw();
+</script>
+</body>
+</html>
