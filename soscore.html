@@ -3,186 +3,346 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Berrien County Science Olympiad Helicopter Scoring</title>
+<title>Berrien County Science Olympiad — Helicopter Scoring</title>
 
-<!-- React 18 (production UMD) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-<!-- jsPDF for PDF Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-  :root {
-    --bg: #0f172a;
-    --panel: #1e293b;
-    --line: #334155;
-    --line2: #64748b;
-    --text: #e5e7eb;
-    --subtle: #cbd5e1;
-    --primary: #38bdf8;
-    --warn-border: #a16207;
-    --warn-bg: #78350f22;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  }
+:root {
+  --bg:        #080e1a;
+  --surface:   #0d1626;
+  --panel:     #111d30;
+  --border:    #1e3050;
+  --border2:   #2a4570;
+  --text:      #d4e4f7;
+  --muted:     #5a7fa8;
+  --accent:    #00c4ff;
+  --accent2:   #0077aa;
+  --gold:      #f0b429;
+  --danger:    #ff4d6a;
+  --mono: 'IBM Plex Mono', monospace;
+  --head: 'Rajdhani', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: clamp(1.4rem, 2.5vw, 1.9rem); font-weight: 800; margin: 0 0 8px; }
-  .subtext { color: var(--subtle); font-size: .95rem; margin-bottom: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, #00264422 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, #1e305015 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, #1e305015 40px);
+}
 
-  .panel { background-color: var(--panel); border-radius: 8px; padding: 12px; }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .toolbar-left { display: flex; gap: 10px; align-items: center; }
-  .toolbar-right { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+/* ── Header bar ─────────────────────────────────────────────── */
+.app-header {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0d1e3a 0%, transparent 100%);
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.app-title {
+  font-family: var(--head);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 24px #00c4ff55;
+  line-height: 1;
+}
+.app-subtitle {
+  font-family: var(--head);
+  font-size: .95rem;
+  color: var(--muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
 
-  .btn {
-    background-color: var(--primary); color: #000; font-weight: 700;
-    padding: 8px 12px; border-radius: 6px; border: 0; cursor: pointer;
-    white-space: nowrap;
-  }
-  .btn:hover { filter: brightness(1.05); }
-  .input {
-    background-color: var(--bg);
-    border: 1px solid var(--line);
-    color: var(--text);
-    padding: 6px 8px;
-    border-radius: 6px;
-  }
-  .input:focus { outline: 2px solid var(--primary); }
-  .label { font-weight: 700; margin-right: 6px; }
+/* ── Toolbar ────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.toolbar-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.toolbar-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--border2);
+}
+.toolbar-label {
+  font-family: var(--head);
+  font-size: .8rem;
+  letter-spacing: .1em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
 
-  /* --- Grid shell: no overflow:hidden so sticky headers work --- */
-  .grid-shell {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    /* REMOVED overflow:hidden — it was clipping sticky headers */
-  }
+.btn {
+  font-family: var(--head);
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 6px 13px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--border2); border-color: var(--accent); color: var(--accent); }
+.btn-primary {
+  background: var(--accent2);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent); color: #000; }
+.btn-danger { border-color: #3a1520; }
+.btn-danger:hover { background: #3a1520; border-color: var(--danger); color: var(--danger); }
 
-  /* Single scroll container holds BOTH headers and all rows */
-  .grid-scroll {
-    overflow-x: auto;
-    overflow-y: auto;
-    max-height: min(72vh, 1200px);
-    border-radius: 8px;
-  }
+.div-tabs { display: flex; gap: 4px; }
+.div-tab {
+  font-family: var(--head);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  padding: 5px 18px;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid var(--border2);
+  border-bottom: none;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.div-tab:hover { color: var(--text); }
+.div-tab.active {
+  background: var(--accent2);
+  border-color: var(--accent);
+  color: #fff;
+}
 
-  /* 15-column grid */
-  .score-grid {
-    display: grid;
-    grid-template-columns:
-      minmax(2.8rem, 3rem)
-      minmax(12rem, 1.3fr)
-      minmax(4.2rem, 5.2rem)
-      minmax(4.2rem, 5.2rem)
-      minmax(4.2rem, 5.2rem)
-      minmax(3.6rem, 4.2rem)
-      minmax(5.2rem, 6.4rem)
-      minmax(4.2rem, 5.2rem)
-      minmax(4.2rem, 5.2rem)
-      minmax(4.2rem, 5.2rem)
-      minmax(3.6rem, 4.2rem)
-      minmax(5.2rem, 6.4rem)
-      minmax(4.2rem, 5.2rem)
-      minmax(5.0rem, 6.0rem)
-      minmax(3.6rem, 4.2rem);
-    gap: .5rem;
-    align-items: center;
-    padding: 8px 12px;
-  }
+select.sel {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 4px 6px;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+}
+select.sel:focus { outline: 1px solid var(--accent); }
 
-  .header {
-    font-weight: 700;
-    background: #0f172aee;
-    backdrop-filter: saturate(1.2);
-    border-bottom: 1px solid var(--line2);
-  }
-  .row {
-    border-bottom: 1px solid var(--line);
-    padding-top: 6px;
-    padding-bottom: 6px;
-  }
+input.inp {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 4px 5px;
+  border-radius: 4px;
+  width: 100%;
+  text-align: right;
+}
+input.inp:focus { outline: 1px solid var(--accent); }
+input.inp.empty { border-color: #3a2a10; background: #1a120088; }
+input.inp.name-inp { text-align: left; }
 
-  /* Sticky headers — both sit inside .grid-scroll now */
-  .sticky {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
-  /* Second header row sticks just below the first */
-  .sticky.second {
-    top: 38px;
-    z-index: 6;
-  }
+/* ── Table shell ────────────────────────────────────────────── */
+.table-shell {
+  margin: 0 24px 24px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.table-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 220px);
+}
 
-  .group-label {
-    text-transform: uppercase;
-    font-size: .75rem;
-    letter-spacing: .04em;
-    color: #93c5fd;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
 
-  .span-5 { grid-column: span 5; }
+/* Sticky thead rows */
+thead tr th {
+  position: sticky;
+  background: #0a1828;
+  z-index: 3;
+}
+thead tr:first-child th { top: 0; }
+thead tr:last-child th  { top: 32px; box-shadow: 0 2px 0 var(--border2); }
 
-  .subtle-warn { border-color: var(--warn-border) !important; background-color: var(--warn-bg) !important; }
-  .text-primary { color: var(--primary); font-weight: 800; text-align: center; }
+/* Group header row */
+.th-group {
+  font-family: var(--head);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.th-group.f1 { color: #60d0ff; border-left: 1px solid var(--border2); border-right: 1px solid var(--border2); background: #001e3022; }
+.th-group.f2 { color: #60d0ff; border-left: 1px solid var(--border2); border-right: 1px solid var(--border2); background: #001e3022; }
+.th-group.result { color: var(--gold); background: #1a140022; }
 
-  @media (max-width: 640px) {
-    .toolbar-right { width: 100%; justify-content: flex-start; }
-    .btn { padding: 8px 10px; font-size: .92rem; }
-    .input { font-size: .95rem; }
-  }
+/* Column label row */
+.th-col {
+  font-family: var(--head);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 5px 6px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.th-col.f1-col { border-left: 1px solid var(--border2); }
+.th-col.f2-col { border-left: 1px solid var(--border2); }
+.th-col.result-col { border-left: 1px solid var(--border2); color: var(--gold); }
+
+/* Data rows */
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+tbody tr:hover { background: #0d1e3088; }
+tbody tr:last-child { border-bottom: none; }
+
+td {
+  padding: 3px 4px;
+  vertical-align: middle;
+  border-right: 1px solid var(--border);
+}
+td.f1-start { border-left: 1px solid var(--border2); }
+td.f2-start { border-left: 1px solid var(--border2); }
+td.result-start { border-left: 1px solid var(--border2); }
+
+td.num {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: center;
+  color: var(--muted);
+  min-width: 32px;
+}
+td.name-cell { min-width: 140px; max-width: 200px; }
+td.score-cell {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+  color: var(--accent);
+  min-width: 64px;
+}
+td.rank-cell {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  min-width: 40px;
+}
+.rank-1 { color: var(--gold); text-shadow: 0 0 10px #f0b42966; }
+.rank-2 { color: #c0c8d8; }
+.rank-3 { color: #cd7f32; }
+.rank-other { color: var(--muted); }
+
+td.timer-cell { min-width: 64px; }
+td.cb-cell { min-width: 44px; text-align: center; }
+td.log-cell { min-width: 80px; }
+td.pen-cell { min-width: 64px; }
+
+.score-display {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  font-family: var(--mono);
+}
+.score-display.has-score { color: #4aafdd; }
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 24px;
+  padding: 8px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.stat { display: flex; gap: 6px; align-items: center; }
+.stat-val { color: var(--accent); font-weight: 600; }
+
+/* Intermediate flight score shown under timers */
+.flight-sub {
+  font-size: 10px;
+  color: #3a6a88;
+  text-align: center;
+  font-family: var(--mono);
+  padding-top: 1px;
+}
+.flight-sub.has-val { color: #4aafdd; }
 </style>
 </head>
 
 <body>
-  <div id="root"></div>
+<div id="root"></div>
 
 <script>
 "use strict";
-
-(function ensureReactLoaded(){
-  const ok = !!(window.React && window.ReactDOM);
-  if (!ok) {
-    document.getElementById('root').innerHTML =
-      '<div style="padding:16px">Could not load React from CDN. Check internet and reload.</div>';
-  }
-})();
+if (!(window.React && window.ReactDOM)) {
+  document.getElementById('root').innerHTML = '<div style="padding:16px;color:#f88">Could not load React. Check connection and reload.</div>';
+}
 
 const e = React.createElement;
 
-/* =========================================================================
-   Storage
-   ========================================================================= */
-const STORAGE_KEY = "scioly_helicopter_v3";
-
-const defaultState = () => ({
-  eventName: "Berrien County Science Olympiad Helicopter",
+/* ── Storage ───────────────────────────────────────────────── */
+const KEY = "scioly_heli_v4";
+const blank = () => ({
+  eventName: "Berrien County Science Olympiad — Helicopter",
   activeDivision: "B",
   divisions: {
-    B: { initialized: false, teamCount: 0, teams: [] },
-    C: { initialized: false, teamCount: 0, teams: [] }
+    B: { initialized: false, teams: [] },
+    C: { initialized: false, teams: [] }
   }
 });
+const load = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : blank(); } catch { return blank(); } };
+const save = (d) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} };
 
-const loadAll = () => {
-  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : defaultState(); }
-  catch { return defaultState(); }
-};
-const saveAll = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {} };
-
-/* =========================================================================
-   Scoring Logic
-   ========================================================================= */
+/* ── Math (UNCHANGED from original) ───────────────────────── */
 function computeFlightScore(timers, twoBlade, logBonus) {
   if (!Array.isArray(timers) || timers.length !== 3) return null;
   const vals = timers.map(v => (v === "" || v === null) ? NaN : Number(v));
@@ -201,344 +361,359 @@ function computeFinalScore(f1, f2, penalty) {
   return best * (1 - p);
 }
 
-/* =========================================================================
-   Helpers
-   ========================================================================= */
-function makeBlankTeam(id) {
-  return {
-    id, name: "",
-    f1: ["", "", ""], twoBlade1: false, log1: "none",
-    f2: ["", "", ""], twoBlade2: false, log2: "none",
-    penalty: 0
-  };
+/* ── Helpers ───────────────────────────────────────────────── */
+function makeTeam(id) {
+  return { id, name: "", f1: ["","",""], twoBlade1: false, log1: "none", f2: ["","",""], twoBlade2: false, log2: "none", penalty: 0 };
 }
-function initDivisionFromPrompt(divisionKey) {
-  const n = window.prompt(`How many teams for Division ${divisionKey}?`, "10");
+function promptDivision(div) {
+  const n = window.prompt(`How many teams for Division ${div}?`, "10");
   const count = Math.max(1, parseInt(n || "10", 10));
-  return {
-    initialized: true,
-    teamCount: count,
-    teams: Array.from({ length: count }, (_, i) => makeBlankTeam(i + 1))
-  };
+  return { initialized: true, teams: Array.from({ length: count }, (_, i) => makeTeam(i + 1)) };
+}
+function rankTeams(teams) {
+  const scored = teams.map((t, i) => {
+    const f1 = computeFlightScore(t.f1, t.twoBlade1, t.log1);
+    const f2 = computeFlightScore(t.f2, t.twoBlade2, t.log2);
+    const final = computeFinalScore(f1, f2, t.penalty);
+    return { ...t, f1Score: f1, f2Score: f2, finalScore: final, _idx: i };
+  });
+  const order = [...scored].sort((a, b) => (b.finalScore ?? -Infinity) - (a.finalScore ?? -Infinity));
+  let rank = 0, seen = 0, last = null;
+  const ranks = new Array(scored.length).fill(null);
+  for (const item of order) {
+    seen++;
+    if (item.finalScore == null) { ranks[item._idx] = null; continue; }
+    if (last === null || item.finalScore !== last) { rank = seen; last = item.finalScore; }
+    ranks[item._idx] = rank;
+  }
+  return scored.map((t, i) => ({ ...t, rank: ranks[i] }));
 }
 
-/* =========================================================================
-   Row
-   ========================================================================= */
-function TeamRow({ team, onChange }) {
-  const f1Score = computeFlightScore(team.f1, team.twoBlade1, team.log1);
-  const f2Score = computeFlightScore(team.f2, team.twoBlade2, team.log2);
-  const finalScore = computeFinalScore(f1Score, f2Score, team.penalty);
+/* ── PDF exports (logic identical to original) ─────────────── */
+function exportDivPDF(eventName, div, teams) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "pt", format: "letter" });
+  pdf.setFontSize(18); pdf.text(`${eventName} — Division ${div}`, 40, 40);
+  pdf.setFontSize(12); pdf.text("Division Results", 40, 65);
+  pdf.text(`Generated: ${new Date().toLocaleString()}`, 40, 82);
+  let y = 110; pdf.setFontSize(10);
+  pdf.text("Rank", 40, y); pdf.text("Team", 80, y);
+  pdf.text("F1", 240, y); pdf.text("F2", 320, y); pdf.text("Final", 400, y);
+  y += 15;
+  const sorted = [...teams].sort((a, b) => (b.finalScore ?? 0) - (a.finalScore ?? 0));
+  for (const t of sorted) {
+    pdf.text(String(t.rank ?? "--"), 40, y);
+    pdf.text(String(t.name || `Team ${t.id}`), 80, y);
+    pdf.text(t.f1Score != null ? t.f1Score.toFixed(2) : "--", 240, y);
+    pdf.text(t.f2Score != null ? t.f2Score.toFixed(2) : "--", 320, y);
+    pdf.text(t.finalScore != null ? t.finalScore.toFixed(2) : "--", 400, y);
+    y += 15; if (y > 720) { pdf.addPage(); y = 40; }
+  }
+  pdf.save(`Division_${div}_Results.pdf`);
+}
+function exportSupervisor(eventName, div, teams) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "pt", format: "letter" });
+  pdf.setFontSize(20); pdf.text(eventName, 40, 60);
+  pdf.setFontSize(14);
+  pdf.text(`Division ${div} Supervisor Packet`, 40, 90);
+  pdf.text(`Generated: ${new Date().toLocaleString()}`, 40, 118);
+  pdf.text(`Number of Teams: ${teams.length}`, 40, 148);
+  pdf.setFontSize(12);
+  pdf.text("Scoring Rules:", 40, 190);
+  pdf.text("- Flight Score = mean of 3 timers × rotor bonus × log bonus", 40, 210);
+  pdf.text("- Rotor Bonus = 1.10 if two-blade", 40, 230);
+  pdf.text("- Log Bonus = 1.20 (full), 1.10 (partial), 1.00 (none)", 40, 250);
+  pdf.text("- Final Score = max(F1, F2) × (1 − penalty)", 40, 270);
+  pdf.addPage();
+  const sorted = [...teams].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
+  sorted.forEach((team, idx) => {
+    pdf.setFontSize(16); pdf.text(`Team: ${team.name || ("Team " + team.id)}`, 40, 60);
+    pdf.setFontSize(12);
+    pdf.text(`Rank: ${team.rank ?? "--"}`, 40, 90);
+    pdf.text(`Final Score: ${team.finalScore != null ? team.finalScore.toFixed(2) : "--"}`, 40, 110);
+    pdf.text("Flight 1:", 40, 150);
+    pdf.text(`Timers: ${team.f1.join(", ")}`, 60, 170);
+    pdf.text(`Two-Blade: ${team.twoBlade1 ? "Yes" : "No"}`, 60, 190);
+    pdf.text(`Log Bonus: ${team.log1}`, 60, 210);
+    pdf.text(`Score: ${team.f1Score != null ? team.f1Score.toFixed(2) : "--"}`, 60, 230);
+    pdf.text("Flight 2:", 40, 270);
+    pdf.text(`Timers: ${team.f2.join(", ")}`, 60, 290);
+    pdf.text(`Two-Blade: ${team.twoBlade2 ? "Yes" : "No"}`, 60, 310);
+    pdf.text(`Log Bonus: ${team.log2}`, 60, 330);
+    pdf.text(`Score: ${team.f2Score != null ? team.f2Score.toFixed(2) : "--"}`, 60, 350);
+    pdf.text("Penalty:", 40, 390); pdf.text(`${team.penalty}`, 60, 410);
+    pdf.text("Supervisor Notes:", 40, 450);
+    pdf.line(40,460,550,460); pdf.line(40,480,550,480);
+    pdf.line(40,500,550,500); pdf.line(40,520,550,520);
+    pdf.text("Signatures:", 40, 560);
+    pdf.line(40,580,250,580); pdf.text("Event Supervisor", 40, 595);
+    pdf.line(300,580,510,580); pdf.text("Score Runner", 300, 595);
+    if (idx < sorted.length - 1) pdf.addPage();
+  });
+  pdf.save(`Supervisor_Packet_Div_${div}.pdf`);
+}
 
-  const setField = (k, v) => onChange({ ...team, [k]: v });
-  const setTimer = (flight, idx, v) => {
+/* ── TeamRow (table row) ────────────────────────────────────── */
+function TeamRow({ team, onChange }) {
+  const set = (k, v) => onChange({ ...team, [k]: v });
+  const setT = (flight, idx, v) => {
     const arr = [...team[flight]]; arr[idx] = v;
     onChange({ ...team, [flight]: arr });
   };
-  const warn = (v) => (v === "" ? "input subtle-warn" : "input");
 
-  return e("div", { className: "score-grid row" },
-    e("div", null, team.id),
+  const f1s = computeFlightScore(team.f1, team.twoBlade1, team.log1);
+  const f2s = computeFlightScore(team.f2, team.twoBlade2, team.log2);
+  const fin = computeFinalScore(f1s, f2s, team.penalty);
 
-    e("input", { className: "input", style: { width: "100%" }, value: team.name, placeholder: "Team Name",
-      onChange: ev => setField("name", ev.target.value) }),
+  const rankClass =
+    team.rank === 1 ? "rank-1" :
+    team.rank === 2 ? "rank-2" :
+    team.rank === 3 ? "rank-3" : "rank-other";
 
-    ...team.f1.map((t, i) => e("input", {
-      key: "f1" + i, type: "number", step: "0.01", min: "0",
-      className: warn(t), value: t, placeholder: "0.00",
-      onChange: ev => setTimer("f1", i, ev.target.value)
-    })),
+  return e("tr", null,
+    // ID
+    e("td", { className: "num" }, team.id),
+    // Name
+    e("td", { className: "name-cell" },
+      e("input", { className: "inp name-inp", value: team.name, placeholder: `Team ${team.id}`,
+        onChange: ev => set("name", ev.target.value) })
+    ),
+    // F1 timers
+    e("td", { className: "timer-cell f1-start" },
+      e("input", { className: "inp" + (team.f1[0] === "" ? " empty" : ""), type: "number", step: "0.01", min: "0",
+        value: team.f1[0], placeholder: "0.00", onChange: ev => setT("f1", 0, ev.target.value) })
+    ),
+    e("td", { className: "timer-cell" },
+      e("input", { className: "inp" + (team.f1[1] === "" ? " empty" : ""), type: "number", step: "0.01", min: "0",
+        value: team.f1[1], placeholder: "0.00", onChange: ev => setT("f1", 1, ev.target.value) })
+    ),
+    e("td", { className: "timer-cell" },
+      e("input", { className: "inp" + (team.f1[2] === "" ? " empty" : ""), type: "number", step: "0.01", min: "0",
+        value: team.f1[2], placeholder: "0.00", onChange: ev => setT("f1", 2, ev.target.value) })
+    ),
+    // 2-blade F1
+    e("td", { className: "cb-cell" },
+      e("select", { className: "sel", value: team.twoBlade1 ? "Y" : "N",
+        onChange: ev => set("twoBlade1", ev.target.value === "Y") },
+        e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y"))
+    ),
+    // Log F1
+    e("td", { className: "log-cell" },
+      e("select", { className: "sel", value: team.log1,
+        onChange: ev => set("log1", ev.target.value) },
+        e("option", { value: "none" }, "None"),
+        e("option", { value: "partial" }, "Partial"),
+        e("option", { value: "full" }, "Full"))
+    ),
+    // F1 sub-score
+    e("td", { className: "score-cell" },
+      e("div", { className: "score-display" + (f1s != null ? " has-score" : "") },
+        f1s != null ? f1s.toFixed(2) : "—")
+    ),
 
-    e("select", { className: "input", value: team.twoBlade1 ? "Y" : "N",
-      onChange: ev => setField("twoBlade1", ev.target.value === "Y") },
-      e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y")),
+    // F2 timers
+    e("td", { className: "timer-cell f2-start" },
+      e("input", { className: "inp" + (team.f2[0] === "" ? " empty" : ""), type: "number", step: "0.01", min: "0",
+        value: team.f2[0], placeholder: "0.00", onChange: ev => setT("f2", 0, ev.target.value) })
+    ),
+    e("td", { className: "timer-cell" },
+      e("input", { className: "inp" + (team.f2[1] === "" ? " empty" : ""), type: "number", step: "0.01", min: "0",
+        value: team.f2[1], placeholder: "0.00", onChange: ev => setT("f2", 1, ev.target.value) })
+    ),
+    e("td", { className: "timer-cell" },
+      e("input", { className: "inp" + (team.f2[2] === "" ? " empty" : ""), type: "number", step: "0.01", min: "0",
+        value: team.f2[2], placeholder: "0.00", onChange: ev => setT("f2", 2, ev.target.value) })
+    ),
+    // 2-blade F2
+    e("td", { className: "cb-cell" },
+      e("select", { className: "sel", value: team.twoBlade2 ? "Y" : "N",
+        onChange: ev => set("twoBlade2", ev.target.value === "Y") },
+        e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y"))
+    ),
+    // Log F2
+    e("td", { className: "log-cell" },
+      e("select", { className: "sel", value: team.log2,
+        onChange: ev => set("log2", ev.target.value) },
+        e("option", { value: "none" }, "None"),
+        e("option", { value: "partial" }, "Partial"),
+        e("option", { value: "full" }, "Full"))
+    ),
+    // F2 sub-score
+    e("td", { className: "score-cell" },
+      e("div", { className: "score-display" + (f2s != null ? " has-score" : "") },
+        f2s != null ? f2s.toFixed(2) : "—")
+    ),
 
-    e("select", { className: "input", value: team.log1,
-      onChange: ev => setField("log1", ev.target.value) },
-      e("option", { value: "none" }, "None"),
-      e("option", { value: "partial" }, "Partial"),
-      e("option", { value: "full" }, "Full")),
-
-    ...team.f2.map((t, i) => e("input", {
-      key: "f2" + i, type: "number", step: "0.01", min: "0",
-      className: warn(t), value: t, placeholder: "0.00",
-      onChange: ev => setTimer("f2", i, ev.target.value)
-    })),
-
-    e("select", { className: "input", value: team.twoBlade2 ? "Y" : "N",
-      onChange: ev => setField("twoBlade2", ev.target.value === "Y") },
-      e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y")),
-
-    e("select", { className: "input", value: team.log2,
-      onChange: ev => setField("log2", ev.target.value) },
-      e("option", { value: "none" }, "None"),
-      e("option", { value: "partial" }, "Partial"),
-      e("option", { value: "full" }, "Full")),
-
-    e("input", { className: "input", type: "number", step: "0.01", min: "0", max: "1",
-      value: team.penalty, onChange: ev => setField("penalty", ev.target.value) }),
-
-    e("div", { className: "text-primary" },
-      (typeof finalScore === "number") ? finalScore.toFixed(2) : "--"),
-
-    e("div", { className: "text-primary" }, team.rank ?? "--")
+    // Penalty
+    e("td", { className: "pen-cell result-start" },
+      e("input", { className: "inp", type: "number", step: "0.01", min: "0", max: "1",
+        value: team.penalty, onChange: ev => set("penalty", ev.target.value) })
+    ),
+    // Final Score
+    e("td", { className: "score-cell" },
+      fin != null ? fin.toFixed(2) : "—"
+    ),
+    // Rank
+    e("td", { className: "rank-cell" },
+      e("span", { className: rankClass }, team.rank != null ? team.rank : "—")
+    )
   );
 }
 
-/* =========================================================================
-   Scoring Page
-   ========================================================================= */
-function ScoringPage({ data, setData }) {
-  const activeDivision = data.activeDivision;
-  const divData = data.divisions[activeDivision];
+/* ── Main App ───────────────────────────────────────────────── */
+function App() {
+  const [data, setData] = React.useState(load);
+  React.useEffect(() => { save(data); }, [data]);
 
+  const div = data.activeDivision;
+  const divData = data.divisions[div];
+
+  // Initialize division on first visit
   React.useEffect(() => {
     if (!divData.initialized) {
       setTimeout(() => {
-        const initialized = initDivisionFromPrompt(activeDivision);
-        const next = { ...data, divisions: { ...data.divisions, [activeDivision]: initialized } };
-        setData(next);
+        const init = promptDivision(div);
+        setData(d => ({ ...d, divisions: { ...d.divisions, [div]: init } }));
       }, 0);
     }
-  }, [activeDivision, divData.initialized, data, setData]);
+  }, [div, divData.initialized]);
 
   const teams = divData.initialized ? divData.teams : [];
+  const ranked = React.useMemo(() => rankTeams(teams), [teams]);
 
-  const derivedTeams = React.useMemo(() => {
-    const enriched = teams.map(t => {
-      const f1 = computeFlightScore(t.f1, t.twoBlade1, t.log1);
-      const f2 = computeFlightScore(t.f2, t.twoBlade2, t.log2);
-      const final = computeFinalScore(f1, f2, t.penalty);
-      return { ...t, f1Score: f1, f2Score: f2, finalScore: final };
-    });
-    const order = enriched
-      .map((t, i) => ({ i, s: (t.finalScore == null ? -Infinity : t.finalScore) }))
-      .sort((a, b) => b.s - a.s);
+  const updateTeams = (newTeams) =>
+    setData(d => ({ ...d, divisions: { ...d.divisions, [div]: { initialized: true, teams: newTeams } } }));
 
-    let rank = 0, seen = 0, last = null;
-    const ranks = new Array(enriched.length).fill(null);
-    for (const item of order) {
-      seen++;
-      if (item.s === -Infinity) { ranks[item.i] = null; continue; }
-      if (last === null || item.s !== last) { rank = seen; last = item.s; }
-      ranks[item.i] = rank;
-    }
-    return enriched.map((t, i) => ({ ...t, rank: ranks[i] }));
-  }, [teams]);
+  // Stats
+  const scored = ranked.filter(t => t.finalScore != null);
+  const topScore = scored.length ? Math.max(...scored.map(t => t.finalScore)).toFixed(2) : "—";
+  const avgScore = scored.length ? (scored.reduce((s, t) => s + t.finalScore, 0) / scored.length).toFixed(2) : "—";
 
-  const updateTeams = (newTeams) => {
-    const next = {
-      ...data,
-      divisions: {
-        ...data.divisions,
-        [activeDivision]: { ...divData, initialized: true, teams: newTeams, teamCount: newTeams.length }
-      }
-    };
-    setData(next);
-  };
-
-  const exportDivisionPDF = () => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: "pt", format: "letter" });
-    const title = `${data.eventName} — Division ${activeDivision}`;
-
-    pdf.setFontSize(18); pdf.text(title, 40, 40);
-    pdf.setFontSize(12); pdf.text("Division Results", 40, 65);
-    pdf.text(`Generated: ${new Date().toLocaleString()}`, 40, 82);
-
-    let y = 110; pdf.setFontSize(10);
-    pdf.text("Rank", 40, y); pdf.text("Team", 80, y);
-    pdf.text("F1", 240, y); pdf.text("F2", 320, y); pdf.text("Final", 400, y);
-    y += 15;
-
-    const sorted = [...derivedTeams].sort((a, b) => (b.finalScore ?? 0) - (a.finalScore ?? 0));
-    for (const t of sorted) {
-      pdf.text(String(t.rank ?? "--"), 40, y);
-      pdf.text(String(t.name || `Team ${t.id}`), 80, y);
-      pdf.text(t.f1Score != null ? t.f1Score.toFixed(2) : "--", 240, y);
-      pdf.text(t.f2Score != null ? t.f2Score.toFixed(2) : "--", 320, y);
-      pdf.text(t.finalScore != null ? t.finalScore.toFixed(2) : "--", 400, y);
-      y += 15; if (y > 720) { pdf.addPage(); y = 40; }
-    }
-    pdf.save(`Division_${activeDivision}_Results.pdf`);
-  };
-
-  const exportSupervisorPacket = () => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: "pt", format: "letter" });
-
-    pdf.setFontSize(20); pdf.text(data.eventName, 40, 60);
-    pdf.setFontSize(14);
-    pdf.text(`Division ${activeDivision} Supervisor Packet`, 40, 90);
-    pdf.text(`Generated: ${new Date().toLocaleString()}`, 40, 118);
-    pdf.text(`Number of Teams: ${derivedTeams.length}`, 40, 148);
-
-    pdf.setFontSize(12);
-    pdf.text("Scoring Rules:", 40, 190);
-    pdf.text("- Flight Score = mean of 3 timers × rotor bonus × log bonus", 40, 210);
-    pdf.text("- Rotor Bonus = 1.10 if two-blade", 40, 230);
-    pdf.text("- Log Bonus = 1.20 (full), 1.10 (partial), 1.00 (none)", 40, 250);
-    pdf.text("- Final Score = max(F1, F2) × (1 − penalty)", 40, 270);
-
-    pdf.addPage();
-    const sorted = [...derivedTeams].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
-    sorted.forEach((team, idx) => {
-      pdf.setFontSize(16); pdf.text(`Team: ${team.name || ("Team " + team.id)}`, 40, 60);
-      pdf.setFontSize(12);
-      pdf.text(`Rank: ${team.rank ?? "--"}`, 40, 90);
-      pdf.text(`Final Score: ${team.finalScore != null ? team.finalScore.toFixed(2) : "--"}`, 40, 110);
-      pdf.text("Flight 1:", 40, 150);
-      pdf.text(`Timers: ${team.f1.join(", ")}`, 60, 170);
-      pdf.text(`Two-Blade: ${team.twoBlade1 ? "Yes" : "No"}`, 60, 190);
-      pdf.text(`Log Bonus: ${team.log1}`, 60, 210);
-      pdf.text(`Score: ${team.f1Score != null ? team.f1Score.toFixed(2) : "--"}`, 60, 230);
-      pdf.text("Flight 2:", 40, 270);
-      pdf.text(`Timers: ${team.f2.join(", ")}`, 60, 290);
-      pdf.text(`Two-Blade: ${team.twoBlade2 ? "Yes" : "No"}`, 60, 310);
-      pdf.text(`Log Bonus: ${team.log2}`, 60, 330);
-      pdf.text(`Score: ${team.f2Score != null ? team.f2Score.toFixed(2) : "--"}`, 60, 350);
-      pdf.text("Penalty:", 40, 390); pdf.text(`${team.penalty}`, 60, 410);
-      pdf.text("Supervisor Notes:", 40, 450);
-      pdf.line(40, 460, 550, 460); pdf.line(40, 480, 550, 480);
-      pdf.line(40, 500, 550, 500); pdf.line(40, 520, 550, 520);
-      pdf.text("Signatures:", 40, 560);
-      pdf.line(40, 580, 250, 580); pdf.text("Event Supervisor", 40, 595);
-      pdf.line(300, 580, 510, 580); pdf.text("Score Runner", 300, 595);
-      if (idx < sorted.length - 1) pdf.addPage();
-    });
-    pdf.save(`Supervisor_Packet_Div_${activeDivision}.pdf`);
-  };
-
-  const controlsBar = e("div", { className: "panel toolbar" },
-    e("div", { className: "toolbar-left" },
-      e("span", { className: "label" }, "Division:"),
-      e("select", {
-        className: "input",
-        value: activeDivision,
-        onChange: (ev) => setData({ ...data, activeDivision: ev.target.value })
-      }, e("option", { value: "B" }, "B"), e("option", { value: "C" }, "C")),
-      e("span", null, `Teams: ${teams.length}`)
+  // Table header
+  const thead = e("thead", null,
+    // Group row
+    e("tr", null,
+      e("th", { className: "th-group", colSpan: 2 }),
+      e("th", { className: "th-group f1", colSpan: 6 }, "✦ FLIGHT 1"),
+      e("th", { className: "th-group f2", colSpan: 6 }, "✦ FLIGHT 2"),
+      e("th", { className: "th-group result", colSpan: 3 }, "RESULT")
     ),
-    e("div", { className: "toolbar-right" },
-      e("button", {
-        className: "btn",
-        onClick: () => {
-          const name = window.prompt("Event name:", data.eventName || "");
-          if (name !== null) setData({ ...data, eventName: name });
-        }
-      }, "Rename Event"),
-      e("button", {
-        className: "btn",
-        onClick: () => {
-          const n = window.prompt(`Set team count for Division ${activeDivision}:`, String(teams.length || 10));
-          if (n === null) return;
-          const count = Math.max(1, parseInt(n || "1", 10));
-          const newTeams = Array.from({ length: count }, (_, i) =>
-            teams[i] ? { ...teams[i], id: i + 1 } : makeBlankTeam(i + 1)
-          );
-          updateTeams(newTeams);
-        }
-      }, "Set Team Count"),
-      e("button", { className: "btn", onClick: () => updateTeams([...teams, makeBlankTeam(teams.length + 1)]) }, "Add Team"),
-      e("button", { className: "btn", onClick: () => (teams.length > 1 ? updateTeams(teams.slice(0, -1)) : null) }, "Remove Last"),
-      e("button", {
-        className: "btn",
-        onClick: () => {
-          if (confirm(`Reset ONLY Division ${activeDivision}? This cannot be undone.`)) {
-            const reset = initDivisionFromPrompt(activeDivision);
-            const next = { ...data, divisions: { ...data.divisions, [activeDivision]: reset } };
-            setData(next);
-          }
-        }
-      }, `Reset Division ${activeDivision}`),
-      e("button", { className: "btn", onClick: exportDivisionPDF }, "Export Division PDF"),
-      e("button", { className: "btn", onClick: exportSupervisorPacket }, "Export Supervisor Packet")
+    // Column label row
+    e("tr", null,
+      e("th", { className: "th-col" }, "#"),
+      e("th", { className: "th-col", style: { textAlign: "left" } }, "Team Name"),
+      e("th", { className: "th-col f1-col" }, "T1"),
+      e("th", { className: "th-col" }, "T2"),
+      e("th", { className: "th-col" }, "T3"),
+      e("th", { className: "th-col" }, "2-Blade"),
+      e("th", { className: "th-col" }, "Log"),
+      e("th", { className: "th-col" }, "F1 Score"),
+      e("th", { className: "th-col f2-col" }, "T1"),
+      e("th", { className: "th-col" }, "T2"),
+      e("th", { className: "th-col" }, "T3"),
+      e("th", { className: "th-col" }, "2-Blade"),
+      e("th", { className: "th-col" }, "Log"),
+      e("th", { className: "th-col" }, "F2 Score"),
+      e("th", { className: "th-col result-col" }, "Penalty"),
+      e("th", { className: "th-col result-col" }, "Final Score"),
+      e("th", { className: "th-col result-col" }, "Rank")
     )
   );
 
-  // ===== Two-row sticky header — both rows are now INSIDE .grid-scroll =====
-  const headerTop = e(
-    "div",
-    { className: "score-grid header sticky" },
-    e("div", null),   // ID
-    e("div", null),   // Team
-    e("div", { className: "group-label span-5" }, "FLIGHT 1"),
-    e("div", { className: "group-label span-5" }, "FLIGHT 2"),
-    e("div", null),   // PEN
-    e("div", null),   // Score
-    e("div", null)    // Rank
-  );
-
-  const headerSecond = e(
-    "div",
-    { className: "score-grid header sticky second" },
-    e("div", null, "ID"),
-    e("div", null, "Team"),
-    e("div", { style: { textAlign: "center" } }, "F1 T1"),
-    e("div", { style: { textAlign: "center" } }, "F1 T2"),
-    e("div", { style: { textAlign: "center" } }, "F1 T3"),
-    e("div", { style: { textAlign: "center" } }, "2B1"),
-    e("div", { style: { textAlign: "center" } }, "Log1"),
-    e("div", { style: { textAlign: "center" } }, "F2 T1"),
-    e("div", { style: { textAlign: "center" } }, "F2 T2"),
-    e("div", { style: { textAlign: "center" } }, "F2 T3"),
-    e("div", { style: { textAlign: "center" } }, "2B2"),
-    e("div", { style: { textAlign: "center" } }, "Log2"),
-    e("div", { style: { textAlign: "center" } }, "PEN"),
-    e("div", { style: { textAlign: "center" } }, "Score"),
-    e("div", { style: { textAlign: "center" } }, "Rank")
-  );
-
   if (!divData.initialized) {
-    return e("div", { className: "container" },
-      e("h1", null, data.eventName),
-      e("div", { className: "subtext" }, "Switch divisions inside the scoring section. Each division has its own teams and scores."),
-      controlsBar,
-      e("div", { className: "panel" }, `Initializing Division ${activeDivision}…`)
+    return e("div", null,
+      e("div", { className: "app-header" },
+        e("span", { className: "app-title" }, data.eventName),
+      ),
+      e("div", { style: { padding: "24px", color: "var(--muted)" } }, `Initializing Division ${div}…`)
     );
   }
 
-  return e("div", { className: "container" },
-    e("h1", null, data.eventName),
-    e("div", { className: "subtext" }, "Switch divisions inside the scoring section. Each division has its own teams and scores."),
-    controlsBar,
+  return e("div", null,
+    // Header
+    e("div", { className: "app-header" },
+      e("div", null,
+        e("div", { className: "app-title" }, data.eventName),
+        e("div", { className: "app-subtitle" }, `Division ${div} · ${teams.length} Teams`)
+      )
+    ),
 
-    // FIX: both header rows are now INSIDE .grid-scroll so sticky positioning works
-    // and they share the same grid/scroll context as data rows
-    e("div", { className: "grid-shell" },
-      e("div", { className: "grid-scroll" },
-        headerTop,
-        headerSecond,
-        ...derivedTeams.map((t, i) =>
-          e(TeamRow, {
-            key: t.id,
-            team: t,
-            onChange: (newTeam) => {
-              const arr = [...teams]; arr[i] = newTeam; updateTeams(arr);
-            }
-          })
+    // Toolbar
+    e("div", { className: "toolbar" },
+      // Division tabs
+      e("div", { className: "toolbar-group" },
+        e("span", { className: "toolbar-label" }, "Div:"),
+        e("div", { className: "div-tabs" },
+          ["B", "C"].map(d =>
+            e("button", { key: d, className: "div-tab" + (d === div ? " active" : ""),
+              onClick: () => setData(x => ({ ...x, activeDivision: d })) }, d)
+          )
+        )
+      ),
+      e("div", { className: "toolbar-sep" }),
+      e("div", { className: "toolbar-group" },
+        e("button", { className: "btn", onClick: () => updateTeams([...teams, makeTeam(teams.length + 1)]) }, "+ Add Team"),
+        e("button", { className: "btn", onClick: () => { if (teams.length > 1) updateTeams(teams.slice(0, -1)); } }, "− Remove Last"),
+        e("button", { className: "btn", onClick: () => {
+          const n = window.prompt(`Team count for Division ${div}:`, String(teams.length));
+          if (!n) return;
+          const count = Math.max(1, parseInt(n, 10));
+          updateTeams(Array.from({ length: count }, (_, i) => teams[i] ? { ...teams[i], id: i+1 } : makeTeam(i+1)));
+        }}, "Set Count"),
+      ),
+      e("div", { className: "toolbar-sep" }),
+      e("div", { className: "toolbar-group" },
+        e("button", { className: "btn btn-primary", onClick: () => exportDivPDF(data.eventName, div, ranked) }, "⬇ Results PDF"),
+        e("button", { className: "btn btn-primary", onClick: () => exportSupervisor(data.eventName, div, ranked) }, "⬇ Supervisor PDF"),
+      ),
+      e("div", { className: "toolbar-sep" }),
+      e("div", { className: "toolbar-group" },
+        e("button", { className: "btn", onClick: () => {
+          const name = window.prompt("Event name:", data.eventName);
+          if (name !== null) setData(d => ({ ...d, eventName: name }));
+        }}, "✎ Rename"),
+        e("button", { className: "btn btn-danger", onClick: () => {
+          if (confirm(`Reset ALL data for Division ${div}? Cannot be undone.`)) {
+            setData(d => ({ ...d, divisions: { ...d.divisions, [div]: promptDivision(div) } }));
+          }
+        }}, `⚠ Reset Div ${div}`)
+      )
+    ),
+
+    // Stats bar
+    e("div", { className: "stats-bar" },
+      e("div", { className: "stat" }, e("span", null, "Teams scored:"), e("span", { className: "stat-val" }, scored.length)),
+      e("div", { className: "stat" }, e("span", null, "Top score:"), e("span", { className: "stat-val" }, topScore)),
+      e("div", { className: "stat" }, e("span", null, "Avg score:"), e("span", { className: "stat-val" }, avgScore)),
+      e("div", { className: "stat" }, e("span", null, "Scoring:"), e("span", { className: "stat-val" }, "mean(T1,T2,T3) × rotor × log · best flight · ×(1−pen)")),
+    ),
+
+    // Table
+    e("div", { className: "table-shell" },
+      e("div", { className: "table-scroll" },
+        e("table", null,
+          thead,
+          e("tbody", null,
+            ranked.map((t, i) =>
+              e(TeamRow, {
+                key: t.id,
+                team: t,
+                onChange: (updated) => {
+                  const arr = [...teams]; arr[i] = updated; updateTeams(arr);
+                }
+              })
+            )
+          )
         )
       )
     )
   );
 }
 
-/* =========================================================================
-   App
-   ========================================================================= */
-function App() {
-  const [data, setData] = React.useState(loadAll());
-  React.useEffect(() => { saveAll(data); }, [data]);
-  return e(ScoringPage, { data, setData });
-}
-
-/* =========================================================================
-   Mount
-   ========================================================================= */
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   if (!(window.React && window.ReactDOM)) return;
-  const root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(e(App));
+  ReactDOM.createRoot(document.getElementById("root")).render(e(App));
 });
 </script>
 </body>
