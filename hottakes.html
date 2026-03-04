@@ -15,41 +15,44 @@
 
     h1 {
         color: #ffcc00;
-        font-size: 2.5rem;
+        font-size: 3rem;
         margin-bottom: 25px;
     }
 
+    /* BIGGER HOT TAKE POPUP */
     #hotTakeBox {
         margin: 20px auto;
-        padding: 40px;
-        width: 80%;
-        max-width: 900px;
-        min-height: 180px;
+        padding: 60px; /* bigger */
+        width: 90%;
+        max-width: 1100px;
+        min-height: 240px;
         background: #222;
-        border-radius: 12px;
-        font-size: 2rem;
+        border-radius: 20px;
+        font-size: 2.6rem;   /* much larger */
+        font-weight: bold;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.4s ease;
+        line-height: 1.3;
     }
 
-    /* 🔥 Shake + Glow animation */
+    /* Shake + Glow Animation */
     .reveal-animation {
         animation: shake 0.5s ease, glow 1s ease;
     }
 
     @keyframes shake {
         0%, 100% { transform: translateX(0); }
-        20% { transform: translateX(-12px); }
-        40% { transform: translateX(12px); }
-        60% { transform: translateX(-8px); }
-        80% { transform: translateX(8px); }
+        20% { transform: translateX(-18px); }
+        40% { transform: translateX(18px); }
+        60% { transform: translateX(-12px); }
+        80% { transform: translateX(12px); }
     }
 
     @keyframes glow {
         0% { box-shadow: 0 0 0px #ffcc00; }
-        100% { box-shadow: 0 0 40px #ffcc00; }
+        100% { box-shadow: 0 0 60px #ffcc00; }
     }
 
     .category-btn {
@@ -68,10 +71,10 @@
         background: #e6b800;
     }
 
-    /* 🚨 AGREE / DISAGREE Movement Cue */
+    /* MOVE CUE */
     #moveCue {
         margin-top: 20px;
-        font-size: 2rem;
+        font-size: 2.3rem;
         font-weight: bold;
         display: none;
         animation: flash 1s infinite;
@@ -83,12 +86,36 @@
         100% { color: #ff5555; }
     }
 
-    /* Countdown Timer */
+    /* TIMER — animated while running */
     #timer {
-        font-size: 2.5rem;
+        font-size: 3.2rem;
         margin-top: 20px;
         display: none;
         color: #00eaff;
+        font-weight: bold;
+    }
+
+    /* Base pulse animation */
+    .timer-running {
+        animation: timerPulse 1s infinite;
+    }
+
+    /* Timer pulsing */
+    @keyframes timerPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.13); }
+        100% { transform: scale(1); }
+    }
+
+    /* Timer intensifies when < 5 seconds */
+    .timer-warning {
+        animation: timerFlash 0.4s infinite;
+    }
+
+    @keyframes timerFlash {
+        0% { color: #ff0000; transform: scale(1.2); }
+        50% { color: #ffffff; transform: scale(1.3); }
+        100% { color: #ff0000; transform: scale(1.2); }
     }
 
     #modeIndicator {
@@ -112,6 +139,7 @@
 
     #historyBox h2 {
         color: #ffcc00;
+        text-align: center;
     }
 
     ul {
@@ -123,6 +151,7 @@
         border-bottom: 1px solid #333;
         padding-bottom: 5px;
     }
+
 </style>
 </head>
 <body>
@@ -160,30 +189,17 @@
 
 <script>
 // ===============================
-// 🔊 SOUND EFFECTS (using your exact filenames)
+// 🔊 SOUND EFFECTS
 // ===============================
 function playSound(name) {
     let file = "";
 
     switch (name) {
-        case "reveal":
-            file = "timer.mp3";   // dramatic reveal
-            break;
-
-        case "ding":
-            file = "ding.mp3";    // countdown finish
-            break;
-
-        case "ping":
-            file = "ping.mp3";    // UI ping
-            break;
-
-        case "airhorn":
-            file = "horn.mp3";    // chaos mode
-            break;
-
-        default:
-            return;
+        case "reveal": file = "timer.mp3"; break;
+        case "ding": file = "ding.mp3"; break;
+        case "ping": file = "ping.mp3"; break;
+        case "airhorn": file = "horn.mp3"; break;
+        default: return;
     }
 
     const audio = new Audio(file);
@@ -192,7 +208,7 @@ function playSound(name) {
 }
 
 // ===============================
-// 🔥 CONTENT HOT TAKES
+// CONTENT HOT TAKES
 // ===============================
 const contentTakes = {
     gameplay: [
@@ -240,35 +256,35 @@ const contentTakes = {
 };
 
 // ===============================
-// 🎮 GAME HOT TAKES
+// GAME HOT TAKES
 // ===============================
 const gameTakes = {
     gameplay: [
         "Super Mario 64 has better platforming than most modern games.",
         "Skyrim is only fun because of mods.",
         "Call of Duty reuses the same gameplay loop every year.",
-        "Minecraft is the best sandbox game ever made.",
+        "Minecraft is the best sandbox game ever.",
         "Portal proves short games are better than long ones."
     ],
     graphics: [
         "Wind Waker aged better than most realistic games.",
         "Pixel art aged better than early 3D graphics.",
-        "Overwatch has some of the most iconic character designs ever.",
+        "Overwatch has iconic character designs.",
         "Realistic graphics age faster than stylized ones.",
         "Skyrim’s visuals were outdated at launch."
     ],
     sound: [
-        "Halo has one of the greatest soundtracks in gaming.",
+        "Halo has one of the greatest soundtracks ever.",
         "Silent Hill uses sound better than most horror games.",
-        "Mario sound effects are more iconic than most game music.",
+        "Mario sound effects are more iconic than most music.",
         "Skyrim’s soundtrack is half the experience.",
-        "Fortnite relies heavily on sound cues for survival."
+        "Fortnite relies heavily on positional sound cues."
     ],
     narrative: [
-        "Ocarina of Time tells a better story than most RPGs today.",
+        "Ocarina of Time tells a better story than most RPGs.",
         "GTA IV has a better story than GTA V.",
-        "Silent Hill 2 is the best-written horror game ever.",
-        "Undertale tells a deeper story than most AAA titles.",
+        "Silent Hill 2 is the best-written horror game.",
+        "Undertale tells a deeper story than most AAA games.",
         "Final Fantasy VII remains the most influential RPG story."
     ],
     experience: [
@@ -280,9 +296,9 @@ const gameTakes = {
     ],
     culture: [
         "Minecraft is the most influential game ever.",
-        "Fortnite shaped an entire generation of players.",
-        "MMOs peaked with the early 2000s.",
-        "Nostalgia drives most of gaming culture.",
+        "Fortnite shaped an entire generation.",
+        "MMOs peaked in the early 2000s.",
+        "Nostalgia drives most gaming trends.",
         "Nintendo games age better than realistic games."
     ]
 };
@@ -293,9 +309,10 @@ gameTakes.all = Object.values(gameTakes).flat();
 let MODE = "content";
 let history = [];
 let timerInterval;
+let timerAudio = null;
 
 // ===============================
-// 🎛 MODE SWITCHER
+// MODE SWITCHER
 // ===============================
 function setMode(mode) {
     MODE = mode;
@@ -305,7 +322,7 @@ function setMode(mode) {
 }
 
 // ===============================
-// 🎲 HOT TAKE GENERATOR
+// HOT TAKE GENERATOR
 // ===============================
 function newHotTake(category) {
     playSound("reveal");
@@ -314,8 +331,8 @@ function newHotTake(category) {
     const list = category === "all" ? set.all : set[category];
 
     const chosen = list[Math.floor(Math.random() * list.length)];
-
     const box = document.getElementById("hotTakeBox");
+
     box.classList.remove("reveal-animation");
     void box.offsetWidth;
     box.classList.add("reveal-animation");
@@ -333,11 +350,32 @@ function newHotTake(category) {
 }
 
 // ===============================
-// ⏳ TIMER
+// TIMER WITH ANIMATION
 // ===============================
 function startTimer(seconds) {
     const timer = document.getElementById("timer");
     timer.style.display = "block";
+
+    // Stop old audio
+    if (timerAudio) {
+        timerAudio.pause();
+        timerAudio.currentTime = 0;
+    }
+
+    // Play long timer sound
+    timerAudio = new Audio("timer.mp3");
+    timerAudio.volume = 0.8;
+    timerAudio.play();
+
+    setTimeout(() => {
+        if (timerAudio) {
+            timerAudio.pause();
+            timerAudio.currentTime = 0;
+        }
+    }, 28000);
+
+    // Start animation
+    timer.classList.add("timer-running");
 
     let time = seconds;
     timer.innerText = time;
@@ -346,16 +384,23 @@ function startTimer(seconds) {
     timerInterval = setInterval(() => {
         time--;
         timer.innerText = time;
+
+        if (time <= 5) {
+            timer.classList.add("timer-warning"); // intense warning flash
+        }
+
         if (time <= 0) {
             clearInterval(timerInterval);
             timer.innerText = "GO!";
             playSound("ding");
+            timer.classList.remove("timer-running");
+            timer.classList.remove("timer-warning");
         }
     }, 1000);
 }
 
 // ===============================
-// 🕒 HISTORY DISPLAY
+// HISTORY
 // ===============================
 function updateHistory() {
     const list = document.getElementById("historyList");
