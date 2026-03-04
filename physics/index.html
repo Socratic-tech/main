@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OpenPhysics Lab — Version E+ (Zoom & Pendulum Fixed + Reporting)</title>
+  <title>OpenPhysics Lab — E+ (Zoom & Pendulum Fixed + Reporting)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -24,6 +24,8 @@
     #simCanvas{ position:absolute; left:0; right:300px; top:48px; bottom:0; width:calc(100vw - 300px); height:calc(100vh - 48px); background:var(--bg); }
     #readoutGrid .row{ display:flex; justify-content:space-between; font-size: calc(14px*var(--font-scale)); margin:4px 0; }
     #readoutGrid .row span:last-child{ font-weight:700; color:var(--accent-green); }
+
+    /* Reporting panel */
     #graphPanel{ background:#0b1220; border:1px solid var(--border); padding:8px; border-radius:6px; }
     #graphCanvas{ width:100%; height:220px; display:block; background:#0a0f1a; border:1px solid var(--border); border-radius:4px; }
   </style>
@@ -38,7 +40,7 @@
     <button id="btnNewRun" class="actionBtn">Start New Run</button>
     <button id="btnResetRun" class="actionBtn">Reset Run</button>
     <button id="btnSaveRun" class="actionBtn">Save Run</button>
-    <span id="presetToast"></span>
+    <span id="presetToast" role="status" aria-live="polite"></span>
   </div>
 
   <div id="sidePanel">
@@ -63,7 +65,6 @@
       <button id="btnTableView" class="actionBtn" style="flex:1;">Table</button>
       <button id="btnGraphView" class="actionBtn" style="flex:1;">Graph</button>
     </div>
-
     <div id="readoutGrid"></div>
 
     <div id="graphPanel" style="display:none; margin-top:10px;">
@@ -77,182 +78,539 @@
 
   <canvas id="simCanvas"></canvas>
 
-  <!-- CAMERA (with zoom normalization & cursor lock) -->
+  <!-- ENGINE: CAMERA (zoom-to-cursor + normalized wheel) -->
   <script type="text/x-module-source" id="engine-camera">
   export const camera = { x:0, y:0, scale:20, minScale:0.2, maxScale:5 };
-  export function worldToScreen(x,y,canvas){ const cx=canvas.width/2, cy=canvas.height/2; return { x: cx+(x-camera.x)*camera.scale, y: cy-(y-camera.y)*camera.scale }; }
-  export function screenToWorld(px,py,canvas){ const cx=canvas.width/2, cy=canvas.height/2; return { x:(px-cx)/camera.scale + camera.x, y:(cy-py)/camera.scale + camera.y }; }
+
+  export function worldToScreen(x,y,canvas){
+    const cx=canvas.width/2, cy=canvas.height/2;
+    return { x: cx+(x-camera.x)*camera.scale, y: cy-(y-camera.y)*camera.scale };
+  }
+  export function screenToWorld(px,py,canvas){
+    const cx=canvas.width/2, cy=canvas.height/2;
+    return { x:(px-cx)/camera.scale + camera.x, y:(cy-py)/camera.scale + camera.y };
+  }
+
   export function applyCameraInput(canvas){
     let dragging=false, last={x:0,y:0};
     const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-    function normalizedWheel(e){ let dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=120; dy=clamp(dy,-240,240); return -Math.sign(dy)*Math.log2(1+Math.abs(dy)/120); }
+    function normalizedWheel(e){
+      let dy=e.deltaY;
+      if(e.deltaMode===1) dy*=16;
+      else if(e.deltaMode===2) dy*=120;
+      dy=clamp(dy,-240,240);
+      return -Math.sign(dy)*Math.log2(1+Math.abs(dy)/120);
+    }
     canvas.addEventListener('wheel', (e)=>{
       e.preventDefault();
-      const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
       const before=screenToWorld(mx,my,canvas);
-      const ticks=normalizedWheel(e); const base=1.12; const zoomBase=e.ctrlKey?1.25:base; const factor=Math.pow(zoomBase,ticks);
-      const newScale=clamp(camera.scale*factor,camera.minScale,camera.maxScale); if(newScale===camera.scale) return;
-      camera.scale=newScale; const after=screenToWorld(mx,my,canvas); camera.x+=(before.x-after.x); camera.y+=(before.y-after.y);
+      const ticks=normalizedWheel(e);
+      const base=1.12;
+      const zoomBase=e.ctrlKey?1.25:base;
+      const factor=Math.pow(zoomBase,ticks);
+      const newScale=clamp(camera.scale*factor,camera.minScale,camera.maxScale);
+      if(newScale===camera.scale) return;
+      camera.scale=newScale;
+      const after=screenToWorld(mx,my,canvas);
+      camera.x += (before.x - after.x);
+      camera.y += (before.y - after.y);
     },{passive:false});
+
     canvas.addEventListener('mousedown', e=>{ dragging=true; last={x:e.clientX,y:e.clientY}; });
     window.addEventListener('mouseup', ()=> dragging=false);
-    canvas.addEventListener('mousemove', e=>{ if(!dragging) return; const dx=(e.clientX-last.x)/camera.scale; const dy=(e.clientY-last.y)/camera.scale; camera.x-=dx; camera.y+=dy; last={x:e.clientX,y:e.clientY}; });
+    canvas.addEventListener('mousemove', e=>{
+      if(!dragging) return;
+      const dx=(e.clientX-last.x)/camera.scale;
+      const dy=(e.clientY-last.y)/camera.scale;
+      camera.x-=dx; camera.y+=dy;
+      last={x:e.clientX,y:e.clientY};
+    });
   }
   </script>
 
-  <!-- RENDERER -->
+  <!-- ENGINE: RENDERER -->
   <script type="text/x-module-source" id="engine-renderer">
   import { worldToScreen, camera } from '#engine-camera';
   export const renderer={
     ctx:null, canvas:null,
     init(c){ this.canvas=c; this.ctx=c.getContext('2d',{alpha:false}); },
     clear(){ this.ctx.fillStyle='#0E1117'; this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height); },
-    line(x1,y1,x2,y2,color='#C9D1D9',w=2){ const p1=worldToScreen(x1,y1,this.canvas), p2=worldToScreen(x2,y2,this.canvas); this.ctx.strokeStyle=color; this.ctx.lineWidth=w; this.ctx.beginPath(); this.ctx.moveTo(p1.x,p1.y); this.ctx.lineTo(p2.x,p2.y); this.ctx.stroke(); },
-    ball(x,y,r,color){ const p=worldToScreen(x,y,this.canvas); this.ctx.fillStyle=color; this.ctx.beginPath(); this.ctx.arc(p.x,p.y, Math.max(1,r*camera.scale), 0, Math.PI*2); this.ctx.fill(); },
-    trail(points,style){ if(points.length<2) return; const {color,width=2,dash=null}=style; this.ctx.strokeStyle=color; this.ctx.lineWidth=width; this.ctx.setLineDash(dash||[]); this.ctx.beginPath(); for(let i=1;i<points.length;i++){ const p1=worldToScreen(points[i-1].x,points[i-1].y,this.canvas), p2=worldToScreen(points[i].x,points[i].y,this.canvas); this.ctx.moveTo(p1.x,p1.y); this.ctx.lineTo(p2.x,p2.y);} this.ctx.stroke(); this.ctx.setLineDash([]); },
-    text(str,x,y,color='#C9D1D9'){ const p=worldToScreen(x,y,this.canvas); this.ctx.fillStyle=color; this.ctx.font='14px JetBrains Mono, monospace'; this.ctx.fillText(str, p.x+6, p.y-6); }
-  };
-  </script>
-
-  <!-- GRAPH ENGINE (table/graph reporting) -->
-  <script type="text/x-module-source" id="engine-graph">
-  export const graphEngine={
-    canvas:null, ctx:null,
-    init(canvas){ this.canvas=canvas; this.ctx=canvas.getContext('2d'); this.resizeDPR(); },
-    resizeDPR(){ if(!this.canvas) return; const dpr=Math.max(1,Math.floor(window.devicePixelRatio||1)); const cssW=this.canvas.clientWidth; const cssH=this.canvas.clientHeight; this.canvas.width=Math.floor(cssW*dpr); this.canvas.height=Math.floor(cssH*dpr); },
-    drawSeries(series){ const ctx=this.ctx, c=this.canvas; if(!series||!series.values||series.values.length<2){ ctx.clearRect(0,0,c.width,c.height); return; }
-      ctx.clearRect(0,0,c.width,c.height);
-      const vals=series.values; const minT=Math.min(...vals.map(p=>p.t)); const maxT=Math.max(...vals.map(p=>p.t)); let minV=Math.min(...vals.map(p=>p.v)); let maxV=Math.max(...vals.map(p=>p.v)); if(minV===maxV){ minV-=1; maxV+=1; }
-      const pad=24; const W=c.width, H=c.height; const mapT=t=> pad + (t-minT)/(maxT-minT||1)*(W-2*pad); const mapV=v=> H-pad - (v-minV)/(maxV-minV||1)*(H-2*pad);
-      // Axes
-      ctx.strokeStyle='#2b3342'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
-      // Data
-      ctx.strokeStyle='#58A6FF'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(mapT(vals[0].t), mapV(vals[0].v)); for(let i=1;i<vals.length;i++){ ctx.lineTo(mapT(vals[i].t), mapV(vals[i].v)); } ctx.stroke();
-      // Label
-      ctx.fillStyle='#8B949E'; ctx.font='12px JetBrains Mono, monospace'; ctx.fillText(series.label||'Series', pad, pad-6);
+    line(x1,y1,x2,y2,color='#C9D1D9',w=2){
+      const p1=worldToScreen(x1,y1,this.canvas), p2=worldToScreen(x2,y2,this.canvas);
+      this.ctx.strokeStyle=color; this.ctx.lineWidth=w;
+      this.ctx.beginPath(); this.ctx.moveTo(p1.x,p1.y); this.ctx.lineTo(p2.x,p2.y); this.ctx.stroke();
+    },
+    ball(x,y,r,color){
+      const p=worldToScreen(x,y,this.canvas);
+      this.ctx.fillStyle=color;
+      this.ctx.beginPath();
+      this.ctx.arc(p.x,p.y, Math.max(1,r*camera.scale), 0, Math.PI*2);
+      this.ctx.fill();
+    },
+    trail(points, style){
+      if(points.length<2) return;
+      const {color,width=2,dash=null}=style;
+      this.ctx.strokeStyle=color; this.ctx.lineWidth=width; this.ctx.setLineDash(dash||[]);
+      this.ctx.beginPath();
+      for(let i=1;i<points.length;i++){
+        const p1=worldToScreen(points[i-1].x,points[i-1].y,this.canvas),
+              p2=worldToScreen(points[i].x,points[i].y,this.canvas);
+        this.ctx.moveTo(p1.x,p1.y); this.ctx.lineTo(p2.x,p2.y);
+      }
+      this.ctx.stroke(); this.ctx.setLineDash([]);
+    },
+    text(str,x,y,color='#C9D1D9'){
+      const p=worldToScreen(x,y,this.canvas);
+      this.ctx.fillStyle=color; this.ctx.font='14px JetBrains Mono, monospace';
+      this.ctx.fillText(str, p.x+6, p.y-6);
     }
   };
   </script>
 
-  <!-- ENGINE LOOP -->
+  <!-- ENGINE: GRAPH (reporting line plot) -->
+  <script type="text/x-module-source" id="engine-graph">
+  export const graphEngine={
+    canvas:null, ctx:null,
+    init(canvas){ this.canvas=canvas; this.ctx=canvas.getContext('2d'); this.resizeDPR(); },
+    resizeDPR(){
+      if(!this.canvas) return;
+      const dpr=Math.max(1,Math.floor(window.devicePixelRatio||1));
+      const cssW=this.canvas.clientWidth; const cssH=this.canvas.clientHeight;
+      this.canvas.width=Math.floor(cssW*dpr); this.canvas.height=Math.floor(cssH*dpr);
+    },
+    drawSeries(series){
+      const ctx=this.ctx, c=this.canvas;
+      ctx.clearRect(0,0,c.width,c.height);
+      if(!series || !series.values || series.values.length<2) return;
+
+      const vals=series.values;
+      const minT=Math.min(...vals.map(p=>p.t)), maxT=Math.max(...vals.map(p=>p.t));
+      let minV=Math.min(...vals.map(p=>p.v)), maxV=Math.max(...vals.map(p=>p.v));
+      if(minV===maxV){ minV-=1; maxV+=1; }
+
+      const pad=24, W=c.width, H=c.height;
+      const mapT=t=> pad + (t-minT)/(maxT-minT||1)*(W-2*pad);
+      const mapV=v=> H-pad - (v-minV)/(maxV-minV||1)*(H-2*pad);
+
+      // Axes
+      ctx.strokeStyle='#2b3342'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
+
+      // Data
+      ctx.strokeStyle='#58A6FF'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(mapT(vals[0].t), mapV(vals[0].v));
+      for(let i=1;i<vals.length;i++){ ctx.lineTo(mapT(vals[i].t), mapV(vals[i].v)); }
+      ctx.stroke();
+
+      ctx.fillStyle='#8B949E'; ctx.font='12px JetBrains Mono, monospace';
+      ctx.fillText(series.label||'Series', pad, pad-6);
+    }
+  };
+  </script>
+
+  <!-- ENGINE: LOOP -->
   <script type="text/x-module-source" id="engine-loop">
   export let activeExperiment=null; let last=0;
   export function setActiveExperiment(exp){ activeExperiment=exp; }
-  export function loop(t){ if(!last) last=t; const dt=Math.min(0.05,(t-last)/1000); last=t; if(activeExperiment){ activeExperiment.update?.(dt); activeExperiment.draw?.(); activeExperiment.updateUI?.(); } if(window.__graphActive){ const exp=activeExperiment; if(exp&&exp.getReportSeries){ const seriesList=exp.getReportSeries().graph||[]; const idx=(window.__graphSeriesIndex||0); const s=seriesList[idx]; if(window.__graphEngine && s){ window.__graphEngine.drawSeries(s); } } } requestAnimationFrame(loop); }
+  export function loop(t){
+    if(!last) last=t;
+    const dt=Math.min(0.05,(t-last)/1000); last=t;
+    if(activeExperiment){
+      activeExperiment.update?.(dt);
+      activeExperiment.draw?.();
+      activeExperiment.updateUI?.();
+    }
+    if(window.__graphActive){
+      const exp=activeExperiment;
+      if(exp && exp.getReportSeries){
+        const list=exp.getReportSeries().graph||[];
+        const idx=(window.__graphSeriesIndex||0);
+        const s=list[idx];
+        if(window.__graphEngine && s) window.__graphEngine.drawSeries(s);
+      }
+    }
+    requestAnimationFrame(loop);
+  }
   </script>
 
-  <!-- RUN MANAGER -->
+  <!-- ENGINE: RUN MANAGER -->
   <script type="text/x-module-source" id="engine-runmanager">
-  export const runManager={ runs:[], nextId:1,
-    saveRun(points,params,stats,style){ const run={ id:this.nextId++, points:structuredClone(points), params:structuredClone(params), stats:structuredClone(stats), visible:true, style:structuredClone(style)}; this.runs.push(run); return run; },
+  export const runManager={
+    runs:[], nextId:1,
+    saveRun(points,params,stats,style){
+      const run={ id:this.nextId++, points:structuredClone(points), params:structuredClone(params),
+                  stats:structuredClone(stats), visible:true, style:structuredClone(style) };
+      this.runs.push(run); return run;
+    },
     undo(){ return this.runs.pop(); },
     toggleVisibility(id){ const r=this.runs.find(x=>x.id===id); if(r) r.visible=!r.visible; },
     deleteRun(id){ this.runs=this.runs.filter(r=>r.id!==id); },
-    getStats(points){ if(!points.length) return {maxH:0,range:0,duration:0}; let minX=Infinity,maxX=-Infinity,maxY=-Infinity; for(const p of points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; } const last=points[points.length-1]; return {maxH:maxY, range:(maxX-minX), duration:last.t}; }
+    getStats(points){
+      if(!points.length) return {maxH:0,range:0,duration:0};
+      let minX=Infinity,maxX=-Infinity,maxY=-Infinity;
+      for(const p of points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; }
+      const last=points[points.length-1];
+      return { maxH:maxY, range:(maxX-minX), duration:last.t };
+    }
   };
   </script>
 
-  <!-- UI WORKBENCH (readouts + reporting hooks) -->
+  <!-- UI: WORKBENCH -->
   <script type="text/x-module-source" id="ui-workbench">
   import { runManager } from '#engine-runmanager';
   const el={
-    labelVel:document.getElementById('labelVel'), labelAng:document.getElementById('labelAng'), labelGrav:document.getElementById('labelGrav'),
-    sliderVel:document.getElementById('sliderVel'), sliderAng:document.getElementById('sliderAng'), sliderGrav:document.getElementById('sliderGrav'),
-    btnStart:document.getElementById('btnStart'), btnPause:document.getElementById('btnPause'), btnNewRun:document.getElementById('btnNewRun'), btnResetRun:document.getElementById('btnResetRun'), btnSaveRun:document.getElementById('btnSaveRun'),
-    expSelector:document.getElementById('expSelector'), presetSelect:document.getElementById('presetSelect'),
-    inclineControls:document.getElementById('inclineControls'), dirDown:document.getElementById('dirDown'), dirUp:document.getElementById('dirUp'),
-    readoutGrid:document.getElementById('readoutGrid'), runList:document.getElementById('runList'), presetToast:document.getElementById('presetToast'),
-    btnTableView:document.getElementById('btnTableView'), btnGraphView:document.getElementById('btnGraphView'),
-    graphPanel:document.getElementById('graphPanel'), graphSeriesSelect:document.getElementById('graphSeriesSelect')
+    labelVel:document.getElementById('labelVel'),
+    labelAng:document.getElementById('labelAng'),
+    labelGrav:document.getElementById('labelGrav'),
+    sliderVel:document.getElementById('sliderVel'),
+    sliderAng:document.getElementById('sliderAng'),
+    sliderGrav:document.getElementById('sliderGrav'),
+    btnStart:document.getElementById('btnStart'),
+    btnPause:document.getElementById('btnPause'),
+    btnNewRun:document.getElementById('btnNewRun'),
+    btnResetRun:document.getElementById('btnResetRun'),
+    btnSaveRun:document.getElementById('btnSaveRun'),
+    expSelector:document.getElementById('expSelector'),
+    presetSelect:document.getElementById('presetSelect'),
+    inclineControls:document.getElementById('inclineControls'),
+    dirDown:document.getElementById('dirDown'),
+    dirUp:document.getElementById('dirUp'),
+    readoutGrid:document.getElementById('readoutGrid'),
+    runList:document.getElementById('runList'),
+    presetToast:document.getElementById('presetToast'),
+    btnTableView:document.getElementById('btnTableView'),
+    btnGraphView:document.getElementById('btnGraphView'),
+    graphPanel:document.getElementById('graphPanel'),
+    graphSeriesSelect:document.getElementById('graphSeriesSelect')
   };
+
   export const paramsUI={ v0:25, angle:45*Math.PI/180, g:9.81 };
+
   el.sliderVel.oninput=()=>{ paramsUI.v0=+el.sliderVel.value; el.labelVel.textContent=paramsUI.v0; };
   el.sliderAng.oninput=()=>{ const d=+el.sliderAng.value; paramsUI.angle=d*Math.PI/180; el.labelAng.textContent=d; };
   el.sliderGrav.oninput=()=>{ paramsUI.g=+el.sliderGrav.value; el.labelGrav.textContent=paramsUI.g.toFixed(2); };
-  export function bindRunButtons(getActive){ el.btnStart.onclick=()=>getActive()?.startRun?.(paramsUI); el.btnPause.onclick=()=>getActive()?.pauseRun?.(); el.btnNewRun.onclick=()=>getActive()?.startNewRun?.(paramsUI); el.btnResetRun.onclick=()=>getActive()?.resetRun?.(paramsUI,{recenter:true}); el.btnSaveRun.onclick=()=>getActive()?.saveCurrentRun?.(); }
+
+  export function bindRunButtons(getActive){
+    el.btnStart.onclick = ()=> getActive()?.startRun?.(paramsUI);
+    el.btnPause.onclick = ()=> getActive()?.pauseRun?.();
+    el.btnNewRun.onclick = ()=> getActive()?.startNewRun?.(paramsUI);
+    el.btnResetRun.onclick = ()=> getActive()?.resetRun?.(paramsUI,{recenter:true});
+    el.btnSaveRun.onclick = ()=> getActive()?.saveCurrentRun?.();
+  }
+
   export function showInclineControls(show){ el.inclineControls.style.display=show?'':'none'; }
   export function bindInclineDirectionHandlers(setDir){ el.dirDown.onclick=()=>setDir('down'); el.dirUp.onclick=()=>setDir('up'); }
-  export function updateReadout(map){ el.readoutGrid.innerHTML=Object.entries(map).map(([k,v])=>`<div class="row"><span>${k}</span><span>${v}</span></div>`).join(''); }
-  export function refreshRunList(){ el.runList.innerHTML=''; for(const run of runManager.runs){ const row=document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.margin='4px 0'; row.innerHTML=`<span>Run ${run.id}</span><div><button class="visToggle" data-id="${run.id}">${run.visible?'👁':'🙈'}</button> <button class="delRun" data-id="${run.id}">✖</button></div>`; row.querySelector('.visToggle').onclick=()=>{ runManager.toggleVisibility(run.id); refreshRunList(); }; row.querySelector('.delRun').onclick=()=>{ runManager.deleteRun(run.id); refreshRunList(); }; el.runList.appendChild(row);} }
-  export function populateGraphSeries(seriesList){ el.graphSeriesSelect.innerHTML = (seriesList||[]).map((s,i)=>`<option value="${i}">${s.label}</option>`).join(''); }
+
+  export function updateReadout(map){
+    el.readoutGrid.innerHTML = Object.entries(map).map(([k,v]) =>
+      `<div class="row"><span>${k}</span><span>${v}</span></div>`).join('');
+  }
+
+  export function refreshRunList(){
+    el.runList.innerHTML='';
+    for(const run of runManager.runs){
+      const row=document.createElement('div');
+      row.style.display='flex'; row.style.justifyContent='space-between'; row.style.margin='4px 0';
+      row.innerHTML=`<span>Run ${run.id}</span>
+        <div>
+          <button class="visToggle" data-id="${run.id}">${run.visible?'👁':'🙈'}</button>
+          <button class="delRun" data-id="${run.id}">✖</button>
+        </div>`;
+      row.querySelector('.visToggle').onclick=()=>{ runManager.toggleVisibility(run.id); refreshRunList(); };
+      row.querySelector('.delRun').onclick=()=>{ runManager.deleteRun(run.id); refreshRunList(); };
+      el.runList.appendChild(row);
+    }
+  }
+
+  export function populateGraphSeries(seriesList){
+    el.graphSeriesSelect.innerHTML = (seriesList||[]).map((s,i)=>`<option value="${i}">${s.label}</option>`).join('');
+  }
+
   export { el };
   </script>
 
-  <!-- PLUGIN RUNTIME -->
+  <!-- PLUGIN RUNTIME (with 'opl:registered' event) -->
   <script type="text/x-module-source" id="plugin-runtime">
   import { renderer } from '#engine-renderer';
   import { camera, applyCameraInput } from '#engine-camera';
   import { runManager } from '#engine-runmanager';
   import { paramsUI, bindRunButtons, setPresets, onPresetChange, setSlidersFromParams, updateReadout, refreshRunList, showInclineControls, bindInclineDirectionHandlers, el, populateGraphSeries } from '#ui-workbench';
   import { setActiveExperiment } from '#engine-loop';
+
   const registry=new Map();
-  function ensureOption(id,label){ const sel=el.expSelector; if(![...sel.options].some(o=>o.value===id)){ const opt=document.createElement('option'); opt.value=id; opt.textContent=label; sel.appendChild(opt); } }
+  function ensureOption(id,label){
+    const sel=el.expSelector;
+    if(![...sel.options].some(o=>o.value===id)){
+      const opt=document.createElement('option'); opt.value=id; opt.textContent=label; sel.appendChild(opt);
+    }
+  }
+
   export const OPL={
-    registerExperiment(id,factory,meta){ registry.set(id,{id,factory,meta}); ensureOption(id, meta?.label||id); },
-    deps(){ return { renderer, camera, runManager, ui:{ paramsUI, setPresets, onPresetChange, setSlidersFromParams, updateReadout, refreshRunList, showInclineControls, bindInclineDirectionHandlers, populateGraphSeries }, el } },
-    _create(id){ const rec=registry.get(id); if(!rec) return null; return rec.factory(this.deps()); },
-    _meta(id){ return registry.get(id)?.meta||{}; },
-    _all(){ return [...registry.values()].map(r=>({id:r.id,meta:r.meta})); }
+    registerExperiment(id,factory,meta){
+      registry.set(id,{id,factory,meta});
+      ensureOption(id, meta?.label||id);
+      // notify listeners that a new experiment registered
+      document.dispatchEvent(new CustomEvent('opl:registered', { detail:{ id, meta } }));
+    },
+    deps(){
+      return {
+        renderer, camera, runManager,
+        ui:{ paramsUI, setPresets, onPresetChange, setSlidersFromParams, updateReadout, refreshRunList, showInclineControls, bindInclineDirectionHandlers, populateGraphSeries },
+        el
+      };
+    },
+    _create(id){ const rec=registry.get(id); return rec ? rec.factory(this.deps()) : null; },
+    _meta(id){ return registry.get(id)?.meta || {}; },
+    _all(){ return [...registry.values()].map(r=>({id:r.id, meta:r.meta})); }
   };
-  window.OPL=OPL; bindRunButtons(()=>window.__activeExperiment||null);
-  export { applyCameraInput }; export { registry }; export { paramsUI }; export { setActiveExperiment };
+
+  window.OPL=OPL;
+  bindRunButtons(()=>window.__activeExperiment||null);
+
+  export { applyCameraInput, registry, paramsUI, setActiveExperiment };
   </script>
 
-  <!-- EXPERIMENT: PROJECTILE (with getReportSeries) -->
+  <!-- EXPERIMENT: PROJECTILE -->
   <script type="text/x-module-source" id="exp-projectile">
   import { OPL } from '#plugin-runtime';
   import { runManager } from '#engine-runmanager';
   import { renderer } from '#engine-renderer';
   import { paramsUI, updateReadout } from '#ui-workbench';
+
   class ProjectileExperiment{
-    constructor(){ this.running=false; this.paused=false; this.points=[]; this.params={...paramsUI}; this.t=0; this.x=0; this.y=0; this.vx=0; this.vy=0; }
+    constructor(){
+      this.running=false; this.paused=false;
+      this.points=[]; this.params={...paramsUI};
+      this.t=0; this.x=0; this.y=0; this.vx=0; this.vy=0;
+    }
     _style(){ return { color:'#58A6FF', width:2 }; }
     _seed(){ const p=this.params; this.x=0; this.y=0; this.vx=p.v0*Math.cos(p.angle); this.vy=p.v0*Math.sin(p.angle); }
-    startRun(p){ if(this.running && !this.paused) return; this.params={...p}; if(this.paused){ this.paused=false; this.running=true; return; } this.points=[]; this.t=0; this.running=true; this.paused=false; this._seed(); }
+
+    startRun(p){
+      if(this.running && !this.paused) return;
+      this.params={...p};
+      if(this.paused){ this.paused=false; this.running=true; return; }
+      this.points=[]; this.t=0; this.running=true; this.paused=false; this._seed();
+    }
     pauseRun(){ this.paused=true; this.running=false; }
     startNewRun(p){ this.params={...p}; this.points=[]; this.t=0; this.running=true; this.paused=false; this._seed(); }
     resetRun(p){ this.params={...p}; this.points=[]; this.t=0; this.running=false; this.paused=false; this._seed(); }
-    saveCurrentRun(){ if(this.points.length<2) return; const stats=runManager.getStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); }
-    update(dt){ if(!this.running || this.paused) return; const p=this.params; this.t+=dt; this.vy-=p.g*dt; this.x+=this.vx*dt; this.y+=this.vy*dt; this.points.push({t:this.t,x:this.x,y:this.y,vx:this.vx,vy:this.vy}); if(this.y<=0 && this.t>0.05){ this.running=false; this.paused=false; this.saveCurrentRun(); } }
-    draw(){ renderer.clear(); renderer.line(-500,0,500,0,'#8B949E',2); renderer.trail(this.points,this._style()); renderer.ball(this.x,this.y,0.15,'#58A6FF'); }
-    updateUI(){ const speed=Math.hypot(this.vx,this.vy); updateReadout({ Time:this.t.toFixed(2)+' s', X:this.x.toFixed(2)+' m', Y:this.y.toFixed(2)+' m', Speed:speed.toFixed(2)+' m/s' }); }
-    getReportSeries(){ return { table:{ Time:this.t.toFixed(2)+' s', X:this.x.toFixed(2)+' m', Y:this.y.toFixed(2)+' m' }, graph:[ {label:'X Position', values:this.points.map(p=>({t:p.t,v:p.x}))}, {label:'Y Position', values:this.points.map(p=>({t:p.t,v:p.y}))}, {label:'Speed', values:this.points.map(p=>({t:p.t,v:Math.hypot(p.vx,p.vy)}))} ] }; }
+
+    saveCurrentRun(){
+      if(this.points.length<2) return;
+      const stats=runManager.getStats(this.points);
+      runManager.saveRun(this.points,this.params,stats,this._style());
+    }
+
+    update(dt){
+      if(!this.running || this.paused) return;
+      const p=this.params;
+      this.t+=dt;
+      this.vy-=p.g*dt;
+      this.x+=this.vx*dt; this.y+=this.vy*dt;
+      this.points.push({t:this.t,x:this.x,y:this.y,vx:this.vx,vy:this.vy});
+      if(this.y<=0 && this.t>0.05){ this.running=false; this.paused=false; this.saveCurrentRun(); }
+    }
+
+    draw(){
+      renderer.clear();
+      renderer.line(-500,0,500,0,'#8B949E',2);
+      renderer.trail(this.points,this._style());
+      renderer.ball(this.x,this.y,0.15,'#58A6FF');
+    }
+
+    updateUI(){
+      const speed=Math.hypot(this.vx,this.vy);
+      updateReadout({ Time:this.t.toFixed(2)+' s', X:this.x.toFixed(2)+' m', Y:this.y.toFixed(2)+' m', Speed:speed.toFixed(2)+' m/s' });
+    }
+
+    getReportSeries(){
+      return {
+        table:{ Time:this.t.toFixed(2)+' s', X:this.x.toFixed(2)+' m', Y:this.y.toFixed(2)+' m' },
+        graph:[
+          {label:'X Position', values:this.points.map(p=>({t:p.t,v:p.x}))},
+          {label:'Y Position', values:this.points.map(p=>({t:p.t,v:p.y}))},
+          {label:'Speed',      values:this.points.map(p=>({t:p.t,v:Math.hypot(p.vx,p.vy)}))}
+        ]
+      };
+    }
   }
-  OPL.registerExperiment('projectile', ()=> new ProjectileExperiment(), { label:'Projectile', presets:[ {label:'Classic 45°', p:{ v0:40, angleDeg:45, g:9.81 }}, {label:'Moon Gravity', p:{ v0:25, angleDeg:45, g:1.62 }} ], camera:{x:0,y:0,scale:20}, autoStart:true });
+
+  OPL.registerExperiment('projectile', ()=> new ProjectileExperiment(), {
+    label:'Projectile',
+    presets:[
+      {label:'Classic 45°', p:{ v0:40, angleDeg:45, g:9.81 }},
+      {label:'Moon Gravity', p:{ v0:25, angleDeg:45, g:1.62 }}
+    ],
+    camera:{x:0,y:0,scale:20},
+    autoStart:true
+  });
   </script>
 
-  <!-- EXPERIMENT: PENDULUM (fixed, with getReportSeries) -->
+  <!-- EXPERIMENT: PENDULUM (fixed) -->
   <script type="text/x-module-source" id="exp-pendulum">
   import { OPL } from '#plugin-runtime';
   import { renderer } from '#engine-renderer';
   import { runManager } from '#engine-runmanager';
   import { updateReadout } from '#ui-workbench';
+
   class PendulumExperiment{
-    constructor(){ this.running=false; this.paused=false; this.points=[]; this.params={ v0:0, angle:30*Math.PI/180, g:9.81 }; this.L=2.0; this.damping=0.04; this.pivot={x:0,y:1.5}; this.t=0; this.theta=this.params.angle; this.omega=0; this.settleTimer=0; }
+    constructor(){
+      this.running=false; this.paused=false; this.points=[];
+      this.params={ v0:0, angle:30*Math.PI/180, g:9.81 };
+      this.L=2.0; this.damping=0.04;
+      this.pivot={x:0,y:1.5};
+      this.t=0; this.theta=this.params.angle; this.omega=0;
+      this.settleTimer=0;
+    }
     _style(){ return { color:'#DAA520', width:2 }; }
-    _bob(){ return { x:this.pivot.x + this.L*Math.sin(this.theta), y:this.pivot.y - this.L*Math.cos(this.theta) }; }
-    _rk4(dt){ const g=this.params.g, L=this.L, b=this.damping; const f=(th,om)=> (-(g/L)*Math.sin(th) - b*om); const th=this.theta, om=this.omega; const k1_th=om; const k1_om=f(th,om); const k2_th=om+0.5*dt*k1_om; const k2_om=f(th+0.5*dt*k1_th, om+0.5*dt*k1_om); const k3_th=om+0.5*dt*k2_om; const k3_om=f(th+0.5*dt*k2_th, om+0.5*dt*k2_om); const k4_th=om+dt*k3_om; const k4_om=f(th+dt*k3_th, om+dt*k3_om); this.theta+=(dt/6)*(k1_th+2*k2_th+2*k3_th+k4_th); this.omega+=(dt/6)*(k1_om+2*k2_om+2*k3_om+k4_om); }
-    startRun(params){ if(this.running && !this.paused) return; this.params={...params}; if(this.paused){ this.paused=false; this.running=true; return; } this.running=true; this.paused=false; this.t=0; this.points=[]; this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0); this.settleTimer=0; }
+
+    _bob(){
+      return { x:this.pivot.x + this.L*Math.sin(this.theta),
+               y:this.pivot.y - this.L*Math.cos(this.theta) };
+    }
+
+    _rk4(dt){
+      const g=this.params.g, L=this.L, b=this.damping;
+      const f=(th,om)=> (-(g/L)*Math.sin(th) - b*om); // dω/dt
+      const th=this.theta, om=this.omega;
+
+      const k1_th=om;
+      const k1_om=f(th,om);
+
+      const k2_th=om+0.5*dt*k1_om;
+      const k2_om=f(th+0.5*dt*k1_th, om+0.5*dt*k1_om);
+
+      const k3_th=om+0.5*dt*k2_om;
+      const k3_om=f(th+0.5*dt*k2_th, om+0.5*dt*k2_om);
+
+      const k4_th=om+dt*k3_om;
+      const k4_om=f(th+dt*k3_th, om+dt*k3_om);
+
+      this.theta+=(dt/6)*(k1_th+2*k2_th+2*k3_th+k4_th);
+      this.omega+=(dt/6)*(k1_om+2*k2_om+2*k3_om+k4_om);
+    }
+
+    startRun(params){
+      if(this.running && !this.paused) return;
+      this.params={...params};
+      if(this.paused){ this.paused=false; this.running=true; return; }
+      this.running=true; this.paused=false;
+      this.t=0; this.points=[];
+      this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0);
+      this.settleTimer=0;
+    }
     pauseRun(){ this.running=false; this.paused=true; }
     startNewRun(p){ this.params={...p}; this.running=true; this.paused=false; this.t=0; this.points=[]; this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0); this.settleTimer=0; }
     resetRun(p){ this.params={...p}; this.running=false; this.paused=false; this.t=0; this.points=[]; this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0); this.settleTimer=0; }
-    saveCurrentRun(){ if(this.points.length<5) return; const stats=this._computeStats(); runManager.saveRun(this.points,this.params,stats,this._style()); }
-    _computeStats(){ if(!this.points.length) return {maxH:0,range:0,duration:0}; let minX=Infinity,maxX=-Infinity,maxY=-Infinity; for(const p of this.points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; } const last=this.points[this.points.length-1]; return { maxH:maxY, range:(maxX-minX), duration:last.t }; }
-    update(dt){ if(!this.running || this.paused) return; const step=Math.min(0.02,dt); this.t+=step; this._rk4(step); const pos=this._bob(); this.points.push({ t:this.t, x:pos.x, y:pos.y, theta:this.theta, omega:this.omega }); const lowEnergy=(Math.abs(this.omega)<0.01 && Math.abs(this.theta)<0.01); this.settleTimer = lowEnergy? (this.settleTimer+step) : 0; if(this.settleTimer>3.0){ this.running=false; this.paused=false; this.saveCurrentRun(); } }
-    draw(){ renderer.clear(); renderer.ball(this.pivot.x,this.pivot.y,0.06,'#C9D1D9'); if(this.points.length){ const last=this.points[this.points.length-1]; renderer.line(this.pivot.x,this.pivot.y,last.x,last.y,'#8B949E',2); } renderer.trail(this.points,this._style()); if(this.points.length){ const last=this.points[this.points.length-1]; renderer.ball(last.x,last.y,0.12,'#DAA520'); } }
-    updateUI(){ const m=1,g=this.params.g,L=this.L; const yLowest=this.pivot.y-L; const bob=this._bob(); const h=bob.y-yLowest; const v=Math.abs(this.omega)*L; const PE=m*g*h, KE=0.5*m*v*v, E=PE+KE; updateReadout({ Time:this.t.toFixed(2)+' s', 'θ':(this.theta*180/Math.PI).toFixed(1)+' °', 'ω':this.omega.toFixed(3)+' rad/s', Speed:v.toFixed(2)+' m/s', Energy:E.toFixed(2)+' J' }); }
-    getReportSeries(){ return { table:{ Time:this.t.toFixed(2)+' s', Theta:(this.theta*180/Math.PI).toFixed(1)+' °', Omega:this.omega.toFixed(3)+' rad/s' }, graph:[ {label:'Angle (θ, rad)', values:this.points.map(p=>({t:p.t,v:p.theta}))}, {label:'Omega (ω, rad/s)', values:this.points.map(p=>({t:p.t,v:p.omega}))} ] }; }
+
+    saveCurrentRun(){
+      if(this.points.length<5) return;
+      const stats=this._computeStats();
+      runManager.saveRun(this.points,this.params,stats,this._style());
+    }
+
+    _computeStats(){
+      if(!this.points.length) return {maxH:0,range:0,duration:0};
+      let minX=Infinity,maxX=-Infinity,maxY=-Infinity;
+      for(const p of this.points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; }
+      const last=this.points[this.points.length-1];
+      return { maxH:maxY, range:(maxX-minX), duration:last.t };
+    }
+
+    update(dt){
+      if(!this.running || this.paused) return;
+      const step=Math.min(0.02,dt);
+      this.t+=step;
+      this._rk4(step);
+      const pos=this._bob();
+      this.points.push({ t:this.t, x:pos.x, y:pos.y, theta:this.theta, omega:this.omega });
+
+      const lowEnergy=(Math.abs(this.omega)<0.01 && Math.abs(this.theta)<0.01);
+      this.settleTimer = lowEnergy ? (this.settleTimer+step) : 0;
+      if(this.settleTimer>3.0){
+        this.running=false; this.paused=false;
+        this.saveCurrentRun();
+      }
+    }
+
+    draw(){
+      renderer.clear();
+      renderer.ball(this.pivot.x,this.pivot.y,0.06,'#C9D1D9');
+      if(this.points.length){
+        const last=this.points[this.points.length-1];
+        renderer.line(this.pivot.x,this.pivot.y,last.x,last.y,'#8B949E',2);
+      }
+      renderer.trail(this.points,this._style());
+      if(this.points.length){
+        const last=this.points[this.points.length-1];
+        renderer.ball(last.x,last.y,0.12,'#DAA520');
+      }
+    }
+
+    updateUI(){
+      const m=1, g=this.params.g, L=this.L;
+      const yLowest=this.pivot.y-L;
+      const bob=this._bob();
+      const h=bob.y-yLowest;
+      const v=Math.abs(this.omega)*L;
+      const PE=m*g*h, KE=0.5*m*v*v, E=PE+KE;
+      updateReadout({
+        Time:this.t.toFixed(2)+' s',
+        'θ':(this.theta*180/Math.PI).toFixed(1)+' °',
+        'ω':this.omega.toFixed(3)+' rad/s',
+        Speed:v.toFixed(2)+' m/s',
+        Energy:E.toFixed(2)+' J'
+      });
+    }
+
+    getReportSeries(){
+      return {
+        table:{ Time:this.t.toFixed(2)+' s', Theta:(this.theta*180/Math.PI).toFixed(1)+' °', Omega:this.omega.toFixed(3)+' rad/s' },
+        graph:[
+          {label:'Angle (θ, rad)', values:this.points.map(p=>({t:p.t,v:p.theta}))},
+          {label:'Omega (ω, rad/s)', values:this.points.map(p=>({t:p.t,v:p.omega}))}
+        ]
+      };
+    }
   }
-  OPL.registerExperiment('pendulum', ()=> new PendulumExperiment(), { label:'Pendulum', presets:[ {label:'Small Angle — Ideal', p:{ L:2.0, angleDeg:15, g:9.81, damping:0, v0:0 }}, {label:'Large Angle (90°)', p:{ L:1.5, angleDeg:90, g:9.81, damping:0, v0:0 }}, {label:'Overdamped', p:{ L:1.0, angleDeg:45, g:9.81, damping:1.8, v0:0 }} ], camera:{x:0,y:0,scale:20}, autoStart:true });
+
+  OPL.registerExperiment('pendulum', ()=> new PendulumExperiment(), {
+    label:'Pendulum',
+    presets:[
+      {label:'Small Angle — Ideal', p:{ L:2.0, angleDeg:15, g:9.81, damping:0, v0:0 }},
+      {label:'Large Angle (90°)',  p:{ L:1.5, angleDeg:90, g:9.81, damping:0, v0:0 }},
+      {label:'Overdamped',         p:{ L:1.0, angleDeg:45, g:9.81, damping:1.8, v0:0 }}
+    ],
+    camera:{x:0,y:0,scale:20},
+    autoStart:true
+  });
   </script>
 
   <!-- PRESETS SYSTEM -->
   <script type="text/x-module-source" id="exp-presets">
-  export function buildPresetOptions(meta){ const presets=meta?.presets||[]; return presets.map((p,i)=>({label:p.label,index:i})); }
-  export function applyPreset(meta,index,paramsUI){ const conf=(meta?.presets||[])[index]; if(!conf) return null; const p=conf.p||{}; if(p.v0!=null) paramsUI.v0=p.v0; if(p.angleDeg!=null) paramsUI.angle=p.angleDeg*Math.PI/180; if(p.g!=null) paramsUI.g=p.g; const extras={}; for(const k of ['L','damping','k','m','c','x0','muS','muK','mode']){ if(p[k]!=null) extras[k]=p[k]; } return { paramsUI, extras, label:conf.label }; }
+  export function buildPresetOptions(meta){
+    const presets=meta?.presets||[];
+    return presets.map((p,i)=>({label:p.label,index:i}));
+  }
+  export function applyPreset(meta,index,paramsUI){
+    const conf=(meta?.presets||[])[index];
+    if(!conf) return null;
+    const p=conf.p||{};
+    if(p.v0!=null) paramsUI.v0=p.v0;
+    if(p.angleDeg!=null) paramsUI.angle=p.angleDeg*Math.PI/180;
+    if(p.g!=null) paramsUI.g=p.g;
+    const extras={};
+    for(const k of ['L','damping','k','m','c','x0','muS','muK','mode']){
+      if(p[k]!=null) extras[k]=p[k];
+    }
+    return { paramsUI, extras, label:conf.label };
+  }
   </script>
 
-  <!-- MAIN APP (DPR canvas + reporting UI) -->
+  <!-- MAIN (DPR canvas + reporting + plugin auto-refresh) -->
   <script type="text/x-module-source" id="main">
   import { renderer } from '#engine-renderer';
   import { camera, applyCameraInput } from '#engine-camera';
@@ -265,38 +623,113 @@
   const canvas=document.getElementById('simCanvas');
   const graphCanvas=document.getElementById('graphCanvas');
 
-  function resizeCanvasDPR(){ const dpr=Math.max(1,Math.floor(window.devicePixelRatio||1)); const cssW=window.innerWidth-300; const cssH=window.innerHeight-48; canvas.width=Math.floor(cssW*dpr); canvas.height=Math.floor(cssH*dpr); canvas.style.width=cssW+'px'; canvas.style.height=cssH+'px'; }
-  function resizeGraphCanvasDPR(){ if(graphEngine) graphEngine.resizeDPR(); }
+  function resizeCanvasDPR(){
+    const dpr=Math.max(1,Math.floor(window.devicePixelRatio||1));
+    const cssW=window.innerWidth-300, cssH=window.innerHeight-48;
+    canvas.width=Math.floor(cssW*dpr); canvas.height=Math.floor(cssH*dpr);
+    canvas.style.width=cssW+'px'; canvas.style.height=cssH+'px';
+  }
+  function resizeGraphCanvasDPR(){ graphEngine.resizeDPR(); }
 
   resizeCanvasDPR();
   window.addEventListener('resize', ()=>{ resizeCanvasDPR(); resizeGraphCanvasDPR(); });
 
-  renderer.init(canvas); applyCameraInput(canvas);
-  graphEngine.init(graphCanvas); window.__graphEngine = graphEngine; window.__graphActive=false; window.__graphSeriesIndex=0;
+  renderer.init(canvas);
+  applyCameraInput(canvas);
+  graphEngine.init(graphCanvas);
+  window.__graphEngine = graphEngine;
+  window.__graphActive=false; window.__graphSeriesIndex=0;
 
-  function rebuildExperimentSelector(){ const all=OPL._all(); el.expSelector.innerHTML=''; for(const {id,meta} of all){ const opt=document.createElement('option'); opt.value=id; opt.textContent=meta?.label||id; el.expSelector.appendChild(opt); } }
+  function rebuildExperimentSelector(){
+    const all=OPL._all();
+    el.expSelector.innerHTML='';
+    for(const {id,meta} of all){
+      const opt=document.createElement('option'); opt.value=id; opt.textContent=meta?.label||id;
+      el.expSelector.appendChild(opt);
+    }
+  }
 
   function switchToTable(){ el.readoutGrid.style.display=''; el.graphPanel.style.display='none'; window.__graphActive=false; }
-  function switchToGraph(){ const exp=window.__activeExperiment; if(!exp||!exp.getReportSeries) return; const series=exp.getReportSeries().graph||[]; populateGraphSeries(series); el.readoutGrid.style.display='none'; el.graphPanel.style.display=''; window.__graphActive=true; window.__graphSeriesIndex=0; if(series[0]) graphEngine.drawSeries(series[0]); }
+  function switchToGraph(){
+    const exp=window.__activeExperiment; if(!exp||!exp.getReportSeries) return;
+    const series=exp.getReportSeries().graph||[];
+    populateGraphSeries(series);
+    el.readoutGrid.style.display='none'; el.graphPanel.style.display='';
+    window.__graphActive=true; window.__graphSeriesIndex=0;
+    if(series[0]) graphEngine.drawSeries(series[0]);
+  }
 
   el.btnTableView.onclick = switchToTable;
   el.btnGraphView.onclick = switchToGraph;
   el.graphSeriesSelect.onchange = (e)=>{ window.__graphSeriesIndex = +e.target.value; };
 
-  function activate(id){ const exp=OPL._create(id); if(!exp) return; window.__activeExperiment=exp; setActiveExperiment(exp); const meta=OPL._meta(id); if(meta?.camera){ camera.x=meta.camera.x??0; camera.y=meta.camera.y??0; camera.scale=meta.camera.scale??20; } if(id==='pendulum'){ paramsUI.v0=0; } exp.resetRun?.(paramsUI,{recenter:true}); const opts=buildPresetOptions(meta); setPresets(opts); onPresetChange((index)=>{ const res=applyPreset(meta,index,paramsUI); if(!res) return; setSlidersFromParams(paramsUI); if(res.extras) Object.assign(paramsUI,res.extras); exp.resetRun?.(paramsUI,{recenter:true}); if(meta?.autoStart) exp.startRun?.(paramsUI); el.presetToast.textContent = `Loaded: ${res.label}`; el.presetToast.classList.add('show'); setTimeout(()=> el.presetToast.classList.remove('show'), 1200); if(window.__graphActive) switchToGraph(); }); if(meta?.autoStart) exp.startRun?.(paramsUI); refreshRunList(); switchToTable(); }
+  // If a plugin registers after boot, refresh the dropdown (and auto-activate first if none active)
+  document.addEventListener('opl:registered', ()=>{
+    rebuildExperimentSelector();
+    if(!window.__activeExperiment){
+      const first=OPL._all()[0]?.id;
+      if(first) activate(first);
+    }
+  });
+
+  function activate(id){
+    const exp=OPL._create(id); if(!exp) return;
+    window.__activeExperiment=exp; setActiveExperiment(exp);
+
+    const meta=OPL._meta(id);
+    if(meta?.camera){ camera.x=meta.camera.x??0; camera.y=meta.camera.y??0; camera.scale=meta.camera.scale??20; }
+    if(id==='pendulum'){ paramsUI.v0=0; }
+
+    exp.resetRun?.(paramsUI,{recenter:true});
+
+    const opts=buildPresetOptions(meta);
+    setPresets(opts);
+    onPresetChange((index)=>{
+      const res=applyPreset(meta,index,paramsUI); if(!res) return;
+      setSlidersFromParams(paramsUI);
+      if(res.extras) Object.assign(paramsUI,res.extras);
+      exp.resetRun?.(paramsUI,{recenter:true});
+      if(meta?.autoStart) exp.startRun?.(paramsUI);
+      el.presetToast.textContent = `Loaded: ${res.label}`;
+      el.presetToast.classList.add('show'); setTimeout(()=> el.presetToast.classList.remove('show'), 1200);
+      if(window.__graphActive) switchToGraph();
+    });
+
+    if(meta?.autoStart) exp.startRun?.(paramsUI);
+    refreshRunList();
+    switchToTable();
+  }
 
   rebuildExperimentSelector();
   el.expSelector.onchange = ()=> activate(el.expSelector.value);
   const first=OPL._all()[0]?.id; if(first) activate(first);
+
   requestAnimationFrame(loop);
   </script>
 
-  <!-- BOOTSTRAP LOADER -->
+  <!-- BOOTSTRAP LOADER (await experiments before main) -->
   <script type="module">
-    (function bootstrap(){ const sources=[...document.querySelectorAll('script[type="text/x-module-source"][id]')]; const imports={}; for(const s of sources){ const code=s.textContent; const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})); imports['#'+s.id]=url; } const im=document.createElement('script'); im.type='importmap'; im.textContent=JSON.stringify({imports},null,2); document.head.appendChild(im); })();
-    import('#exp-projectile');
-    import('#exp-pendulum');
-    import('#main');
+    (async function bootstrap(){
+      // Build import map from inline modules
+      const sources=[...document.querySelectorAll('script[type="text/x-module-source"][id]')];
+      const imports={};
+      for(const s of sources){
+        const code=s.textContent;
+        const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
+        imports['#'+s.id]=url;
+      }
+      const im=document.createElement('script');
+      im.type='importmap';
+      im.textContent=JSON.stringify({imports},null,2);
+      document.head.appendChild(im);
+
+      // Ensure experiments register BEFORE main initializes UI
+      await import('#exp-projectile');
+      await import('#exp-pendulum');
+
+      // Now start the app
+      await import('#main');
+    })();
   </script>
 </body>
 </html>
