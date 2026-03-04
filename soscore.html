@@ -14,15 +14,15 @@
 
 <style>
   :root {
-    --bg: #0f172a;       /* slate-900 */
-    --panel: #1e293b;    /* slate-800 */
-    --line: #334155;     /* slate-700 */
-    --line2: #64748b;    /* slate-500 */
-    --text: #e5e7eb;     /* gray-200 */
-    --subtle: #cbd5e1;   /* slate-300 */
-    --primary: #38bdf8;  /* sky-400 */
-    --warn-border: #a16207; /* amber-700 */
-    --warn-bg: #78350f22;   /* amber-900 @ ~13% alpha */
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --line: #334155;
+    --line2: #64748b;
+    --text: #e5e7eb;
+    --subtle: #cbd5e1;
+    --primary: #38bdf8;
+    --warn-border: #a16207;
+    --warn-bg: #78350f22;
   }
   * { box-sizing: border-box; }
   body {
@@ -57,39 +57,40 @@
   .input:focus { outline: 2px solid var(--primary); }
   .label { font-weight: 700; margin-right: 6px; }
 
-  /* --- Responsive scoring grid --- */
-
-  /* Grid container wraps in a scroll shell so it always fits the screen */
+  /* --- Grid shell: no overflow:hidden so sticky headers work --- */
   .grid-shell {
     border: 1px solid var(--line);
     border-radius: 8px;
-    overflow: hidden;            /* clips sticky header bottom borders nicely */
-  }
-  .grid-scroll {
-    overflow-x: auto;            /* horizontal scroll on narrow screens */
-    overflow-y: auto;
-    max-height: min(72vh, 1200px); /* keep room for toolbar on small screens */
+    /* REMOVED overflow:hidden — it was clipping sticky headers */
   }
 
-  /* 15-column grid with sensible min widths; shrinks but remains readable */
+  /* Single scroll container holds BOTH headers and all rows */
+  .grid-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: min(72vh, 1200px);
+    border-radius: 8px;
+  }
+
+  /* 15-column grid */
   .score-grid {
     display: grid;
     grid-template-columns:
-      minmax(2.8rem, 3rem)           /* ID */
-      minmax(12rem, 1.3fr)           /* Team Name */
-      minmax(4.2rem, 5.2rem)         /* F1 T1 */
-      minmax(4.2rem, 5.2rem)         /* F1 T2 */
-      minmax(4.2rem, 5.2rem)         /* F1 T3 */
-      minmax(3.6rem, 4.2rem)         /* 2B1 */
-      minmax(5.2rem, 6.4rem)         /* Log1 */
-      minmax(4.2rem, 5.2rem)         /* F2 T1 */
-      minmax(4.2rem, 5.2rem)         /* F2 T2 */
-      minmax(4.2rem, 5.2rem)         /* F2 T3 */
-      minmax(3.6rem, 4.2rem)         /* 2B2 */
-      minmax(5.2rem, 6.4rem)         /* Log2 */
-      minmax(4.2rem, 5.2rem)         /* Penalty */
-      minmax(5.0rem, 6.0rem)         /* Score */
-      minmax(3.6rem, 4.2rem);        /* Rank */
+      minmax(2.8rem, 3rem)
+      minmax(12rem, 1.3fr)
+      minmax(4.2rem, 5.2rem)
+      minmax(4.2rem, 5.2rem)
+      minmax(4.2rem, 5.2rem)
+      minmax(3.6rem, 4.2rem)
+      minmax(5.2rem, 6.4rem)
+      minmax(4.2rem, 5.2rem)
+      minmax(4.2rem, 5.2rem)
+      minmax(4.2rem, 5.2rem)
+      minmax(3.6rem, 4.2rem)
+      minmax(5.2rem, 6.4rem)
+      minmax(4.2rem, 5.2rem)
+      minmax(5.0rem, 6.0rem)
+      minmax(3.6rem, 4.2rem);
     gap: .5rem;
     align-items: center;
     padding: 8px 12px;
@@ -97,39 +98,44 @@
 
   .header {
     font-weight: 700;
-    background: #0f172aee; /* sticky bg to cover rows when stuck */
+    background: #0f172aee;
     backdrop-filter: saturate(1.2);
     border-bottom: 1px solid var(--line2);
   }
   .row {
     border-bottom: 1px solid var(--line);
-    padding-top: 6px; padding-bottom: 6px;
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 
-  /* Two-row sticky header */
+  /* Sticky headers — both sit inside .grid-scroll now */
   .sticky {
     position: sticky;
     top: 0;
     z-index: 5;
   }
+  /* Second header row sticks just below the first */
   .sticky.second {
-    top: 36px; /* sits just below the group header row */
+    top: 38px;
     z-index: 6;
   }
 
   .group-label {
-    text-transform: uppercase; font-size: .75rem; letter-spacing: .04em;
-    color: #93c5fd; text-align: center;
-    display: flex; align-items: center; justify-content: center;
+    text-transform: uppercase;
+    font-size: .75rem;
+    letter-spacing: .04em;
+    color: #93c5fd;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* simple column-span utilities used for group labels */
   .span-5 { grid-column: span 5; }
 
   .subtle-warn { border-color: var(--warn-border) !important; background-color: var(--warn-bg) !important; }
   .text-primary { color: var(--primary); font-weight: 800; text-align: center; }
 
-  /* Keep buttons and inputs readable at small widths */
   @media (max-width: 640px) {
     .toolbar-right { width: 100%; justify-content: flex-start; }
     .btn { padding: 8px 10px; font-size: .92rem; }
@@ -144,7 +150,6 @@
 <script>
 "use strict";
 
-/* ---- Guard: if React failed to load, show a helpful message ---- */
 (function ensureReactLoaded(){
   const ok = !!(window.React && window.ReactDOM);
   if (!ok) {
@@ -156,7 +161,7 @@
 const e = React.createElement;
 
 /* =========================================================================
-   Storage (per-division persistence)
+   Storage
    ========================================================================= */
 const STORAGE_KEY = "scioly_helicopter_v3";
 
@@ -230,12 +235,12 @@ function TeamRow({ team, onChange }) {
     const arr = [...team[flight]]; arr[idx] = v;
     onChange({ ...team, [flight]: arr });
   };
-  const warn = (v) => (v === "" ? "input subtle-warn w-full" : "input w-full");
+  const warn = (v) => (v === "" ? "input subtle-warn" : "input");
 
   return e("div", { className: "score-grid row" },
     e("div", null, team.id),
 
-    e("input", { className: "input w-full", value: team.name, placeholder: "Team Name",
+    e("input", { className: "input", style: { width: "100%" }, value: team.name, placeholder: "Team Name",
       onChange: ev => setField("name", ev.target.value) }),
 
     ...team.f1.map((t, i) => e("input", {
@@ -270,7 +275,7 @@ function TeamRow({ team, onChange }) {
       e("option", { value: "partial" }, "Partial"),
       e("option", { value: "full" }, "Full")),
 
-    e("input", { className: "input w-full", type: "number", step: "0.01", min: "0", max: "1",
+    e("input", { className: "input", type: "number", step: "0.01", min: "0", max: "1",
       value: team.penalty, onChange: ev => setField("penalty", ev.target.value) }),
 
     e("div", { className: "text-primary" },
@@ -281,14 +286,12 @@ function TeamRow({ team, onChange }) {
 }
 
 /* =========================================================================
-   Scoring Page (division-scoped)
+   Scoring Page
    ========================================================================= */
 function ScoringPage({ data, setData }) {
   const activeDivision = data.activeDivision;
   const divData = data.divisions[activeDivision];
 
-  /* HOOKS MUST REMAIN IN THE SAME ORDER EVERY RENDER */
-  // 1) Initialize division first time we see it (async so we don't block paint)
   React.useEffect(() => {
     if (!divData.initialized) {
       setTimeout(() => {
@@ -299,10 +302,8 @@ function ScoringPage({ data, setData }) {
     }
   }, [activeDivision, divData.initialized, data, setData]);
 
-  // 2) Safe teams array even if not initialized yet
   const teams = divData.initialized ? divData.teams : [];
 
-  // 3) Derive scores/ranks (always run; OK on [])
   const derivedTeams = React.useMemo(() => {
     const enriched = teams.map(t => {
       const f1 = computeFlightScore(t.f1, t.twoBlade1, t.log1);
@@ -325,7 +326,6 @@ function ScoringPage({ data, setData }) {
     return enriched.map((t, i) => ({ ...t, rank: ranks[i] }));
   }, [teams]);
 
-  // Update helpers (only active division)
   const updateTeams = (newTeams) => {
     const next = {
       ...data,
@@ -337,7 +337,6 @@ function ScoringPage({ data, setData }) {
     setData(next);
   };
 
-  // Exports
   const exportDivisionPDF = () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "pt", format: "letter" });
@@ -363,6 +362,7 @@ function ScoringPage({ data, setData }) {
     }
     pdf.save(`Division_${activeDivision}_Results.pdf`);
   };
+
   const exportSupervisorPacket = () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "pt", format: "letter" });
@@ -409,7 +409,6 @@ function ScoringPage({ data, setData }) {
     pdf.save(`Supervisor_Packet_Div_${activeDivision}.pdf`);
   };
 
-  // Controls (inside scoring section)
   const controlsBar = e("div", { className: "panel toolbar" },
     e("div", { className: "toolbar-left" },
       e("span", { className: "label" }, "Division:"),
@@ -457,30 +456,39 @@ function ScoringPage({ data, setData }) {
     )
   );
 
-  // ===== Two-row sticky headers (clean alignment) =====
+  // ===== Two-row sticky header — both rows are now INSIDE .grid-scroll =====
   const headerTop = e(
     "div",
     { className: "score-grid header sticky" },
-    // 15 total columns: 2 placeholders, 5 F1, 5 F2, 3 placeholders
-    e("div", null),          // ID placeholder
-    e("div", null),          // Team placeholder
+    e("div", null),   // ID
+    e("div", null),   // Team
     e("div", { className: "group-label span-5" }, "FLIGHT 1"),
     e("div", { className: "group-label span-5" }, "FLIGHT 2"),
-    e("div", null),          // PEN placeholder
-    e("div", null),          // Score placeholder
-    e("div", null)           // Rank placeholder
+    e("div", null),   // PEN
+    e("div", null),   // Score
+    e("div", null)    // Rank
   );
 
   const headerSecond = e(
     "div",
     { className: "score-grid header sticky second" },
-    "ID", "Team",
-    "F1 T1", "F1 T2", "F1 T3", "2B1", "Log1",
-    "F2 T1", "F2 T2", "F2 T3", "2B2", "Log2",
-    "PEN", "Score", "Rank"
+    e("div", null, "ID"),
+    e("div", null, "Team"),
+    e("div", { style: { textAlign: "center" } }, "F1 T1"),
+    e("div", { style: { textAlign: "center" } }, "F1 T2"),
+    e("div", { style: { textAlign: "center" } }, "F1 T3"),
+    e("div", { style: { textAlign: "center" } }, "2B1"),
+    e("div", { style: { textAlign: "center" } }, "Log1"),
+    e("div", { style: { textAlign: "center" } }, "F2 T1"),
+    e("div", { style: { textAlign: "center" } }, "F2 T2"),
+    e("div", { style: { textAlign: "center" } }, "F2 T3"),
+    e("div", { style: { textAlign: "center" } }, "2B2"),
+    e("div", { style: { textAlign: "center" } }, "Log2"),
+    e("div", { style: { textAlign: "center" } }, "PEN"),
+    e("div", { style: { textAlign: "center" } }, "Score"),
+    e("div", { style: { textAlign: "center" } }, "Rank")
   );
 
-  // While division initializes (prompt fired), render placeholder with toolbar
   if (!divData.initialized) {
     return e("div", { className: "container" },
       e("h1", null, data.eventName),
@@ -495,12 +503,12 @@ function ScoringPage({ data, setData }) {
     e("div", { className: "subtext" }, "Switch divisions inside the scoring section. Each division has its own teams and scores."),
     controlsBar,
 
-    // Responsive shell: sticky headers + scrollable grid body
+    // FIX: both header rows are now INSIDE .grid-scroll so sticky positioning works
+    // and they share the same grid/scroll context as data rows
     e("div", { className: "grid-shell" },
-      headerTop,
-      headerSecond,
       e("div", { className: "grid-scroll" },
-        // rows
+        headerTop,
+        headerSecond,
         ...derivedTeams.map((t, i) =>
           e(TeamRow, {
             key: t.id,
@@ -528,7 +536,7 @@ function App() {
    Mount
    ========================================================================= */
 document.addEventListener("DOMContentLoaded", function () {
-  if (!(window.React && window.ReactDOM)) return; // guard
+  if (!(window.React && window.ReactDOM)) return;
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(e(App));
 });
