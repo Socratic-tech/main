@@ -44,13 +44,28 @@ body {
 
 /* ── Header bar ─────────────────────────────────────────────── */
 .app-header {
-  padding: 18px 24px 14px;
+  padding: 14px 24px 14px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, #0d1e3a 0%, transparent 100%);
   display: flex;
-  align-items: baseline;
-  gap: 16px;
+  align-items: center;
+  gap: 20px;
   flex-wrap: wrap;
+}
+.app-logo {
+  height: 64px;
+  width: auto;
+  flex-shrink: 0;
+  /* invert white logo to work on dark bg; filter keeps it crisp */
+  filter: brightness(0) invert(1) drop-shadow(0 0 8px #00c4ff44);
+}
+.app-logo-fallback {
+  display: none;
+}
+.app-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 .app-title {
   font-family: var(--head);
@@ -633,7 +648,13 @@ function App() {
   return e("div", null,
     // Header
     e("div", { className: "app-header" },
-      e("div", null,
+      e("img", {
+        className: "app-logo",
+        src: "https://www.soinc.org/themes/custom/scioly/img/science-olympiad.png",
+        alt: "Science Olympiad",
+        onError: (ev) => { ev.target.style.display = "none"; }
+      }),
+      e("div", { className: "app-header-text" },
         e("div", { className: "app-title" }, data.eventName),
         e("div", { className: "app-subtitle" }, `Division ${div} · ${teams.length} Teams`)
       )
