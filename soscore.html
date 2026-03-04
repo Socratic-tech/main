@@ -137,6 +137,15 @@ body {
 .btn-primary:hover { background: var(--accent); color: #000; }
 .btn-danger { border-color: #3a1520; }
 .btn-danger:hover { background: #3a1520; border-color: var(--danger); color: var(--danger); }
+.btn-rules {
+  border-color: #1a4030;
+  color: #4dd9a0;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-rules:hover { background: #0d2a1f; border-color: #4dd9a0; color: #4dd9a0; }
 
 .div-tabs { display: flex; gap: 4px; }
 .div-tab {
@@ -687,6 +696,15 @@ function App() {
       e("div", { className: "toolbar-group" },
         e("button", { className: "btn btn-primary", onClick: () => exportDivPDF(data.eventName, div, ranked) }, "⬇ Results PDF"),
         e("button", { className: "btn btn-primary", onClick: () => exportSupervisor(data.eventName, div, ranked) }, "⬇ Supervisor PDF"),
+      ),
+      e("div", { className: "toolbar-sep" }),
+      e("div", { className: "toolbar-group" },
+        e("a", {
+          className: "btn btn-rules",
+          href: `https://www.soinc.org/helicopter-${div.toLowerCase()}`,
+          target: "_blank",
+          rel: "noopener noreferrer"
+        }, "📋 Div " + div + " Rules ↗"),
       ),
       e("div", { className: "toolbar-sep" }),
       e("div", { className: "toolbar-group" },
