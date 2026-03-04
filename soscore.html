@@ -6,11 +6,12 @@
 <title>Berrien County Science Olympiad Helicopter Scoring</title>
 
 <!-- React 18 (production UMD) -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
 <!-- jsPDF for PDF Export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <style>
   :root {
@@ -78,7 +79,7 @@
   .subtle-warn { border-color: var(--warn-border) !important; background-color: var(--warn-bg) !important; }
   .text-primary { color: var(--primary); }
 
-  .spacer { height: 4px; }
+  .fallback { padding: 16px; }
 </style>
 </head>
 
@@ -87,6 +88,16 @@
 
 <script>
 "use strict";
+
+/* ---- Guard: if React failed to load, show a helpful message ---- */
+(function ensureReactLoaded(){
+  const ok = !!(window.React && window.ReactDOM);
+  if (!ok) {
+    document.getElementById('root').innerHTML =
+      '<div class="fallback">Could not load React from CDN. Check your internet connection and reload.</div>';
+  }
+})();
+
 const e = React.createElement;
 
 /* =========================================================================
@@ -146,7 +157,7 @@ function makeBlankTeam(id) {
     penalty: 0
   };
 }
-function initDivisionFromPrompt(existingDiv, divisionKey) {
+function initDivisionFromPrompt(divisionKey) {
   const n = window.prompt(`How many teams for Division ${divisionKey}?`, "10");
   const count = Math.max(1, parseInt(n || "10", 10));
   return {
@@ -228,21 +239,21 @@ function ScoringPage({ data, setData }) {
   const divData = data.divisions[activeDivision];
 
   /* HOOKS MUST REMAIN IN THE SAME ORDER EVERY RENDER */
-  // 1) Initialize division the first time we see it (deferred to avoid blocking paint)
+  // 1) Initialize division the first time we see it (async to avoid blocking paint)
   React.useEffect(() => {
     if (!divData.initialized) {
       setTimeout(() => {
-        const initialized = initDivisionFromPrompt(divData, activeDivision);
+        const initialized = initDivisionFromPrompt(activeDivision);
         const next = { ...data, divisions: { ...data.divisions, [activeDivision]: initialized } };
         setData(next);
       }, 0);
     }
   }, [activeDivision, divData.initialized, data, setData]);
 
-  // 2) Choose a safe teams array even if not initialized yet
+  // 2) Use safe teams array even if not initialized yet
   const teams = divData.initialized ? divData.teams : [];
 
-  // 3) Derive scores/ranks (always call this hook; it'll just run on [])
+  // 3) Derive scores/ranks (always run; it’s fine on [])
   const derivedTeams = React.useMemo(() => {
     const enriched = teams.map(t => {
       const f1 = computeFlightScore(t.f1, t.twoBlade1, t.log1);
@@ -265,7 +276,7 @@ function ScoringPage({ data, setData }) {
     return enriched.map((t, i) => ({ ...t, rank: ranks[i] }));
   }, [teams]);
 
-  // Helpers to update only the active division
+  // Update helpers (only active division)
   const updateTeams = (newTeams) => {
     const next = {
       ...data,
@@ -276,10 +287,8 @@ function ScoringPage({ data, setData }) {
     };
     setData(next);
   };
-  const updateOne = (idx, newTeam) => {
-    const arr = [...teams]; arr[idx] = newTeam; updateTeams(arr);
-  };
 
+  // Exports
   const exportDivisionPDF = () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "pt", format: "letter" });
@@ -351,7 +360,7 @@ function ScoringPage({ data, setData }) {
     pdf.save(`Supervisor_Packet_Div_${activeDivision}.pdf`);
   };
 
-  // UI Controls (inside scoring section)
+  // Controls (inside scoring section as requested)
   const controlsBar = e("div", { className: "panel toolbar" },
     e("div", { className: "toolbar-left" },
       e("span", { className: "label" }, "Division:"),
@@ -388,23 +397,18 @@ function ScoringPage({ data, setData }) {
         className: "btn",
         onClick: () => {
           if (confirm(`Reset ONLY Division ${activeDivision}? This cannot be undone.`)) {
-            const reset = initDivisionFromPrompt({}, activeDivision);
+            const reset = initDivisionFromPrompt(activeDivision);
             const next = { ...data, divisions: { ...data.divisions, [activeDivision]: reset } };
             setData(next);
           }
         }
       }, `Reset Division ${activeDivision}`),
       e("button", { className: "btn", onClick: exportDivisionPDF }, "Export Division PDF"),
-      e("button", { className: "btn", onClick: exportSupervisorPacket }, "Export Supervisor Packet")
-    )
-  );
-
-  // Headers
-  const headerTop = e("div", { className: "score-grid header" },
-    "", "",
+      e("button", { className: "btn", onClick: exportder" },
+    e("div"), e("div"),
     e("div", { className: "group-label", style: { gridColumn: "3 / span 5" } }, "Flight 1"),
     e("div", { className: "group-label", style: { gridColumn: "8 / span 5" } }, "Flight 2"),
-    "", "", ""
+    e("div"), e("div"), e("div")
   );
   const headerSecond = e("div", { className: "score-grid header" },
     "ID", "Team",
@@ -413,7 +417,7 @@ function ScoringPage({ data, setData }) {
     "PEN", "Score", "Rank"
   );
 
-  // If the division is not yet initialized, we still render hooks above; now show a placeholder
+  // Show placeholder while division is being initialized (hooks still ran above)
   if (!divData.initialized) {
     return e("div", { className: "container" },
       e("h1", null, data.eventName),
@@ -449,7 +453,10 @@ function App() {
    Mount
    ========================================================================= */
 document.addEventListener("DOMContentLoaded", function () {
+  if (!(window.React && window.ReactDOM)) return; // guard
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(e(App));
 });
-</script
+</script>
+</body>
+</html>
