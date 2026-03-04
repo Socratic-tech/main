@@ -1,407 +1,1030 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>OpenPhysics Lab — Fixed (Projectile + Pendulum)</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<title>OpenPhysics Lab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <style>
 :root {
-  --bg:#0E1117; --panel:#161B22; --border:#30363D; --text:#C9D1D9; --text-dim:#8B949E;
-  --accent:#58A6FF; --accent-green:#3FB950; --accent-red:#FF6A6A; --accent-gold:#DAA520;
-  --font-scale:1.0; --transition-speed:180ms;
+  --bg:#0E1117; --panel:#161B22; --border:#30363D; --text:#C9D1D9; --dim:#8B949E;
+  --accent:#58A6FF; --green:#3FB950; --red:#FF6A6A; --gold:#DAA520; --orange:#F0883E;
 }
-@media (prefers-reduced-motion: reduce){ :root{ --transition-speed:0ms; } }
-body{ margin:0; background:var(--bg); color:var(--text); font-family: JetBrains Mono, ui-monospace, Menlo, Consolas, monospace; font-size: calc(14px*var(--font-scale)); overflow:hidden; }
-#toolbar{ position:fixed; top:0; left:0; right:0; height:52px; background:var(--panel); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 12px; gap:10px; z-index:20; }
-#toolbar select, #toolbar button{ background:var(--panel); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; cursor:pointer; font-size:calc(14px*var(--font-scale)); min-height:32px; }
-#toolbar button:hover, #toolbar select:focus{ outline:2px solid var(--accent); }
-#presetToast{ margin-left:auto; color:#9dd1ff; opacity:0; transition: opacity var(--transition-speed) ease; font-size:12px; }
-#presetToast.show{ opacity:1; }
-#sidePanel{ position:fixed; top:52px; bottom:0; right:0; width:320px; background:var(--panel); border-left:1px solid var(--border); padding:12px; overflow:auto; }
-.sectionTitle{ font-size: calc(15px*var(--font-scale)); color:var(--accent); text-transform:uppercase; margin:12px 0 6px; border-bottom:1px solid var(--border); padding-bottom:4px; letter-spacing:0.08em; font-weight:700; }
-.seg{ display:flex; gap:6px; }
-button.actionBtn{ width:100%; margin-top:8px; padding:10px; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer; font-size: calc(14px*var(--font-scale)); min-height:36px; }
-#simCanvas{ position:absolute; left:0; right:320px; top:52px; bottom:0; width:calc(100vw - 320px); height:calc(100vh - 52px); background:var(--bg); }
-#readoutGrid .row{ display:flex; justify-content:space-between; font-size: calc(14px*var(--font-scale)); margin:4px 0; }
-#readoutGrid .row span:last-child{ font-weight:700; color:var(--accent-green); }
-#graphPanel{ background:#0b1220; border:1px solid var(--border); padding:8px; border-radius:6px; }
-#graphCanvas{ width:100%; height:240px; display:block; background:#0a0f1a; border:1px solid var(--border); border-radius:4px; }
-.labelNote{ color:var(--text-dim); font-size:12px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;overflow:hidden;}
+/* TOOLBAR */
+#toolbar{position:fixed;top:0;left:0;right:0;height:50px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;z-index:20;}
+#toolbar select,#toolbar button{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:4px;cursor:pointer;font-size:12px;font-family:inherit;}
+#toolbar button:hover{border-color:var(--accent);color:var(--accent);}
+#btnClearAll:hover{border-color:var(--red)!important;color:var(--red)!important;}
+#btnClearAll.confirm{border-color:var(--red);color:var(--red);background:#2a1010;}
+#toolbar select:focus{outline:2px solid var(--accent);}
+#toast{margin-left:auto;color:#9dd1ff;opacity:0;transition:opacity .2s;font-size:11px;}
+#toast.show{opacity:1;}
+/* CANVAS */
+#simCanvas{position:fixed;left:0;right:320px;top:50px;bottom:0;}
+/* SIDE PANEL */
+#side{position:fixed;top:50px;right:0;bottom:0;width:320px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#side-scroll{flex:1;overflow-y:auto;padding:10px;}
+#side-scroll::-webkit-scrollbar{width:4px;}
+#side-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.sec{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:10px 0 5px;border-bottom:1px solid var(--border);padding-bottom:3px;}
+label{display:block;margin:6px 0 2px;font-size:12px;color:var(--dim);}
+input[type=range]{width:100%;accent-color:var(--accent);}
+.val{color:var(--text);font-weight:600;}
+/* param row hidden by default — experiments show/hide what they need */
+.param-row{margin-bottom:4px;}
+.param-row.hidden{display:none;}
+/* readout */
+.row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #1e242b;}
+.row span:last-child{color:var(--green);font-weight:700;}
+/* graph */
+#graphWrap{display:none;margin-top:8px;}
+#graphCanvas{width:100%;height:200px;display:block;background:#0a0f1a;border:1px solid var(--border);border-radius:4px;}
+/* run list */
+.run-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #1e242b;}
+.run-row button{background:none;border:none;color:var(--dim);cursor:pointer;padding:0 3px;font-size:13px;}
+.run-row button:hover{color:var(--red);}
+.run-table{width:100%;border-collapse:collapse;margin:4px 0 8px;font-size:11px;}
+.run-table th{color:var(--dim);font-weight:600;text-align:left;padding:2px 4px;border-bottom:1px solid var(--border);}
+.run-table td{padding:2px 4px;border-bottom:1px solid #1e242b;color:var(--text);}
+.run-table td:last-child{color:var(--green);font-weight:600;text-align:right;}
+.run-header{cursor:pointer;user-select:none;}
+.run-header:hover .run-id{text-decoration:underline;}
+/* tabs */
+.tabs{display:flex;gap:4px;margin-bottom:6px;}
+.tab{flex:1;padding:5px;background:var(--panel);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px;text-align:center;color:var(--dim);}
+.tab.active{border-color:var(--accent);color:var(--accent);}
 </style>
 </head>
 <body>
-  <div id="toolbar">
-    <label for="expSelector">Experiment:</label>
-    <select id="expSelector"></select>
-    <select id="presetSelect"><option value="">Demo Presets…</option></select>
-    <button id="btnStart" class="actionBtn">Start</button>
-    <button id="btnPause" class="actionBtn">Pause</button>
-    <button id="btnNewRun" class="actionBtn">Start New Run</button>
-    <button id="btnResetRun" class="actionBtn">Reset Run</button>
-    <button id="btnSaveRun" class="actionBtn">Save Run</button>
-    <span id="presetToast" role="status" aria-live="polite"></span>
-  </div>
 
-  <div id="sidePanel">
-    <div class="sectionTitle">Parameters</div>
+<div id="toolbar">
+  <label for="expSel" style="white-space:nowrap;font-size:12px;">Experiment:</label>
+  <select id="expSel"></select>
+  <select id="presetSel"><option value="">Presets…</option></select>
+  <button id="btnStart">▶ Start</button>
+  <button id="btnPause">⏸ Pause</button>
+  <button id="btnReset">↺ Reset</button>
+  <button id="btnNew">+ New Run</button>
+  <button id="btnSave">💾 Save Run</button>
+  <button id="btnClearAll" title="Delete all saved runs and reset simulation">🗑 Clear All</button>
+  <span id="toast"></span>
+</div>
 
-    <label>Velocity: <span id="labelVel">25</span> m/s</label>
-    <input type="range" id="sliderVel" min="0" max="80" value="25">
+<canvas id="simCanvas"></canvas>
 
-    <label>Angle: <span id="labelAng">45</span>°</label>
-    <input type="range" id="sliderAng" min="1" max="89" value="45">
+<div id="side">
+  <div id="side-scroll">
+    <div class="sec">Parameters</div>
 
-    <label>Gravity: <span id="labelGrav">9.81</span> m/s²</label>
-    <input type="range" id="sliderGrav" min="0.5" max="20" step="0.01" value="9.81">
-
-    <label>Mass: <span id="labelMass">1.00</span> kg <span class="labelNote">(projectile drag)</span></label>
-    <input type="range" id="sliderMass" min="0.1" max="20" step="0.1" value="1.0">
-
-    <div class="sectionTitle">Readouts</div>
-    <div style="display:flex; gap:6px; margin-bottom:6px;">
-      <button id="btnTableView" class="actionBtn" style="flex:1;">Table</button>
-      <button id="btnGraphView" class="actionBtn" style="flex:1;">Graph</button>
+    <!-- Common params (shown/hidden per experiment) -->
+    <div class="param-row" id="row-vel">
+      <label>Launch Velocity: <span class="val" id="lv">25</span> m/s</label>
+      <input type="range" id="sVel" min="0" max="80" value="25">
     </div>
-    <div id="readoutGrid"></div>
+    <div class="param-row" id="row-ang">
+      <label>Angle: <span class="val" id="la">45</span>°</label>
+      <input type="range" id="sAng" min="1" max="89" value="45">
+    </div>
+    <div class="param-row" id="row-grav">
+      <label>Gravity: <span class="val" id="lg">9.81</span> m/s²</label>
+      <input type="range" id="sGrav" min="0.5" max="25" step="0.01" value="9.81">
+    </div>
+    <div class="param-row" id="row-mass">
+      <label>Mass: <span class="val" id="lm">1.0</span> kg</label>
+      <input type="range" id="sMass" min="0.1" max="20" step="0.1" value="1.0">
+    </div>
+    <div class="param-row hidden" id="row-length">
+      <label>Length: <span class="val" id="ll">2.0</span> m</label>
+      <input type="range" id="sLen" min="0.2" max="5" step="0.1" value="2.0">
+    </div>
+    <div class="param-row hidden" id="row-damp">
+      <label>Damping: <span class="val" id="ld">0.04</span></label>
+      <input type="range" id="sDamp" min="0" max="3" step="0.01" value="0.04">
+    </div>
+    <div class="param-row hidden" id="row-spring">
+      <label>Spring k: <span class="val" id="lk">10</span> N/m</label>
+      <input type="range" id="sSpring" min="1" max="100" step="1" value="10">
+    </div>
+    <div class="param-row hidden" id="row-x0">
+      <label id="labelX0">Initial Displacement: <span class="val" id="lx0">1.0</span> m</label>
+      <input type="range" id="sX0" min="0.1" max="100" step="0.5" value="20">
+    </div>
 
-    <div id="graphPanel" style="display:none; margin-top:10px;">
-      <select id="graphSeriesSelect" style="width:100%; margin-bottom:8px;"></select>
+    <div class="sec">Readouts <span style="font-size:10px;color:var(--dim);text-transform:none;font-weight:400;">(SI units)</span></div>
+    <div class="tabs">
+      <div class="tab active" id="tabTable">Table</div>
+      <div class="tab" id="tabGraph">Graph</div>
+    </div>
+    <div id="readout"></div>
+    <div id="graphWrap">
+      <select id="seriesSel" style="width:100%;margin-bottom:6px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;font-family:inherit;"></select>
       <canvas id="graphCanvas"></canvas>
     </div>
 
-    <div class="sectionTitle">Run List</div>
+    <div class="sec">Saved Runs</div>
     <div id="runList"></div>
   </div>
+</div>
 
-  <canvas id="simCanvas"></canvas>
+<script>
+// ═══════════════════════════════════════════
+//  CAMERA
+// ═══════════════════════════════════════════
+const cam = {x:0, y:0, scale:20};
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d', {alpha:false});
 
-  <script type="module">
-  // ======= CAMERA =======
-  const camera = { x:0, y:0, scale:20, minScale:0.2, maxScale:5 };
-  function worldToScreen(x,y,canvas){
-    const cx=canvas.width/2, cy=canvas.height/2;
-    return { x: cx+(x-camera.x)*camera.scale, y: cy-(y-camera.y)*camera.scale };
-  }
-  function screenToWorld(px,py,canvas){
-    const cx=canvas.width/2, cy=canvas.height/2;
-    return { x:(px-cx)/camera.scale + camera.x, y:(cy-py)/camera.scale + camera.y };
-  }
-  function applyCameraInput(canvas){
-    let dragging=false, last={x:0,y:0};
-    const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-    function normalizedWheel(e){
-      let dy=e.deltaY;
-      if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=120;
-      dy=clamp(dy,-240,240);
-      return -Math.sign(dy)*Math.log2(1+Math.abs(dy)/120);
-    }
-    canvas.addEventListener('wheel', (e)=>{
-      e.preventDefault();
-      const rect=canvas.getBoundingClientRect();
-      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-      const before=screenToWorld(mx,my,canvas);
-      const ticks=normalizedWheel(e);
-      const base=1.12;
-      const zoomBase=e.ctrlKey?1.25:base;
-      const factor=Math.pow(zoomBase,ticks);
-      const newScale=clamp(camera.scale*factor,camera.minScale,camera.maxScale);
-      if(newScale===camera.scale) return;
-      camera.scale=newScale;
-      const after=screenToWorld(mx,my,canvas);
-      camera.x += (before.x - after.x);
-      camera.y += (before.y - after.y);
-    },{passive:false});
-    canvas.addEventListener('mousedown', e=>{ dragging=true; last={x:e.clientX,y:e.clientY}; });
-    window.addEventListener('mouseup', ()=> dragging=false);
-    canvas.addEventListener('mousemove', e=>{
-      if(!dragging) return;
-      const dx=(e.clientX-last.x)/camera.scale;
-      const dy=(e.clientY-last.y)/camera.scale;
-      camera.x-=dx; camera.y+=dy;
-      last={x:e.clientX,y:e.clientY};
-    });
-  }
+function w2s(x, y) {
+  return {x: canvas.width/2 + (x-cam.x)*cam.scale,
+          y: canvas.height/2 - (y-cam.y)*cam.scale};
+}
+function s2w(px, py) {
+  return {x: (px - canvas.width/2)/cam.scale + cam.x,
+          y: (canvas.height/2 - py)/cam.scale + cam.y};
+}
+(function setupCamera(){
+  let drag=false, lx=0, ly=0;
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const r=canvas.getBoundingClientRect();
+    const bw=s2w(e.clientX-r.left, e.clientY-r.top);
+    const f=e.deltaY>0?0.88:1.13;
+    cam.scale=Math.max(0.2, Math.min(200, cam.scale*f));
+    const aw=s2w(e.clientX-r.left, e.clientY-r.top);
+    cam.x+=bw.x-aw.x; cam.y+=bw.y-aw.y;
+  },{passive:false});
+  canvas.addEventListener('mousedown', e=>{drag=true;lx=e.clientX;ly=e.clientY;});
+  window.addEventListener('mouseup', ()=>drag=false);
+  canvas.addEventListener('mousemove', e=>{
+    if(!drag) return;
+    cam.x-=(e.clientX-lx)/cam.scale; cam.y+=(e.clientY-ly)/cam.scale;
+    lx=e.clientX; ly=e.clientY;
+  });
+})();
 
-  // ======= RENDERER =======
-  const renderer={
-    ctx:null, canvas:null,
-    init(c){ this.canvas=c; this.ctx=c.getContext('2d',{alpha:false}); },
-    clear(){ this.ctx.fillStyle='#0E1117'; this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height); },
-    line(x1,y1,x2,y2,color='#C9D1D9',w=2){
-      const p1=worldToScreen(x1,y1,this.canvas), p2=worldToScreen(x2,y2,this.canvas);
-      this.ctx.strokeStyle=color; this.ctx.lineWidth=w;
-      this.ctx.beginPath(); this.ctx.moveTo(p1.x,p1.y); this.ctx.lineTo(p2.x,p2.y); this.ctx.stroke();
-    },
-    ball(x,y,r,color){
-      const p=worldToScreen(x,y,this.canvas);
-      this.ctx.fillStyle=color; this.ctx.beginPath(); this.ctx.arc(p.x,p.y, Math.max(1,r*camera.scale), 0, Math.PI*2); this.ctx.fill();
-    },
-    trail(points, style){
-      if(points.length<2) return;
-      const {color,width=2,dash=null}=style;
-      this.ctx.strokeStyle=color; this.ctx.lineWidth=width; this.ctx.setLineDash(dash||[]);
-      this.ctx.beginPath();
-      const p0=worldToScreen(points[0].x,points[0].y,this.canvas);
-      this.ctx.moveTo(p0.x,p0.y);
-      for(let i=1;i<points.length;i++){
-        const p=worldToScreen(points[i].x,points[i].y,this.canvas);
-        this.ctx.lineTo(p.x,p.y);
-      }
-      this.ctx.stroke(); this.ctx.setLineDash([]);
-    },
-    text(str,x,y,color='#C9D1D9'){
-      const p=worldToScreen(x,y,this.canvas);
-      this.ctx.fillStyle=color; this.ctx.font='14px JetBrains Mono, monospace';
-      this.ctx.fillText(str, p.x+6, p.y-6);
-    }
-  };
+// ═══════════════════════════════════════════
+//  RENDERER
+// ═══════════════════════════════════════════
+const R = {
+  clear(){ ctx.fillStyle='#0E1117'; ctx.fillRect(0,0,canvas.width,canvas.height); },
+  axisLabels(xUnit='m', yUnit='m'){
+    // Draw x and y axis unit labels in screen space
+    const ox=w2s(0,0);
+    ctx.fillStyle='#3a4a5a'; ctx.font='11px ui-monospace,monospace';
+    // X axis label
+    ctx.fillText(`x (${xUnit}) →`, canvas.width-320-60, ox.y-6);
+    // Y axis label — rotated
+    ctx.save(); ctx.translate(ox.x+8, 60);
+    ctx.fillText(`↑ y (${yUnit})`, 0, 0);
+    ctx.restore();
+  },
+  grid(){
+    ctx.strokeStyle='#1a2030'; ctx.lineWidth=1;
+    const step=1;
+    const tl=s2w(0,0), br=s2w(canvas.width,canvas.height);
+    const x0=Math.floor(tl.x/step)*step, x1=Math.ceil(br.x/step)*step;
+    const y0=Math.floor(br.y/step)*step, y1=Math.ceil(tl.y/step)*step;
+    for(let x=x0;x<=x1;x+=step){const p=w2s(x,0);ctx.beginPath();ctx.moveTo(p.x,0);ctx.lineTo(p.x,canvas.height);ctx.stroke();}
+    for(let y=y0;y<=y1;y+=step){const p=w2s(0,y);ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(canvas.width,p.y);ctx.stroke();}
+    // axes
+    ctx.strokeStyle='#2b3a50'; ctx.lineWidth=1.5;
+    const ox=w2s(0,0); ctx.beginPath();ctx.moveTo(0,ox.y);ctx.lineTo(canvas.width,ox.y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ox.x,0);ctx.lineTo(ox.x,canvas.height);ctx.stroke();
+  },
+  line(x1,y1,x2,y2,color='#8B949E',w=1.5){
+    const a=w2s(x1,y1),b=w2s(x2,y2);
+    ctx.strokeStyle=color;ctx.lineWidth=w;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  },
+  circle(x,y,r,fill,stroke){
+    const p=w2s(x,y), pr=Math.max(2,r*cam.scale);
+    ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();}
+  },
+  trail(pts,color,w=1.5,maxLen=800){
+    if(pts.length<2) return;
+    const start=Math.max(0,pts.length-maxLen);
+    ctx.strokeStyle=color;ctx.lineWidth=w;ctx.setLineDash([]);
+    ctx.beginPath();
+    const p0=w2s(pts[start].x,pts[start].y);ctx.moveTo(p0.x,p0.y);
+    for(let i=start+1;i<pts.length;i++){const p=w2s(pts[i].x,pts[i].y);ctx.lineTo(p.x,p.y);}
+    ctx.stroke();
+  },
+  savedTrail(pts,color){
+    if(pts.length<2) return;
+    ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();const p0=w2s(pts[0].x,pts[0].y);ctx.moveTo(p0.x,p0.y);
+    for(let i=1;i<pts.length;i++){const p=w2s(pts[i].x,pts[i].y);ctx.lineTo(p.x,p.y);}
+    ctx.stroke();ctx.setLineDash([]);
+  },
+  label(text,x,y,color='#8B949E'){
+    const p=w2s(x,y);
+    ctx.fillStyle=color;ctx.font='12px ui-monospace,monospace';
+    ctx.fillText(text,p.x+5,p.y-5);
+  }
+};
 
-  // ======= GRAPH (simple) =======
-  const graphEngine={
-    canvas:null, ctx:null,
-    init(canvas){ this.canvas=canvas; this.ctx=canvas.getContext('2d'); this.resizeDPR(); },
-    resizeDPR(){
-      if(!this.canvas) return;
-      const dpr=Math.max(1,Math.floor(window.devicePixelRatio || 1));
-      const cssW=this.canvas.clientWidth; const cssH=this.canvas.clientHeight;
-      this.canvas.width=Math.floor(cssW*dpr); this.canvas.height=Math.floor(cssH*dpr);
-    },
-    drawSeries(series){
-      const ctx=this.ctx, c=this.canvas;
-      ctx.clearRect(0,0,c.width,c.height);
-      if(!series || !series.values || series.values.length<2) return;
-      const vals=series.values;
-      const minT=Math.min(...vals.map(p=>p.t)), maxT=Math.max(...vals.map(p=>p.t));
-      let minV=Math.min(...vals.map(p=>p.v)), maxV=Math.max(...vals.map(p=>p.v));
-      if(minV===maxV){ minV-=1; maxV+=1; }
-      const pad=24, W=c.width, H=c.height;
-      const mapT=t=> pad + (t-minT)/((maxT-minT)||1)*(W-2*pad);
-      const mapV=v=> H-pad - (v-minV)/((maxV-minV)||1)*(H-2*pad);
-      ctx.strokeStyle='#2b3342'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
-      ctx.strokeStyle='#58A6FF'; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.moveTo(mapT(vals[0].t), mapV(vals[0].v));
-      for(let i=1;i<vals.length;i++){ ctx.lineTo(mapT(vals[i].t), mapV(vals[i].v)); }
-      ctx.stroke();
-      ctx.fillStyle='#8B949E'; ctx.font='12px JetBrains Mono, monospace';
-      ctx.fillText(series.label || 'Series', pad, pad-6);
-    }
-  };
+// ═══════════════════════════════════════════
+//  GRAPH
+// ═══════════════════════════════════════════
+const GC = document.getElementById('graphCanvas');
+const GX = GC.getContext('2d');
+function resizeGC(){
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  GC.width=Math.floor(GC.clientWidth*dpr);
+  GC.height=Math.floor(GC.clientHeight*dpr);
+}
+function drawGraph(series){
+  resizeGC();
+  const W=GC.width,H=GC.height,pad=28;
+  GX.fillStyle='#0a0f1a';GX.fillRect(0,0,W,H);
+  if(!series||series.values.length<2) return;
+  const vs=series.values;
+  const ts=vs.map(p=>p.t),ys=vs.map(p=>p.v);
+  const t0=Math.min(...ts),t1=Math.max(...ts);
+  let v0=Math.min(...ys),v1=Math.max(...ys);
+  if(v0===v1){v0-=1;v1+=1;}
+  const mx=t=>(pad+(t-t0)/((t1-t0)||1)*(W-2*pad));
+  const my=v=>(H-pad-(v-v0)/((v1-v0)||1)*(H-2*pad));
+  // grid lines
+  GX.strokeStyle='#1e2738';GX.lineWidth=1;
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=pad+f*(H-2*pad);
+    GX.beginPath();GX.moveTo(pad,y);GX.lineTo(W-pad,y);GX.stroke();
+    const val=(v1-(v1-v0)*f).toFixed(2);
+    GX.fillStyle='#4a5568';GX.font='10px monospace';GX.fillText(val,2,y+3);
+  });
+  // line
+  GX.strokeStyle='#58A6FF';GX.lineWidth=2;GX.setLineDash([]);
+  GX.beginPath();GX.moveTo(mx(vs[0].t),my(vs[0].v));
+  for(let i=1;i<vs.length;i++) GX.lineTo(mx(vs[i].t),my(vs[i].v));
+  GX.stroke();
+  // label
+  GX.fillStyle='#9dd1ff';GX.font='11px monospace';
+  GX.fillText(series.label||'',pad,pad-6);
+  // x-axis label
+  GX.fillStyle='#4a5568';GX.font='10px monospace';
+  const xAxisLabel = series.xLabel || 'Time (s)';
+  GX.fillText(xAxisLabel, W/2-20, H-4);
+  // y-axis min/max
+  GX.fillText(v1.toFixed(2), 2, pad+6);
+  GX.fillText(v0.toFixed(2), 2, H-pad+10);
+}
 
-  // ======= RUN MANAGER =======
-  const runManager={
-    runs:[], nextId:1,
-    saveRun(points,params,stats,style){
-      const run={ id:this.nextId++, points:structuredClone(points), params:structuredClone(params),
-                  stats:structuredClone(stats), visible:true, style:structuredClone(style) };
-      this.runs.push(run); return run;
-    },
-    toggleVisibility(id){ const r=this.runs.find(x=>x.id===id); if(r) r.visible=!r.visible; },
-    deleteRun(id){ this.runs=this.runs.filter(r=>r.id!==id); },
-    getStats(points){
-      if(!points.length) return {maxH:0,range:0,duration:0};
-      let minX=Infinity,maxX=-Infinity,maxY=-Infinity;
-      for(const p of points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; }
-      const last=points[points.length-1];
-      return { maxH:maxY, range:(maxX-minX), duration:last.t };
-    }
-  };
+// ═══════════════════════════════════════════
+//  RUN MANAGER
+// ═══════════════════════════════════════════
+const runs={list:[],next:1};
+const RUN_PALETTE=['#58A6FF','#3FB950','#DAA520','#F0883E','#BC8CFF','#FF6A6A','#00CED1','#FF69B4','#ADFF2F','#FF8C00'];
+function nextColor(){ return RUN_PALETTE[(runs.next-1) % RUN_PALETTE.length]; }
 
-  // ======= UI WORKBENCH =======
-  const el={
-    labelVel:document.getElementById('labelVel'),
-    labelAng:document.getElementById('labelAng'),
-    labelGrav:document.getElementById('labelGrav'),
-    labelMass:document.getElementById('labelMass'),
-    sliderVel:document.getElementById('sliderVel'),
-    sliderAng:document.getElementById('sliderAng'),
-    sliderGrav:document.getElementById('sliderGrav'),
-    sliderMass:document.getElementById('sliderMass'),
-    btnStart:document.getElementById('btnStart'),
-    btnPause:document.getElementById('btnPause'),
-    btnNewRun:document.getElementById('btnNewRun'),
-    btnResetRun:document.getElementById('btnResetRun'),
-    btnSaveRun:document.getElementById('btnSaveRun'),
-    expSelector:document.getElementById('expSelector'),
-    presetSelect:document.getElementById('presetSelect'),
-    readoutGrid:document.getElementById('readoutGrid'),
-    runList:document.getElementById('runList'),
-    btnTableView:document.getElementById('btnTableView'),
-    btnGraphView:document.getElementById('btnGraphView'),
-    graphPanel:document.getElementById('graphPanel'),
-    graphSeriesSelect:document.getElementById('graphSeriesSelect'),
-    presetToast:document.getElementById('presetToast')
-  };
-  const paramsUI={ v0:25, angle:45*Math.PI/180, g:9.81, mass:1.0 };
-  el.sliderVel.oninput=()=>{ paramsUI.v0=+el.sliderVel.value; el.labelVel.textContent=paramsUI.v0; };
-  el.sliderAng.oninput=()=>{ const d=+el.sliderAng.value; paramsUI.angle=d*Math.PI/180; el.labelAng.textContent=d; };
-  el.sliderGrav.oninput=()=>{ paramsUI.g=+el.sliderGrav.value; el.labelGrav.textContent=paramsUI.g.toFixed(2); };
-  el.sliderMass.oninput=()=>{ paramsUI.mass=+el.sliderMass.value; el.labelMass.textContent=paramsUI.mass.toFixed(2); };
+// summary: object of {label: value_string} for table display
+function saveRun(pts, summary){
+  const color=RUN_PALETTE[(runs.next-1) % RUN_PALETTE.length];
+  runs.list.push({id:runs.next++, pts:[...pts], color, vis:true, summary:summary||{}, expanded:true});
+  refreshRunList();
+}
 
-  function bindRunButtons(getActive){
-    el.btnStart.onclick = ()=> getActive()?.startRun?.(paramsUI);
-    el.btnPause.onclick = ()=> getActive()?.pauseRun?.();
-    el.btnNewRun.onclick = ()=> getActive()?.startNewRun?.(paramsUI);
-    el.btnResetRun.onclick = ()=> getActive()?.resetRun?.(paramsUI,{recenter:true});
-    el.btnSaveRun.onclick = ()=> getActive()?.saveCurrentRun?.();
+function refreshRunList(){
+  const el=document.getElementById('runList');
+  el.innerHTML='';
+  if(!runs.list.length){
+    el.innerHTML='<div style="color:var(--dim);font-size:11px;padding:4px 0;">No saved runs yet. Click 💾 Save Run.</div>';
+    return;
   }
-  function updateReadout(map){
-    el.readoutGrid.innerHTML = Object.entries(map).map(([k,v]) =>
-      `<div class="row"><span>${k}</span><span>${v}</span></div>`).join('');
-  }
-  function refreshRunList(){
-    el.runList.innerHTML='';
-    for(const run of runManager.runs){
-      const row=document.createElement('div');
-      row.style.display='flex'; row.style.justifyContent='space-between'; row.style.margin='4px 0';
-      row.innerHTML=`<span>Run ${run.id}</span>
-      <div>
-        <button class="visToggle" data-id="${run.id}">${run.visible?'👁':'🙈'}</button>
-        <button class="delRun" data-id="${run.id}">✖</button>
-      </div>`;
-      row.querySelector('.visToggle').onclick=()=>{ runManager.toggleVisibility(run.id); refreshRunList(); };
-      row.querySelector('.delRun').onclick=()=>{ runManager.deleteRun(run.id); refreshRunList(); };
-      el.runList.appendChild(row);
-    }
-  }
-  function populateGraphSeries(seriesList){
-    el.graphSeriesSelect.innerHTML = ((seriesList)||[]).map((s,i)=>`<option value="${i}">${s.label}</option>`).join('');
-  }
-  // Preset helpers
-  let __presetHandler = null;
-  function setPresets(options){
-    const sel = el.presetSelect;
-    sel.innerHTML = '<option value="">Demo Presets…</option>' +
-      (options||[]).map(o=>`<option value="${o.index}">${o.label}</option>`).join('');
-  }
-  function onPresetChange(handler){
-    __presetHandler = (idx)=> handler && handler(idx);
-    el.presetSelect.onchange = (e)=>{
-      const v = e.target.value;
-      if (v === "") return;
-      const i = parseInt(v,10);
-      if (!Number.isNaN(i) && __presetHandler) __presetHandler(i);
-      e.target.value = "";
+  runs.list.forEach(r=>{
+    const wrap=document.createElement('div');
+    wrap.style.marginBottom='6px';
+
+    // header row
+    const hdr=document.createElement('div');
+    hdr.className='run-row run-header';
+    hdr.style.cursor='default';
+    // Build header with named elements — no index fragility
+    const colorDot=document.createElement('span');
+    colorDot.style.cssText=`color:${r.color};font-weight:700;flex:1;cursor:pointer;`;
+    colorDot.textContent=`■ Run ${r.id}`;
+    colorDot.onclick=()=>{r.expanded=!r.expanded;refreshRunList();};
+
+    const btnCollapse=document.createElement('button');
+    btnCollapse.title='Expand/Collapse';
+    btnCollapse.style.fontSize='11px';
+    btnCollapse.textContent=r.expanded?'▾':'▸';
+    btnCollapse.onclick=(e)=>{e.stopPropagation();r.expanded=!r.expanded;refreshRunList();};
+
+    const btnVis=document.createElement('button');
+    btnVis.title=r.vis?'Hide trail':'Show trail';
+    btnVis.textContent=r.vis?'👁':'🙈';
+    btnVis.style.opacity=r.vis?'1':'0.5';
+    btnVis.onclick=(e)=>{
+      e.stopPropagation();
+      r.vis=!r.vis;
+      refreshRunList();
     };
-  }
-  function setSlidersFromParams(p){
-    if (typeof p.v0 === 'number'){ el.sliderVel.value=p.v0; el.labelVel.textContent=p.v0; }
-    if (typeof p.angle === 'number'){ const deg=Math.round(p.angle*180/Math.PI); el.sliderAng.value=Math.max(1,Math.min(89,deg)); el.labelAng.textContent=deg; }
-    if (typeof p.g === 'number'){ el.sliderGrav.value=p.g; el.labelGrav.textContent=p.g.toFixed(2); }
-    if (typeof p.mass === 'number'){ el.sliderMass.value=p.mass; el.labelMass.textContent=p.mass.toFixed(2); }
-  }
 
-  // ======= PLUGIN RUNTIME (registry) =======
-  const OPL=(function(){
-    const registry=new Map();
-    function registerExperiment(id,factory,meta){
-      registry.set(id,{id,factory,meta});
-      ensureOption(id, meta?.label||id);
-      document.dispatchEvent(new CustomEvent('opl:registered', { detail:{ id, meta } }));
+    const btnClear=document.createElement('button');
+    btnClear.title='Clear run data';
+    btnClear.style.cssText='font-size:11px;color:var(--orange);';
+    btnClear.textContent='↺';
+    btnClear.onclick=(e)=>{
+      e.stopPropagation();
+      r.pts=[];r.summary={};r.expanded=true;
+      refreshRunList();
+      toast('Run '+r.id+' data cleared');
+    };
+
+    const btnDel=document.createElement('button');
+    btnDel.title='Delete run';
+    btnDel.style.color='var(--dim)';
+    btnDel.textContent='✖';
+    btnDel.onclick=(e)=>{
+      e.stopPropagation();
+      runs.list=runs.list.filter(x=>x.id!==r.id);
+      refreshRunList();
+    };
+
+    const btnGroup=document.createElement('div');
+    btnGroup.style.cssText='display:flex;gap:4px;align-items:center;';
+    btnGroup.append(btnCollapse,btnVis,btnClear,btnDel);
+
+    hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #1e242b;';
+    hdr.append(colorDot, btnGroup);
+    // clicking hdr itself (not buttons) also toggles collapse
+    hdr.onclick=(e)=>{if(e.target===hdr){r.expanded=!r.expanded;refreshRunList();}};
+    wrap.appendChild(hdr);
+
+    // data table
+    if(r.expanded && r.summary && Object.keys(r.summary).length){
+      const tbl=document.createElement('table');
+      tbl.className='run-table';
+      tbl.innerHTML='<thead><tr><th>Metric</th><th style="text-align:right;">Value</th></tr></thead>';
+      const tbody=document.createElement('tbody');
+      Object.entries(r.summary).forEach(([k,v])=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${k}</td><td>${v}</td>`;
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody);
+      wrap.appendChild(tbl);
     }
-    function ensureOption(id,label){
-      const sel=el.expSelector;
-      if(![...sel.options].some(o=>o.value===id)){
-        const opt=document.createElement('option'); opt.value=id; opt.textContent=label; sel.appendChild(opt);
-      }
+    el.appendChild(wrap);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  PARAMS
+// ═══════════════════════════════════════════
+const P={v0:25,angle:45*Math.PI/180,g:9.81,mass:1.0,length:2.0,damping:0.04,k:10,x0:1.0};
+function bindSlider(id,labelId,key,scale,fmt){
+  const sl=document.getElementById(id),lb=document.getElementById(labelId);
+  sl.oninput=()=>{P[key]=parseFloat(sl.value)*(scale||1);lb.textContent=fmt?fmt(P[key]):parseFloat(sl.value);};
+}
+bindSlider('sVel','lv','v0'); bindSlider('sAng','la','angle',Math.PI/180,v=>(v*180/Math.PI).toFixed(0));
+bindSlider('sGrav','lg','g'); bindSlider('sMass','lm','mass');
+bindSlider('sLen','ll','length'); bindSlider('sDamp','ld','damping');
+bindSlider('sSpring','lk','k'); bindSlider('sX0','lx0','x0');
+
+function setSlidersFromP(p){
+  if(p.v0!=null){document.getElementById('sVel').value=p.v0;document.getElementById('lv').textContent=p.v0;P.v0=p.v0;}
+  if(p.angle!=null){const d=p.angle*180/Math.PI;document.getElementById('sAng').value=d;document.getElementById('la').textContent=d.toFixed(0);P.angle=p.angle;}
+  if(p.angleDeg!=null){document.getElementById('sAng').value=p.angleDeg;document.getElementById('la').textContent=p.angleDeg;P.angle=p.angleDeg*Math.PI/180;}
+  if(p.g!=null){document.getElementById('sGrav').value=p.g;document.getElementById('lg').textContent=p.g;P.g=p.g;}
+  if(p.mass!=null){document.getElementById('sMass').value=p.mass;document.getElementById('lm').textContent=p.mass;P.mass=p.mass;}
+  if(p.length!=null){document.getElementById('sLen').value=p.length;document.getElementById('ll').textContent=p.length;P.length=p.length;}
+  if(p.damping!=null){document.getElementById('sDamp').value=p.damping;document.getElementById('ld').textContent=p.damping;P.damping=p.damping;}
+  if(p.k!=null){document.getElementById('sSpring').value=p.k;document.getElementById('lk').textContent=p.k;P.k=p.k;}
+  if(p.x0!=null){document.getElementById('sX0').value=p.x0;document.getElementById('lx0').textContent=p.x0;P.x0=p.x0;}
+}
+
+// show/hide param rows
+function showRows(ids){
+  ['row-vel','row-ang','row-grav','row-mass','row-length','row-damp','row-spring','row-x0'].forEach(id=>{
+    document.getElementById(id).classList.toggle('hidden', !ids.includes(id));
+  });
+}
+
+// ═══════════════════════════════════════════
+//  READOUT
+// ═══════════════════════════════════════════
+function updateReadout(map){
+  document.getElementById('readout').innerHTML=Object.entries(map)
+    .map(([k,v])=>`<div class="row"><span>${k}</span><span>${v}</span></div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let _toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// ═══════════════════════════════════════════
+//  EXPERIMENT REGISTRY
+// ═══════════════════════════════════════════
+const registry=new Map();
+function registerExp(id,factory,meta){
+  registry.set(id,{factory,meta});
+  const opt=document.createElement('option');opt.value=id;opt.textContent=meta.label;
+  document.getElementById('expSel').appendChild(opt);
+}
+
+// ═══════════════════════════════════════════
+//  EXPERIMENT: PROJECTILE (with air drag)
+// ═══════════════════════════════════════════
+registerExp('projectile', ()=>({
+  running:false,paused:false,
+  pts:[],t:0,x:0,y:0,vx:0,vy:0,
+  _k(){ const r=Math.pow(3*P.mass/(4*Math.PI*800),1/3); return 0.5*1.225*0.47*Math.PI*r*r/P.mass; },
+  reset(){
+    this.pts=[];this.t=0;this.running=false;this.paused=false;
+    this.x=0;this.y=0;
+    this.vx=P.v0*Math.cos(P.angle);this.vy=P.v0*Math.sin(P.angle);
+    cam.x=0;cam.y=0;cam.scale=12;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    if(this.pts.length<2) return;
+    const last=this.pts[this.pts.length-1];
+    const maxY=Math.max(...this.pts.map(p=>p.y));
+    const maxX=Math.max(...this.pts.map(p=>p.x));
+    const summary={
+      'Launch v₀': P.v0.toFixed(1)+' m/s',
+      'Angle': (P.angle*180/Math.PI).toFixed(1)+'°',
+      'Gravity (g)': P.g.toFixed(2)+' m/s²',
+      'Mass': P.mass.toFixed(1)+' kg',
+      'Max height': maxY.toFixed(2)+' m',
+      'Range (x)': maxX.toFixed(2)+' m',
+      'Flight time': last.t.toFixed(2)+' s',
+      'Final speed': Math.hypot(last.vx,last.vy).toFixed(2)+' m/s',
+      'Terminal v': Math.sqrt(P.g/this._k()).toFixed(2)+' m/s'
+    };
+    saveRun(this.pts, summary);
+  },
+  update(dt){
+    if(!this.running||this.paused) return;
+    // Sub-step for accuracy with nonlinear drag
+    const steps=Math.max(1,Math.ceil(dt/0.005));
+    const h=dt/steps;
+    const k=this._k();
+    // RK4 for state [x, y, vx, vy]
+    const deriv=(x,y,vx,vy)=>{
+      const spd=Math.hypot(vx,vy);
+      return [vx, vy, -k*spd*vx, -P.g - k*spd*vy];
+    };
+    for(let s=0;s<steps;s++){
+      const [k1x,k1y,k1vx,k1vy]=deriv(this.x,this.y,this.vx,this.vy);
+      const [k2x,k2y,k2vx,k2vy]=deriv(this.x+.5*h*k1x,this.y+.5*h*k1y,this.vx+.5*h*k1vx,this.vy+.5*h*k1vy);
+      const [k3x,k3y,k3vx,k3vy]=deriv(this.x+.5*h*k2x,this.y+.5*h*k2y,this.vx+.5*h*k2vx,this.vy+.5*h*k2vy);
+      const [k4x,k4y,k4vx,k4vy]=deriv(this.x+h*k3x,this.y+h*k3y,this.vx+h*k3vx,this.vy+h*k3vy);
+      this.x+=(h/6)*(k1x+2*k2x+2*k3x+k4x);
+      this.y+=(h/6)*(k1y+2*k2y+2*k3y+k4y);
+      this.vx+=(h/6)*(k1vx+2*k2vx+2*k3vx+k4vx);
+      this.vy+=(h/6)*(k1vy+2*k2vy+2*k3vy+k4vy);
     }
-    function deps(){ return { renderer, camera, runManager, ui:{ paramsUI, setPresets, onPresetChange, setSlidersFromParams, updateReadout, refreshRunList, populateGraphSeries }, el }; }
-    function _create(id){ const rec=registry.get(id); return rec ? rec.factory(deps()) : null; }
-    function _meta(id){ return registry.get(id)?.meta || {}; }
-    function _all(){ return [...registry.values()].map(r=>({id:r.id, meta:r.meta})); }
-    return { registerExperiment, _create, _meta, _all };
-  })();
-
-  // ======= EXPERIMENT: PROJECTILE (with drag) =======
-  const RHO_AIR=1.225, CD=0.47, RHO_OBJ=800;
-  function dragK(mass){ const r=Math.pow((3*mass)/(4*Math.PI*RHO_OBJ),1/3); const A=Math.PI*r*r; return (0.5*RHO_AIR*CD*A)/mass; }
-  function ProjectileExperiment(){
-    this.running=false; this.paused=false; this.points=[]; this.params={...paramsUI};
-    this.t=0; this.x=0; this.y=0; this.vx=0; this.vy=0;
+    this.t+=dt;
+    this.pts.push({x:this.x,y:this.y,t:this.t,vx:this.vx,vy:this.vy});
+    if(this.y<=0&&this.t>0.05){this.running=false;this.save();}
+  },
+  draw(){
+    R.clear();R.grid();R.axisLabels('m','m');
+    runs.list.filter(r=>r.vis).forEach(r=>R.savedTrail(r.pts,r.color));
+    R.trail(this.pts,nextColor());
+    R.circle(this.x,this.y,0.15,nextColor());
+    if(this.pts.length){
+      const last=this.pts[this.pts.length-1];
+      R.label(`x=${this.x.toFixed(1)}m  y=${this.y.toFixed(1)}m`,last.x,last.y,nextColor());
+    }
+  },
+  ui(){
+    const spd=Math.hypot(this.vx,this.vy);
+    const k=this._k();
+    // Terminal velocity: mg = k·m·vt²  → vt = sqrt(g/k)
+    const vt=Math.sqrt(P.g/k);
+    const Fd=k*P.mass*spd*spd; // drag force magnitude (N) = ½ρCdA·v²
+    updateReadout({
+      'Time':this.t.toFixed(2)+' s',
+      'X pos':this.x.toFixed(2)+' m',
+      'Y pos':this.y.toFixed(2)+' m',
+      'Speed':spd.toFixed(2)+' m/s',
+      'vₓ (horiz)':this.vx.toFixed(2)+' m/s',
+      'vy (vert)':this.vy.toFixed(2)+' m/s',
+      'Drag force':Fd.toFixed(3)+' N',
+      'Terminal v':vt.toFixed(2)+' m/s'
+    });
+  },
+  series(){
+    return [
+      {label:'Y Position (m)',values:this.pts.map(p=>({t:p.t,v:p.y}))},
+      {label:'X Position (m)',values:this.pts.map(p=>({t:p.t,v:p.x}))},
+      {label:'Speed (m/s)',values:this.pts.map(p=>({t:p.t,v:Math.hypot(p.vx,p.vy)}))},
+      {label:'vₓ (m/s)',values:this.pts.map(p=>({t:p.t,v:p.vx}))},
+      {label:'vy (m/s)',values:this.pts.map(p=>({t:p.t,v:p.vy}))}
+    ];
   }
-  ProjectileExperiment.prototype._style=function(){ return { color:'#58A6FF', width:2 }; };
-  ProjectileExperiment.prototype._seed=function(){ const p=this.params; this.x=0; this.y=0; this.vx=p.v0*Math.cos(p.angle); this.vy=p.v0*Math.sin(p.angle); };
-  ProjectileExperiment.prototype.startRun=function(p){ if(this.running && !this.paused) return; this.params={...p}; if(this.paused){ this.paused=false; this.running=true; return; } this.points=[]; this.t=0; this.running=true; this.paused=false; this._seed(); };
-  ProjectileExperiment.prototype.pauseRun=function(){ this.paused=true; this.running=false; };
-  ProjectileExperiment.prototype.startNewRun=function(p){ this.params={...p}; this.points=[]; this.t=0; this.running=true; this.paused=false; this._seed(); };
-  ProjectileExperiment.prototype.resetRun=function(p){ this.params={...p}; this.points=[]; this.t=0; this.running=false; this.paused=false; this._seed(); };
-  ProjectileExperiment.prototype.saveCurrentRun=function(){ if(this.points.length<2) return; const stats=runManager.getStats(this.points); runManager.saveRun(this.points,this.params,stats,this._style()); };
-  ProjectileExperiment.prototype.update=function(dt){ if(!this.running || this.paused) return; const p=this.params; this.t+=dt; const k=dragK(p.mass); const v=Math.hypot(this.vx,this.vy); const ax=-k*v*this.vx; const ay=-p.g - k*v*this.vy; this.vx+=ax*dt; this.vy+=ay*dt; this.x+=this.vx*dt; this.y+=this.vy*dt; this.points.push({t:this.t,x:this.x,y:this.y,vx:this.vx,vy:this.vy}); if(this.y<=0 && this.t>0.05){ this.running=false; this.paused=false; this.saveCurrentRun(); } };
-  ProjectileExperiment.prototype.draw=function(){ renderer.clear(); renderer.line(-500,0,500,0,'#8B949E',2); renderer.trail(this.points,this._style()); renderer.ball(this.x,this.y,0.15,'#58A6FF'); };
-  ProjectileExperiment.prototype.updateUI=function(){ const speed=Math.hypot(this.vx,this.vy); updateReadout({ Time:this.t.toFixed(2)+' s', X:this.x.toFixed(2)+' m', Y:this.y.toFixed(2)+' m', Speed:speed.toFixed(2)+' m/s' }); };
-  ProjectileExperiment.prototype.getReportSeries=function(){ return { table:{ Time:this.t.toFixed(2)+' s', X:this.x.toFixed(2)+' m', Y:this.y.toFixed(2)+' m' }, graph:[ {label:'X Position', values:this.points.map(p=>({t:p.t,v:p.x}))}, {label:'Y Position', values:this.points.map(p=>({t:p.t,v:p.y}))}, {label:'Speed', values:this.points.map(p=>({t:p.t,v:Math.hypot(p.vx,p.vy)}))} ] }; };
+}), {
+  label:'Projectile Motion',
+  rows:['row-vel','row-ang','row-grav','row-mass'],
+  cam:{x:0,y:0,scale:12},
+  presets:[
+    {label:'Classic 45°',p:{v0:40,angleDeg:45,g:9.81,mass:2}},
+    {label:'Moon Gravity',p:{v0:30,angleDeg:45,g:1.62,mass:1}},
+    {label:'Mars Gravity',p:{v0:30,angleDeg:45,g:3.72,mass:1}},
+    {label:'Feather vs Rock',p:{v0:25,angleDeg:60,g:9.81,mass:0.1}},
+    {label:'No Drag (heavy)',p:{v0:25,angleDeg:45,g:9.81,mass:20}}
+  ]
+});
 
-  OPL.registerExperiment('projectile', ()=> new ProjectileExperiment(), {
-    label:'Projectile',
-    presets:[
-      {label:'Classic 45°', p:{ v0:40, angleDeg:45, g:9.81, mass:2.0 }},
-      {label:'Moon Gravity', p:{ v0:25, angleDeg:45, g:1.62, mass:1.0 }}
-    ],
-    camera:{x:0,y:0,scale:20},
-    autoStart:true
-  });
-
-  // ======= EXPERIMENT: PENDULUM =======
-  function PendulumExperiment(){
-    this.running=false; this.paused=false; this.points=[];
-    this.params={ v0:0, angle:30*Math.PI/180, g:9.81 };
-    this.L=2.0; this.damping=0.04;
-    this.pivot={x:0,y:1.5};
-    this.t=0; this.theta=this.params.angle; this.omega=0; this.settleTimer=0;
+// ═══════════════════════════════════════════
+//  EXPERIMENT: SIMPLE PENDULUM
+// ═══════════════════════════════════════════
+registerExp('pendulum', ()=>({
+  running:false,paused:false,
+  pts:[],t:0,theta:0,omega:0,settle:0,
+  pivot:{x:0,y:3},
+  reset(){
+    this.pts=[];this.t=0;this.running=false;this.paused=false;this.settle=0;
+    this.theta=P.angle;this.omega=0;
+    cam.x=0;cam.y=1.5;cam.scale=80;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    if(this.pts.length<5) return;
+    const maxTheta=Math.max(...this.pts.map(p=>Math.abs(p.theta)));
+    const last=this.pts[this.pts.length-1];
+    const summary={
+      'Start angle': (P.angle*180/Math.PI).toFixed(1)+'°',
+      'Length (L)': P.length.toFixed(2)+' m',
+      'Gravity (g)': P.g.toFixed(2)+' m/s²',
+      'Damping (b)': P.damping.toFixed(3),
+      'Period (exact)': this._period(P.angle).toFixed(4)+' s',
+      'Period (small-∠)': (2*Math.PI*Math.sqrt(P.length/P.g)).toFixed(4)+' s',
+      'Max |θ|': (maxTheta*180/Math.PI).toFixed(1)+'°',
+      'Duration': last.t.toFixed(2)+' s'
+    };
+    saveRun(this.pts.map(p=>({x:p.x,y:p.y})), summary);
+  },
+  _bob(){return{x:this.pivot.x+P.length*Math.sin(this.theta),y:this.pivot.y-P.length*Math.cos(this.theta)};},
+  // Exact large-angle period via power series in sin²(θ₀/2)
+  // Borwein & Borwein expansion — accurate to <0.01% for θ₀ < 170°
+  _period(theta0){
+    const T0=2*Math.PI*Math.sqrt(P.length/P.g);
+    const s=Math.sin(Math.abs(theta0)/2);
+    const s2=s*s;
+    // Series: T = T0*(1 + (1/4)k² + (9/64)k⁴ + (25/256)k⁶) where k=sin(θ₀/2)
+    return T0*(1 + 0.25*s2 + (9/64)*s2*s2 + (25/256)*s2*s2*s2);
+  },
+  update(dt){
+    if(!this.running||this.paused) return;
+    const step=Math.min(dt,0.02);
+    this.t+=step;
+    // RK4
+    const f=(th,om)=>-(P.g/P.length)*Math.sin(th)-P.damping*om;
+    const k1t=this.omega,k1o=f(this.theta,this.omega);
+    const k2t=this.omega+.5*step*k1o,k2o=f(this.theta+.5*step*k1t,this.omega+.5*step*k1o);
+    const k3t=this.omega+.5*step*k2o,k3o=f(this.theta+.5*step*k2t,this.omega+.5*step*k2o);
+    const k4t=this.omega+step*k3o,k4o=f(this.theta+step*k3t,this.omega+step*k3o);
+    this.theta+=(step/6)*(k1t+2*k2t+2*k3t+k4t);
+    this.omega+=(step/6)*(k1o+2*k2o+2*k3o+k4o);
+    const bob=this._bob();
+    this.pts.push({x:bob.x,y:bob.y,t:this.t,theta:this.theta,omega:this.omega});
+    const low=Math.abs(this.omega)<0.01&&Math.abs(this.theta)<0.01;
+    this.settle=low?this.settle+step:0;
+    if(this.settle>3){this.running=false;this.save();}
+  },
+  draw(){
+    R.clear();R.grid();R.axisLabels('m','m');
+    runs.list.filter(r=>r.vis).forEach(r=>R.savedTrail(r.pts,r.color));
+    R.circle(this.pivot.x,this.pivot.y,0.06,'#C9D1D9');
+    const bob=this._bob();
+    R.line(this.pivot.x,this.pivot.y,bob.x,bob.y,'#8B949E');
+    R.trail(this.pts,nextColor());
+    R.circle(bob.x,bob.y,0.12,nextColor());
+    // period label
+    const Tapprox=2*Math.PI*Math.sqrt(P.length/P.g);
+    const Texact=this._period(P.angle);
+    const largeAngle=Math.abs(P.angle)>0.26; // >15°
+    R.label(`T ≈ ${Texact.toFixed(3)} s${largeAngle?' (large-angle corrected)':' (period)'}`, this.pivot.x+0.1, this.pivot.y+0.1,'#4a5568');
+  },
+  ui(){
+    const L=P.length,g=P.g,m=1.0; // bob mass = 1 kg (affects energy scale only)
+    const bob=this._bob();
+    const yLow=this.pivot.y-L;
+    const h=Math.max(0,bob.y-yLow);
+    const v=Math.abs(this.omega)*L;
+    const KE=0.5*m*v*v;
+    const PE=m*g*h;
+    const Texact=this._period(this.theta);
+    const Tsmall=2*Math.PI*Math.sqrt(L/g);
+    updateReadout({
+      'Time':this.t.toFixed(2)+' s',
+      'θ (angle)':(this.theta*180/Math.PI).toFixed(1)+'°',
+      'ω (ang. vel)':this.omega.toFixed(3)+' rad/s',
+      'Speed':v.toFixed(2)+' m/s',
+      'KE':KE.toFixed(4)+' J',
+      'PE':PE.toFixed(4)+' J',
+      'Total E':(KE+PE).toFixed(4)+' J',
+      'Period (exact)':Texact.toFixed(4)+' s',
+      'Period (small-∠)':Tsmall.toFixed(4)+' s'
+    });
+  },
+  series(){
+    return [
+      {label:'Angle θ (deg)',values:this.pts.map(p=>({t:p.t,v:p.theta*180/Math.PI}))},
+      {label:'Angular velocity ω (rad/s)',values:this.pts.map(p=>({t:p.t,v:p.omega}))},
+      {label:'Phase: θ vs ω (rad vs rad/s)',values:this.pts.map(p=>({t:p.theta,v:p.omega})),xLabel:'θ (rad)'}
+    ];
   }
-  PendulumExperiment.prototype._style=function(){ return { color:'#DAA520', width:2 }; };
-  PendulumExperiment.prototype._bob=function(){ return { x:this.pivot.x + this.L*Math.sin(this.theta), y:this.pivot.y - this.L*Math.cos(this.theta) }; };
-  PendulumExperiment.prototype._rk4=function(dt){ const g=this.params.g, L=this.L, b=this.damping; const f=(th,om)=> (-(g/L)*Math.sin(th) - b*om); const th=this.theta, om=this.omega; const k1_th=om; const k1_om=f(th,om); const k2_th=om+0.5*dt*k1_om; const k2_om=f(th+0.5*dt*k1_th, om+0.5*dt*k1_om); const k3_th=om+0.5*dt*k2_om; const k3_om=f(th+0.5*dt*k2_th, om+0.5*dt*k2_om); const k4_th=om+dt*k3_om; const k4_om=f(th+dt*k3_th, om+dt*k3_om); this.theta+=(dt/6)*(k1_th+2*k2_th+2*k3_th+k4_th); this.omega+=(dt/6)*(k1_om+2*k2_om+2*k3_om+k4_om); };
-  PendulumExperiment.prototype.startRun=function(params){ if(this.running && !this.paused) return; this.params={...params}; if(this.paused){ this.paused=false; this.running=true; return; } this.running=true; this.paused=false; this.t=0; this.points=[]; this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0); this.settleTimer=0; };
-  PendulumExperiment.prototype.pauseRun=function(){ this.running=false; this.paused=true; };
-  PendulumExperiment.prototype.startNewRun=function(p){ this.params={...p}; this.running=true; this.paused=false; this.t=0; this.points=[]; this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0); this.settleTimer=0; };
-  PendulumExperiment.prototype.resetRun=function(p){ this.params={...p}; this.running=false; this.paused=false; this.t=0; this.points=[]; this.theta=this.params.angle; this.omega=(this.L>0? this.params.v0/this.L:0); this.settleTimer=0; };
-  PendulumExperiment.prototype.saveCurrentRun=function(){ if(this.points.length<5) return; const stats=this._computeStats(); runManager.saveRun(this.points,this.params,stats,this._style()); };
-  PendulumExperiment.prototype._computeStats=function(){ if(!this.points.length) return {maxH:0,range:0,duration:0}; let minX=Infinity,maxX=-Infinity,maxY=-Infinity; for(const p of this.points){ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; } const last=this.points[this.points.length-1]; return { maxH:maxY, range:(maxX-minX), duration:last.t }; };
-  PendulumExperiment.prototype.update=function(dt){ if(!this.running || this.paused) return; const step=Math.min(0.02,dt); this.t+=step; this._rk4(step); const pos=this._bob(); this.points.push({ t:this.t, x:pos.x, y:pos.y, theta:this.theta, omega:this.omega }); const lowEnergy=(Math.abs(this.omega)<0.01 && Math.abs(this.theta)<0.01); this.settleTimer = lowEnergy ? (this.settleTimer+step) : 0; if(this.settleTimer>3.0){ this.running=false; this.paused=false; this.saveCurrentRun(); } };
-  PendulumExperiment.prototype.draw=function(){ renderer.clear(); renderer.ball(this.pivot.x,this.pivot.y,0.06,'#C9D1D9'); if(this.points.length){ const last=this.points[this.points.length-1]; renderer.line(this.pivot.x,this.pivot.y,last.x,last.y,'#8B949E',2); } renderer.trail(this.points,this._style()); if(this.points.length){ const last=this.points[this.points.length-1]; renderer.ball(last.x,last.y,0.12,'#DAA520'); } };
-  PendulumExperiment.prototype.updateUI=function(){ const m=1, g=this.params.g, L=this.L; const yLowest=this.pivot.y-L; const bob=this._bob(); const h=bob.y-yLowest; const v=Math.abs(this.omega)*L; const PE=m*g*h, KE=0.5*m*v*v, E=PE+KE; updateReadout({ Time:this.t.toFixed(2)+' s', 'θ':(this.theta*180/Math.PI).toFixed(1)+' °', 'ω':this.omega.toFixed(3)+' rad/s', Speed:v.toFixed(2)+' m/s', Energy:E.toFixed(2)+' J' }); };
-  PendulumExperiment.prototype.getReportSeries=function(){ return { table:{ Time:this.t.toFixed(2)+' s', Theta:(this.theta*180/Math.PI).toFixed(1)+' °', Omega:this.omega.toFixed(3)+' rad/s' }, graph:[ {label:'Angle (θ, rad)', values:this.points.map(p=>({t:p.t,v:p.theta}))}, {label:'Omega (ω, rad/s)', values:this.points.map(p=>({t:p.t,v:p.omega}))} ] }; };
+}), {
+  label:'Simple Pendulum',
+  rows:['row-ang','row-grav','row-length','row-damp'],
+  cam:{x:0,y:1.5,scale:80},
+  presets:[
+    {label:'Small Angle (15°)',p:{angleDeg:15,g:9.81,length:2,damping:0}},
+    {label:'Large Angle (90°)',p:{angleDeg:90,g:9.81,length:1.5,damping:0}},
+    {label:'Damped (45°)',p:{angleDeg:45,g:9.81,length:2,damping:0.3}},
+    {label:'Moon Pendulum',p:{angleDeg:30,g:1.62,length:2,damping:0}}
+  ]
+});
 
-  OPL.registerExperiment('pendulum', ()=> new PendulumExperiment(), {
-    label:'Pendulum',
-    presets:[
-      {label:'Small Angle — Ideal', p:{ L:2.0, angleDeg:15, g:9.81, damping:0, v0:0 }},
-      {label:'Large Angle (90°)', p:{ L:1.5, angleDeg:90, g:9.81, damping:0, v0:0 }},
-      {label:'Overdamped', p:{ L:1.0, angleDeg:45, g:9.81, damping:1.8, v0:0 }}
-    ],
-    camera:{x:0,y:0,scale:20},
-    autoStart:true
+// ═══════════════════════════════════════════
+//  EXPERIMENT: SPRING-MASS
+// ═══════════════════════════════════════════
+registerExp('spring', ()=>({
+  running:false,paused:false,
+  pts:[],t:0,x:0,v:0,
+  anchor:{x:0,y:4},
+  reset(){
+    this.pts=[];this.t=0;this.running=false;this.paused=false;
+    this.x=P.x0;this.v=0;  // x = displacement from equilibrium
+    cam.x=0;cam.y=1;cam.scale=60;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    if(this.pts.length<5) return;
+    const w0=Math.sqrt(P.k/P.mass);
+    const maxDisp=Math.max(...this.pts.map(p=>Math.abs(p.x)));
+    const maxKE=Math.max(...this.pts.map(p=>0.5*P.mass*p.v*p.v));
+    const last=this.pts[this.pts.length-1];
+    const summary={
+      'Mass (m)': P.mass.toFixed(2)+' kg',
+      'Spring k': P.k.toFixed(1)+' N/m',
+      'Damping (b)': P.damping.toFixed(3),
+      'Init disp (x₀)': P.x0.toFixed(2)+' m',
+      'ω₀ (natural)': w0.toFixed(3)+' rad/s',
+      'ζ (damp ratio)': (P.damping/(2*Math.sqrt(P.k*P.mass))).toFixed(4),
+      'Period (T)': (2*Math.PI/w0).toFixed(3)+' s',
+      'Max |x|': maxDisp.toFixed(3)+' m',
+      'Max KE': maxKE.toFixed(3)+' J',
+      'Duration': last.t.toFixed(2)+' s'
+    };
+    saveRun(this.pts.map(p=>({x:p.posX,y:p.posY})), summary);
+  },
+  _eq(){ return this.anchor.y - P.mass*P.g/P.k; }, // equilibrium y
+  _pos(){ return{x:this.anchor.x, y:this._eq()-this.x}; },
+  update(dt){
+    if(!this.running||this.paused) return;
+    // RK4 for spring: state = [x_disp, v]
+    // ẍ = -(k/m)x - (b/m)v   (b = damping coefficient in N·s/m)
+    const steps=Math.max(1,Math.ceil(dt/0.005));
+    const h=dt/steps;
+    const deriv=(x,v)=>[ v, -(P.k/P.mass)*x - (P.damping/P.mass)*v ];
+    for(let s=0;s<steps;s++){
+      const [k1x,k1v]=deriv(this.x,this.v);
+      const [k2x,k2v]=deriv(this.x+.5*h*k1x,this.v+.5*h*k1v);
+      const [k3x,k3v]=deriv(this.x+.5*h*k2x,this.v+.5*h*k2v);
+      const [k4x,k4v]=deriv(this.x+h*k3x,this.v+h*k3v);
+      this.x+=(h/6)*(k1x+2*k2x+2*k3x+k4x);
+      this.v+=(h/6)*(k1v+2*k2v+2*k3v+k4v);
+    }
+    this.t+=dt;
+    const pos=this._pos();
+    this.pts.push({posX:pos.x,posY:pos.y,t:this.t,x:this.x,v:this.v});
+  },
+  draw(){
+    R.clear();R.grid();R.axisLabels('m','m');
+    runs.list.filter(r=>r.vis).forEach(r=>R.savedTrail(r.pts,r.color));
+    // draw spring coil
+    const eq=this._eq(), seg=12, totalX=this.x+P.mass*P.g/P.k;
+    const y0=this.anchor.y, y1=eq-this.x;
+    for(let i=0;i<seg;i++){
+      const t0=i/seg,t1=(i+1)/seg;
+      const ya=y0+(y1-y0)*t0, yb=y0+(y1-y0)*t1;
+      const amp=0.15, xa=this.anchor.x+(i%2===0?amp:-amp);
+      R.line(this.anchor.x+(i===0?0:((i-1)%2===0?amp:-amp)),ya,xa,yb,'#3FB950');
+      if(i===seg-1) R.line(xa,yb,this.anchor.x,yb,'#3FB950');
+    }
+    // anchor
+    R.circle(this.anchor.x,this.anchor.y,0.08,'#C9D1D9');
+    // mass block
+    const pos=this._pos();
+    const bh=0.2,hw=0.3;
+    const tl=w2s(pos.x-hw,pos.y+bh), br=w2s(pos.x+hw,pos.y-bh);
+    ctx.fillStyle='#3FB950';ctx.strokeStyle='#7ee383';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y,3);ctx.fill();ctx.stroke();
+    R.trail(this.pts.map(p=>({x:p.posX,y:p.posY})),nextColor(),1);
+    // equilibrium line
+    const ep=this._eq();
+    ctx.strokeStyle='#2b3a50';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    const elp=w2s(-2,ep),erp=w2s(2,ep);
+    ctx.beginPath();ctx.moveTo(elp.x,elp.y);ctx.lineTo(erp.x,erp.y);ctx.stroke();ctx.setLineDash([]);
+    R.label('equilibrium (x=0)', 0.4, ep, '#2b3a50');
+  },
+  ui(){
+    const KE=0.5*P.mass*this.v*this.v;
+    const PE=0.5*P.k*this.x*this.x;
+    const w0=Math.sqrt(P.k/P.mass);
+    const bc=2*Math.sqrt(P.k*P.mass); // critical damping coeff
+    const zeta=P.damping/bc;          // damping ratio ζ
+    const regime=zeta<0.999?'underdamped':zeta>1.001?'overdamped':'critically damped';
+    // Damped natural frequency (only real if underdamped)
+    const wd=zeta<1 ? w0*Math.sqrt(1-zeta*zeta) : 0;
+    updateReadout({
+      'Time':this.t.toFixed(2)+' s',
+      'Displacement (x)':this.x.toFixed(4)+' m',
+      'Velocity (v)':this.v.toFixed(4)+' m/s',
+      'KE':KE.toFixed(4)+' J',
+      'PE':PE.toFixed(4)+' J',
+      'Total E':(KE+PE).toFixed(4)+' J',
+      'ω₀ (natural)':w0.toFixed(4)+' rad/s',
+      'ωd (damped)':wd>0?wd.toFixed(4)+' rad/s':'N/A',
+      'ζ (damp ratio)':zeta.toFixed(4),
+      'Regime':regime,
+      'b_critical':bc.toFixed(3)+' N·s/m'
+    });
+  },
+  series(){
+    return [
+      {label:'Displacement x (m)',values:this.pts.map(p=>({t:p.t,v:p.x}))},
+      {label:'Velocity v (m/s)',values:this.pts.map(p=>({t:p.t,v:p.v}))},
+      {label:'Phase: x vs v (m vs m/s)',values:this.pts.map(p=>({t:p.x,v:p.v})),xLabel:'x (m)'}
+    ];
+  }
+}), {
+  label:'Spring-Mass Oscillator',
+  rows:['row-grav','row-mass','row-damp','row-spring','row-x0'],
+  cam:{x:0,y:1,scale:60},
+  presets:[
+    {label:'Undamped',p:{mass:1,k:10,damping:0,x0:1.5,g:9.81}},
+    {label:'Underdamped',p:{mass:1,k:10,damping:0.5,x0:1.5,g:9.81}},
+    {label:'Critically Damped (m=1,k=10)',p:{mass:1,k:10,damping:2*Math.sqrt(10),x0:1.5,g:9.81}},
+    {label:'Heavy Spring',p:{mass:5,k:50,damping:0,x0:2,g:9.81}}
+  ]
+});
+
+// ═══════════════════════════════════════════
+//  EXPERIMENT: FREE FALL
+// ═══════════════════════════════════════════
+registerExp('freefall', ()=>({
+  running:false,paused:false,
+  pts:[],t:0,y:0,vy:0,
+  reset(){
+    this.pts=[];this.t=0;this.running=false;this.paused=false;
+    this.y=P.x0;this.vy=0;
+    cam.x=0;cam.y=P.x0/2;cam.scale=Math.max(8, 400/P.x0);
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    if(this.pts.length<2) return;
+    const last=this.pts[this.pts.length-1];
+    const impactV=Math.abs(last.vy);
+    const theorT=Math.sqrt(2*P.x0/P.g);
+    const theorV=P.g*theorT;
+    const summary={
+      'Drop height': P.x0.toFixed(1)+' m',
+      'Gravity (g)': P.g.toFixed(2)+' m/s²',
+      'Mass': P.mass.toFixed(2)+' kg',
+      'Flight time': last.t.toFixed(2)+' s',
+      'No-drag time': theorT.toFixed(2)+' s',
+      'Impact speed': impactV.toFixed(2)+' m/s',
+      'No-drag speed': theorV.toFixed(2)+' m/s',
+      'Terminal v': Math.sqrt(P.g/this._k()).toFixed(2)+' m/s',
+      'Impact KE': (0.5*P.mass*impactV*impactV).toFixed(2)+' J'
+    };
+    saveRun(this.pts, summary);
+  },
+  _k(){ const r=Math.pow(3*P.mass/(4*Math.PI*800),1/3); return 0.5*1.225*0.47*Math.PI*r*r/P.mass; },
+  update(dt){
+    if(!this.running||this.paused) return;
+    // RK4 with quadratic air drag: a = -g - k·|vy|·vy  (vy is negative so drag opposes motion)
+    const steps=Math.max(1,Math.ceil(dt/0.005));
+    const h=dt/steps;
+    const k=this._k();
+    const deriv=(y,vy)=>[ vy, -P.g - k*Math.abs(vy)*vy ];
+    for(let s=0;s<steps;s++){
+      const [k1y,k1v]=deriv(this.y,this.vy);
+      const [k2y,k2v]=deriv(this.y+.5*h*k1y,this.vy+.5*h*k1v);
+      const [k3y,k3v]=deriv(this.y+.5*h*k2y,this.vy+.5*h*k2v);
+      const [k4y,k4v]=deriv(this.y+h*k3y,this.vy+h*k3v);
+      this.y+=(h/6)*(k1y+2*k2y+2*k3y+k4y);
+      this.vy+=(h/6)*(k1v+2*k2v+2*k3v+k4v);
+    }
+    this.t+=dt;
+    this.pts.push({x:0,y:this.y,t:this.t,vy:this.vy});
+    if(this.y<=0&&this.t>0.05){this.y=0;this.running=false;this.save();}
+  },
+  draw(){
+    R.clear();R.grid();R.axisLabels('','m');
+    runs.list.filter(r=>r.vis).forEach(r=>R.savedTrail(r.pts,r.color));
+    // ground
+    ctx.fillStyle='#1e2d1e';
+    const gl=w2s(-5,0),gr=w2s(5,-0.3);
+    ctx.fillRect(gl.x,gl.y,gr.x-gl.x,gr.y-gl.y);
+    R.line(-5,0,5,0,'#3FB950',2);
+    // height lines
+    const tickStep=P.x0<=20?2:P.x0<=50?5:P.x0<=100?10:P.x0<=200?20:50;
+    for(let yy=0;yy<=P.x0;yy+=tickStep){
+      R.line(-0.5,yy,0.5,yy,'#2b3a50',1);
+      R.label(yy+' m', 0.6, yy,'#4a5568');
+    }
+    R.trail(this.pts,nextColor());
+    R.circle(0,this.y,0.3,nextColor());
+    // velocity arrow
+    if(this.vy!==0){
+      const scale2=0.15,vy2=this.vy*scale2;
+      R.line(0.4,this.y,0.4,this.y+vy2,'#FF6A6A',2);
+      R.label(`v=${this.vy.toFixed(1)} m/s`, 0.5, this.y+vy2/2,'#FF6A6A');
+    }
+  },
+  ui(){
+    const theorY=P.x0-0.5*P.g*this.t*this.t; // ideal (no drag)
+    const k=this._k();
+    const vt=Math.sqrt(P.g/k); // terminal velocity
+    const dragF=k*P.mass*this.vy*this.vy; // drag force magnitude (N)
+    updateReadout({
+      'Time':this.t.toFixed(2)+' s',
+      'Height (y)':this.y.toFixed(2)+' m',
+      'Velocity (vy)':this.vy.toFixed(2)+' m/s',
+      'No-drag h (½gt²)':Math.max(0,theorY).toFixed(2)+' m',
+      'Terminal v':vt.toFixed(2)+' m/s',
+      'Drag force':dragF.toFixed(3)+' N',
+      'KE':(0.5*P.mass*this.vy*this.vy).toFixed(2)+' J',
+      'PE':(P.mass*P.g*Math.max(0,this.y)).toFixed(2)+' J'
+    });
+  },
+  series(){
+    return [
+      {label:'Height (m)',values:this.pts.map(p=>({t:p.t,v:p.y}))},
+      {label:'Velocity (m/s)',values:this.pts.map(p=>({t:p.t,v:p.vy}))},
+      {label:'KE (J)',values:this.pts.map(p=>({t:p.t,v:0.5*P.mass*p.vy*p.vy}))},
+      {label:'PE (J)',values:this.pts.map(p=>({t:p.t,v:P.mass*P.g*Math.max(0,p.y)}))}
+    ];
+  }
+}), {
+  label:'Free Fall',
+  rows:['row-grav','row-mass','row-x0'],
+  cam:{x:0,y:10,scale:20},
+  presets:[
+    {label:'Earth — feather (20 m)',p:{g:9.81,mass:0.1,x0:20}},
+    {label:'Earth — cannonball (20 m)',p:{g:9.81,mass:10,x0:20}},
+    {label:'Moon (20 m)',p:{g:1.62,mass:1,x0:20}},
+    {label:'Mars (20 m)',p:{g:3.72,mass:1,x0:20}},
+    {label:'Jupiter (20 m)',p:{g:24.79,mass:1,x0:20}},
+    {label:'Skyscraper — feather (300 m)',p:{g:9.81,mass:0.1,x0:300}},
+    {label:'Skyscraper — cannonball (300 m)',p:{g:9.81,mass:10,x0:300}}
+  ]
+});
+
+// ═══════════════════════════════════════════
+//  MAIN CONTROLLER
+// ═══════════════════════════════════════════
+let active=null;
+let graphMode=false, graphIdx=0;
+
+function activate(id){
+  runs.list=[];refreshRunList();
+  const rec=registry.get(id);if(!rec) return;
+  const {factory,meta}=rec;
+  active=factory();
+  showRows(meta.rows||[]);
+  // Update x0 slider label and range based on experiment
+  const lx0el=document.getElementById('labelX0');
+  const sx0=document.getElementById('sX0');
+  if(id==='freefall'){
+    lx0el.innerHTML='Drop Height: <span class="val" id="lx0">'+P.x0.toFixed(0)+'</span> m';
+    sx0.min=1; sx0.max=500; sx0.step=1;
+    if(parseFloat(sx0.value)<1||parseFloat(sx0.value)>500) { sx0.value=20; P.x0=20; }
+  } else {
+    lx0el.innerHTML='Initial Displacement: <span class="val" id="lx0">'+P.x0.toFixed(1)+'</span> m';
+    sx0.min=0.1; sx0.max=4; sx0.step=0.1;
+  }
+  if(meta.cam){cam.x=meta.cam.x;cam.y=meta.cam.y;cam.scale=meta.cam.scale;}
+  // presets
+  const psel=document.getElementById('presetSel');
+  psel.innerHTML='<option value="">Presets…</option>';
+  (meta.presets||[]).forEach((p,i)=>{
+    const o=document.createElement('option');o.value=i;o.textContent=p.label;psel.appendChild(o);
   });
+  psel.onchange=(e)=>{
+    if(e.target.value==='') return;
+    const pr=(meta.presets||[])[+e.target.value];
+    if(pr){setSlidersFromP(pr.p||{});active.reset();active.start();toast('Loaded: '+pr.label);}
+    e.target.value='';
+  };
+  active.reset();active.start();
+  graphMode=false;switchToTable();
+}
 
-  // ======= PRESETS HELPERS =======
-  function buildPresetOptions(meta){ const presets=(meta?.presets)||[]; return presets.map((p,i)=>({label:p.label,index:i})); }
-  function applyPreset(meta,index,paramsUI){ const conf=((meta?.presets)||[])[index]; if(!conf) return null; const p=conf.p||{}; if(p.v0!=null) paramsUI.v0=p.v0; if(p.angleDeg!=null) paramsUI.angle=p.angleDeg*Math.PI/180; if(p.g!=null) paramsUI.g=p.g; if(p.mass!=null) paramsUI.mass=p.mass; const extras={}; for(const k of ['L','damping','k','m','c','x0','muS','muK','mode']){ if(p[k]!=null) extras[k]=p[k]; } return { paramsUI, extras, label:conf.label }; }
+function switchToTable(){
+  graphMode=false;
+  document.getElementById('tabTable').classList.add('active');
+  document.getElementById('tabGraph').classList.remove('active');
+  document.getElementById('readout').style.display='';
+  document.getElementById('graphWrap').style.display='none';
+}
+function switchToGraph(){
+  graphMode=true;
+  document.getElementById('tabGraph').classList.add('active');
+  document.getElementById('tabTable').classList.remove('active');
+  document.getElementById('readout').style.display='none';
+  document.getElementById('graphWrap').style.display='';
+  if(active&&active.series){
+    const s=active.series();
+    const sel=document.getElementById('seriesSel');
+    sel.innerHTML=s.map((sr,i)=>`<option value="${i}">${sr.label}</option>`).join('');
+    graphIdx=0;sel.value=0;
+    if(s[0]) drawGraph(s[0]);
+  }
+}
+document.getElementById('tabTable').onclick=switchToTable;
+document.getElementById('tabGraph').onclick=switchToGraph;
+document.getElementById('seriesSel').onchange=e=>{graphIdx=+e.target.value;};
 
-  // ======= MAIN =======
-  const canvas=document.getElementById('simCanvas');
-  const graphCanvas=document.getElementById('graphCanvas');
-  function resizeCanvasDPR(){ const dpr=Math.max(1,Math.floor(window.devicePixelRatio || 1)); const cssW=window.innerWidth-320, cssH=window.innerHeight-52; canvas.width=Math.floor(cssW*dpr); canvas.height=Math.floor(cssH*dpr); canvas.style.width=cssW+'px'; canvas.style.height=cssH+'px'; }
-  function resizeGraphCanvasDPR(){ graphEngine.resizeDPR(); }
-  resizeCanvasDPR(); window.addEventListener('resize', ()=>{ resizeCanvasDPR(); resizeGraphCanvasDPR(); });
-  renderer.init(canvas); applyCameraInput(canvas); graphEngine.init(graphCanvas);
-  window.__graphEngine = graphEngine; window.__graphActive=false; window.__graphSeriesIndex=0;
+// toolbar buttons
+document.getElementById('btnStart').onclick=()=>active?.start();
+document.getElementById('btnPause').onclick=()=>active?.pause();
+document.getElementById('btnReset').onclick=()=>{active?.reset();active?.start();};
+document.getElementById('btnNew').onclick=()=>active?.newRun();
+document.getElementById('btnSave').onclick=()=>active?.save();
 
-  let __activeExperiment = null;
-  function rebuildExperimentSelector(){ const all=OPL._all(); el.expSelector.innerHTML=''; for(const {id,meta} of all){ const opt=document.createElement('option'); opt.value=id; opt.textContent=meta?.label||id; el.expSelector.appendChild(opt); } }
-  function switchToTable(){ el.readoutGrid.style.display=''; el.graphPanel.style.display='none'; window.__graphActive=false; }
-  function switchToGraph(){ const exp=__activeExperiment; if(!exp||!exp.getReportSeries) return; const series=(exp.getReportSeries().graph) || []; populateGraphSeries(series); el.readoutGrid.style.display='none'; el.graphPanel.style.display=''; window.__graphActive=true; window.__graphSeriesIndex=0; if(series[0]) graphEngine.drawSeries(series[0]); }
-  el.btnTableView.onclick = switchToTable; el.btnGraphView.onclick = switchToGraph; el.graphSeriesSelect.onchange = (e)=>{ window.__graphSeriesIndex = +e.target.value; };
+// Clear All — two-click confirm
+let _clearConfirmTimer;
+document.getElementById('btnClearAll').onclick=function(){
+  if(this.classList.contains('confirm')){
+    // Confirmed — wipe runs and reset sim
+    clearTimeout(_clearConfirmTimer);
+    this.classList.remove('confirm');
+    this.textContent='🗑 Clear All';
+    runs.list=[];
+    refreshRunList();
+    active?.reset();
+    toast('All runs cleared');
+  } else {
+    this.classList.add('confirm');
+    this.textContent='⚠ Confirm Clear?';
+    _clearConfirmTimer=setTimeout(()=>{
+      this.classList.remove('confirm');
+      this.textContent='🗑 Clear All';
+    }, 3000);
+  }
+};
+document.getElementById('expSel').onchange=e=>activate(e.target.value);
 
-  document.addEventListener('opl:registered', ()=>{ rebuildExperimentSelector(); if(!__activeExperiment){ const first=OPL._all()[0]?.id; if(first) activate(first); } });
+// ═══════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════
+function resize(){
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  const w=window.innerWidth-320, h=window.innerHeight-50;
+  canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+}
+resize();window.addEventListener('resize',resize);
 
-  function activate(id){ const exp=OPL._create(id); if(!exp) return; __activeExperiment=exp; const meta=OPL._meta(id); if(meta?.camera){ camera.x=meta.camera.x??0; camera.y=meta.camera.y??0; camera.scale=meta.camera.scale??20; } if(id==='pendulum'){ paramsUI.v0=0; } exp.resetRun?.(paramsUI,{recenter:true}); const opts=buildPresetOptions(meta); setPresets(opts); onPresetChange((index)=>{ const res=applyPreset(meta,index,paramsUI); if(!res) return; setSlidersFromParams(paramsUI); if(res.extras) Object.assign(paramsUI,res.extras); exp.resetRun?.(paramsUI,{recenter:true}); if(meta?.autoStart) exp.startRun?.(paramsUI); el.presetToast.textContent = `Loaded: ${res.label}`; el.presetToast.classList.add('show'); setTimeout(()=> el.presetToast.classList.remove('show'), 1200); if(window.__graphActive) switchToGraph(); }); if(meta?.autoStart) exp.startRun?.(paramsUI); refreshRunList(); switchToTable(); }
+// ═══════════════════════════════════════════
+//  LOOP
+// ═══════════════════════════════════════════
+let last=0;
+function loop(ts){
+  if(!last) last=ts;
+  const dt=Math.min(0.05,(ts-last)/1000);
+  last=ts;
+  if(active){
+    active.update(dt);
+    active.draw();
+    if(!graphMode) active.ui();
+    else if(active.series){
+      const s=active.series();
+      if(s[graphIdx]) drawGraph(s[graphIdx]);
+    }
+  }
+  requestAnimationFrame(loop);
+}
 
-  rebuildExperimentSelector(); el.expSelector.onchange = ()=> activate(el.expSelector.value); const first=OPL._all()[0]?.id; if(first) activate(first);
-
-  // animation loop
-  let last=0; function loop(t){ if(!last) last=t; const dt=Math.min(0.05,(t-last)/1000); last=t; if(__activeExperiment){ __activeExperiment.update?.(dt); __activeExperiment.draw?.(); __activeExperiment.updateUI?.(); } if(window.__graphActive){ const exp=__activeExperiment; if(exp && exp.getReportSeries){ const list=(exp.getReportSeries().graph) || []; const idx=(window.__graphSeriesIndex || 0); const s=list[idx]; if(window.__graphEngine && s) window.__graphEngine.drawSeries(s); } } requestAnimationFrame(loop); }
-  bindRunButtons(()=>__activeExperiment); requestAnimationFrame(loop);
-  </script>
+activate('projectile');
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>
