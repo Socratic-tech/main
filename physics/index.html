@@ -1023,6 +1023,939 @@ function loop(ts){
   requestAnimationFrame(loop);
 }
 
+
+// ═══════════════════════════════════════════
+//  PARAM ROWS — add new sliders to HTML side panel
+// ═══════════════════════════════════════════
+// Injected at runtime — we add rows for new params
+(function injectSliders(){
+  const scroll = document.getElementById('side-scroll');
+  const existing = document.getElementById('row-x0');
+  const newRows = `
+    <div class="param-row hidden" id="row-freq">
+      <label id="labelFreq">Frequency: <span class="val" id="lfreq">2.0</span> Hz</label>
+      <input type="range" id="sFreq" min="0.1" max="10" step="0.1" value="2.0">
+    </div>
+    <div class="param-row hidden" id="row-amp">
+      <label>Amplitude: <span class="val" id="lamp">1.0</span> m</label>
+      <input type="range" id="sAmp" min="0.1" max="3" step="0.1" value="1.0">
+    </div>
+    <div class="param-row hidden" id="row-wavespeed">
+      <label>Wave Speed: <span class="val" id="lwspeed">10</span> m/s</label>
+      <input type="range" id="sWspeed" min="1" max="40" step="0.5" value="10">
+    </div>
+    <div class="param-row hidden" id="row-mass2">
+      <label>Mass 2: <span class="val" id="lmass2">2.0</span> kg</label>
+      <input type="range" id="sMass2" min="0.1" max="20" step="0.1" value="2.0">
+    </div>
+    <div class="param-row hidden" id="row-vel2">
+      <label>v₁ initial: <span class="val" id="lvel2">5.0</span> m/s</label>
+      <input type="range" id="sVel2" min="-20" max="20" step="0.5" value="5.0">
+    </div>
+    <div class="param-row hidden" id="row-restitution">
+      <label>Restitution (e): <span class="val" id="lrest">1.0</span></label>
+      <input type="range" id="sRest" min="0" max="1" step="0.05" value="1.0">
+    </div>
+    <div class="param-row hidden" id="row-muS">
+      <label>μₛ (static): <span class="val" id="lmuS">0.4</span></label>
+      <input type="range" id="sMuS" min="0" max="1.5" step="0.01" value="0.4">
+    </div>
+    <div class="param-row hidden" id="row-muK">
+      <label>μₖ (kinetic): <span class="val" id="lmuK">0.3</span></label>
+      <input type="range" id="sMuK" min="0" max="1.5" step="0.01" value="0.3">
+    </div>
+    <div class="param-row hidden" id="row-orbitR">
+      <label>Orbit Radius: <span class="val" id="lorbitR">5.0</span> AU</label>
+      <input type="range" id="sOrbitR" min="0.5" max="20" step="0.1" value="5.0">
+    </div>
+    <div class="param-row hidden" id="row-centralMass">
+      <label>Central Mass: <span class="val" id="lcentralM">1.0</span> ×M☉</label>
+      <input type="range" id="sCentralM" min="0.1" max="10" step="0.1" value="1.0">
+    </div>`;
+  existing.insertAdjacentHTML('afterend', newRows);
+
+  // Bind new sliders to P
+  function bind(slId, labelId, key, scale, fmt){
+    const sl=document.getElementById(slId), lb=document.getElementById(labelId);
+    if(!sl||!lb) return;
+    sl.oninput=()=>{
+      const raw=parseFloat(sl.value);
+      P[key]=scale?raw*scale:raw;
+      lb.textContent=fmt?fmt(P[key]):raw;
+    };
+  }
+  bind('sFreq','lfreq','freq'); bind('sAmp','lamp','amp');
+  bind('sWspeed','lwspeed','waveSpeed');
+  bind('sMass2','lmass2','mass2'); bind('sVel2','lvel2','vel2');
+  bind('sRest','lrest','restitution');
+  bind('sMuS','lmuS','muS'); bind('sMuK','lmuK','muK');
+  bind('sOrbitR','lorbitR','orbitR'); bind('sCentralM','lcentralM','centralMass');
+
+  // Extend showRows to include new rows
+  const origShowRows = showRows;
+  window.showRows = function(ids){
+    const allRows = ['row-vel','row-ang','row-grav','row-mass','row-length','row-damp',
+      'row-spring','row-x0','row-freq','row-amp','row-wavespeed','row-mass2',
+      'row-vel2','row-restitution','row-muS','row-muK','row-orbitR','row-centralMass'];
+    allRows.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.classList.toggle('hidden', !ids.includes(id));
+    });
+  };
+})();
+
+// Extend P with new params
+P.freq=2.0; P.amp=1.0; P.waveSpeed=10;
+P.mass2=2.0; P.vel2=5.0; P.restitution=1.0;
+P.muS=0.4; P.muK=0.3;
+P.orbitR=5.0; P.centralMass=1.0;
+
+// ═══════════════════════════════════════════════════════════
+//  EXPERIMENT: WAVES & SOUND
+// ═══════════════════════════════════════════════════════════
+registerExp('waves', ()=>({
+  running:false, paused:false, pts:[], t:0,
+  reset(){
+    this.pts=[]; this.t=0; this.running=false; this.paused=false;
+    cam.x=0; cam.y=0; cam.scale=30;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    const lam=P.waveSpeed/P.freq;
+    const T=1/P.freq;
+    const summary={
+      'Frequency (f)':P.freq.toFixed(2)+' Hz',
+      'Amplitude (A)':P.amp.toFixed(2)+' m',
+      'Wave speed (v)':P.waveSpeed.toFixed(1)+' m/s',
+      'Wavelength (λ)':lam.toFixed(3)+' m',
+      'Period (T)':T.toFixed(3)+' s',
+      'Formula v=fλ':(P.freq*lam).toFixed(2)+' m/s ✓'
+    };
+    saveRun([{x:0,y:0},{x:1,y:0}], summary);
+  },
+  update(dt){if(!this.running||this.paused)return; this.t+=dt;},
+  draw(){
+    R.clear(); R.grid();
+    const lam=P.waveSpeed/P.freq;
+    const k=2*Math.PI/lam;
+    const omega=2*Math.PI*P.freq;
+    const color=nextColor();
+    // Draw travelling wave snapshot
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    const xStart=-15, xEnd=15, step=0.05;
+    let first=true;
+    for(let wx=xStart;wx<=xEnd;wx+=step){
+      const wy=P.amp*Math.sin(k*wx - omega*this.t);
+      const sp=w2s(wx,wy);
+      if(first){ctx.moveTo(sp.x,sp.y);first=false;}else ctx.lineTo(sp.x,sp.y);
+    }
+    ctx.stroke();
+    // Draw equilibrium line
+    R.line(-15,0,15,0,'#2b3a50',1);
+    // Mark one full wavelength
+    const wox=w2s(0,0).x, w1x=w2s(lam,0).x;
+    ctx.strokeStyle='#4a5568'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(wox,w2s(0,-P.amp-0.4).y); ctx.lineTo(wox,w2s(0,P.amp+0.4).y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w1x,w2s(0,-P.amp-0.4).y); ctx.lineTo(w1x,w2s(0,P.amp+0.4).y); ctx.stroke();
+    ctx.setLineDash([]);
+    R.label('λ='+lam.toFixed(2)+'m', lam/2-0.3, P.amp+0.6,'#4a5568');
+    // Amplitude markers
+    R.line(-14.5, P.amp, -14, P.amp, '#8B949E', 1);
+    R.line(-14.5,-P.amp, -14,-P.amp, '#8B949E', 1);
+    R.line(-14.5,-P.amp,-14.5,P.amp,'#8B949E',1);
+    R.label('A='+P.amp.toFixed(1)+'m',-14.3,P.amp/2,'#8B949E');
+    R.axisLabels('m','m');
+    // Saved runs don't draw trails for waves — just show info
+    const T=1/P.freq;
+    R.label(`f=${P.freq.toFixed(2)}Hz  T=${T.toFixed(3)}s  v=${P.waveSpeed}m/s  λ=${lam.toFixed(2)}m`,
+      -14, -P.amp-0.8, '#58A6FF');
+  },
+  ui(){
+    const lam=P.waveSpeed/P.freq;
+    const T=1/P.freq;
+    const calcV=P.freq*lam;
+    updateReadout({
+      'Frequency (f)':P.freq.toFixed(2)+' Hz',
+      'Period (T)':T.toFixed(3)+' s',
+      'Amplitude (A)':P.amp.toFixed(2)+' m',
+      'Wave speed (v)':P.waveSpeed.toFixed(1)+' m/s',
+      'Wavelength (λ)':lam.toFixed(3)+' m',
+      '— Theory —':'v = f × λ',
+      'v = f·λ':calcV.toFixed(2)+' m/s',
+      'Time elapsed':this.t.toFixed(2)+' s'
+    });
+  },
+  series(){
+    // Generate one period of y(x,t=0) snapshot
+    const lam=P.waveSpeed/P.freq;
+    const k=2*Math.PI/lam;
+    const omega=2*Math.PI*P.freq;
+    const pts=[];
+    for(let wx=-10;wx<=10;wx+=0.1)
+      pts.push({t:wx, v:P.amp*Math.sin(k*wx - omega*this.t)});
+    // Time series at x=0
+    const tpts=[];
+    for(let tt=0;tt<=2/P.freq;tt+=0.01)
+      tpts.push({t:tt, v:P.amp*Math.sin(-omega*tt)});
+    return [
+      {label:'y(x) snapshot — displacement vs position (m)',values:pts,xLabel:'x (m)'},
+      {label:'y(t) at x=0 — displacement vs time (m)',values:tpts}
+    ];
+  }
+}),{
+  label:'Waves & Sound',
+  rows:['row-freq','row-amp','row-wavespeed'],
+  cam:{x:0,y:0,scale:30},
+  presets:[
+    {label:'Slow wave',p:{freq:1,amp:1.5,waveSpeed:8}},
+    {label:'High frequency',p:{freq:5,amp:0.5,waveSpeed:10}},
+    {label:'Sound ~440 Hz (scaled)',p:{freq:4,amp:0.8,waveSpeed:12}},
+    {label:'Long wavelength',p:{freq:0.5,amp:2,waveSpeed:10}},
+    {label:'Standing wave feel',p:{freq:3,amp:1,waveSpeed:6}}
+  ]
+});
+
+// ═══════════════════════════════════════════════════════════
+//  EXPERIMENT: MOMENTUM & COLLISIONS
+// ═══════════════════════════════════════════════════════════
+registerExp('collision', ()=>({
+  running:false, paused:false, pts:[], t:0,
+  // Cart state
+  x1:0, v1:0, x2:0, v2:0,
+  phase:'before', // before | colliding | after
+  collided:false,
+  W:0.4, // half-cart width in world units
+  reset(){
+    this.pts=[]; this.t=0; this.running=false; this.paused=false;
+    this.phase='before'; this.collided=false;
+    this.x1=-6; this.v1=P.vel2;
+    this.x2=4;  this.v2=0;
+    cam.x=0; cam.y=0; cam.scale=40;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    if(this.phase!=='after') return;
+    const pi=P.mass*this.v1+P.mass2*this.v2;  // actually initial values
+    const [av1,av2]=this._postV();
+    const pf=P.mass*av1+P.mass2*av2;
+    const summary={
+      'Mass 1 (m₁)':P.mass.toFixed(2)+' kg',
+      'Mass 2 (m₂)':P.mass2.toFixed(2)+' kg',
+      'v₁ initial':P.vel2.toFixed(2)+' m/s',
+      'v₂ initial':'0.00 m/s',
+      'Restitution (e)':P.restitution.toFixed(2),
+      'Type':P.restitution>=0.99?'Elastic':P.restitution<=0.01?'Perfectly Inelastic':'Partially Inelastic',
+      'v₁ final':this.v1.toFixed(3)+' m/s',
+      'v₂ final':this.v2.toFixed(3)+' m/s',
+      'p before':(P.mass*P.vel2).toFixed(3)+' kg·m/s',
+      'p after':(P.mass*this.v1+P.mass2*this.v2).toFixed(3)+' kg·m/s',
+      'KE before':(0.5*P.mass*P.vel2*P.vel2).toFixed(3)+' J',
+      'KE after':(0.5*P.mass*this.v1*this.v1+0.5*P.mass2*this.v2*this.v2).toFixed(3)+' J'
+    };
+    saveRun([{x:this.x1,y:0},{x:this.x2,y:0}], summary);
+  },
+  _postV(){
+    // Coefficient of restitution collision
+    const m1=P.mass, m2=P.mass2, u1=P.vel2, u2=0, e=P.restitution;
+    const v1=(m1*u1+m2*u2-m2*e*(u1-u2))/(m1+m2);
+    const v2=(m1*u1+m2*u2+m1*e*(u1-u2))/(m1+m2);
+    return [v1,v2];
+  },
+  update(dt){
+    if(!this.running||this.paused) return;
+    this.t+=dt;
+    this.x1+=this.v1*dt;
+    this.x2+=this.v2*dt;
+    this.pts.push({t:this.t,x1:this.x1,x2:this.x2,v1:this.v1,v2:this.v2});
+    // Detect collision
+    if(!this.collided && this.x1+this.W >= this.x2-this.W && this.v1>this.v2){
+      this.collided=true; this.phase='after';
+      const [nv1,nv2]=this._postV();
+      this.v1=nv1; this.v2=nv2;
+    }
+    // Auto-stop when both off screen
+    if(Math.abs(this.x1)>25||Math.abs(this.x2)>25) this.running=false;
+  },
+  draw(){
+    R.clear(); R.grid();
+    // Track
+    R.line(-20,0,20,0,'#8B949E',2);
+    R.line(-20,-0.05,20,-0.05,'#2b3a50',8);
+    const col=nextColor();
+    const drawCart=(x,v,mass,clr,lbl)=>{
+      const hw=this.W, hh=0.3;
+      const tl=w2s(x-hw,hh), br=w2s(x+hw,-hh);
+      ctx.fillStyle=clr; ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.roundRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y,4); ctx.fill(); ctx.stroke();
+      // velocity arrow
+      if(Math.abs(v)>0.05){
+        const ex=x+(v>0?1:-1)*Math.min(Math.abs(v)*0.4,3);
+        R.line(x,0.55,ex,0.55,clr,2);
+        const arrowDir=v>0?1:-1;
+        R.line(ex,0.55,ex-arrowDir*0.3,0.4,clr,2);
+        R.line(ex,0.55,ex-arrowDir*0.3,0.7,clr,2);
+      }
+      R.label(`${lbl}\n${mass.toFixed(1)}kg`, x-0.15, hh+0.05, '#fff');
+      R.label(`v=${v.toFixed(2)}m/s`, x-0.3, hh+0.5, clr);
+    };
+    drawCart(this.x1,this.v1,P.mass,'#58A6FF','m₁');
+    drawCart(this.x2,this.v2,P.mass2,'#F0883E','m₂');
+    R.axisLabels('m','');
+    // Phase label
+    const phaseColor=this.phase==='after'?'#3FB950':'#DAA520';
+    R.label(this.phase==='after'?'After collision':'Before collision',-8,2,phaseColor);
+  },
+  ui(){
+    const p1=P.mass*this.v1, p2=P.mass2*this.v2;
+    const KE1=0.5*P.mass*this.v1*this.v1, KE2=0.5*P.mass2*this.v2*this.v2;
+    const pInit=P.mass*P.vel2;
+    const type=P.restitution>=0.99?'Elastic':P.restitution<=0.01?'Perfectly Inelastic':'Partially Inelastic';
+    updateReadout({
+      'Type':type,
+      'm₁':P.mass.toFixed(2)+' kg',
+      'm₂':P.mass2.toFixed(2)+' kg',
+      'v₁':this.v1.toFixed(3)+' m/s',
+      'v₂':this.v2.toFixed(3)+' m/s',
+      'p₁':p1.toFixed(3)+' kg·m/s',
+      'p₂':p2.toFixed(3)+' kg·m/s',
+      'p total':(p1+p2).toFixed(3)+' kg·m/s',
+      '— Theory —':'p = mv',
+      'p initial':pInit.toFixed(3)+' kg·m/s',
+      'Δp (should=0)':(p1+p2-pInit).toFixed(4)+' kg·m/s',
+      'KE total':(KE1+KE2).toFixed(3)+' J',
+      'Phase':this.phase
+    });
+  },
+  series(){
+    return [
+      {label:'v₁ velocity (m/s)',values:this.pts.map(p=>({t:p.t,v:p.v1}))},
+      {label:'v₂ velocity (m/s)',values:this.pts.map(p=>({t:p.t,v:p.v2}))},
+      {label:'x₁ position (m)',values:this.pts.map(p=>({t:p.t,v:p.x1}))},
+      {label:'x₂ position (m)',values:this.pts.map(p=>({t:p.t,v:p.x2}))},
+      {label:'Total momentum (kg·m/s)',values:this.pts.map(p=>({t:p.t,v:P.mass*p.v1+P.mass2*p.v2}))}
+    ];
+  }
+}),{
+  label:'Momentum & Collisions',
+  rows:['row-mass','row-mass2','row-vel2','row-restitution'],
+  cam:{x:0,y:0,scale:40},
+  presets:[
+    {label:'Elastic (equal mass)',p:{mass:2,mass2:2,vel2:6,restitution:1}},
+    {label:'Elastic (unequal)',p:{mass:4,mass2:1,vel2:5,restitution:1}},
+    {label:'Perfectly inelastic',p:{mass:2,mass2:2,vel2:6,restitution:0}},
+    {label:'Partially inelastic',p:{mass:3,mass2:2,vel2:5,restitution:0.5}},
+    {label:'Heavy hits light',p:{mass:10,mass2:1,vel2:4,restitution:1}},
+    {label:'Light hits heavy',p:{mass:1,mass2:10,vel2:8,restitution:1}}
+  ]
+});
+
+// ═══════════════════════════════════════════════════════════
+//  EXPERIMENT: INCLINED PLANE & FRICTION
+// ═══════════════════════════════════════════════════════════
+registerExp('incline', ()=>({
+  running:false, paused:false, pts:[], t:0,
+  x:0, v:0, // position along incline from top
+  L:8, // ramp length
+  sliding:false,
+  reset(){
+    this.pts=[]; this.t=0; this.running=false; this.paused=false;
+    this.x=0; this.v=0; this.sliding=false;
+    cam.x=0; cam.y=0; cam.scale=25;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    if(this.pts.length<2) return;
+    const th=P.angle, sinT=Math.sin(th), cosT=Math.cos(th);
+    const FN=P.mass*P.g*cosT;
+    const FgPar=P.mass*P.g*sinT;
+    const Ffrk=P.muK*FN;
+    const aNet=P.g*(sinT - P.muK*cosT);
+    const last=this.pts[this.pts.length-1];
+    const summary={
+      'Angle (θ)':(th*180/Math.PI).toFixed(1)+'°',
+      'Mass':P.mass.toFixed(2)+' kg',
+      'μₛ':P.muS.toFixed(2),
+      'μₖ':P.muK.toFixed(2),
+      'Normal force (Fₙ)':FN.toFixed(2)+' N',
+      'Gravity ∥ ramp':FgPar.toFixed(2)+' N',
+      'Friction force':Ffrk.toFixed(2)+' N',
+      'Net accel':aNet.toFixed(3)+' m/s²',
+      'Did slide?':this.sliding?'Yes':'No (static friction held)',
+      'Final speed':last.v.toFixed(3)+' m/s',
+      'Distance':last.x.toFixed(3)+' m'
+    };
+    saveRun(this.pts.map(p=>({x:p.x,y:0})), summary);
+  },
+  _accel(){
+    const th=P.angle, sinT=Math.sin(th), cosT=Math.cos(th);
+    const FN=P.mass*P.g*cosT;
+    const FgPar=P.mass*P.g*sinT;
+    const Fs_max=P.muS*FN;
+    if(!this.sliding){
+      if(FgPar > Fs_max){ this.sliding=true; }
+      else return 0; // static friction holds
+    }
+    const Ffk=P.muK*FN;
+    return P.g*(sinT - P.muK*cosT);
+  },
+  update(dt){
+    if(!this.running||this.paused) return;
+    const steps=Math.max(1,Math.ceil(dt/0.005));
+    const h=dt/steps;
+    for(let s=0;s<steps;s++){
+      const a=this._accel();
+      this.v+=a*h; this.x+=this.v*h;
+      if(this.v<0){this.v=0; this.running=false; break;} // reached bottom
+      if(this.x>=this.L){this.x=this.L; this.running=false; break;}
+    }
+    this.t+=dt;
+    this.pts.push({t:this.t, x:this.x, v:this.v});
+    if(!this.running) this.save();
+  },
+  _rampEnds(){
+    const th=P.angle;
+    // Ramp: top-left to bottom-right
+    const x0=-this.L*0.5, y0=this.L*0.5*Math.tan(th);
+    const x1= this.L*0.5, y1=0;
+    return {x0,y0,x1,y1};
+  },
+  draw(){
+    R.clear(); R.grid();
+    const th=P.angle, cosT=Math.cos(th), sinT=Math.sin(th);
+    const {x0,y0,x1,y1}=this._rampEnds();
+
+    // Draw ramp surface
+    R.line(x0,y0,x1,y1,'#8B949E',3);
+    // Ground
+    R.line(x0-1,0,x1+1,0,'#4a5568',2);
+    // Ramp fill
+    ctx.save();
+    ctx.fillStyle='#1e2530';
+    const p0=w2s(x0,y0),p1=w2s(x1,y1),p2=w2s(x1,0),p3=w2s(x0,0);
+    ctx.beginPath(); ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y);
+    ctx.lineTo(p2.x,p2.y); ctx.lineTo(p3.x,p3.y); ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // Angle arc
+    ctx.save();
+    const ap=w2s(x1,y1);
+    ctx.strokeStyle='#DAA520'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(ap.x,ap.y,30,Math.PI,Math.PI+th); ctx.stroke();
+    ctx.restore();
+    R.label(`θ=${(th*180/Math.PI).toFixed(0)}°`, x1-0.9, 0.25,'#DAA520');
+
+    // Block position along ramp
+    const bx = x0 + (x1-x0)*(this.x/this.L) + cosT*0.3;
+    const by = y0 + (y1-y0)*(this.x/this.L) + sinT*0.3;
+
+    // Draw force vectors
+    const FN=P.mass*P.g*cosT, FgPar=P.mass*P.g*sinT;
+    const scale=0.04;
+    // Normal force (perpendicular to ramp, pointing away)
+    const nx=-sinT, ny=cosT; // normal direction
+    R.line(bx,by, bx+nx*FN*scale, by+ny*FN*scale,'#3FB950',2);
+    R.label('Fₙ', bx+nx*FN*scale, by+ny*FN*scale,'#3FB950');
+    // Gravity component parallel (down the slope)
+    R.line(bx,by, bx+cosT*FgPar*scale, by-sinT*FgPar*scale*0+(-FgPar*scale*sinT), by,'#FF6A6A');
+    // Actually draw Fg straight down
+    R.line(bx,by, bx, by-P.mass*P.g*scale,'#FF6A6A',2);
+    R.label('Fg', bx+0.1, by-P.mass*P.g*scale,'#FF6A6A');
+    // Friction (opposes motion, up the slope if sliding)
+    if(this.sliding){
+      const Ffk=P.muK*FN;
+      R.line(bx,by, bx-cosT*Ffk*scale, by+sinT*Ffk*scale,'#DAA520',2);
+      R.label('Ff', bx-cosT*Ffk*scale-0.2, by+sinT*Ffk*scale,'#DAA520');
+    }
+
+    // Block
+    ctx.save();
+    const bp=w2s(bx,by);
+    ctx.translate(bp.x,bp.y); ctx.rotate(-th);
+    const bsz=cam.scale*0.35;
+    ctx.fillStyle=nextColor(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.roundRect(-bsz,-bsz,bsz*2,bsz*2,3); ctx.fill(); ctx.stroke();
+    ctx.restore();
+
+    R.axisLabels('m','m');
+    R.label(this.sliding?'Sliding':'Static — held by friction', x0, y0+0.5,
+      this.sliding?'#FF6A6A':'#3FB950');
+  },
+  ui(){
+    const th=P.angle, sinT=Math.sin(th), cosT=Math.cos(th);
+    const FN=P.mass*P.g*cosT;
+    const FgPar=P.mass*P.g*sinT;
+    const FgPerp=P.mass*P.g*cosT;
+    const Fs_max=P.muS*FN;
+    const Ffk=P.muK*FN;
+    const aTheory=P.g*(sinT-P.muK*cosT);
+    const critAngle=Math.atan(P.muS)*180/Math.PI;
+    updateReadout({
+      'θ':(th*180/Math.PI).toFixed(1)+'°',
+      'Status':this.sliding?'Sliding':'Static',
+      'Normal Fₙ':FN.toFixed(2)+' N',
+      'Fg ∥ ramp':FgPar.toFixed(2)+' N',
+      'Max static Ff':Fs_max.toFixed(2)+' N',
+      'Kinetic Ff':Ffk.toFixed(2)+' N',
+      '— Theory —':'a = g(sinθ − μₖcosθ)',
+      'Theory accel':aTheory.toFixed(3)+' m/s²',
+      'Critical angle':critAngle.toFixed(1)+'°',
+      'Current speed':this.v.toFixed(3)+' m/s',
+      'Distance':this.x.toFixed(3)+' m'
+    });
+  },
+  series(){
+    return [
+      {label:'Position along ramp (m)',values:this.pts.map(p=>({t:p.t,v:p.x}))},
+      {label:'Speed (m/s)',values:this.pts.map(p=>({t:p.t,v:p.v}))},
+      {label:'KE (J)',values:this.pts.map(p=>({t:p.t,v:0.5*P.mass*p.v*p.v}))}
+    ];
+  }
+}),{
+  label:'Inclined Plane & Friction',
+  rows:['row-ang','row-grav','row-mass','row-muS','row-muK'],
+  cam:{x:0,y:0,scale:25},
+  presets:[
+    {label:'Gentle slope, no slide',p:{angleDeg:20,g:9.81,mass:2,muS:0.5,muK:0.4}},
+    {label:'Steep slope, sliding',p:{angleDeg:45,g:9.81,mass:2,muS:0.3,muK:0.2}},
+    {label:'Just at critical angle',p:{angleDeg:27,g:9.81,mass:2,muS:0.51,muK:0.4}},
+    {label:'Ice surface (low μ)',p:{angleDeg:15,g:9.81,mass:5,muS:0.1,muK:0.05}},
+    {label:'Rubber on concrete',p:{angleDeg:35,g:9.81,mass:3,muS:0.8,muK:0.6}}
+  ]
+});
+
+// ═══════════════════════════════════════════════════════════
+//  EXPERIMENT: ORBITAL / CIRCULAR MOTION
+// ═══════════════════════════════════════════════════════════
+registerExp('orbital', ()=>({
+  running:false, paused:false, pts:[], t:0,
+  theta:0, // current angle
+  // Constants: G*M_sun = 4π² AU³/yr² (natural units for orbits)
+  GM_sun: 4*Math.PI*Math.PI, // AU³/yr²
+  reset(){
+    this.pts=[]; this.t=0; this.running=false; this.paused=false;
+    this.theta=0;
+    cam.x=0; cam.y=0; cam.scale=20;
+  },
+  start(){if(this.paused){this.paused=false;this.running=true;return;}this.reset();this.running=true;},
+  pause(){this.running=false;this.paused=true;},
+  newRun(){this.reset();this.running=true;},
+  save(){
+    const R=P.orbitR, GM=this.GM_sun*P.centralMass;
+    const T=2*Math.PI*Math.sqrt(R*R*R/GM);
+    const v=2*Math.PI*R/T;
+    const Fc=P.mass*v*v/R;
+    const summary={
+      'Orbit radius':R.toFixed(2)+' AU',
+      'Central mass':P.centralMass.toFixed(2)+'×M☉',
+      'Orbital body mass':P.mass.toFixed(2)+' kg (relative)',
+      'Period (T)':T.toFixed(3)+' yr',
+      'Orbital speed (v)':v.toFixed(3)+' AU/yr',
+      'Centripetal F':Fc.toFixed(3)+' (relative)',
+      "Kepler's 3rd":' T²/R³ = '+(T*T/(R*R*R)).toFixed(4),
+    };
+    saveRun(this.pts.map(p=>({x:p.x,y:p.y})), summary);
+  },
+  update(dt){
+    if(!this.running||this.paused) return;
+    const R=P.orbitR, GM=this.GM_sun*P.centralMass;
+    // Angular velocity: ω = √(GM/R³)
+    const omega=Math.sqrt(GM/(R*R*R));
+    this.theta += omega*dt;
+    if(this.theta > Math.PI*2) this.theta -= Math.PI*2;
+    this.t += dt;
+    const x=R*Math.cos(this.theta), y=R*Math.sin(this.theta);
+    this.pts.push({t:this.t, x, y, theta:this.theta});
+    // Keep trail to one full orbit
+    const maxPts=Math.floor(2*Math.PI/omega * 60);
+    if(this.pts.length>maxPts) this.pts.shift();
+  },
+  draw(){
+    R.clear(); R.grid();
+    // Star at center
+    const col=nextColor();
+    ctx.save();
+    const sc=w2s(0,0);
+    // Glow
+    const grd=ctx.createRadialGradient(sc.x,sc.y,0,sc.x,sc.y,cam.scale*0.8);
+    grd.addColorStop(0,'rgba(255,220,80,0.5)');
+    grd.addColorStop(1,'rgba(255,220,80,0)');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(sc.x,sc.y,cam.scale*0.8,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    R.circle(0,0,0.25,'#FFD700','#FFA500');
+
+    // Orbit path (dashed circle)
+    const orb=w2s(P.orbitR,0);
+    ctx.strokeStyle='#2b3a50'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.arc(sc.x,sc.y,(orb.x-sc.x),0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Trail
+    R.trail(this.pts, col, 1.5, 300);
+
+    // Planet
+    if(this.pts.length){
+      const last=this.pts[this.pts.length-1];
+      R.circle(last.x,last.y,0.18,col,'#ffffff');
+
+      // Centripetal force arrow (toward center)
+      const GM=this.GM_sun*P.centralMass;
+      const orbitR=P.orbitR;
+      const v=Math.sqrt(GM/orbitR);
+      const Fc=P.mass*v*v/orbitR;
+      const scale=0.15/Fc;
+      const dx=-last.x/orbitR, dy=-last.y/orbitR;
+      R.line(last.x,last.y, last.x+dx*Fc*scale, last.y+dy*Fc*scale,'#FF6A6A',2);
+      R.label('Fc',last.x+dx*Fc*scale*1.2, last.y+dy*Fc*scale*1.2,'#FF6A6A');
+
+      // velocity arrow (tangent)
+      const vx=-Math.sin(this.theta)*0.8, vy=Math.cos(this.theta)*0.8;
+      R.line(last.x,last.y,last.x+vx,last.y+vy,'#3FB950',2);
+      R.label('v',last.x+vx*1.1,last.y+vy*1.1,'#3FB950');
+    }
+
+    // Radius line
+    if(this.pts.length){
+      const last=this.pts[this.pts.length-1];
+      ctx.strokeStyle='#2b3a50'; ctx.lineWidth=1; ctx.setLineDash([2,3]);
+      const ps=w2s(0,0), pe=w2s(last.x,last.y);
+      ctx.beginPath(); ctx.moveTo(ps.x,ps.y); ctx.lineTo(pe.x,pe.y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Labels
+    const GM=this.GM_sun*P.centralMass;
+    const T=2*Math.PI*Math.sqrt(P.orbitR*P.orbitR*P.orbitR/GM);
+    R.label(`r=${P.orbitR}AU  T=${T.toFixed(2)}yr  T²/r³=${(T*T/(P.orbitR*P.orbitR*P.orbitR)).toFixed(3)}`,
+      -9, -8,'#4a5568');
+    R.axisLabels('AU','AU');
+  },
+  ui(){
+    const orbitR=P.orbitR, GM=this.GM_sun*P.centralMass;
+    const T=2*Math.PI*Math.sqrt(orbitR*orbitR*orbitR/GM);
+    const omega=Math.sqrt(GM/(orbitR*orbitR*orbitR));
+    const v=omega*orbitR;
+    const Fc=P.mass*v*v/orbitR;
+    const Fg=GM*P.mass/(orbitR*orbitR); // Grav force (GM·m/r², consistent units)
+    updateReadout({
+      'Orbital radius':orbitR.toFixed(2)+' AU',
+      'Angle θ':(this.theta*180/Math.PI).toFixed(1)+'°',
+      'Time elapsed':this.t.toFixed(3)+' yr',
+      '— Circular Motion —':'',
+      'Period (T)':T.toFixed(4)+' yr',
+      'Orbital speed':v.toFixed(4)+' AU/yr',
+      'Angular vel ω':omega.toFixed(4)+' rad/yr',
+      'Centripetal F':Fc.toFixed(4),
+      '— Kepler\'s 3rd —':'T² = (4π²/GM)·R³',
+      'T²/R³':(T*T/(orbitR*orbitR*orbitR)).toFixed(4)+' (const)',
+    });
+  },
+  series(){
+    return [
+      {label:'x position (AU)',values:this.pts.map(p=>({t:p.t,v:p.x}))},
+      {label:'y position (AU)',values:this.pts.map(p=>({t:p.t,v:p.y}))},
+      {label:'Orbit: y vs x (AU)',values:this.pts.map(p=>({t:p.x,v:p.y})),xLabel:'x (AU)'}
+    ];
+  }
+}),{
+  label:'Orbital / Circular Motion',
+  rows:['row-orbitR','row-centralMass','row-mass'],
+  cam:{x:0,y:0,scale:20},
+  presets:[
+    {label:'Earth orbit',p:{orbitR:1,centralMass:1,mass:1}},
+    {label:'Mars orbit',p:{orbitR:1.52,centralMass:1,mass:1}},
+    {label:'Jupiter orbit',p:{orbitR:5.2,centralMass:1,mass:1}},
+    {label:'Close-in planet',p:{orbitR:0.4,centralMass:1,mass:1}},
+    {label:'Binary star system',p:{orbitR:3,centralMass:4,mass:1}},
+    {label:'Distant orbit',p:{orbitR:12,centralMass:1,mass:1}}
+  ]
+});
+
+// ═══════════════════════════════════════════════════════════
+//  THEORY PANEL — side-by-side theory vs simulation
+// ═══════════════════════════════════════════════════════════
+(function addTheoryPanel(){
+  // Add a "Theory" tab alongside Table/Graph
+  const tabs=document.querySelector('.tabs');
+  const theoryTab=document.createElement('div');
+  theoryTab.className='tab'; theoryTab.id='tabTheory'; theoryTab.textContent='Theory';
+  tabs.appendChild(theoryTab);
+
+  // Add theory content area after graphWrap
+  const gw=document.getElementById('graphWrap');
+  const tv=document.createElement('div');
+  tv.id='theoryView';
+  tv.style.cssText='display:none;margin-top:8px;';
+  gw.insertAdjacentElement('afterend',tv);
+
+  theoryTab.onclick=()=>{
+    document.getElementById('tabTable').classList.remove('active');
+    document.getElementById('tabGraph').classList.remove('active');
+    theoryTab.classList.add('active');
+    document.getElementById('readout').style.display='none';
+    document.getElementById('graphWrap').style.display='none';
+    tv.style.display='';
+    renderTheory();
+  };
+
+  // Hook into existing tab clicks to deactivate theory tab
+  ['tabTable','tabGraph'].forEach(id=>{
+    const orig=document.getElementById(id).onclick;
+    document.getElementById(id).onclick=function(){
+      theoryTab.classList.remove('active');
+      tv.style.display='none';
+      if(orig) orig.call(this);
+    };
+  });
+
+  window.renderTheory=function(){
+    const expId=document.getElementById('expSel').value;
+    const tv=document.getElementById('theoryView');
+    const theories={
+      projectile:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Projectile Motion</b><br>
+        Equations of motion (with drag = 0):<br>
+        x(t) = v₀·cos(θ)·t<br>
+        y(t) = v₀·sin(θ)·t − ½g·t²<br>
+        Range = v₀²·sin(2θ)/g<br>
+        Max height = v₀²·sin²(θ)/(2g)<br>
+        Time of flight = 2v₀·sin(θ)/g<br><br>
+        <b style="color:var(--accent)">With drag (sphere, Cd=0.47):</b><br>
+        F_drag = ½·ρ·Cd·A·v²<br>
+        Terminal v = √(2mg/ρ·Cd·A)<br><br>
+        <b style="color:var(--accent)">Current values:</b><br>
+        v₀ = ${P.v0} m/s, θ = ${(P.angle*180/Math.PI).toFixed(0)}°<br>
+        No-drag range = ${(P.v0*P.v0*Math.sin(2*P.angle)/P.g).toFixed(2)} m<br>
+        No-drag max h = ${(P.v0*P.v0*Math.sin(P.angle)*Math.sin(P.angle)/(2*P.g)).toFixed(2)} m<br>
+        No-drag TOF = ${(2*P.v0*Math.sin(P.angle)/P.g).toFixed(2)} s
+        </div>`,
+      pendulum:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Simple Pendulum</b><br>
+        Equation of motion:<br>
+        d²θ/dt² = −(g/L)·sin(θ) − b·ω<br><br>
+        Small-angle approximation (θ&lt;15°):<br>
+        T ≈ 2π·√(L/g)<br><br>
+        Exact period (power series):<br>
+        T = T₀·(1 + ¼sin²(θ₀/2) + ...)<br><br>
+        <b style="color:var(--accent)">Current values:</b><br>
+        L = ${P.length} m, g = ${P.g} m/s², θ₀ = ${(P.angle*180/Math.PI).toFixed(1)}°<br>
+        T (small-∠) = ${(2*Math.PI*Math.sqrt(P.length/P.g)).toFixed(4)} s<br>
+        T (corrected) = ${(()=>{const s=Math.sin(Math.abs(P.angle)/2);const s2=s*s;return (2*Math.PI*Math.sqrt(P.length/P.g)*(1+0.25*s2+(9/64)*s2*s2)).toFixed(4);})()}} s<br>
+        Difference = ${(()=>{const T0=2*Math.PI*Math.sqrt(P.length/P.g);const s=Math.sin(Math.abs(P.angle)/2);const s2=s*s;const Tex=T0*(1+0.25*s2+(9/64)*s2*s2);return ((Tex-T0)/T0*100).toFixed(2);})()}%
+        </div>`,
+      spring:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Spring-Mass Oscillator</b><br>
+        mẍ + bẋ + kx = 0<br><br>
+        Natural frequency: ω₀ = √(k/m)<br>
+        Damping ratio: ζ = b/(2√(km))<br>
+        Critical damping: b_c = 2√(km)<br><br>
+        Underdamped (ζ&lt;1):<br>
+        x(t) = A·e^(−ζω₀t)·cos(ωd·t + φ)<br>
+        ωd = ω₀·√(1−ζ²)<br><br>
+        <b style="color:var(--accent)">Current values:</b><br>
+        m = ${P.mass} kg, k = ${P.k} N/m, b = ${P.damping}<br>
+        ω₀ = ${Math.sqrt(P.k/P.mass).toFixed(4)} rad/s<br>
+        T = ${(2*Math.PI/Math.sqrt(P.k/P.mass)).toFixed(4)} s<br>
+        b_critical = ${(2*Math.sqrt(P.k*P.mass)).toFixed(4)} N·s/m<br>
+        ζ = ${(P.damping/(2*Math.sqrt(P.k*P.mass))).toFixed(4)}<br>
+        Regime: ${(()=>{const z=P.damping/(2*Math.sqrt(P.k*P.mass));return z<0.999?'Underdamped':z>1.001?'Overdamped':'Critically damped';})()}
+        </div>`,
+      freefall:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Free Fall with Drag</b><br>
+        ma = mg − ½ρCdA·v²<br><br>
+        No-drag equations:<br>
+        y(t) = h₀ − ½g·t²<br>
+        v(t) = g·t<br>
+        Impact speed = √(2gh₀)<br><br>
+        Terminal velocity:<br>
+        v_t = √(2mg/ρCdA)<br>
+        (where ρ_air=1.225 kg/m³, Cd=0.47)<br><br>
+        <b style="color:var(--accent)">Current values:</b><br>
+        h = ${P.x0} m, m = ${P.mass} kg, g = ${P.g} m/s²<br>
+        No-drag impact v = ${Math.sqrt(2*P.g*P.x0).toFixed(2)} m/s<br>
+        No-drag time = ${Math.sqrt(2*P.x0/P.g).toFixed(2)} s<br>
+        Terminal v ≈ ${(()=>{const r=Math.pow(3*P.mass/(4*Math.PI*800),1/3);const k=0.5*1.225*0.47*Math.PI*r*r/P.mass;return Math.sqrt(P.g/k).toFixed(2);})()}} m/s
+        </div>`,
+      waves:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Waves & Sound</b><br>
+        Wave equation:<br>
+        y(x,t) = A·sin(kx − ωt)<br><br>
+        Wave number: k = 2π/λ<br>
+        Angular freq: ω = 2π·f<br>
+        Wave speed: v = f·λ = ω/k<br>
+        Period: T = 1/f<br><br>
+        Sound in air ≈ 343 m/s at 20°C<br><br>
+        <b style="color:var(--accent)">Current values:</b><br>
+        f = ${P.freq} Hz, A = ${P.amp} m, v = ${P.waveSpeed} m/s<br>
+        λ = v/f = ${(P.waveSpeed/P.freq).toFixed(3)} m<br>
+        T = 1/f = ${(1/P.freq).toFixed(3)} s<br>
+        k = 2π/λ = ${(2*Math.PI*P.freq/P.waveSpeed).toFixed(3)} rad/m<br>
+        ω = 2πf = ${(2*Math.PI*P.freq).toFixed(3)} rad/s
+        </div>`,
+      collision:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Momentum & Collisions</b><br>
+        Conservation of momentum:<br>
+        m₁u₁ + m₂u₂ = m₁v₁ + m₂v₂<br><br>
+        Coefficient of restitution:<br>
+        e = (v₂−v₁)/(u₁−u₂)<br><br>
+        Post-collision velocities:<br>
+        v₁ = (m₁u₁+m₂u₂−m₂e(u₁−u₂))/(m₁+m₂)<br>
+        v₂ = (m₁u₁+m₂u₂+m₁e(u₁−u₂))/(m₁+m₂)<br><br>
+        Elastic (e=1): KE conserved<br>
+        Inelastic (e&lt;1): KE lost<br>
+        Perfectly inelastic (e=0): stick together<br><br>
+        <b style="color:var(--accent)">Current prediction:</b><br>
+        m₁=${P.mass}kg, m₂=${P.mass2}kg, u₁=${P.vel2}m/s, u₂=0<br>
+        ${(()=>{const m1=P.mass,m2=P.mass2,u1=P.vel2,e=P.restitution;const v1=(m1*u1-m2*e*u1)/(m1+m2);const v2=(m1*u1+m1*e*u1)/(m1+m2);return 'v₁_final = '+v1.toFixed(3)+' m/s<br>v₂_final = '+v2.toFixed(3)+' m/s';})()}}
+        </div>`,
+      incline:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Inclined Plane & Friction</b><br>
+        Forces on block:<br>
+        Fₙ = mg·cos(θ)  [normal]<br>
+        Fg∥ = mg·sin(θ)  [down ramp]<br>
+        Fs_max = μₛ·Fₙ  [max static]<br>
+        Ffk = μₖ·Fₙ     [kinetic]<br><br>
+        Slides when: mg·sin(θ) > μₛ·mg·cos(θ)<br>
+        Critical angle: θ_c = arctan(μₛ)<br><br>
+        Acceleration when sliding:<br>
+        a = g·(sin(θ) − μₖ·cos(θ))<br><br>
+        <b style="color:var(--accent)">Current values:</b><br>
+        θ=${(P.angle*180/Math.PI).toFixed(1)}°, m=${P.mass}kg, μₛ=${P.muS}, μₖ=${P.muK}<br>
+        Fₙ = ${(P.mass*P.g*Math.cos(P.angle)).toFixed(2)} N<br>
+        Fg∥ = ${(P.mass*P.g*Math.sin(P.angle)).toFixed(2)} N<br>
+        Max Fs = ${(P.muS*P.mass*P.g*Math.cos(P.angle)).toFixed(2)} N<br>
+        Critical θ = ${(Math.atan(P.muS)*180/Math.PI).toFixed(1)}°<br>
+        ${P.mass*P.g*Math.sin(P.angle)>P.muS*P.mass*P.g*Math.cos(P.angle)?'⚠ Will slide! a = '+(P.g*(Math.sin(P.angle)-P.muK*Math.cos(P.angle))).toFixed(3)+' m/s²':'✓ Static friction holds'}
+        </div>`,
+      orbital:`
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;font-family:ui-monospace,monospace;">
+        <b style="color:var(--accent)">Orbital / Circular Motion</b><br>
+        Newton's law of gravitation:<br>
+        Fg = GMm/r²<br><br>
+        Centripetal force = gravity:<br>
+        mv²/r = GMm/r²  →  v = √(GM/r)<br><br>
+        Orbital period:<br>
+        T = 2π·√(r³/GM)<br><br>
+        Kepler's 3rd Law:<br>
+        T²/r³ = 4π²/(GM) = constant<br><br>
+        <b style="color:var(--accent)">Current values (AU, yr):</b><br>
+        r = ${P.orbitR} AU, M = ${P.centralMass}×M☉<br>
+        T = ${(2*Math.PI*Math.sqrt(P.orbitR*P.orbitR*P.orbitR/(4*Math.PI*Math.PI*P.centralMass))).toFixed(3)} yr<br>
+        v = ${(2*Math.PI*P.orbitR/(2*Math.PI*Math.sqrt(P.orbitR*P.orbitR*P.orbitR/(4*Math.PI*Math.PI*P.centralMass)))).toFixed(3)} AU/yr<br>
+        T²/r³ = ${((()=>{const T=2*Math.PI*Math.sqrt(P.orbitR*P.orbitR*P.orbitR/(4*Math.PI*Math.PI*P.centralMass));return T*T/(P.orbitR*P.orbitR*P.orbitR);})()).toFixed(4)} (≈1/M☉)
+        </div>`
+    };
+    tv.innerHTML = theories[expId] ||
+      '<div style="color:var(--dim);font-size:11px;">Select an experiment to see theory.</div>';
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════
+//  LAB REPORT EXPORT
+// ═══════════════════════════════════════════════════════════
+(function addLabReport(){
+  const btn=document.createElement('button');
+  btn.textContent='📋 Lab Report';
+  btn.className='actionBtn';
+  btn.style.cssText='background:var(--panel);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:4px;cursor:pointer;font-size:12px;font-family:inherit;';
+  btn.onmouseover=()=>{btn.style.borderColor='var(--accent)';btn.style.color='var(--accent)';};
+  btn.onmouseout=()=>{btn.style.borderColor='var(--border)';btn.style.color='var(--text)';};
+  document.getElementById('btnClearAll').insertAdjacentElement('afterend', btn);
+
+  btn.onclick=()=>{
+    const expId=document.getElementById('expSel').value;
+    const expName=document.getElementById('expSel').selectedOptions[0]?.text||expId;
+    const date=new Date().toLocaleDateString();
+
+    // Build runs table HTML
+    let runsHTML='<p style="color:#888;font-style:italic;">No runs saved yet.</p>';
+    if(runs.list.length){
+      runsHTML=runs.list.map(r=>{
+        if(!r.summary||!Object.keys(r.summary).length) return '';
+        const rows=Object.entries(r.summary).map(([k,v])=>
+          `<tr><td>${k}</td><td><strong>${v}</strong></td></tr>`).join('');
+        return `<div class="run-block">
+          <h3 style="color:${r.color};margin:0 0 6px;font-size:14px;">■ Run ${r.id}</h3>
+          <table>${rows}</table>
+        </div>`;
+      }).join('');
+    }
+
+    // Theory content
+    window.renderTheory && window.renderTheory();
+    const theoryRaw=document.getElementById('theoryView')?.innerHTML||'';
+    const theoryText=theoryRaw.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+
+    const report=`<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>OpenPhysics Lab Report — ${expName}</title>
+<style>
+  body{font-family:Georgia,serif;max-width:820px;margin:40px auto;padding:0 24px;color:#111;line-height:1.6;}
+  h1{font-size:22px;border-bottom:2px solid #111;padding-bottom:6px;}
+  h2{font-size:16px;margin-top:28px;border-bottom:1px solid #ccc;padding-bottom:4px;}
+  table{width:100%;border-collapse:collapse;margin:8px 0;}
+  td{padding:5px 10px;border:1px solid #ddd;font-size:13px;}
+  td:first-child{color:#555;width:50%;}
+  td:last-child{font-weight:600;}
+  .run-block{margin-bottom:20px;padding:12px;border:1px solid #ddd;border-radius:4px;}
+  .theory-box{background:#f8f8f8;padding:12px;border-left:3px solid #1a3a5c;font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;}
+  .meta{color:#888;font-size:12px;margin-bottom:20px;}
+  @media print{body{margin:20px;}@page{margin:1cm;}}
+</style>
+</head><body>
+<h1>OpenPhysics Lab — ${expName}</h1>
+<div class="meta">Date: ${date} &nbsp;|&nbsp; Parameters: g=${P.g} m/s², mass=${P.mass} kg</div>
+
+<h2>Experiment Setup</h2>
+<table>
+  <tr><td>Experiment</td><td>${expName}</td></tr>
+  <tr><td>Date</td><td>${date}</td></tr>
+  <tr><td>Gravity (g)</td><td>${P.g} m/s²</td></tr>
+  <tr><td>Mass</td><td>${P.mass} kg</td></tr>
+  <tr><td>Saved Runs</td><td>${runs.list.length}</td></tr>
+</table>
+
+<h2>Saved Run Data</h2>
+${runsHTML}
+
+<h2>Theory & Equations</h2>
+<div class="theory-box">${theoryText}</div>
+
+<h2>Observations</h2>
+<div style="border:1px solid #ddd;padding:12px;min-height:80px;color:#aaa;font-style:italic;">
+  [Student observations here]
+</div>
+
+<h2>Conclusion</h2>
+<div style="border:1px solid #ddd;padding:12px;min-height:80px;color:#aaa;font-style:italic;">
+  [Student conclusion here]
+</div>
+
+<div style="margin-top:32px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:8px;">
+  Generated by OpenPhysics Lab
+</div>
+</body></html>`;
+
+    const w=window.open('','_blank');
+    w.document.write(report);
+    w.document.close();
+    setTimeout(()=>w.print(), 400);
+  };
+})();
+
 activate('projectile');
 requestAnimationFrame(loop);
 </script>
