@@ -10,7 +10,8 @@
         color: #fff;
         font-family: Arial, sans-serif;
         text-align: center;
-        padding: 40px;
+        padding: 30px;
+        overflow-x: hidden;
     }
 
     h1 {
@@ -19,103 +20,104 @@
         margin-bottom: 25px;
     }
 
-    /* BIGGER HOT TAKE POPUP */
+    /* TIMER BAR */
+    #timerBarContainer {
+        width: 90%;
+        max-width: 1000px;
+        height: 25px;
+        background: #333;
+        border-radius: 12px;
+        margin: 0 auto 20px auto;
+        overflow: hidden;
+    }
+
+    #timerBar {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #33ff66, #ffcc00, #ff3300);
+        transition: width 0.1s linear;
+    }
+
+    /* BIG HOT TAKE BOX */
     #hotTakeBox {
         margin: 20px auto;
-        padding: 60px; /* bigger */
+        padding: 60px;
         width: 90%;
         max-width: 1100px;
         min-height: 240px;
         background: #222;
         border-radius: 20px;
-        font-size: 2.6rem;   /* much larger */
+        font-size: 2.6rem;
         font-weight: bold;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.4s ease;
         line-height: 1.3;
     }
 
-    /* Shake + Glow Animation */
-    .reveal-animation {
-        animation: shake 0.5s ease, glow 1s ease;
+    /* RANDOM END ANIMATIONS */
+    .flashWhite { animation: flashWhite 0.5s ease; }
+    @keyframes flashWhite {
+        0% { background: white; color: black; }
+        100% { background: #222; color: white; }
     }
 
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        20% { transform: translateX(-18px); }
-        40% { transform: translateX(18px); }
-        60% { transform: translateX(-12px); }
-        80% { transform: translateX(12px); }
+    .flashRed { animation: flashRed 0.5s ease; }
+    @keyframes flashRed {
+        0% { background: #ff0000; }
+        100% { background: #222; }
     }
 
-    @keyframes glow {
-        0% { box-shadow: 0 0 0px #ffcc00; }
-        100% { box-shadow: 0 0 60px #ffcc00; }
+    .pulse { animation: pulse 0.6s ease; }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+
+    .glowBurst { animation: glowBurst 1s ease; }
+    @keyframes glowBurst {
+        0% { box-shadow: 0 0 60px #ffcc00; }
+        100% { box-shadow: none; }
+    }
+
+    .bounce { animation: bounce 0.6s ease; }
+    @keyframes bounce {
+        0% { transform: translateY(0); }
+        40% { transform: translateY(-25px); }
+        100% { transform: translateY(0); }
     }
 
     .category-btn {
         padding: 12px 25px;
-        margin: 10px;
+        margin: 8px;
         font-size: 1.2rem;
         font-weight: bold;
         border: none;
         border-radius: 10px;
         background: #ffcc00;
         cursor: pointer;
-        transition: 0.2s;
     }
 
-    .category-btn:hover {
-        background: #e6b800;
-    }
-
-    /* MOVE CUE */
     #moveCue {
-        margin-top: 20px;
-        font-size: 2.3rem;
+        margin-top: 15px;
+        font-size: 2rem;
         font-weight: bold;
         display: none;
-        animation: flash 1s infinite;
+        animation: flashText 1s infinite;
     }
 
-    @keyframes flash {
+    @keyframes flashText {
         0% { color: #ff5555; }
         50% { color: #55ff55; }
         100% { color: #ff5555; }
     }
 
-    /* TIMER — animated while running */
     #timer {
-        font-size: 3.2rem;
-        margin-top: 20px;
+        font-size: 3rem;
+        margin-top: 10px;
         display: none;
-        color: #00eaff;
         font-weight: bold;
-    }
-
-    /* Base pulse animation */
-    .timer-running {
-        animation: timerPulse 1s infinite;
-    }
-
-    /* Timer pulsing */
-    @keyframes timerPulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.13); }
-        100% { transform: scale(1); }
-    }
-
-    /* Timer intensifies when < 5 seconds */
-    .timer-warning {
-        animation: timerFlash 0.4s infinite;
-    }
-
-    @keyframes timerFlash {
-        0% { color: #ff0000; transform: scale(1.2); }
-        50% { color: #ffffff; transform: scale(1.3); }
-        100% { color: #ff0000; transform: scale(1.2); }
     }
 
     #modeIndicator {
@@ -127,60 +129,58 @@
     #historyBox {
         margin-top: 30px;
         padding: 20px;
-        width: 70%;
+        width: 80%;
         max-width: 700px;
         background: #1a1a1a;
         border-radius: 10px;
-        font-size: 1.2rem;
         text-align: left;
-        margin-left: auto;
-        margin-right: auto;
     }
 
-    #historyBox h2 {
-        color: #ffcc00;
-        text-align: center;
-    }
+    #historyBox h2 { color: #ffcc00; text-align: center; }
 
-    ul {
-        list-style: none;
-        padding: 0;
-    }
+    ul { list-style: none; padding: 0; }
     li {
         margin: 5px 0;
         border-bottom: 1px solid #333;
         padding-bottom: 5px;
     }
-
 </style>
 </head>
 <body>
 
 <h1>🔥 Hot Take Debate Generator 🔥</h1>
 
+<!-- TIMER BAR ABOVE HOT TAKE -->
+<div id="timerBarContainer"><div id="timerBar"></div></div>
+
+<!-- HOT TAKE BOX -->
 <div id="hotTakeBox">Select a category to begin!</div>
+
+<!-- TIMER BELOW -->
+<div id="timer"></div>
+
+<!-- Movement Cue -->
+<div id="moveCue">➡️ MOVE: AGREE or DISAGREE! ⬅️</div>
 
 <!-- Category Buttons -->
 <div>
     <button class="category-btn" onclick="newHotTake('gameplay')">Gameplay</button>
     <button class="category-btn" onclick="newHotTake('graphics')">Graphics & Art</button>
     <button class="category-btn" onclick="newHotTake('sound')">Sound & Audio</button>
-    <button class="category-btn" onclick="newHotTake('narrative')">Narrative & Lore</button>
+    <button class="category-btn" onclick="newHotTake('narrative')">Narrative</button>
     <button class="category-btn" onclick="newHotTake('experience')">Player Experience</button>
-    <button class="category-btn" onclick="newHotTake('culture')">Culture & Industry</button>
-    <button class="category-btn" onclick="newHotTake('all')">Random From All</button>
+    <button class="category-btn" onclick="newHotTake('culture')">Culture</button>
+    <button class="category-btn" onclick="newHotTake('all')">Random</button>
 </div>
 
-<!-- Mode Toggle -->
+<!-- Modes -->
 <div style="margin-top:20px;">
     <button class="category-btn" onclick="setMode('content')">Content Mode</button>
     <button class="category-btn" onclick="setMode('games')">Game Mode</button>
+    <button class="category-btn" onclick="endTimer()">⏹ End Timer</button>
 </div>
 
 <div id="modeIndicator">Content Mode ACTIVE</div>
-
-<div id="moveCue">➡️ MOVE: AGREE or DISAGREE! ⬅️</div>
-<div id="timer"></div>
 
 <div id="historyBox">
     <h2>🕒 Recent Hot Takes</h2>
@@ -189,18 +189,18 @@
 
 <script>
 // ===============================
-// 🔊 SOUND EFFECTS
+// SOUND EFFECTS
 // ===============================
 function playSound(name) {
-    let file = "";
+    const sounds = {
+        reveal: "timer.mp3",
+        ding: "ding.mp3",
+        ping: "ping.mp3",
+        airhorn: "horn.mp3"
+    };
 
-    switch (name) {
-        case "reveal": file = "timer.mp3"; break;
-        case "ding": file = "ding.mp3"; break;
-        case "ping": file = "ping.mp3"; break;
-        case "airhorn": file = "horn.mp3"; break;
-        default: return;
-    }
+    const file = sounds[name];
+    if (!file) return;
 
     const audio = new Audio(file);
     audio.volume = 0.9;
@@ -208,107 +208,107 @@ function playSound(name) {
 }
 
 // ===============================
-// CONTENT HOT TAKES
+// HOT TAKE DATABASES
 // ===============================
 const contentTakes = {
     gameplay: [
         "A game must teach its mechanics without words.",
-        "Bad controls are unforgivable, no matter what.",
+        "Bad controls are unforgivable.",
         "Open-world games are too big and too empty.",
         "Repetitive gameplay is a design failure.",
-        "If the core loop isn’t fun, the game cannot be saved."
+        "If the core loop isn’t fun, nothing else matters."
     ],
     graphics: [
-        "Art style matters more than graphic fidelity.",
-        "If you can’t read the screen, the art direction has failed.",
-        "Visual clutter is the worst kind of bad design.",
-        "Animation quality matters more than texture quality.",
+        "Art style matters more than realism.",
+        "If players can’t read the screen, the art direction failed.",
+        "Visual clutter ruins games.",
+        "Animation quality beats texture quality.",
         "A memorable silhouette is more important than detail."
     ],
     sound: [
-        "Sound design is more important than visuals for immersion.",
-        "Music should adapt to what the player is doing.",
+        "Sound creates immersion more than visuals.",
         "Silence is an underrated design tool.",
-        "Bad audio mixing destroys emotional impact.",
-        "Sound effects teach players faster than tutorials."
+        "Bad mixing destroys emotional moments.",
+        "Sound effects teach players faster than tutorials.",
+        "Music should adapt to gameplay."
     ],
     narrative: [
-        "Environmental storytelling is better than cutscenes.",
-        "Ambiguity makes stories better.",
-        "Player choice in story games is often an illusion.",
-        "A game’s theme matters more than its plot.",
+        "Environmental storytelling beats cutscenes.",
+        "Ambiguity makes stories stronger.",
+        "Player choice in games is often an illusion.",
+        "Theme matters more than plot.",
         "Too much story can ruin pacing."
     ],
     experience: [
-        "Frustration is part of good game design.",
-        "A sense of discovery matters more than rewards.",
-        "Failure teaches better than tutorials.",
-        "Players want freedom but need structure.",
-        "Reward systems manipulate players more than they entertain."
+        "Frustration is part of good design.",
+        "Discovery matters more than rewards.",
+        "Failure is the best teacher.",
+        "Players want freedom but also structure.",
+        "Reward systems manipulate players."
     ],
     culture: [
-        "Games are the most important art form of the 21st century.",
-        "Remakes are replacing original ideas.",
-        "Accessibility should always be required.",
+        "Games are the most important art form of this century.",
+        "Remakes replace original ideas.",
+        "Accessibility should be required.",
         "Microtransactions are a design problem.",
         "Indie games push creativity more than AAA games."
     ]
 };
 
-// ===============================
-// GAME HOT TAKES
-// ===============================
 const gameTakes = {
     gameplay: [
-        "Super Mario 64 has better platforming than most modern games.",
-        "Skyrim is only fun because of mods.",
-        "Call of Duty reuses the same gameplay loop every year.",
-        "Minecraft is the best sandbox game ever.",
-        "Portal proves short games are better than long ones."
+        "Mario platforming still beats most modern games.",
+        "Skyrim relies on mods more than gameplay.",
+        "Call of Duty repeats the same formula every year.",
+        "Minecraft is the best sandbox ever.",
+        "Portal proves shorter games can be better."
     ],
     graphics: [
-        "Wind Waker aged better than most realistic games.",
-        "Pixel art aged better than early 3D graphics.",
+        "Wind Waker aged better than realism-heavy games.",
+        "Pixel art aged better than early 3D.",
         "Overwatch has iconic character designs.",
-        "Realistic graphics age faster than stylized ones.",
-        "Skyrim’s visuals were outdated at launch."
+        "Realistic graphics age poorly.",
+        "Some beloved games launched looking outdated."
     ],
     sound: [
         "Halo has one of the greatest soundtracks ever.",
-        "Silent Hill uses sound better than most horror games.",
-        "Mario sound effects are more iconic than most music.",
-        "Skyrim’s soundtrack is half the experience.",
-        "Fortnite relies heavily on positional sound cues."
+        "Horror relies more on sound than visuals.",
+        "Iconic game SFX are more memorable than music.",
+        "Sound can make exploration emotional.",
+        "Games depend heavily on directional sound cues."
     ],
     narrative: [
-        "Ocarina of Time tells a better story than most RPGs.",
-        "GTA IV has a better story than GTA V.",
-        "Silent Hill 2 is the best-written horror game.",
-        "Undertale tells a deeper story than most AAA games.",
-        "Final Fantasy VII remains the most influential RPG story."
+        "Classic RPG stories beat many modern ones.",
+        "Some games tell deeper stories than big-budget titles.",
+        "The best horror games rely on psychology, not plot.",
+        "Some simple games have powerful narratives.",
+        "Certain RPGs changed storytelling forever."
     ],
     experience: [
-        "Frustration is what makes Souls-like games satisfying.",
-        "Mario games create the best sense of flow.",
-        "Pokémon is too easy but still satisfying.",
-        "Open-world freedom often reduces meaning.",
-        "Battle royale games are more fun to watch than play."
+        "Challenge makes victory meaningful.",
+        "Some games perfect flow state.",
+        "Simple games remain satisfying.",
+        "Freedom often undermines meaning.",
+        "Some games are more fun to watch than play."
     ],
     culture: [
-        "Minecraft is the most influential game ever.",
-        "Fortnite shaped an entire generation.",
-        "MMOs peaked in the early 2000s.",
-        "Nostalgia drives most gaming trends.",
-        "Nintendo games age better than realistic games."
+        "One sandbox game shaped an entire generation.",
+        "One battle royale defined the 2010s.",
+        "MMOs peaked early.",
+        "Nostalgia drives gaming culture.",
+        "Cartoon-style games age better than realistic ones."
     ]
 };
 
 contentTakes.all = Object.values(contentTakes).flat();
 gameTakes.all = Object.values(gameTakes).flat();
 
+// MODE
 let MODE = "content";
 let history = [];
-let timerInterval;
+
+// TIMER
+let timerInterval = null;
 let timerAudio = null;
 
 // ===============================
@@ -322,6 +322,21 @@ function setMode(mode) {
 }
 
 // ===============================
+// RANDOM END ANIMATION
+// ===============================
+function triggerRandomEndAnimation() {
+    const animations = ["flashWhite", "flashRed", "pulse", "glowBurst", "bounce"];
+    const chosen = animations[Math.floor(Math.random() * animations.length)];
+
+    const box = document.getElementById("hotTakeBox");
+    box.classList.add(chosen);
+
+    setTimeout(() => {
+        box.classList.remove(chosen);
+    }, 900);
+}
+
+// ===============================
 // HOT TAKE GENERATOR
 // ===============================
 function newHotTake(category) {
@@ -331,16 +346,10 @@ function newHotTake(category) {
     const list = category === "all" ? set.all : set[category];
 
     const chosen = list[Math.floor(Math.random() * list.length)];
-    const box = document.getElementById("hotTakeBox");
 
-    box.classList.remove("reveal-animation");
-    void box.offsetWidth;
-    box.classList.add("reveal-animation");
-
-    box.innerText = chosen;
+    document.getElementById("hotTakeBox").innerText = chosen;
 
     document.getElementById("moveCue").style.display = "block";
-    playSound("ping");
 
     startTimer(30);
 
@@ -350,11 +359,14 @@ function newHotTake(category) {
 }
 
 // ===============================
-// TIMER WITH ANIMATION
+// TIMER (BAR + NUMBER)
 // ===============================
 function startTimer(seconds) {
-    const timer = document.getElementById("timer");
-    timer.style.display = "block";
+    const timerText = document.getElementById("timer");
+    const bar = document.getElementById("timerBar");
+
+    timerText.style.display = "block";
+    timerText.innerText = seconds;
 
     // Stop old audio
     if (timerAudio) {
@@ -362,56 +374,66 @@ function startTimer(seconds) {
         timerAudio.currentTime = 0;
     }
 
-    // Play long timer sound
+    // Start long timer sound
     timerAudio = new Audio("timer.mp3");
     timerAudio.volume = 0.8;
     timerAudio.play();
 
     setTimeout(() => {
-        if (timerAudio) {
-            timerAudio.pause();
-            timerAudio.currentTime = 0;
-        }
+        if (timerAudio) timerAudio.pause();
     }, 28000);
 
-    // Start animation
-    timer.classList.add("timer-running");
-
     let time = seconds;
-    timer.innerText = time;
 
     clearInterval(timerInterval);
+
     timerInterval = setInterval(() => {
         time--;
-        timer.innerText = time;
+        timerText.innerText = time;
 
-        if (time <= 5) {
-            timer.classList.add("timer-warning"); // intense warning flash
-        }
+        // Update bar width
+        const percent = (time / seconds) * 100;
+        bar.style.width = percent + "%";
 
         if (time <= 0) {
             clearInterval(timerInterval);
-            timer.innerText = "GO!";
+
+            timerText.innerText = "GO!";
             playSound("ding");
-            timer.classList.remove("timer-running");
-            timer.classList.remove("timer-warning");
+            triggerRandomEndAnimation();
+
+            bar.style.width = "0%";
         }
     }, 1000);
 }
 
 // ===============================
-// HISTORY
+// END TIMER MANUALLY
+// ===============================
+function endTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    if (timerAudio) timerAudio.pause();
+
+    playSound("ding");
+    triggerRandomEndAnimation();
+
+    document.getElementById("timerBar").style.width = "0%";
+    document.getElementById("timer").innerText = "GO!";
+}
+
+// ===============================
+// HISTORY DISPLAY
 // ===============================
 function updateHistory() {
     const list = document.getElementById("historyList");
     list.innerHTML = "";
+
     history.forEach(item => {
         const li = document.createElement("li");
         li.innerText = item;
         list.appendChild(li);
     });
 }
-
 </script>
 </body>
 </html>
