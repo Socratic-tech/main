@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hot Take Debate Generator – Animated</title>
+
+<style>
+    body {
+        background: #111;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h1 {
+        color: #ffcc00;
+        font-size: 2.5rem;
+        margin-bottom: 25px;
+    }
+
+    #hotTakeBox {
+        margin: 20px auto;
+        padding: 40px;
+        width: 80%;
+        max-width: 900px;
+        min-height: 180px;
+        background: #222;
+        border-radius: 12px;
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.4s ease;
+        opacity: 1;
+    }
+
+    /* 🔥 Shake + Glow animation */
+    .reveal-animation {
+        animation: shake 0.5s ease, glow 1s ease;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-12px); }
+        40% { transform: translateX(12px); }
+        60% { transform: translateX(-8px); }
+        80% { transform: translateX(8px); }
+    }
+
+    @keyframes glow {
+        0% { box-shadow: 0 0 0px #ffcc00; }
+        100% { box-shadow: 0 0 40px #ffcc00; }
+    }
+
+    .category-btn {
+        padding: 12px 25px;
+        margin: 10px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        background: #ffcc00;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .category-btn:hover {
+        background: #e6b800;
+    }
+
+    /* 🚨 AGREE / DISAGREE Movement Cue */
+    #moveCue {
+        margin-top: 20px;
+        font-size: 2rem;
+        font-weight: bold;
+        display: none;
+        animation: flash 1s infinite;
+    }
+
+    @keyframes flash {
+        0% { color: #ff5555; }
+        50% { color: #55ff55; }
+        100% { color: #ff5555; }
+    }
+
+    /* Countdown Timer */
+    #timer {
+        font-size: 2.5rem;
+        margin-top: 20px;
+        display: none;
+        color: #00eaff;
+    }
+</style>
+</head>
+<body>
+
+<h1>🔥 Hot Take Debate Generator 🔥</h1>
+
+<div id="hotTakeBox">Select a category to begin!</div>
+
+<!-- Category Buttons -->
+<div>
+    <button class="category-btn" onclick="newHotTake('gameplay')">Gameplay</button>
+    <button class="category-btn" onclick="newHotTake('graphics')">Graphics & Art</button>
+    <button class="category-btn" onclick="newHotTake('sound')">Sound & Audio</button>
+    <button class="category-btn" onclick="newHotTake('narrative')">Narrative & Lore</button>
+    <button class="category-btn" onclick="newHotTake('experience')">Player Experience</button>
+    <button class="category-btn" onclick="newHotTake('culture')">Culture & Industry</button>
+    <button class="category-btn" onclick="newHotTake('all')">Random From All</button>
+</div>
+
+<div id="moveCue">➡️ MOVE: AGREE or DISAGREE! ⬅️</div>
+<div id="timer"></div>
+
+<script>
+/* -----------------------------------------
+   🔥 Hot Takes (same content from before)
+----------------------------------------- */
+const hotTakes = {
+    gameplay: [
+        "Hades is only good because the combat is fast — the story doesn’t matter.",
+        "Elden Ring is better without quest markers.",
+        "Turn-based combat is outdated.",
+        "If a game needs a difficulty slider, the design is weak.",
+        "Breath of the Wild’s durability system makes the gameplay worse.",
+        "Minecraft only works because of the survival loop, not creativity.",
+        "Open-world games are too big for their own good.",
+        "Dark Souls is only popular because it’s hard.",
+        "A game with bad controls cannot be a good game.",
+        "Weapon variety is more important than enemy variety."
+    ],
+
+    graphics: [
+        "Good art direction matters more than high-end graphics.",
+        "Fortnite’s art style is more iconic than Call of Duty’s realism.",
+        "Pixel art games look better than most 3D indie games.",
+        "Realistic graphics age faster than stylized graphics.",
+        "Hollow Knight’s art carries the entire game.",
+        "Bad UI design ruins more games than bad textures.",
+        "If players can’t read the screen, the art direction has failed.",
+        "A pretty game can hide shallow gameplay for only an hour.",
+        "Celeste proves graphics don’t matter at all.",
+        "Character design matters more than world design."
+    ],
+
+    sound: [
+        "A game’s soundtrack is more important than its story.",
+        "Horror games live or die by their sound design.",
+        "If the game has bad voice acting, it cannot be emotionally strong.",
+        "Boss music matters more than boss visuals.",
+        "Breath of the Wild’s quiet soundtrack is better than loud orchestrated ones.",
+        "Sound effects matter more than music for immersion.",
+        "Silence is the most powerful tool in game audio.",
+        "Games with repeated sound cues become unplayable quickly.",
+        "If footsteps sound bad, the whole game feels cheap.",
+        "A great soundtrack can fix a mediocre game — Undertale proves this."
+    ],
+
+    narrative: [
+        "A game doesn’t need cutscenes to have a strong story.",
+        "Environmental storytelling is better than dialogue.",
+        "Dark Souls tells a deeper story than most cinematic games.",
+        "Persona 5 is too long for its own good.",
+        "Open-world games cannot tell tight stories.",
+        "Player choice in story games is often fake.",
+        "Games shouldn’t force romance arcs.",
+        "Lore is more fun when it’s hidden.",
+        "Hollow Knight’s story is confusing on purpose — and that’s good.",
+        "Games with silent protagonists tell better stories."
+    ],
+
+    experience: [
+        "Frustration makes games more fun.",
+        "Hand-holding ruins exploration.",
+        "Games should make players feel lost sometimes.",
+        "Failure teaches more than tutorials.",
+        "Players don’t really want freedom — they want structure.",
+        "Reward feels better after punishment.",
+        "Games should overwhelm players at first.",
+        "The best games make you feel powerless before they make you feel strong.",
+        "A game can be great even if the player never wins.",
+        "Comfort games are more important than challenge games."
+    ],
+
+    culture: [
+        "Indie games are more creative than AAA games.",
+        "AAA games are more polished but less meaningful.",
+        "Game remakes are ruining creativity.",
+        "Microtransactions are a design failure, not a business failure.",
+        "Accessibility should be required, not optional.",
+        "Games teach empathy better than books.",
+        "The ‘git gud’ mindset hurts the gaming community.",
+        "Games are the most culturally important medium of the 21st century.",
+        "Developers rely too much on nostalgia.",
+        "A game doesn’t have to be fun to be meaningful."
+    ]
+};
+
+// Build combined list
+hotTakes.all = Object.values(hotTakes).flat();
+
+let timerInterval;
+
+// 🔥 Generate a hot take with animation + movement cue
+function newHotTake(category) {
+    const list = category === "all" ? hotTakes.all : hotTakes[category];
+    const randomIndex = Math.floor(Math.random() * list.length);
+    const chosen = list[randomIndex];
+
+    const box = document.getElementById("hotTakeBox");
+
+    // Reset animation
+    box.classList.remove("reveal-animation");
+    void box.offsetWidth; // force reflow
+    box.classList.add("reveal-animation");
+
+    box.innerText = chosen;
+
+    // Show AGREE / DISAGREE cue
+    const cue = document.getElementById("moveCue");
+    cue.style.display = "block";
+
+    // Start timer
+    startTimer(30);
+}
+
+// ⏳ Countdown timer
+function startTimer(seconds) {
+    const timer = document.getElementById("timer");
+    timer.style.display = "block";
+
+    let time = seconds;
+    timer.innerText = time;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        time--;
+        timer.innerText = time;
+
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            timer.innerText = "GO!";
+        }
+    }, 1000);
+}
+</script>
+
+</body>
+</html>
