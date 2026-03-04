@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Hot Take Debate Generator – Animated</title>
+<title>Hot Take Debate Generator</title>
 
 <style>
     body {
@@ -32,7 +32,6 @@
         align-items: center;
         justify-content: center;
         transition: all 0.4s ease;
-        opacity: 1;
     }
 
     /* 🔥 Shake + Glow animation */
@@ -91,6 +90,39 @@
         display: none;
         color: #00eaff;
     }
+
+    #modeIndicator {
+        margin-top: 10px;
+        font-size: 1.3rem;
+        color: #00eaff;
+    }
+
+    #historyBox {
+        margin-top: 30px;
+        padding: 20px;
+        width: 70%;
+        max-width: 700px;
+        background: #1a1a1a;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        text-align: left;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #historyBox h2 {
+        color: #ffcc00;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+    li {
+        margin: 5px 0;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+    }
 </style>
 </head>
 <body>
@@ -110,122 +142,199 @@
     <button class="category-btn" onclick="newHotTake('all')">Random From All</button>
 </div>
 
+<!-- Mode Toggle -->
+<div style="margin-top:20px;">
+    <button class="category-btn" onclick="setMode('content')">Content Mode</button>
+    <button class="category-btn" onclick="setMode('games')">Game Mode</button>
+</div>
+
+<div id="modeIndicator">Content Mode ACTIVE</div>
+
 <div id="moveCue">➡️ MOVE: AGREE or DISAGREE! ⬅️</div>
 <div id="timer"></div>
 
+<div id="historyBox">
+    <h2>🕒 Recent Hot Takes</h2>
+    <ul id="historyList"></ul>
+</div>
+
 <script>
-/* -----------------------------------------
-   🔥 Hot Takes (same content from before)
------------------------------------------ */
-const hotTakes = {
+// ===============================
+// 🔊 SOUND EFFECTS (using your exact filenames)
+// ===============================
+function playSound(name) {
+    let file = "";
+
+    switch (name) {
+        case "reveal":
+            file = "timer.mp3";   // dramatic reveal
+            break;
+
+        case "ding":
+            file = "ding.mp3";    // countdown finish
+            break;
+
+        case "ping":
+            file = "ping.mp3";    // UI ping
+            break;
+
+        case "airhorn":
+            file = "horn.mp3";    // chaos mode
+            break;
+
+        default:
+            return;
+    }
+
+    const audio = new Audio(file);
+    audio.volume = 0.9;
+    audio.play();
+}
+
+// ===============================
+// 🔥 CONTENT HOT TAKES
+// ===============================
+const contentTakes = {
     gameplay: [
-        "Hades is only good because the combat is fast — the story doesn’t matter.",
-        "Elden Ring is better without quest markers.",
-        "Turn-based combat is outdated.",
-        "If a game needs a difficulty slider, the design is weak.",
-        "Breath of the Wild’s durability system makes the gameplay worse.",
-        "Minecraft only works because of the survival loop, not creativity.",
-        "Open-world games are too big for their own good.",
-        "Dark Souls is only popular because it’s hard.",
-        "A game with bad controls cannot be a good game.",
-        "Weapon variety is more important than enemy variety."
+        "A game must teach its mechanics without words.",
+        "Bad controls are unforgivable, no matter what.",
+        "Open-world games are too big and too empty.",
+        "Repetitive gameplay is a design failure.",
+        "If the core loop isn’t fun, the game cannot be saved."
     ],
-
     graphics: [
-        "Good art direction matters more than high-end graphics.",
-        "Fortnite’s art style is more iconic than Call of Duty’s realism.",
-        "Pixel art games look better than most 3D indie games.",
-        "Realistic graphics age faster than stylized graphics.",
-        "Hollow Knight’s art carries the entire game.",
-        "Bad UI design ruins more games than bad textures.",
-        "If players can’t read the screen, the art direction has failed.",
-        "A pretty game can hide shallow gameplay for only an hour.",
-        "Celeste proves graphics don’t matter at all.",
-        "Character design matters more than world design."
+        "Art style matters more than graphic fidelity.",
+        "If you can’t read the screen, the art direction has failed.",
+        "Visual clutter is the worst kind of bad design.",
+        "Animation quality matters more than texture quality.",
+        "A memorable silhouette is more important than detail."
     ],
-
     sound: [
-        "A game’s soundtrack is more important than its story.",
-        "Horror games live or die by their sound design.",
-        "If the game has bad voice acting, it cannot be emotionally strong.",
-        "Boss music matters more than boss visuals.",
-        "Breath of the Wild’s quiet soundtrack is better than loud orchestrated ones.",
-        "Sound effects matter more than music for immersion.",
-        "Silence is the most powerful tool in game audio.",
-        "Games with repeated sound cues become unplayable quickly.",
-        "If footsteps sound bad, the whole game feels cheap.",
-        "A great soundtrack can fix a mediocre game — Undertale proves this."
+        "Sound design is more important than visuals for immersion.",
+        "Music should adapt to what the player is doing.",
+        "Silence is an underrated design tool.",
+        "Bad audio mixing destroys emotional impact.",
+        "Sound effects teach players faster than tutorials."
     ],
-
     narrative: [
-        "A game doesn’t need cutscenes to have a strong story.",
-        "Environmental storytelling is better than dialogue.",
-        "Dark Souls tells a deeper story than most cinematic games.",
-        "Persona 5 is too long for its own good.",
-        "Open-world games cannot tell tight stories.",
-        "Player choice in story games is often fake.",
-        "Games shouldn’t force romance arcs.",
-        "Lore is more fun when it’s hidden.",
-        "Hollow Knight’s story is confusing on purpose — and that’s good.",
-        "Games with silent protagonists tell better stories."
+        "Environmental storytelling is better than cutscenes.",
+        "Ambiguity makes stories better.",
+        "Player choice in story games is often an illusion.",
+        "A game’s theme matters more than its plot.",
+        "Too much story can ruin pacing."
     ],
-
     experience: [
-        "Frustration makes games more fun.",
-        "Hand-holding ruins exploration.",
-        "Games should make players feel lost sometimes.",
-        "Failure teaches more than tutorials.",
-        "Players don’t really want freedom — they want structure.",
-        "Reward feels better after punishment.",
-        "Games should overwhelm players at first.",
-        "The best games make you feel powerless before they make you feel strong.",
-        "A game can be great even if the player never wins.",
-        "Comfort games are more important than challenge games."
+        "Frustration is part of good game design.",
+        "A sense of discovery matters more than rewards.",
+        "Failure teaches better than tutorials.",
+        "Players want freedom but need structure.",
+        "Reward systems manipulate players more than they entertain."
     ],
-
     culture: [
-        "Indie games are more creative than AAA games.",
-        "AAA games are more polished but less meaningful.",
-        "Game remakes are ruining creativity.",
-        "Microtransactions are a design failure, not a business failure.",
-        "Accessibility should be required, not optional.",
-        "Games teach empathy better than books.",
-        "The ‘git gud’ mindset hurts the gaming community.",
-        "Games are the most culturally important medium of the 21st century.",
-        "Developers rely too much on nostalgia.",
-        "A game doesn’t have to be fun to be meaningful."
+        "Games are the most important art form of the 21st century.",
+        "Remakes are replacing original ideas.",
+        "Accessibility should always be required.",
+        "Microtransactions are a design problem.",
+        "Indie games push creativity more than AAA games."
     ]
 };
 
-// Build combined list
-hotTakes.all = Object.values(hotTakes).flat();
+// ===============================
+// 🎮 GAME HOT TAKES
+// ===============================
+const gameTakes = {
+    gameplay: [
+        "Super Mario 64 has better platforming than most modern games.",
+        "Skyrim is only fun because of mods.",
+        "Call of Duty reuses the same gameplay loop every year.",
+        "Minecraft is the best sandbox game ever made.",
+        "Portal proves short games are better than long ones."
+    ],
+    graphics: [
+        "Wind Waker aged better than most realistic games.",
+        "Pixel art aged better than early 3D graphics.",
+        "Overwatch has some of the most iconic character designs ever.",
+        "Realistic graphics age faster than stylized ones.",
+        "Skyrim’s visuals were outdated at launch."
+    ],
+    sound: [
+        "Halo has one of the greatest soundtracks in gaming.",
+        "Silent Hill uses sound better than most horror games.",
+        "Mario sound effects are more iconic than most game music.",
+        "Skyrim’s soundtrack is half the experience.",
+        "Fortnite relies heavily on sound cues for survival."
+    ],
+    narrative: [
+        "Ocarina of Time tells a better story than most RPGs today.",
+        "GTA IV has a better story than GTA V.",
+        "Silent Hill 2 is the best-written horror game ever.",
+        "Undertale tells a deeper story than most AAA titles.",
+        "Final Fantasy VII remains the most influential RPG story."
+    ],
+    experience: [
+        "Frustration is what makes Souls-like games satisfying.",
+        "Mario games create the best sense of flow.",
+        "Pokémon is too easy but still satisfying.",
+        "Open-world freedom often reduces meaning.",
+        "Battle royale games are more fun to watch than play."
+    ],
+    culture: [
+        "Minecraft is the most influential game ever.",
+        "Fortnite shaped an entire generation of players.",
+        "MMOs peaked with the early 2000s.",
+        "Nostalgia drives most of gaming culture.",
+        "Nintendo games age better than realistic games."
+    ]
+};
 
+contentTakes.all = Object.values(contentTakes).flat();
+gameTakes.all = Object.values(gameTakes).flat();
+
+let MODE = "content";
+let history = [];
 let timerInterval;
 
-// 🔥 Generate a hot take with animation + movement cue
+// ===============================
+// 🎛 MODE SWITCHER
+// ===============================
+function setMode(mode) {
+    MODE = mode;
+    playSound("ping");
+    document.getElementById("modeIndicator").innerText =
+        mode === "content" ? "Content Mode ACTIVE" : "Game Mode ACTIVE";
+}
+
+// ===============================
+// 🎲 HOT TAKE GENERATOR
+// ===============================
 function newHotTake(category) {
-    const list = category === "all" ? hotTakes.all : hotTakes[category];
-    const randomIndex = Math.floor(Math.random() * list.length);
-    const chosen = list[randomIndex];
+    playSound("reveal");
+
+    const set = MODE === "content" ? contentTakes : gameTakes;
+    const list = category === "all" ? set.all : set[category];
+
+    const chosen = list[Math.floor(Math.random() * list.length)];
 
     const box = document.getElementById("hotTakeBox");
-
-    // Reset animation
     box.classList.remove("reveal-animation");
-    void box.offsetWidth; // force reflow
+    void box.offsetWidth;
     box.classList.add("reveal-animation");
 
     box.innerText = chosen;
 
-    // Show AGREE / DISAGREE cue
-    const cue = document.getElementById("moveCue");
-    cue.style.display = "block";
+    document.getElementById("moveCue").style.display = "block";
+    playSound("ping");
 
-    // Start timer
     startTimer(30);
+
+    history.unshift(chosen);
+    if (history.length > 5) history.pop();
+    updateHistory();
 }
 
-// ⏳ Countdown timer
+// ===============================
+// ⏳ TIMER
+// ===============================
 function startTimer(seconds) {
     const timer = document.getElementById("timer");
     timer.style.display = "block";
@@ -237,14 +346,27 @@ function startTimer(seconds) {
     timerInterval = setInterval(() => {
         time--;
         timer.innerText = time;
-
         if (time <= 0) {
             clearInterval(timerInterval);
             timer.innerText = "GO!";
+            playSound("ding");
         }
     }, 1000);
 }
-</script>
 
+// ===============================
+// 🕒 HISTORY DISPLAY
+// ===============================
+function updateHistory() {
+    const list = document.getElementById("historyList");
+    list.innerHTML = "";
+    history.forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = item;
+        list.appendChild(li);
+    });
+}
+
+</script>
 </body>
 </html>
