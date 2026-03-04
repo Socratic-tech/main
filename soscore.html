@@ -5,42 +5,65 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Berrien County Science Olympiad Helicopter Scoring</title>
 
-<!-- TailwindCSS (CDN) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        colors: { primary: '#38bdf8', bgdark: '#0f172a', panel: '#1e293b' }
-      }
-    }
-  };
-</script>
-
-<!-- React 18 (UMD) -->
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<!-- React 18 (production UMD) -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
 <!-- jsPDF for PDF Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-  body { background-color: #0f172a; color: white; font-family: system-ui, sans-serif; }
-  .panel { background-color: #1e293b; border-radius: 0.5rem; padding: 1rem; }
-  .btn { background-color: #38bdf8; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 700; color: black; transition: opacity .2s; }
-  .btn:hover { opacity: .85; }
-  .input { background-color: #0f172a; border: 1px solid #334155; padding: 0.35rem 0.5rem; border-radius: 0.375rem; color: white; }
-  .input:focus { outline: 2px solid #38bdf8; }
+  :root {
+    --bg: #0f172a;       /* slate-900 */
+    --panel: #1e293b;    /* slate-800 */
+    --line: #334155;     /* slate-700 */
+    --line2: #64748b;    /* slate-500 */
+    --text: #e5e7eb;     /* gray-200 */
+    --subtle: #cbd5e1;   /* slate-300 */
+    --primary: #38bdf8;  /* sky-400 */
+    --warn-border: #a16207; /* amber-700 */
+    --warn-bg: #78350f22;   /* amber-900 @ 13% alpha */
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.875rem; font-weight: 800; margin: 0 0 8px; }
+  .subtext { color: var(--subtle); font-size: 0.9rem; margin-bottom: 16px; }
+
+  .panel { background-color: var(--panel); border-radius: 8px; padding: 12px; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .toolbar-left { display: flex; gap: 10px; align-items: center; }
+  .toolbar-right { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+
+  .btn {
+    background-color: var(--primary); color: #000; font-weight: 700;
+    padding: 8px 12px; border-radius: 6px; border: 0; cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.05); }
+  .input {
+    background-color: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+  .input:focus { outline: 2px solid var(--primary); }
+  .label { font-weight: 700; margin-right: 6px; }
+
   .score-grid {
     display: grid;
     grid-template-columns:
       3rem      /* ID */
       1.3fr     /* Team Name */
-      4.5rem 4.5rem 4.5rem /* F1 T1..T3 */
+      4.7rem 4.7rem 4.7rem /* F1 T1..T3 */
       4rem      /* 2B1 */
       6rem      /* Log1 */
-      4.5rem 4.5rem 4.5rem /* F2 T1..T3 */
+      4.7rem 4.7rem 4.7rem /* F2 T1..T3 */
       4rem      /* 2B2 */
       6rem      /* Log2 */
       5rem      /* Penalty */
@@ -49,16 +72,17 @@
     gap: .5rem;
     align-items: center;
   }
-  .score-grid.header { font-weight: 700; border-bottom: 1px solid #64748b; padding: .5rem 0; }
-  .score-row { border-bottom: 1px solid #334155; padding: .4rem 0; }
-  .subtle-warn { border-color: #a16207 !important; background-color: #78350f22 !important; }
-  .group-label {
-    text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; color: #93c5fd;
-  }
+  .header { font-weight: 700; border-bottom: 1px solid var(--line2); padding: .5rem 0; }
+  .score-row { border-bottom: 1px solid var(--line); padding: .45rem 0; }
+  .group-label { text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; color: #93c5fd; text-align: center; }
+  .subtle-warn { border-color: var(--warn-border) !important; background-color: var(--warn-bg) !important; }
+  .text-primary { color: var(--primary); }
+
+  .spacer { height: 4px; }
 </style>
 </head>
 
-<body class="dark">
+<body>
   <div id="root"></div>
 
 <script>
@@ -68,53 +92,40 @@ const e = React.createElement;
 /* =========================================================================
    Storage (per-division persistence)
    ========================================================================= */
-const STORAGE_KEY = "scioly_helicopter_v1";
+const STORAGE_KEY = "scioly_helicopter_v2";
+
+const defaultState = () => ({
+  eventName: "Berrien County Science Olympiad Helicopter",
+  activeDivision: "B",
+  divisions: {
+    B: { initialized: false, teamCount: 0, teams: [] },
+    C: { initialized: false, teamCount: 0, teams: [] }
+  }
+});
 
 const loadAll = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {
-      eventName: "Berrien County Science Olympiad Helicopter",
-      activeDivision: "B",
-      divisions: {
-        B: { initialized: false, teamCount: 0, teams: [] },
-        C: { initialized: false, teamCount: 0, teams: [] }
-      }
-    };
-    return JSON.parse(raw);
-  } catch {
-    return {
-      eventName: "Berrien County Science Olympiad Helicopter",
-      activeDivision: "B",
-      divisions: {
-        B: { initialized: false, teamCount: 0, teams: [] },
-        C: { initialized: false, teamCount: 0, teams: [] }
-      }
-    };
-  }
+    return raw ? JSON.parse(raw) : defaultState();
+  } catch { return defaultState(); }
 };
 
-const saveAll = (data) => {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
-};
+const saveAll = (data) => { try {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+} catch {} };
 
 /* =========================================================================
    Scoring Logic
    ========================================================================= */
 function computeFlightScore(timers, twoBlade, logBonus) {
-  // Require all three timers present and valid numbers
   if (!Array.isArray(timers) || timers.length !== 3) return null;
   const vals = timers.map(v => (v === "" || v === null) ? NaN : Number(v));
   if (vals.some(Number.isNaN)) return null;
-
   const mean = (vals[0] + vals[1] + vals[2]) / 3;
   const rotor = twoBlade ? 1.10 : 1.00;
-  const logFactor = logBonus === "full" ? 1.20
-                  : logBonus === "partial" ? 1.10
-                  : 1.00;
+  const logFactor = logBonus === "full" ? 1.20 : logBonus === "partial" ? 1.10 : 1.00;
   return mean * rotor * logFactor;
 }
-
 function computeFinalScore(f1, f2, penalty) {
   const p = Number(penalty) || 0;
   const v1 = (typeof f1 === "number") ? f1 : 0;
@@ -125,7 +136,7 @@ function computeFinalScore(f1, f2, penalty) {
 }
 
 /* =========================================================================
-   Helpers for creating teams and updating state
+   Helpers
    ========================================================================= */
 function makeBlankTeam(id) {
   return {
@@ -135,9 +146,9 @@ function makeBlankTeam(id) {
     penalty: 0
   };
 }
-
-function initDivision(divisionData, teamCount) {
-  const count = Math.max(1, parseInt(teamCount || "1", 10));
+function initDivisionFromPrompt(existingDiv, divisionKey) {
+  const n = window.prompt(`How many teams for Division ${divisionKey}?`, "10");
+  const count = Math.max(1, parseInt(n || "10", 10));
   return {
     initialized: true,
     teamCount: count,
@@ -146,163 +157,99 @@ function initDivision(divisionData, teamCount) {
 }
 
 /* =========================================================================
-   Row Component
+   Row
    ========================================================================= */
 function TeamRow({ team, onChange }) {
-  const warning = (v) => (v === "" ? "input subtle-warn w-full" : "input w-full");
-
-  const setField = (fld, val) => onChange({ ...team, [fld]: val });
-  const updateTimer = (flight, i, val) => {
-    const arr = [...team[flight]];
-    arr[i] = val;
-    onChange({ ...team, [flight]: arr });
-  };
-
   const f1Score = computeFlightScore(team.f1, team.twoBlade1, team.log1);
   const f2Score = computeFlightScore(team.f2, team.twoBlade2, team.log2);
   const finalScore = computeFinalScore(f1Score, f2Score, team.penalty);
 
+  const setField = (k, v) => onChange({ ...team, [k]: v });
+  const setTimer = (flight, idx, v) => {
+    const arr = [...team[flight]]; arr[idx] = v;
+    onChange({ ...team, [flight]: arr });
+  };
+  const warn = (v) => (v === "" ? "input subtle-warn w-full" : "input w-full");
+
   return e("div", { className: "score-grid score-row" },
-    // ID
     e("div", null, team.id),
 
-    // Team name
-    e("input", {
-      className: "input w-full",
-      value: team.name,
-      placeholder: "Team Name",
-      onChange: ev => setField("name", ev.target.value)
-    }),
+    e("input", { className: "input w-full", value: team.name, placeholder: "Team Name",
+      onChange: ev => setField("name", ev.target.value) }),
 
-    // F1 timers
     ...team.f1.map((t, i) => e("input", {
-      key: "f1" + i,
-      type: "number", step: "0.01", min: "0",
-      className: warning(t),
-      value: t, placeholder: "0.00",
-      onChange: ev => updateTimer("f1", i, ev.target.value)
+      key: "f1" + i, type: "number", step: "0.01", min: "0",
+      className: warn(t), value: t, placeholder: "0.00",
+      onChange: ev => setTimer("f1", i, ev.target.value)
     })),
 
-    // 2B1
-    e("select", {
-      className: "input",
-      value: team.twoBlade1 ? "Y" : "N",
-      onChange: ev => setField("twoBlade1", ev.target.value === "Y")
-    }, e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y")),
+    e("select", { className: "input", value: team.twoBlade1 ? "Y" : "N",
+      onChange: ev => setField("twoBlade1", ev.target.value === "Y") },
+      e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y")),
 
-    // Log1
-    e("select", {
-      className: "input",
-      value: team.log1,
-      onChange: ev => setField("log1", ev.target.value)
-    },
+    e("select", { className: "input", value: team.log1,
+      onChange: ev => setField("log1", ev.target.value) },
       e("option", { value: "none" }, "None"),
       e("option", { value: "partial" }, "Partial"),
-      e("option", { value: "full" }, "Full")
-    ),
+      e("option", { value: "full" }, "Full")),
 
-    // F2 timers
     ...team.f2.map((t, i) => e("input", {
-      key: "f2" + i,
-      type: "number", step: "0.01", min: "0",
-      className: warning(t),
-      value: t, placeholder: "0.00",
-      onChange: ev => updateTimer("f2", i, ev.target.value)
+      key: "f2" + i, type: "number", step: "0.01", min: "0",
+      className: warn(t), value: t, placeholder: "0.00",
+      onChange: ev => setTimer("f2", i, ev.target.value)
     })),
 
-    // 2B2
-    e("select", {
-      className: "input",
-      value: team.twoBlade2 ? "Y" : "N",
-      onChange: ev => setField("twoBlade2", ev.target.value === "Y")
-    }, e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y")),
+    e("select", { className: "input", value: team.twoBlade2 ? "Y" : "N",
+      onChange: ev => setField("twoBlade2", ev.target.value === "Y") },
+      e("option", { value: "N" }, "N"), e("option", { value: "Y" }, "Y")),
 
-    // Log2
-    e("select", {
-      className: "input",
-      value: team.log2,
-      onChange: ev => setField("log2", ev.target.value)
-    },
+    e("select", { className: "input", value: team.log2,
+      onChange: ev => setField("log2", ev.target.value) },
       e("option", { value: "none" }, "None"),
       e("option", { value: "partial" }, "Partial"),
-      e("option", { value: "full" }, "Full")
-    ),
+      e("option", { value: "full" }, "Full")),
 
-    // Penalty
-    e("input", {
-      type: "number", step: "0.01", min: "0", max: "1",
-      className: "input w-full",
-      value: team.penalty,
-      onChange: ev => setField("penalty", ev.target.value)
-    }),
+    e("input", { className: "input w-full", type: "number", step: "0.01", min: "0", max: "1",
+      value: team.penalty, onChange: ev => setField("penalty", ev.target.value) }),
 
-    // Final score
-    e("div", { className: "text-primary font-bold text-center" },
-      typeof finalScore === "number" ? finalScore.toFixed(2) : "--"
-    ),
+    e("div", { className: "text-primary", style: { textAlign: "center", fontWeight: 800 } },
+      (typeof finalScore === "number") ? finalScore.toFixed(2) : "--"),
 
-    // Rank (filled by derived rendering)
-    e("div", { className: "text-primary font-bold text-center" }, team.rank ?? "--")
+    e("div", { className: "text-primary", style: { textAlign: "center", fontWeight: 800 } },
+      team.rank ?? "--")
   );
 }
 
 /* =========================================================================
-   Division-scoped Scoring Page
+   Scoring Page (division-scoped)
    ========================================================================= */
 function ScoringPage({ data, setData }) {
   const activeDivision = data.activeDivision;
   const divData = data.divisions[activeDivision];
 
-  // If division not initialized, prompt for team count (your choice: B)
+  /* HOOKS MUST REMAIN IN THE SAME ORDER EVERY RENDER */
+  // 1) Initialize division the first time we see it (deferred to avoid blocking paint)
   React.useEffect(() => {
     if (!divData.initialized) {
-      const count = window.prompt(`How many teams for Division ${activeDivision}?`, "10");
-      const initialized = initDivision(divData, count);
-      const next = {
-        ...data,
-        divisions: { ...data.divisions, [activeDivision]: initialized }
-      };
-      setData(next);
+      setTimeout(() => {
+        const initialized = initDivisionFromPrompt(divData, activeDivision);
+        const next = { ...data, divisions: { ...data.divisions, [activeDivision]: initialized } };
+        setData(next);
+      }, 0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeDivision, divData.initialized]);
+  }, [activeDivision, divData.initialized, data, setData]);
 
-  if (!divData.initialized) {
-    // Short-circuit while initializing (prompt just ran)
-    return e("div", { className: "panel" }, `Initializing Division ${activeDivision}…`);
-  }
+  // 2) Choose a safe teams array even if not initialized yet
+  const teams = divData.initialized ? divData.teams : [];
 
-  const teams = divData.teams;
-
-  // Update helper (mutates only current division safely)
-  const updateTeams = (newTeams) => {
-    const next = {
-      ...data,
-      divisions: {
-        ...data.divisions,
-        [activeDivision]: { ...divData, teams: newTeams, teamCount: newTeams.length }
-      }
-    };
-    setData(next);
-  };
-
-  const updateOne = (idx, newTeam) => {
-    const arr = [...teams];
-    arr[idx] = newTeam;
-    updateTeams(arr);
-  };
-
-  // Derived scores & ranks (no state writes here)
+  // 3) Derive scores/ranks (always call this hook; it'll just run on [])
   const derivedTeams = React.useMemo(() => {
-    // First compute f1/f2/final for each
     const enriched = teams.map(t => {
       const f1 = computeFlightScore(t.f1, t.twoBlade1, t.log1);
       const f2 = computeFlightScore(t.f2, t.twoBlade2, t.log2);
       const final = computeFinalScore(f1, f2, t.penalty);
       return { ...t, f1Score: f1, f2Score: f2, finalScore: final };
     });
-
-    // Rank using competition ranking (1, 2, 2, 4 …) with stable order for ties
     const order = enriched
       .map((t, i) => ({ i, s: (t.finalScore == null ? -Infinity : t.finalScore) }))
       .sort((a, b) => b.s - a.s);
@@ -315,28 +262,36 @@ function ScoringPage({ data, setData }) {
       if (last === null || item.s !== last) { rank = seen; last = item.s; }
       ranks[item.i] = rank;
     }
-
     return enriched.map((t, i) => ({ ...t, rank: ranks[i] }));
   }, [teams]);
 
-  // Exports
+  // Helpers to update only the active division
+  const updateTeams = (newTeams) => {
+    const next = {
+      ...data,
+      divisions: {
+        ...data.divisions,
+        [activeDivision]: { ...divData, initialized: true, teams: newTeams, teamCount: newTeams.length }
+      }
+    };
+    setData(next);
+  };
+  const updateOne = (idx, newTeam) => {
+    const arr = [...teams]; arr[idx] = newTeam; updateTeams(arr);
+  };
+
   const exportDivisionPDF = () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "pt", format: "letter" });
     const title = `${data.eventName} — Division ${activeDivision}`;
 
     pdf.setFontSize(18); pdf.text(title, 40, 40);
-    pdf.setFontSize(12);
-    pdf.text("Division Results", 40, 65);
+    pdf.setFontSize(12); pdf.text("Division Results", 40, 65);
     pdf.text(`Generated: ${new Date().toLocaleString()}`, 40, 82);
 
-    let y = 110;
-    pdf.setFontSize(10);
-    pdf.text("Rank", 40, y);
-    pdf.text("Team", 80, y);
-    pdf.text("F1", 240, y);
-    pdf.text("F2", 320, y);
-    pdf.text("Final", 400, y);
+    let y = 110; pdf.setFontSize(10);
+    pdf.text("Rank", 40, y); pdf.text("Team", 80, y);
+    pdf.text("F1", 240, y); pdf.text("F2", 320, y); pdf.text("Final", 400, y);
     y += 15;
 
     const sorted = [...derivedTeams].sort((a, b) => (b.finalScore ?? 0) - (a.finalScore ?? 0));
@@ -346,12 +301,10 @@ function ScoringPage({ data, setData }) {
       pdf.text(t.f1Score != null ? t.f1Score.toFixed(2) : "--", 240, y);
       pdf.text(t.f2Score != null ? t.f2Score.toFixed(2) : "--", 320, y);
       pdf.text(t.finalScore != null ? t.finalScore.toFixed(2) : "--", 400, y);
-      y += 15;
-      if (y > 720) { pdf.addPage(); y = 40; }
+      y += 15; if (y > 720) { pdf.addPage(); y = 40; }
     }
     pdf.save(`Division_${activeDivision}_Results.pdf`);
   };
-
   const exportSupervisorPacket = () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "pt", format: "letter" });
@@ -370,65 +323,46 @@ function ScoringPage({ data, setData }) {
     pdf.text("- Final Score = max(F1, F2) × (1 − penalty)", 40, 270);
 
     pdf.addPage();
-
     const sorted = [...derivedTeams].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
     sorted.forEach((team, idx) => {
-      pdf.setFontSize(16);
-      pdf.text(`Team: ${team.name || ("Team " + team.id)}`, 40, 60);
+      pdf.setFontSize(16); pdf.text(`Team: ${team.name || ("Team " + team.id)}`, 40, 60);
       pdf.setFontSize(12);
       pdf.text(`Rank: ${team.rank ?? "--"}`, 40, 90);
       pdf.text(`Final Score: ${team.finalScore != null ? team.finalScore.toFixed(2) : "--"}`, 40, 110);
-
       pdf.text("Flight 1:", 40, 150);
       pdf.text(`Timers: ${team.f1.join(", ")}`, 60, 170);
       pdf.text(`Two-Blade: ${team.twoBlade1 ? "Yes" : "No"}`, 60, 190);
       pdf.text(`Log Bonus: ${team.log1}`, 60, 210);
       pdf.text(`Score: ${team.f1Score != null ? team.f1Score.toFixed(2) : "--"}`, 60, 230);
-
       pdf.text("Flight 2:", 40, 270);
       pdf.text(`Timers: ${team.f2.join(", ")}`, 60, 290);
       pdf.text(`Two-Blade: ${team.twoBlade2 ? "Yes" : "No"}`, 60, 310);
       pdf.text(`Log Bonus: ${team.log2}`, 60, 330);
       pdf.text(`Score: ${team.f2Score != null ? team.f2Score.toFixed(2) : "--"}`, 60, 350);
-
-      pdf.text("Penalty:", 40, 390);
-      pdf.text(`${team.penalty}`, 60, 410);
-
+      pdf.text("Penalty:", 40, 390); pdf.text(`${team.penalty}`, 60, 410);
       pdf.text("Supervisor Notes:", 40, 450);
-      pdf.line(40, 460, 550, 460);
-      pdf.line(40, 480, 550, 480);
-      pdf.line(40, 500, 550, 500);
-      pdf.line(40, 520, 550, 520);
-
+      pdf.line(40, 460, 550, 460); pdf.line(40, 480, 550, 480);
+      pdf.line(40, 500, 550, 500); pdf.line(40, 520, 550, 520);
       pdf.text("Signatures:", 40, 560);
       pdf.line(40, 580, 250, 580); pdf.text("Event Supervisor", 40, 595);
       pdf.line(300, 580, 510, 580); pdf.text("Score Runner", 300, 595);
-
       if (idx < sorted.length - 1) pdf.addPage();
     });
-
     pdf.save(`Supervisor_Packet_Div_${activeDivision}.pdf`);
   };
 
-  // Controls visible INSIDE scoring section (your choice)
-  const controlsBar = e("div", { className: "panel mb-4 flex flex-wrap items-center gap-3" },
-    e("div", { className: "flex items-center gap-2" },
-      e("label", { className: "font-semibold" }, "Division:"),
+  // UI Controls (inside scoring section)
+  const controlsBar = e("div", { className: "panel toolbar" },
+    e("div", { className: "toolbar-left" },
+      e("span", { className: "label" }, "Division:"),
       e("select", {
         className: "input",
         value: activeDivision,
-        onChange: (ev) => {
-          const next = { ...data, activeDivision: ev.target.value };
-          setData(next);
-        }
-      }, e("option", { value: "B" }, "B"), e("option", { value: "C" }, "C"))
+        onChange: (ev) => setData({ ...data, activeDivision: ev.target.value })
+      }, e("option", { value: "B" }, "B"), e("option", { value: "C" }, "C")),
+      e("span", null, `Teams: ${teams.length}`)
     ),
-
-    e("div", { className: "flex items-center gap-2 ml-2" },
-      e("span", { className: "text-sm text-gray-300" }, `Teams: ${teams.length}`)
-    ),
-
-    e("div", { className: "flex items-center gap-2 ml-auto" },
+    e("div", { className: "toolbar-right" },
       e("button", {
         className: "btn",
         onClick: () => {
@@ -436,96 +370,79 @@ function ScoringPage({ data, setData }) {
           if (name !== null) setData({ ...data, eventName: name });
         }
       }, "Rename Event"),
-
       e("button", {
         className: "btn",
         onClick: () => {
-          const n = window.prompt(`Set team count for Division ${activeDivision}:`, String(teams.length));
+          const n = window.prompt(`Set team count for Division ${activeDivision}:`, String(teams.length || 10));
           if (n === null) return;
           const count = Math.max(1, parseInt(n || "1", 10));
-          const newTeams = Array.from({ length: count }, (_, i) => teams[i] ? { ...teams[i], id: i + 1 } : makeBlankTeam(i + 1));
+          const newTeams = Array.from({ length: count }, (_, i) =>
+            teams[i] ? { ...teams[i], id: i + 1 } : makeBlankTeam(i + 1)
+          );
           updateTeams(newTeams);
         }
       }, "Set Team Count"),
-
-      e("button", {
-        className: "btn",
-        onClick: () => updateTeams([...teams, makeBlankTeam(teams.length + 1)])
-      }, "Add Team"),
-
-      e("button", {
-        className: "btn",
-        onClick: () => {
-          if (teams.length > 1) updateTeams(teams.slice(0, -1));
-        }
-      }, "Remove Last"),
-
+      e("button", { className: "btn", onClick: () => updateTeams([...teams, makeBlankTeam(teams.length + 1)]) }, "Add Team"),
+      e("button", { className: "btn", onClick: () => (teams.length > 1 ? updateTeams(teams.slice(0, -1)) : null) }, "Remove Last"),
       e("button", {
         className: "btn",
         onClick: () => {
           if (confirm(`Reset ONLY Division ${activeDivision}? This cannot be undone.`)) {
-            const nextDiv = initDivision({ initialized: false, teamCount: 0, teams: [] }, 10);
-            const next = {
-              ...data,
-              divisions: { ...data.divisions, [activeDivision]: nextDiv }
-            };
+            const reset = initDivisionFromPrompt({}, activeDivision);
+            const next = { ...data, divisions: { ...data.divisions, [activeDivision]: reset } };
             setData(next);
           }
         }
       }, `Reset Division ${activeDivision}`),
-
       e("button", { className: "btn", onClick: exportDivisionPDF }, "Export Division PDF"),
       e("button", { className: "btn", onClick: exportSupervisorPacket }, "Export Supervisor Packet")
     )
   );
 
-  // Header rows
+  // Headers
   const headerTop = e("div", { className: "score-grid header" },
-    "", "", // (empty cells for ID, Name)
+    "", "",
     e("div", { className: "group-label", style: { gridColumn: "3 / span 5" } }, "Flight 1"),
     e("div", { className: "group-label", style: { gridColumn: "8 / span 5" } }, "Flight 2"),
-    "", "","" // Penalty, Score, Rank labels are on second row
+    "", "", ""
   );
-
-  const headerSecond = e("div", { className: "score-grid header", style: { fontWeight: 600 } },
+  const headerSecond = e("div", { className: "score-grid header" },
     "ID", "Team",
     "T1", "T2", "T3", "2B", "Log",
     "T1", "T2", "T3", "2B", "Log",
     "PEN", "Score", "Rank"
   );
 
-  return e("div", { className: "p-4" },
+  // If the division is not yet initialized, we still render hooks above; now show a placeholder
+  if (!divData.initialized) {
+    return e("div", { className: "container" },
+      e("h1", null, data.eventName),
+      e("div", { className: "subtext" }, `Initializing Division ${activeDivision}…`),
+      controlsBar
+    );
+  }
+
+  return e("div", { className: "container" },
+    e("h1", null, data.eventName),
+    e("div", { className: "subtext" }, "Switch divisions inside the scoring section. Each division has its own teams and scores."),
     controlsBar,
     headerTop,
     headerSecond,
     ...derivedTeams.map((t, i) =>
-      e(TeamRow, {
-        key: t.id,
-        team: t,
-        onChange: (newTeam) => updateOne(i, newTeam)
-      })
+      e(TeamRow, { key: t.id, team: t, onChange: (newTeam) => {
+        const arr = [...teams]; arr[i] = newTeam; updateTeams(arr);
+      }})
     )
   );
 }
 
 /* =========================================================================
-   App (top-level)
+   App
    ========================================================================= */
 function App() {
   const [data, setData] = React.useState(loadAll());
-
-  // Persist all changes
-  React.useEffect(() => saveAll(data), [data]);
-
-  return e("div", { className: "p-4 max-w-[1400px] mx-auto" },
-    e("h1", { className: "text-3xl font-bold mb-2" },
-      data.eventName || "Science Olympiad Helicopter"
-    ),
-    e("p", { className: "text-sm text-slate-300 mb-4" },
-      "Switch divisions from inside the scoring section. Each division has its own teams and scores."
-    ),
-    e(ScoringPage, { data, setData })
-  );
+  React.useEffect(() => { saveAll(data); }, [data]);
+  return e(ScoringPage, { data, setData });
 }
 
 /* =========================================================================
@@ -535,7 +452,4 @@ document.addEventListener("DOMContentLoaded", function () {
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(e(App));
 });
-
-</script>
-</body>
-</html>
+</script
