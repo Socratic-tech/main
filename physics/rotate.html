@@ -4,432 +4,1094 @@
 <meta charset="UTF-8"/>
 <title>Rotational Equilibrium Builder</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-
 :root {
-  --bg:#1a1d23; --panel:#21252e; --panel2:#272b35;
-  --border:#343844; --text:#d4d8e2; --dim:#6b7280;
-  --accent:#4f9cf0; --green:#34d058; --red:#f87171; --orange:#fb923c;
-  --yellow:#fbbf24; --purple:#a78bfa;
-  --canvas-bg:#ffffff;
+  --bg: #f0ede8;
+  --paper: #faf9f6;
+  --ink: #1c1917;
+  --ink2: #57534e;
+  --ink3: #a8a29e;
+  --border: #e2ddd8;
+  --panel: #ffffff;
+  --accent: #d97706;
+  --accent2: #0369a1;
+  --green: #15803d;
+  --red: #dc2626;
+  --shadow: rgba(0,0,0,0.08);
+  --radius: 10px;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 13px;
+}
 
 /* ── HEADER ── */
-#header{height:48px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;}
-#header h1{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);letter-spacing:.04em;white-space:nowrap;}
-#header h1 span{color:var(--dim);font-weight:400;}
-.hbtn{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:5px 11px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'IBM Plex Sans',sans-serif;transition:border-color .15s,color .15s;}
-.hbtn:hover{border-color:var(--accent);color:var(--accent);}
-.hbtn.primary{background:#1a3a5c;border-color:var(--accent);color:var(--accent);}
-.hbtn.primary:hover{background:#1e4570;}
-.hbtn.danger:hover{border-color:var(--red);color:var(--red);}
-#header-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+#header {
+  height: 52px;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+#header h1 {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fef3c7;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#header h1 .sub { color: #78716c; font-weight: 400; }
+.hbtn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #d6d3d1;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.hbtn:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.25); }
+.hbtn.accent { background: var(--accent); border-color: transparent; color: #fff; }
+.hbtn.accent:hover { background: #b45309; }
+#hright { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+#undoBtn, #redoBtn { font-size: 15px; padding: 4px 10px; }
 
-/* ── MAIN LAYOUT ── */
-#main{flex:1;display:flex;overflow:hidden;}
+/* ── LAYOUT ── */
+#main { flex: 1; display: flex; overflow: hidden; }
 
-/* ── SIDEBAR ── */
-#sidebar{width:260px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
-#sidebar-scroll{flex:1;overflow-y:auto;padding:10px;}
-#sidebar-scroll::-webkit-scrollbar{width:3px;}
-#sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border);}
+/* ── LEFT PANEL: PALETTE ── */
+#palette {
+  width: 200px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+  padding: 12px 10px;
+  gap: 0;
+}
+#palette::-webkit-scrollbar { width: 3px; }
+#palette::-webkit-scrollbar-thumb { background: var(--border); }
 
-.sec-hdr{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
-.sec-hdr:first-child{margin-top:0;}
+.pal-section { margin-bottom: 16px; }
+.pal-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink3);
+  margin-bottom: 6px;
+  padding-left: 2px;
+}
 
-/* Tool buttons */
-.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
-.toolbtn{background:var(--panel2);border:1px solid var(--border);color:var(--dim);padding:7px 4px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'IBM Plex Sans',sans-serif;text-align:center;transition:all .15s;line-height:1.3;}
-.toolbtn:hover{border-color:var(--accent);color:var(--text);}
-.toolbtn.active{background:#1a2d47;border-color:var(--accent);color:var(--accent);}
-.toolbtn .icon{font-size:18px;display:block;margin-bottom:2px;}
+.drag-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: grab;
+  border: 1.5px solid transparent;
+  margin-bottom: 4px;
+  user-select: none;
+  transition: all 0.12s;
+  background: var(--bg);
+  color: var(--ink2);
+  font-size: 12px;
+  font-weight: 500;
+  position: relative;
+}
+.drag-item:hover {
+  background: #fff7ed;
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.drag-item:active { cursor: grabbing; opacity: 0.7; }
+.drag-item .di-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.drag-item .di-sub { font-size: 10px; color: var(--ink3); display: block; font-weight: 400; }
+.drag-item[data-type="beam"] .di-icon { background: #f1f0ed; }
+.drag-item[data-type="pivot"] .di-icon { background: #fef9c3; }
+.drag-item[data-type="force"] .di-icon { background: #fee2e2; }
+.drag-item[data-type="weight"] .di-icon { background: #dbeafe; }
+.drag-item[data-type="label"] .di-icon { background: #f0fdf4; }
+.drag-item[data-type="dimension"] .di-icon { background: #f5f3ff; }
 
-/* Props panel */
-#propsPanel{padding:10px;border-top:1px solid var(--border);background:var(--panel2);min-height:80px;}
-.prop-row{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
-.prop-row label{color:var(--dim);font-size:11px;width:80px;flex-shrink:0;}
-.prop-row input[type=number],.prop-row input[type=text],.prop-row select{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:3px;font-size:12px;font-family:'IBM Plex Mono',monospace;}
-.prop-row input[type=color]{width:36px;height:26px;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:none;padding:1px;}
-.prop-row input[type=range]{flex:1;accent-color:var(--accent);}
-.prop-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);font-weight:600;margin-bottom:8px;}
-.prop-none{color:var(--dim);font-size:11px;padding:6px 0;}
-.delbtn{background:none;border:1px solid var(--border);color:var(--red);padding:4px 8px;border-radius:3px;cursor:pointer;font-size:11px;width:100%;margin-top:4px;}
-.delbtn:hover{background:#2a1515;}
-
-/* Torque display */
-#torquePanel{padding:10px;border-top:1px solid var(--border);background:#0f1318;}
-.torque-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-.torque-row{display:flex;justify-content:space-between;font-size:11px;margin:2px 0;font-family:'IBM Plex Mono',monospace;}
-.torque-row .lbl{color:var(--dim);}
-.torque-cw{color:var(--orange);}
-.torque-ccw{color:var(--purple);}
-.torque-net{color:var(--green);font-weight:600;}
-.torque-net.nonzero{color:var(--red);}
-.torque-divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
+/* Drag hint */
+.drag-hint {
+  font-size: 10px;
+  color: var(--ink3);
+  text-align: center;
+  padding: 6px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  margin-top: 4px;
+}
 
 /* ── CANVAS AREA ── */
-#canvasWrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#13161c;}
-#canvasToolbar{height:36px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;font-size:11px;color:var(--dim);flex-shrink:0;}
-#canvasToolbar label{display:flex;align-items:center;gap:4px;}
-#canvasToolbar input[type=checkbox]{accent-color:var(--accent);}
-#canvasToolbar select{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:3px;font-size:11px;font-family:'IBM Plex Sans',sans-serif;}
-#canvasOuter{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:20px;}
-#diagramCanvas{background:white;box-shadow:0 4px 24px rgba(0,0,0,.5);cursor:crosshair;}
-#diagramCanvas.grab{cursor:grab;}
-#diagramCanvas.grabbing{cursor:grabbing;}
-#statusBar{height:24px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 10px;font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;gap:16px;flex-shrink:0;}
+#canvasArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+  position: relative;
+}
+
+/* Toolbar strip */
+#ctoolbar {
+  height: 38px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ctlbtn {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--ink2);
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.ctlbtn:hover { background: var(--bg); border-color: var(--border); color: var(--ink); }
+.ctlbtn.active { background: #fff7ed; border-color: var(--accent); color: var(--accent); }
+.ctlsep { width: 1px; height: 18px; background: var(--border); }
+.ctlcheck { display: flex; align-items: center; gap: 5px; color: var(--ink2); font-size: 11px; cursor: pointer; }
+.ctlcheck input { accent-color: var(--accent); }
+#ctoolbar select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+}
+#ctoolbar label { margin-left: auto; }
+
+#canvasScroll { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+#diagramCanvas {
+  background: white;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
+  border-radius: 2px;
+  cursor: crosshair;
+  display: block;
+}
+#diagramCanvas.grab { cursor: grab; }
+#diagramCanvas.grabbing { cursor: grabbing; }
+
+/* Drop overlay */
+#dropOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#dropTarget {
+  border: 3px dashed var(--accent);
+  background: rgba(217,119,6,0.06);
+  border-radius: 8px;
+  padding: 20px 40px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+  display: none;
+  pointer-events: none;
+}
+
+/* Status bar */
+#statusBar {
+  height: 26px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 16px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: var(--ink3);
+  flex-shrink: 0;
+}
+#statusBar .pill {
+  background: var(--bg);
+  padding: 1px 7px;
+  border-radius: 20px;
+  color: var(--ink2);
+}
+#statusBar .equilibrium-pill {
+  margin-left: auto;
+  padding: 1px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 11px;
+}
+.eq-yes { background: #dcfce7; color: #15803d; }
+.eq-no { background: #fee2e2; color: #dc2626; }
+.eq-none { background: var(--border); color: var(--ink3); }
+
+/* ── RIGHT PANEL ── */
+#rightPanel {
+  width: 240px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Tabs */
+#rpTabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.rptab {
+  flex: 1;
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ink3);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+.rptab:hover { color: var(--ink); }
+.rptab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+#rpContent { flex: 1; overflow-y: auto; }
+#rpContent::-webkit-scrollbar { width: 3px; }
+#rpContent::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* Props */
+#propPane, #torquePane {
+  padding: 12px;
+  display: none;
+}
+#propPane.visible, #torquePane.visible { display: block; }
+
+.prop-group { margin-bottom: 14px; }
+.prop-group-label {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink3);
+  margin-bottom: 6px;
+}
+.prop-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.prop-row label {
+  color: var(--ink2);
+  font-size: 11px;
+  width: 72px;
+  flex-shrink: 0;
+}
+.prop-row input[type=number],
+.prop-row input[type=text],
+.prop-row select {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 5px 7px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.prop-row input:focus { border-color: var(--accent); }
+.prop-row input[type=color] {
+  width: 34px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 2px;
+}
+.prop-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.prop-unit { font-size: 10px; color: var(--ink3); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+/* Angle wheel */
+.angle-widget {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+#angleWheel {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: crosshair;
+  flex-shrink: 0;
+  position: relative;
+}
+.angle-info { flex: 1; }
+.angle-info .big { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--ink); }
+.angle-info .small { font-size: 10px; color: var(--ink3); }
+
+.del-btn {
+  width: 100%;
+  padding: 7px;
+  background: none;
+  border: 1px solid #fecaca;
+  color: var(--red);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.del-btn:hover { background: #fee2e2; }
+
+.prop-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ink3);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.prop-empty .icon { font-size: 28px; margin-bottom: 8px; }
+
+/* Torque panel */
+.torque-pivot-info {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+.torque-force-row {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.torque-force-row:last-child { border-bottom: none; }
+.tf-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+.tf-name { font-weight: 600; font-size: 12px; }
+.tf-val { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; }
+.tf-detail { font-size: 10px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+.tf-bar-wrap { height: 4px; background: var(--bg); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.tf-bar { height: 100%; border-radius: 2px; }
+.cw { color: #c2410c; } .tf-bar.cw { background: #c2410c; }
+.ccw { color: #6d28d9; } .tf-bar.ccw { background: #6d28d9; }
+
+.torque-summary {
+  margin-top: 10px;
+  background: var(--bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ts-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+}
+.ts-row:last-child { border-bottom: none; }
+.ts-row .k { color: var(--ink2); }
+.ts-row .v { font-family: 'DM Mono', monospace; font-weight: 500; }
+.ts-net {
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 0 0 8px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Step-by-step */
+.step-box {
+  background: #f8faff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+}
+.step-box .sh { font-size: 10px; font-weight: 600; color: var(--accent2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.step-line { font-size: 11px; color: var(--ink2); line-height: 1.5; padding: 2px 0; font-family: 'DM Mono', monospace; }
+
+/* Tooltip */
+#tooltip {
+  position: fixed;
+  background: var(--ink);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  pointer-events: none;
+  display: none;
+  z-index: 9999;
+  max-width: 180px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Ghost element during drag */
+#ghostEl {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  display: none;
+  opacity: 0.75;
+  font-size: 22px;
+  background: var(--panel);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+/* Elements list */
+#elemListPane { padding: 10px; }
+.elem-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: all 0.1s;
+  border: 1.5px solid transparent;
+  font-size: 11px;
+  color: var(--ink2);
+}
+.elem-item:hover { background: var(--bg); }
+.elem-item.selected { background: #fff7ed; border-color: var(--accent); color: var(--ink); }
+.elem-icon { font-size: 14px; }
+.elem-name { flex: 1; font-weight: 500; }
+.elem-del { color: var(--ink3); font-size: 13px; padding: 2px 4px; border-radius: 3px; cursor: pointer; }
+.elem-del:hover { color: var(--red); background: #fee2e2; }
+
+/* Onboarding hint */
+#hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(28,25,23,0.88);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 12px;
+  pointer-events: none;
+  transition: opacity 0.4s;
+  z-index: 20;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#hint .hkey {
+  background: rgba(255,255,255,0.15);
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+
+/* Template modal */
+#modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#modal.open { display: flex; }
+#modalBox {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 20px;
+  width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-close { cursor: pointer; color: var(--ink3); font-size: 18px; }
+.modal-close:hover { color: var(--ink); }
+#templateGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tcard {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tcard:hover { border-color: var(--accent); background: #fff7ed; }
+.tcard .ticon { font-size: 22px; margin-bottom: 6px; }
+.tcard .tname { font-weight: 600; font-size: 12px; margin-bottom: 2px; }
+.tcard .tdesc { font-size: 11px; color: var(--ink3); }
+
+/* Keyboard shortcut badge */
+.kbd {
+  display: inline-block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 5px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--ink3);
+  vertical-align: middle;
+}
 </style>
 </head>
 <body>
 
+<div id="tooltip"></div>
+<div id="ghostEl"></div>
+
 <!-- HEADER -->
 <div id="header">
-  <h1>⚖ Rotational Equilibrium <span>Builder</span></h1>
-  <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-  <button class="hbtn" id="btnTemplate">Templates</button>
-  <button class="hbtn" id="btnClear" class="danger">Clear</button>
-  <div id="header-right">
-    <label style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;">
-      <input type="checkbox" id="chkWhiteMode" checked> White bg (print)
-    </label>
-    <button class="hbtn primary" id="btnExportPNG">⬇ Export PNG</button>
-    <button class="hbtn primary" id="btnExportSVG">⬇ Export SVG</button>
+  <h1>⚖ Rotational Equilibrium <span class="sub">/ Builder</span></h1>
+  <div style="width:1px;height:18px;background:rgba(255,255,255,0.1)"></div>
+  <button class="hbtn" id="btnTemplate">📋 Templates</button>
+  <button class="hbtn" id="undoBtn" title="Undo (Ctrl+Z)">↩ Undo</button>
+  <button class="hbtn" id="redoBtn" title="Redo (Ctrl+Y)">↪ Redo</button>
+  <button class="hbtn" id="btnClear">🗑 Clear</button>
+  <div id="hright">
+    <button class="hbtn accent" id="btnExportPNG">⬇ Export PNG</button>
+    <button class="hbtn" id="btnExportSVG">⬇ SVG</button>
   </div>
 </div>
 
 <!-- MAIN -->
 <div id="main">
 
-  <!-- SIDEBAR -->
-  <div id="sidebar">
-    <div id="sidebar-scroll">
-
-      <div class="sec-hdr">Add Elements</div>
-      <div class="tool-grid">
-        <button class="toolbtn" id="tool-select" data-tool="select"><span class="icon">↖</span>Select</button>
-        <button class="toolbtn" id="tool-beam" data-tool="beam"><span class="icon">━</span>Beam</button>
-        <button class="toolbtn" id="tool-pivot" data-tool="pivot"><span class="icon">▲</span>Pivot</button>
-        <button class="toolbtn" id="tool-force" data-tool="force"><span class="icon">↓</span>Force</button>
-        <button class="toolbtn" id="tool-weight" data-tool="weight"><span class="icon">W</span>Weight</button>
-        <button class="toolbtn" id="tool-label" data-tool="label"><span class="icon">T</span>Label</button>
-        <button class="toolbtn" id="tool-dimension" data-tool="dimension"><span class="icon">↔</span>Dimension</button>
-        <button class="toolbtn" id="tool-angle" data-tool="angle"><span class="icon">∠</span>Angle Arc</button>
+  <!-- LEFT: PALETTE -->
+  <div id="palette">
+    <div class="pal-section">
+      <div class="pal-label">Drag onto canvas</div>
+      <div class="drag-item" data-type="beam" draggable="true">
+        <div class="di-icon">━</div>
+        <div>
+          <span>Beam</span>
+          <span class="di-sub">Click ends to place</span>
+        </div>
       </div>
-
-      <div class="sec-hdr">Elements</div>
-      <div id="elemList" style="font-size:11px;color:var(--dim);">No elements yet.</div>
-
+      <div class="drag-item" data-type="pivot" draggable="true">
+        <div class="di-icon">▲</div>
+        <div>
+          <span>Pivot</span>
+          <span class="di-sub">Fulcrum / support</span>
+        </div>
+      </div>
+      <div class="drag-item" data-type="force" draggable="true">
+        <div class="di-icon">↓</div>
+        <div>
+          <span>Force</span>
+          <span class="di-sub">Applied force (N)</span>
+        </div>
+      </div>
+      <div class="drag-item" data-type="weight" draggable="true">
+        <div class="di-icon">W</div>
+        <div>
+          <span>Weight</span>
+          <span class="di-sub">Gravity (downward)</span>
+        </div>
+      </div>
+      <div class="drag-item" data-type="label" draggable="true">
+        <div class="di-icon">T</div>
+        <div>
+          <span>Label</span>
+          <span class="di-sub">Text annotation</span>
+        </div>
+      </div>
+      <div class="drag-item" data-type="dimension" draggable="true">
+        <div class="di-icon">↔</div>
+        <div>
+          <span>Dimension</span>
+          <span class="di-sub">Distance marker</span>
+        </div>
+      </div>
+      <div class="drag-hint">💡 Drag to canvas or click to place at center</div>
     </div>
 
-    <!-- PROPERTIES -->
-    <div id="propsPanel">
-      <div class="prop-none" id="propNone">Select an element to edit its properties.</div>
-      <div id="propFields" style="display:none;"></div>
+    <div class="pal-section">
+      <div class="pal-label">Keyboard shortcuts</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--ink2);">
+        <div><span class="kbd">Del</span> Remove selected</div>
+        <div><span class="kbd">Ctrl+Z</span> Undo</div>
+        <div><span class="kbd">Ctrl+Y</span> Redo</div>
+        <div><span class="kbd">Esc</span> Deselect / cancel</div>
+        <div><span class="kbd">S</span> Toggle snap</div>
+        <div><span class="kbd">G</span> Toggle grid</div>
+      </div>
     </div>
 
-    <!-- TORQUE SUMMARY -->
-    <div id="torquePanel">
-      <div class="torque-title">Torque Summary</div>
-      <div id="torqueSummary"><span style="color:var(--dim);font-size:11px;">Add a pivot and forces to see torques.</span></div>
+    <!-- Quick-add panel for beam (two-click mode) -->
+    <div id="beamHelper" class="pal-section" style="display:none;">
+      <div class="pal-label" style="color:var(--accent);">Placing Beam…</div>
+      <div style="font-size:11px;color:var(--ink2);line-height:1.6;">
+        <b>Click #1</b> sets the start point.<br>
+        <b>Click #2</b> sets the end point.<br>
+        <br>
+        <span style="color:var(--ink3);">Press <span class="kbd">Esc</span> to cancel.</span>
+      </div>
     </div>
   </div>
 
-  <!-- CANVAS -->
-  <div id="canvasWrap">
-    <div id="canvasToolbar">
-      <label><input type="checkbox" id="chkGrid" checked> Grid</label>
-      <label><input type="checkbox" id="chkSnap" checked> Snap</label>
-      <label><input type="checkbox" id="chkLabels" checked> Labels</label>
-      <label><input type="checkbox" id="chkTorqueArcs" checked> Torque arcs</label>
-      <span style="margin-left:auto;">Canvas:</span>
-      <select id="canvasSize">
-        <option value="800x400">800 × 400</option>
-        <option value="1000x500" selected>1000 × 500</option>
-        <option value="1200x600">1200 × 600</option>
-        <option value="1400x700">1400 × 700</option>
+  <!-- CENTER: CANVAS -->
+  <div id="canvasArea">
+    <div id="ctoolbar">
+      <button class="ctlbtn active" id="tool-select" data-tool="select">↖ Select</button>
+      <div class="ctlsep"></div>
+      <label class="ctlcheck"><input type="checkbox" id="chkGrid" checked> Grid</label>
+      <label class="ctlcheck"><input type="checkbox" id="chkSnap" checked> Snap <span id="snapLabel" style="color:var(--ink3);font-size:10px;">(20px)</span></label>
+      <label class="ctlcheck"><input type="checkbox" id="chkLabels" checked> Labels</label>
+      <label class="ctlcheck"><input type="checkbox" id="chkArcs" checked> Torque arcs</label>
+      <div class="ctlsep"></div>
+      <span style="font-size:11px;color:var(--ink2);">Canvas:</span>
+      <select id="canvasSizeSel">
+        <option value="800x400">800×400</option>
+        <option value="1000x500" selected>1000×500</option>
+        <option value="1200x600">1200×600</option>
       </select>
-      <span>Zoom:</span>
-      <select id="zoomSel">
-        <option value="0.5">50%</option>
-        <option value="0.75">75%</option>
-        <option value="1" selected>100%</option>
-        <option value="1.25">125%</option>
-        <option value="1.5">150%</option>
-      </select>
+      <label style="margin-left:auto;" class="ctlcheck">Zoom:
+        <select id="zoomSel">
+          <option value="0.75">75%</option>
+          <option value="1" selected>100%</option>
+          <option value="1.25">125%</option>
+          <option value="1.5">150%</option>
+        </select>
+      </label>
     </div>
-    <div id="canvasOuter">
-      <canvas id="diagramCanvas"></canvas>
+
+    <div id="canvasScroll">
+      <div style="position:relative;display:inline-block;">
+        <canvas id="diagramCanvas"></canvas>
+        <div id="dropOverlay"><div id="dropTarget">Drop here to place</div></div>
+        <div id="hint">
+          <span>👈 Drag items from the left panel</span>
+          <span>or</span>
+          <span>load a <span class="hkey">Template</span></span>
+        </div>
+      </div>
     </div>
+
     <div id="statusBar">
-      <span id="statusTool">Tool: Select</span>
-      <span id="statusPos">x: — y: —</span>
+      <span id="statusTool" class="pill">↖ Select</span>
+      <span id="statusPos">x: — &nbsp; y: —</span>
       <span id="statusSel">Nothing selected</span>
-      <span style="margin-left:auto;">Click to place • Drag to move • Delete key to remove</span>
+      <span id="eqPill" class="equilibrium-pill eq-none">⚖ No pivot yet</span>
+    </div>
+  </div>
+
+  <!-- RIGHT: PROPERTIES + TORQUE -->
+  <div id="rightPanel">
+    <div id="rpTabs">
+      <div class="rptab active" data-tab="props">Properties</div>
+      <div class="rptab" data-tab="torque">Torques</div>
+      <div class="rptab" data-tab="elems">Elements</div>
+    </div>
+    <div id="rpContent">
+
+      <!-- PROPS TAB -->
+      <div id="propPane" class="visible">
+        <div id="propEmpty" class="prop-empty">
+          <div class="icon">🖱️</div>
+          <div>Click any element on the canvas to edit its properties here.</div>
+        </div>
+        <div id="propFields" style="display:none;"></div>
+      </div>
+
+      <!-- TORQUE TAB -->
+      <div id="torquePane">
+        <div id="torqueContent"><div class="prop-empty"><div class="icon">▲</div><div>Add a pivot and some forces to see torque calculations.</div></div></div>
+      </div>
+
+      <!-- ELEMENTS TAB -->
+      <div id="elemsPane" style="padding:10px;display:none;">
+        <div id="elemListContent"><div class="prop-empty"><div>No elements yet.</div></div></div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <!-- TEMPLATE MODAL -->
-<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;">
-  <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;width:480px;max-height:80vh;overflow-y:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <div style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent);">Templates</div>
-      <button id="btnModalClose" class="hbtn">✕ Close</button>
+<div id="modal">
+  <div id="modalBox">
+    <div class="modal-title">
+      Load a Template
+      <span class="modal-close" id="modalClose">✕</span>
     </div>
-    <div id="templateList" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+    <div id="templateGrid"></div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  CONSTANTS & STATE
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  CORE STATE
+// ════════════════════════════════════════════════════════
 const canvas = document.getElementById('diagramCanvas');
 const ctx = canvas.getContext('2d');
 let CW = 1000, CH = 500;
 let zoom = 1;
-let elements = [];   // all diagram objects
-let selected = null; // selected element id
+let elements = [];
+let selected = null;
 let activeTool = 'select';
 let nextId = 1;
 let isDragging = false, dragOffX = 0, dragOffY = 0;
-let snapEnabled = true, gridEnabled = true, labelsEnabled = true, torqueArcsEnabled = true;
-const GRID = 20; // grid spacing in canvas px
+let snapEnabled = true, gridEnabled = true, labelsEnabled = true, arcsEnabled = true;
+const GRID = 20;
+let placing = null; // two-click beam
+let undoStack = [], redoStack = [];
+let activeTab = 'props';
 
-// ═══════════════════════════════════════════════════════════════
+// Dragging from palette
+let paletteGhost = null; // { type }
+let dropX = 0, dropY = 0;
+
+// ════════════════════════════════════════════════════════
+//  UNDO / REDO
+// ════════════════════════════════════════════════════════
+function snapshot() {
+  undoStack.push(JSON.stringify({ elements, nextId }));
+  if (undoStack.length > 50) undoStack.shift();
+  redoStack = [];
+}
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(JSON.stringify({ elements, nextId }));
+  const s = JSON.parse(undoStack.pop());
+  elements = s.elements; nextId = s.nextId;
+  const sel = selected ? elements.find(e => e.id === selected.id) : null;
+  selected = sel || null;
+  showProps(); redraw();
+}
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(JSON.stringify({ elements, nextId }));
+  const s = JSON.parse(redoStack.pop());
+  elements = s.elements; nextId = s.nextId;
+  const sel = selected ? elements.find(e => e.id === selected.id) : null;
+  selected = sel || null;
+  showProps(); redraw();
+}
+document.getElementById('undoBtn').onclick = undo;
+document.getElementById('redoBtn').onclick = redo;
+
+// ════════════════════════════════════════════════════════
 //  CANVAS SIZING
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 function setCanvasSize(w, h) {
   CW = w; CH = h;
   canvas.width = w; canvas.height = h;
-  canvas.style.width = (w * zoom) + 'px';
-  canvas.style.height = (h * zoom) + 'px';
+  applyZoom();
   redraw();
 }
-document.getElementById('canvasSize').onchange = e => {
+function applyZoom() {
+  canvas.style.width = (CW * zoom) + 'px';
+  canvas.style.height = (CH * zoom) + 'px';
+}
+document.getElementById('canvasSizeSel').onchange = e => {
   const [w,h] = e.target.value.split('x').map(Number);
   setCanvasSize(w, h);
 };
 document.getElementById('zoomSel').onchange = e => {
   zoom = parseFloat(e.target.value);
-  canvas.style.width = (CW * zoom) + 'px';
-  canvas.style.height = (CH * zoom) + 'px';
+  applyZoom();
 };
 setCanvasSize(1000, 500);
 
-// ═══════════════════════════════════════════════════════════════
-//  SNAP & COORD HELPERS
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
 function snap(v) { return snapEnabled ? Math.round(v / GRID) * GRID : v; }
 function canvasCoord(e) {
   const r = canvas.getBoundingClientRect();
   return { x: (e.clientX - r.left) / zoom, y: (e.clientY - r.top) / zoom };
 }
-
-// ═══════════════════════════════════════════════════════════════
-//  ELEMENT FACTORY
-// ═══════════════════════════════════════════════════════════════
-function mkBeam(x1, y1, x2, y2) {
-  return { id: nextId++, type: 'beam', x1, y1, x2, y2,
-    thickness: 8, color: '#1a1a2e', label: '', labelOffset: -14 };
-}
-function mkPivot(x, y) {
-  return { id: nextId++, type: 'pivot', x, y, size: 18, color: '#1a1a2e', label: 'P', showLabel: true };
-}
-function mkForce(x, y, magnitude, angle, label) {
-  // angle in degrees, 270 = downward
-  return { id: nextId++, type: 'force', x, y,
-    magnitude: magnitude || 10, angle: angle !== undefined ? angle : 270,
-    length: 80, color: '#c0392b', label: label || 'F', showLabel: true,
-    arrowSize: 10, lineWidth: 2.5 };
-}
-function mkWeight(x, y, magnitude) {
-  return { id: nextId++, type: 'weight', x, y,
-    magnitude: magnitude || 10, length: 70, color: '#2c3e8c', label: 'W',
-    showLabel: true, arrowSize: 10, lineWidth: 2.5 };
-}
-function mkLabel(x, y, text) {
-  return { id: nextId++, type: 'label', x, y, text: text || 'Label',
-    fontSize: 16, color: '#1a1a2e', bold: false };
-}
-function mkDimension(x1, y1, x2, y2) {
-  return { id: nextId++, type: 'dimension', x1, y1, x2, y2,
-    offset: -30, label: '', color: '#555', unit: 'm', value: '' };
-}
-function mkAngle(x, y, startDeg, endDeg) {
-  return { id: nextId++, type: 'angle', x, y,
-    startDeg: startDeg || 0, endDeg: endDeg || 45, radius: 30,
-    color: '#27ae60', label: 'θ', showLabel: true };
+function distToSegment(px, py, x1, y1, x2, y2) {
+  const dx=x2-x1, dy=y2-y1, len2=dx*dx+dy*dy;
+  if (len2 === 0) return Math.hypot(px-x1, py-y1);
+  let t = ((px-x1)*dx + (py-y1)*dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px-(x1+t*dx), py-(y1+t*dy));
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  DRAWING PRIMITIVES
-// ═══════════════════════════════════════════════════════════════
-function drawArrow(x1, y1, x2, y2, color, lineWidth, arrowSize) {
-  const dx = x2-x1, dy = y2-y1, len = Math.hypot(dx,dy);
-  if (len < 1) return;
-  const ux = dx/len, uy = dy/len;
-  ctx.strokeStyle = color; ctx.fillStyle = color;
-  ctx.lineWidth = lineWidth;
+// ════════════════════════════════════════════════════════
+//  ELEMENT FACTORIES
+// ════════════════════════════════════════════════════════
+function mkBeam(x1,y1,x2,y2) {
+  return { id:nextId++, type:'beam', x1, y1, x2, y2, thickness:8, color:'#292524', label:'', labelOffset:-16 };
+}
+function mkPivot(x,y) {
+  return { id:nextId++, type:'pivot', x, y, size:18, color:'#1c1917', label:'P', showLabel:true };
+}
+function mkForce(x,y,magnitude,angleDeg,label) {
+  return { id:nextId++, type:'force', x, y, magnitude: magnitude||10,
+    angle: angleDeg !== undefined ? angleDeg : 270,
+    length:80, color:'#b91c1c', label: label||'F', showLabel:true, arrowSize:10, lineWidth:2.5 };
+}
+function mkWeight(x,y,magnitude) {
+  return { id:nextId++, type:'weight', x, y, magnitude: magnitude||10, length:70,
+    color:'#1d4ed8', label:'W', showLabel:true, arrowSize:10, lineWidth:2.5 };
+}
+function mkLabel(x,y,text) {
+  return { id:nextId++, type:'label', x, y, text: text||'Label', fontSize:16, color:'#1c1917', bold:false };
+}
+function mkDimension(x1,y1,x2,y2, link1, link2) {
+  // link1/link2: { id, point } where point is 'xy'|'x1y1'|'x2y2'
+  return { id:nextId++, type:'dimension', x1, y1, x2, y2, offset:-35, label:'', color:'#57534e', unit:'m', value:'',
+    link1: link1||null, link2: link2||null };
+}
+
+// Get the anchor point of an element for linking
+function getElPoint(el, point) {
+  if (!el) return null;
+  if (point==='xy') return { x: el.x, y: el.y };
+  if (point==='x1y1') return { x: el.x1, y: el.y1 };
+  if (point==='x2y2') return { x: el.x2, y: el.y2 };
+  return null;
+}
+
+// Resolve linked dimension endpoints from live element positions
+function resolveDimEndpoints() {
+  elements.forEach(el => {
+    if (el.type !== 'dimension') return;
+    if (el.link1) {
+      const src = elements.find(e => e.id === el.link1.id);
+      const pt = src ? getElPoint(src, el.link1.point) : null;
+      if (pt) { el.x1 = pt.x; el.y1 = pt.y; }
+    }
+    if (el.link2) {
+      const src = elements.find(e => e.id === el.link2.id);
+      const pt = src ? getElPoint(src, el.link2.point) : null;
+      if (pt) { el.x2 = pt.x; el.y2 = pt.y; }
+    }
+  });
+}
+
+// Find nearest snappable point on any element within threshold px
+const LINK_SNAP_DIST = 24;
+function findNearestLinkPoint(x, y, excludeId) {
+  let best = null, bestD = LINK_SNAP_DIST;
+  elements.forEach(el => {
+    if (el.id === excludeId) return;
+    const candidates = [];
+    if (el.type === 'beam' || el.type === 'dimension') {
+      candidates.push({ x: el.x1, y: el.y1, point: 'x1y1' });
+      candidates.push({ x: el.x2, y: el.y2, point: 'x2y2' });
+      candidates.push({ x:(el.x1+el.x2)/2, y:(el.y1+el.y2)/2, point: null }); // midpoint — no link
+    } else if (el.type === 'pivot' || el.type === 'force' || el.type === 'weight' || el.type === 'label') {
+      candidates.push({ x: el.x, y: el.y, point: 'xy' });
+    }
+    candidates.forEach(c => {
+      const d = Math.hypot(x - c.x, y - c.y);
+      if (d < bestD) { bestD = d; best = { id: el.id, point: c.point, x: c.x, y: c.y }; }
+    });
+  });
+  return best;
+}
+
+// ════════════════════════════════════════════════════════
+//  DRAWING
+// ════════════════════════════════════════════════════════
+function drawArrow(x1,y1,x2,y2,color,lw,as) {
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+  if (len<1) return;
+  const ux=dx/len, uy=dy/len, s=as*0.38;
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=lw;
   ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-  const ax = arrowSize, s = arrowSize * 0.4;
   ctx.beginPath();
-  ctx.moveTo(x2, y2);
-  ctx.lineTo(x2 - ux*ax - uy*s, y2 - uy*ax + ux*s);
-  ctx.lineTo(x2 - ux*ax + uy*s, y2 - uy*ax - ux*s);
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*as-uy*s, y2-uy*as+ux*s);
+  ctx.lineTo(x2-ux*as+uy*s, y2-uy*as-ux*s);
   ctx.closePath(); ctx.fill();
 }
 
-function drawElement(el, isSelected) {
+function drawElement(el, isSel) {
   ctx.save();
-  const SEL_COLOR = '#3b82f6';
+  const SC = '#f59e0b';
 
   if (el.type === 'beam') {
-    // Shadow beam for selection glow
-    if (isSelected) {
-      ctx.strokeStyle = SEL_COLOR; ctx.lineWidth = el.thickness + 6;
-      ctx.lineCap = 'round'; ctx.globalAlpha = 0.3;
+    if (isSel) {
+      ctx.strokeStyle=SC; ctx.lineWidth=el.thickness+8; ctx.lineCap='round'; ctx.globalAlpha=0.2;
       ctx.beginPath(); ctx.moveTo(el.x1,el.y1); ctx.lineTo(el.x2,el.y2); ctx.stroke();
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha=1;
     }
-    ctx.strokeStyle = el.color; ctx.lineWidth = el.thickness; ctx.lineCap = 'round';
+    ctx.strokeStyle=el.color; ctx.lineWidth=el.thickness; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(el.x1,el.y1); ctx.lineTo(el.x2,el.y2); ctx.stroke();
-    // Hash marks at ends
-    const ang = Math.atan2(el.y2-el.y1, el.x2-el.x1);
+    const ang=Math.atan2(el.y2-el.y1,el.x2-el.x1);
     [[el.x1,el.y1],[el.x2,el.y2]].forEach(([ex,ey])=>{
-      ctx.strokeStyle = el.color; ctx.lineWidth = 2;
-      const perp = ang + Math.PI/2;
+      const perp=ang+Math.PI/2;
+      ctx.strokeStyle=el.color; ctx.lineWidth=2;
       ctx.beginPath();
-      ctx.moveTo(ex + Math.cos(perp)*8, ey + Math.sin(perp)*8);
-      ctx.lineTo(ex - Math.cos(perp)*8, ey - Math.sin(perp)*8);
+      ctx.moveTo(ex+Math.cos(perp)*7, ey+Math.sin(perp)*7);
+      ctx.lineTo(ex-Math.cos(perp)*7, ey-Math.sin(perp)*7);
       ctx.stroke();
     });
     if (labelsEnabled && el.label) {
-      const mx = (el.x1+el.x2)/2, my = (el.y1+el.y2)/2;
-      ctx.fillStyle = el.color; ctx.font = 'italic 14px IBM Plex Sans, serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const perp = ang + Math.PI/2;
-      ctx.fillText(el.label, mx + Math.cos(perp)*Math.abs(el.labelOffset), my + Math.sin(perp)*Math.abs(el.labelOffset));
+      const mx=(el.x1+el.x2)/2, my=(el.y1+el.y2)/2;
+      const perp=ang+Math.PI/2;
+      ctx.fillStyle=el.color; ctx.font='italic 13px DM Sans, sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(el.label, mx+Math.cos(perp)*Math.abs(el.labelOffset), my+Math.sin(perp)*Math.abs(el.labelOffset));
     }
   }
 
   else if (el.type === 'pivot') {
-    if (isSelected) {
-      ctx.fillStyle = SEL_COLOR; ctx.globalAlpha = 0.25;
-      ctx.beginPath(); ctx.arc(el.x, el.y, el.size + 6, 0, Math.PI*2); ctx.fill();
-      ctx.globalAlpha = 1;
+    if (isSel) {
+      ctx.fillStyle=SC; ctx.globalAlpha=0.18;
+      ctx.beginPath(); ctx.arc(el.x,el.y,el.size+8,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
     }
-    const s = el.size;
-    // Triangle pivot
-    ctx.fillStyle = el.color; ctx.strokeStyle = el.color; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(el.x, el.y);
-    ctx.lineTo(el.x - s, el.y + s*1.4);
-    ctx.lineTo(el.x + s, el.y + s*1.4);
-    ctx.closePath(); ctx.fill();
-    // Base line
-    ctx.beginPath(); ctx.moveTo(el.x-s*1.3, el.y+s*1.4); ctx.lineTo(el.x+s*1.3, el.y+s*1.4); ctx.stroke();
-    // Hatching under base
-    for (let i = -3; i <= 3; i++) {
-      ctx.beginPath();
-      ctx.moveTo(el.x + i*6, el.y+s*1.4);
-      ctx.lineTo(el.x + i*6 - 5, el.y+s*1.4+6);
-      ctx.strokeStyle = el.color; ctx.lineWidth = 1; ctx.stroke();
+    const s=el.size;
+    ctx.fillStyle=el.color; ctx.strokeStyle=el.color; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(el.x,el.y); ctx.lineTo(el.x-s,el.y+s*1.4); ctx.lineTo(el.x+s,el.y+s*1.4); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(el.x-s*1.4,el.y+s*1.4); ctx.lineTo(el.x+s*1.4,el.y+s*1.4); ctx.stroke();
+    for (let i=-4; i<=4; i++) {
+      ctx.beginPath(); ctx.moveTo(el.x+i*6, el.y+s*1.4); ctx.lineTo(el.x+i*6-5, el.y+s*1.4+7);
+      ctx.strokeStyle=el.color; ctx.lineWidth=1; ctx.stroke();
     }
-    // Dot at pivot point
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(el.x, el.y, 3, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = el.color; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(el.x,el.y,3.5,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=el.color; ctx.lineWidth=1.5; ctx.stroke();
     if (labelsEnabled && el.showLabel && el.label) {
-      ctx.fillStyle = el.color; ctx.font = 'bold 13px IBM Plex Mono, monospace';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.fillText(el.label, el.x, el.y - s*0.5);
+      ctx.fillStyle=el.color; ctx.font='bold 12px DM Mono, monospace';
+      ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(el.label, el.x, el.y-s*0.5);
     }
   }
 
   else if (el.type === 'force' || el.type === 'weight') {
-    const rad = (el.angle * Math.PI / 180);
-    const ex = el.x + Math.cos(rad) * el.length;
-    const ey = el.y + Math.sin(rad) * el.length;
-    if (isSelected) {
-      ctx.strokeStyle = SEL_COLOR; ctx.lineWidth = (el.lineWidth||2)+4; ctx.globalAlpha=0.3;
+    const rad=el.angle*Math.PI/180;
+    const ex=el.x+Math.cos(rad)*el.length, ey=el.y+Math.sin(rad)*el.length;
+    if (isSel) {
+      ctx.strokeStyle=SC; ctx.lineWidth=(el.lineWidth||2.5)+5; ctx.globalAlpha=0.2;
       ctx.beginPath(); ctx.moveTo(el.x,el.y); ctx.lineTo(ex,ey); ctx.stroke();
       ctx.globalAlpha=1;
     }
-    drawArrow(el.x, el.y, ex, ey, el.color, el.lineWidth||2.5, el.arrowSize||10);
+    drawArrow(el.x,el.y,ex,ey,el.color,el.lineWidth||2.5,el.arrowSize||10);
+    // Draw origin dot
+    ctx.fillStyle=el.color; ctx.beginPath(); ctx.arc(el.x,el.y,3,0,Math.PI*2); ctx.fill();
     if (labelsEnabled && el.showLabel && el.label) {
-      ctx.fillStyle = el.color;
-      const isBold = el.type === 'weight';
-      ctx.font = `${isBold?'bold ':''} 14px IBM Plex Sans, sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const lx = el.x + Math.cos(rad)*(el.length*0.5) + Math.cos(rad+Math.PI/2)*20;
-      const ly = el.y + Math.sin(rad)*(el.length*0.5) + Math.sin(rad+Math.PI/2)*20;
-      const labelText = el.label + (el.magnitude ? ' = ' + el.magnitude + ' N' : '');
-      ctx.fillText(labelText, lx, ly);
+      ctx.fillStyle=el.color;
+      ctx.font=`${el.type==='weight'?'600':'500'} 13px DM Sans, sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const lx=el.x+Math.cos(rad)*el.length*0.5+Math.cos(rad+Math.PI/2)*18;
+      const ly=el.y+Math.sin(rad)*el.length*0.5+Math.sin(rad+Math.PI/2)*18;
+      const txt=el.label+(el.magnitude ? ' = '+el.magnitude+' N' : '');
+      ctx.fillText(txt, lx, ly);
     }
   }
 
   else if (el.type === 'label') {
-    ctx.fillStyle = el.color;
-    ctx.font = `${el.bold?'bold ':''}${el.fontSize||16}px IBM Plex Sans, sans-serif`;
-    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    if (isSelected) {
-      ctx.strokeStyle = SEL_COLOR; ctx.lineWidth = 1;
-      const m = ctx.measureText(el.text);
-      ctx.strokeRect(el.x-2, el.y-2, m.width+4, (el.fontSize||16)+4);
+    ctx.fillStyle=el.color;
+    ctx.font=`${el.bold?'bold ':''} ${el.fontSize||16}px DM Sans, sans-serif`;
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    if (isSel) {
+      ctx.strokeStyle=SC; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+      const m=ctx.measureText(el.text);
+      ctx.strokeRect(el.x-3, el.y-3, m.width+6, (el.fontSize||16)+6);
+      ctx.setLineDash([]);
     }
     ctx.fillText(el.text, el.x, el.y);
   }
 
   else if (el.type === 'dimension') {
-    const dx=el.x2-el.x1, dy=el.y2-el.y1;
-    const len=Math.hypot(dx,dy);
-    const ang=Math.atan2(dy,dx);
+    const ang=Math.atan2(el.y2-el.y1,el.x2-el.x1);
     const perp=ang+Math.PI/2;
     const ox=Math.cos(perp)*el.offset, oy=Math.sin(perp)*el.offset;
     const lx1=el.x1+ox, ly1=el.y1+oy, lx2=el.x2+ox, ly2=el.y2+oy;
-    ctx.strokeStyle=el.color; ctx.lineWidth=1; ctx.setLineDash([]);
-    // Extension lines
-    [[el.x1,el.y1],[el.x2,el.y2]].forEach(([bx,by],i)=>{
+    ctx.strokeStyle=el.color; ctx.lineWidth=1;
+    [[el.x1,el.y1],[el.x2,el.y2]].forEach(([bx,by])=>{
       ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+ox,by+oy); ctx.stroke();
     });
-    // Main line with arrows
     drawArrow(lx1,ly1,lx2,ly2,el.color,1,7);
     drawArrow(lx2,ly2,lx1,ly1,el.color,1,7);
-    // Label
     if (labelsEnabled) {
-      const lbl = el.value ? `${el.value} ${el.unit}` : (el.label || '?');
-      ctx.fillStyle=el.color; ctx.font='12px IBM Plex Mono, monospace';
-      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const lbl=el.value ? `${el.value} ${el.unit}` : (el.label||'?');
       const mx=lx1+(lx2-lx1)/2, my=ly1+(ly2-ly1)/2;
-      ctx.fillStyle='white'; ctx.fillRect(mx-22,my-8,44,16);
-      ctx.fillStyle=el.color; ctx.fillText(lbl, mx, my);
-    }
-    if (isSelected) {
-      ctx.strokeStyle=SEL_COLOR; ctx.lineWidth=1; ctx.setLineDash([3,3]);
-      ctx.strokeRect(Math.min(lx1,lx2)-4, Math.min(ly1,ly2)-4, Math.abs(lx2-lx1)+8, Math.abs(ly2-ly1)+8);
-      ctx.setLineDash([]);
-    }
-  }
-
-  else if (el.type === 'angle') {
-    const r=el.radius;
-    ctx.strokeStyle=el.color; ctx.lineWidth=1.5;
-    ctx.beginPath();
-    ctx.arc(el.x, el.y, r, el.startDeg*Math.PI/180, el.endDeg*Math.PI/180);
-    ctx.stroke();
-    if (labelsEnabled && el.showLabel && el.label) {
-      const midAng=((el.startDeg+el.endDeg)/2)*Math.PI/180;
-      ctx.fillStyle=el.color; ctx.font='italic 13px IBM Plex Sans';
+      ctx.fillStyle='white'; ctx.fillRect(mx-24,my-9,48,18);
+      ctx.fillStyle=el.color; ctx.font='11px DM Mono, monospace';
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(el.label, el.x+Math.cos(midAng)*(r+12), el.y+Math.sin(midAng)*(r+12));
+      ctx.fillText(lbl, mx, my);
     }
-    if (isSelected) {
-      ctx.strokeStyle=SEL_COLOR; ctx.lineWidth=1; ctx.setLineDash([3,3]);
-      ctx.beginPath(); ctx.arc(el.x,el.y,r+4,el.startDeg*Math.PI/180,el.endDeg*Math.PI/180); ctx.stroke();
+    if (isSel) {
+      ctx.strokeStyle=SC; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+      ctx.strokeRect(Math.min(lx1,lx2)-5,Math.min(ly1,ly2)-5,Math.abs(lx2-lx1)+10,Math.abs(ly2-ly1)+10);
       ctx.setLineDash([]);
     }
   }
@@ -437,348 +1099,462 @@ function drawElement(el, isSelected) {
   ctx.restore();
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  TORQUE ARC DRAWING
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  TORQUE ARCS
+// ════════════════════════════════════════════════════════
 function drawTorqueArcs() {
   const pivot = elements.find(e => e.type === 'pivot');
   if (!pivot) return;
-  const forces = elements.filter(e => e.type === 'force' || e.type === 'weight');
-  forces.forEach(f => {
-    const rad = f.angle * Math.PI / 180;
-    const fx = Math.cos(rad), fy = Math.sin(rad);
-    const rx = f.x - pivot.x, ry = f.y - pivot.y;
-    const torque = rx * fy * f.magnitude - ry * fx * f.magnitude;
-    if (Math.abs(torque) < 0.01) return;
-    const isCCW = torque > 0;
-    const r = Math.hypot(rx, ry) * 0.45 + 20;
-    const angleToForce = Math.atan2(ry, rx);
+  elements.filter(e => e.type==='force' || e.type==='weight').forEach(f => {
+    const rad=f.angle*Math.PI/180;
+    const fx=Math.cos(rad), fy=Math.sin(rad);
+    const rx=f.x-pivot.x, ry=f.y-pivot.y;
+    const torque=rx*fy*f.magnitude-ry*fx*f.magnitude;
+    if (Math.abs(torque)<0.01) return;
+    const isCCW=torque>0;
+    const r=Math.hypot(rx,ry)*0.45+22;
+    const atf=Math.atan2(ry,rx);
     ctx.save();
-    ctx.strokeStyle = isCCW ? '#7c3aed' : '#c2410c';
-    ctx.lineWidth = 1.5;
-    ctx.globalAlpha = 0.5;
-    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle=isCCW?'#7c3aed':'#c2410c'; ctx.lineWidth=2; ctx.globalAlpha=0.45;
+    ctx.setLineDash([5,4]);
     ctx.beginPath();
-    ctx.arc(pivot.x, pivot.y, r, angleToForce - 0.4, angleToForce + 0.4);
+    ctx.arc(pivot.x,pivot.y,r,atf-0.5,atf+0.5);
     ctx.stroke();
     ctx.setLineDash([]);
-    // Small curved arrow head
-    const endAng = angleToForce + (isCCW ? 0.4 : -0.4);
-    const hx = pivot.x + Math.cos(endAng) * r;
-    const hy = pivot.y + Math.sin(endAng) * r;
-    ctx.globalAlpha = 0.7;
-    ctx.fillStyle = isCCW ? '#7c3aed' : '#c2410c';
-    ctx.beginPath(); ctx.arc(hx, hy, 4, 0, Math.PI*2); ctx.fill();
+    const ea=atf+(isCCW?0.5:-0.5);
+    const hx=pivot.x+Math.cos(ea)*r, hy=pivot.y+Math.sin(ea)*r;
+    ctx.globalAlpha=0.75; ctx.fillStyle=isCCW?'#7c3aed':'#c2410c';
+    ctx.beginPath(); ctx.arc(hx,hy,5,0,Math.PI*2); ctx.fill();
     ctx.restore();
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  TORQUE CALCULATION
-// ═══════════════════════════════════════════════════════════════
-function calcTorques() {
-  const pivot = elements.find(e => e.type === 'pivot');
-  const panel = document.getElementById('torqueSummary');
-  if (!pivot) {
-    panel.innerHTML = '<span style="color:var(--dim);font-size:11px;">Add a pivot to calculate torques.</span>';
-    return;
-  }
-  const forces = elements.filter(e => e.type === 'force' || e.type === 'weight');
-  if (!forces.length) {
-    panel.innerHTML = '<span style="color:var(--dim);font-size:11px;">Add forces to calculate torques.</span>';
-    return;
-  }
-
-  let html = '';
-  let cwTotal = 0, ccwTotal = 0;
-  const scale = 1 / GRID; // 1 grid unit = 1 m
-
-  forces.forEach(f => {
-    const rad = f.angle * Math.PI / 180;
-    const fx = Math.cos(rad), fy = Math.sin(rad);
-    const rx = (f.x - pivot.x) * scale;
-    const ry = (f.y - pivot.y) * scale;
-    // τ = r × F = rx*Fy - ry*Fx (2D cross product)
-    const torque = rx * fy * f.magnitude - ry * fx * f.magnitude;
-    const absT = Math.abs(torque);
-    const dir = torque > 0 ? 'CCW' : torque < 0 ? 'CW' : '—';
-    const cls = torque > 0 ? 'torque-ccw' : torque < 0 ? 'torque-cw' : '';
-    if (torque > 0) ccwTotal += absT;
-    else if (torque < 0) cwTotal += absT;
-    html += `<div class="torque-row"><span class="lbl">${f.label}:</span><span class="${cls}">${dir} ${absT.toFixed(2)} N·m</span></div>`;
-  });
-
-  html += '<hr class="torque-divider">';
-  html += `<div class="torque-row"><span class="lbl">Σ CW:</span><span class="torque-cw">${cwTotal.toFixed(2)} N·m</span></div>`;
-  html += `<div class="torque-row"><span class="lbl">Σ CCW:</span><span class="torque-ccw">${ccwTotal.toFixed(2)} N·m</span></div>`;
-  const net = ccwTotal - cwTotal;
-  const netCls = Math.abs(net) < 0.05 ? 'torque-net' : 'torque-net nonzero';
-  const netLabel = Math.abs(net) < 0.05 ? '✓ Equilibrium!' : `${net > 0 ? 'CCW' : 'CW'} ${Math.abs(net).toFixed(2)} N·m`;
-  html += `<div class="torque-row" style="margin-top:3px;"><span class="lbl">Net τ:</span><span class="${netCls}">${netLabel}</span></div>`;
-
-  panel.innerHTML = html;
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MAIN REDRAW
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  REDRAW
+// ════════════════════════════════════════════════════════
 function redraw() {
-  const bg = document.getElementById('chkWhiteMode').checked ? '#ffffff' : '#f8f9fc';
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
-
-  // Grid
+  resolveDimEndpoints();
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,CW,CH);
   if (gridEnabled) {
-    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 0.5;
-    for (let x = 0; x <= CW; x += GRID) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
-    }
-    for (let y = 0; y <= CH; y += GRID) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
-    }
-    // Major grid every 5
-    ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 0.8;
-    for (let x = 0; x <= CW; x += GRID*5) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
-    }
-    for (let y = 0; y <= CH; y += GRID*5) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
-    }
+    ctx.strokeStyle='#f1ede8'; ctx.lineWidth=0.5;
+    for (let x=0;x<=CW;x+=GRID){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CH);ctx.stroke();}
+    for (let y=0;y<=CH;y+=GRID){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}
+    ctx.strokeStyle='#e7e0d8'; ctx.lineWidth=0.8;
+    for (let x=0;x<=CW;x+=GRID*5){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CH);ctx.stroke();}
+    for (let y=0;y<=CH;y+=GRID*5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}
   }
-
-  // Draw non-selected elements first, then selected on top
-  elements.filter(e => e.id !== (selected?.id)).forEach(e => drawElement(e, false));
-  if (selected) drawElement(selected, true);
-
-  // Torque arcs
-  if (torqueArcsEnabled) drawTorqueArcs();
-
-  calcTorques();
-  refreshElemList();
+  elements.filter(e=>!selected||e.id!==selected.id).forEach(e=>drawElement(e,false));
+  if (selected) drawElement(selected,true);
+  if (arcsEnabled) drawTorqueArcs();
+  updateTorquePanel();
+  updateElemList();
+  updateStatusBar();
+  // Hide hint if elements added
+  const hint = document.getElementById('hint');
+  if (elements.length > 0) hint.style.opacity = '0';
+  else hint.style.opacity = '1';
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  HIT TESTING
-// ═══════════════════════════════════════════════════════════════
-function hitTest(x, y) {
-  // Test in reverse order (top = last drawn)
-  for (let i = elements.length - 1; i >= 0; i--) {
-    const el = elements[i];
-    if (el.type === 'beam') {
-      const d = distToSegment(x, y, el.x1, el.y1, el.x2, el.y2);
-      if (d < 10) return el;
-    } else if (el.type === 'pivot') {
-      if (Math.hypot(x-el.x, y-el.y) < el.size * 1.5) return el;
-    } else if (el.type === 'force' || el.type === 'weight') {
-      const rad = el.angle * Math.PI / 180;
-      const ex = el.x + Math.cos(rad)*el.length;
-      const ey = el.y + Math.sin(rad)*el.length;
-      const d = distToSegment(x, y, el.x, el.y, ex, ey);
-      if (d < 12 || Math.hypot(x-el.x, y-el.y) < 12) return el;
-    } else if (el.type === 'label') {
-      ctx.font = `${el.fontSize||16}px IBM Plex Sans`;
-      const w = ctx.measureText(el.text).width;
-      if (x >= el.x-4 && x <= el.x+w+4 && y >= el.y-4 && y <= el.y+(el.fontSize||16)+4) return el;
-    } else if (el.type === 'dimension') {
-      const ang = Math.atan2(el.y2-el.y1, el.x2-el.x1);
-      const perp = ang + Math.PI/2;
-      const ox = Math.cos(perp)*el.offset, oy = Math.sin(perp)*el.offset;
-      const d = distToSegment(x, y, el.x1+ox, el.y1+oy, el.x2+ox, el.y2+oy);
-      if (d < 10) return el;
-    } else if (el.type === 'angle') {
-      if (Math.abs(Math.hypot(x-el.x, y-el.y) - el.radius) < 10) return el;
+// ════════════════════════════════════════════════════════
+//  HIT TEST
+// ════════════════════════════════════════════════════════
+function hitTest(x,y) {
+  for (let i=elements.length-1;i>=0;i--) {
+    const el=elements[i];
+    if (el.type==='beam') { if(distToSegment(x,y,el.x1,el.y1,el.x2,el.y2)<12) return el; }
+    else if (el.type==='pivot') { if(Math.hypot(x-el.x,y-el.y)<el.size*1.6) return el; }
+    else if (el.type==='force'||el.type==='weight') {
+      const rad=el.angle*Math.PI/180;
+      const ex=el.x+Math.cos(rad)*el.length, ey=el.y+Math.sin(rad)*el.length;
+      if(distToSegment(x,y,el.x,el.y,ex,ey)<14||Math.hypot(x-el.x,y-el.y)<14) return el;
+    }
+    else if (el.type==='label') {
+      ctx.font=`${el.fontSize||16}px DM Sans`;
+      const w=ctx.measureText(el.text).width;
+      if(x>=el.x-4&&x<=el.x+w+4&&y>=el.y-4&&y<=el.y+(el.fontSize||16)+4) return el;
+    }
+    else if (el.type==='dimension') {
+      const ang=Math.atan2(el.y2-el.y1,el.x2-el.x1), perp=ang+Math.PI/2;
+      const ox=Math.cos(perp)*el.offset, oy=Math.sin(perp)*el.offset;
+      if(distToSegment(x,y,el.x1+ox,el.y1+oy,el.x2+ox,el.y2+oy)<12) return el;
     }
   }
   return null;
 }
 
-function distToSegment(px, py, x1, y1, x2, y2) {
-  const dx = x2-x1, dy = y2-y1, len2 = dx*dx+dy*dy;
-  if (len2 === 0) return Math.hypot(px-x1, py-y1);
-  let t = ((px-x1)*dx + (py-y1)*dy) / len2;
-  t = Math.max(0, Math.min(1, t));
-  return Math.hypot(px - (x1+t*dx), py - (y1+t*dy));
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  PLACEMENT STATE (for two-click tools)
-// ═══════════════════════════════════════════════════════════════
-let placing = null; // { type, x1, y1 } for beam/dimension
-
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  CANVAS MOUSE EVENTS
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 canvas.addEventListener('mousedown', e => {
-  const {x, y} = canvasCoord(e);
-  const sx = snap(x), sy = snap(y);
+  const {x,y} = canvasCoord(e);
+  const sx=snap(x), sy=snap(y);
 
-  if (activeTool === 'select') {
-    const hit = hitTest(x, y);
+  if (activeTool==='select') {
+    const hit=hitTest(x,y);
     if (hit) {
-      selected = hit;
-      isDragging = true;
-      if (hit.type === 'beam' || hit.type === 'dimension') {
-        dragOffX = x - hit.x1; dragOffY = y - hit.y1;
-      } else if (hit.type === 'force' || hit.type === 'weight') {
-        dragOffX = x - hit.x; dragOffY = y - hit.y;
+      selected=hit; isDragging=true;
+      if (hit.type==='beam'||hit.type==='dimension') {
+        dragOffX=x-hit.x1; dragOffY=y-hit.y1;
       } else {
-        dragOffX = x - (hit.x || hit.x1); dragOffY = y - (hit.y || hit.y1);
+        dragOffX=x-(hit.x||hit.x1); dragOffY=y-(hit.y||hit.y1);
       }
-    } else {
-      selected = null;
-    }
-    showProps();
-    redraw();
-    return;
+    } else { selected=null; }
+    showProps(); redraw(); return;
   }
 
-  // Two-click tools: beam, dimension
-  if (activeTool === 'beam' || activeTool === 'dimension') {
+  // Beam: two-click
+  if (activeTool==='beam') {
     if (!placing) {
-      placing = { type: activeTool, x1: sx, y1: sy };
+      placing={x1:sx,y1:sy};
+      document.getElementById('beamHelper').style.display='block';
     } else {
-      if (activeTool === 'beam') elements.push(mkBeam(placing.x1, placing.y1, sx, sy));
-      else elements.push(mkDimension(placing.x1, placing.y1, sx, sy));
-      placing = null;
+      snapshot();
+      elements.push(mkBeam(placing.x1,placing.y1,sx,sy));
+      placing=null;
+      setTool('select');
+      document.getElementById('beamHelper').style.display='none';
       redraw();
+    }
+    return;
+  }
+  if (activeTool==='dimension') {
+    if (!placing) {
+      // Try to snap start point to a nearby element
+      const snap1 = findNearestLinkPoint(sx, sy, -1);
+      placing = { x1: snap1 ? snap1.x : sx, y1: snap1 ? snap1.y : sy,
+                  link1: snap1 && snap1.point ? { id: snap1.id, point: snap1.point } : null, isDim:true };
+      // Show visual feedback on start point snap
+      redraw();
+      if (snap1) {
+        ctx.save(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.arc(snap1.x,snap1.y,9,0,Math.PI*2); ctx.stroke();
+        ctx.restore();
+      }
+    } else {
+      snapshot();
+      const snap2 = findNearestLinkPoint(sx, sy, -1);
+      const ex = snap2 ? snap2.x : sx, ey = snap2 ? snap2.y : sy;
+      const link2 = snap2 && snap2.point ? { id: snap2.id, point: snap2.point } : null;
+      elements.push(mkDimension(placing.x1, placing.y1, ex, ey, placing.link1, link2));
+      placing=null; setTool('select'); redraw();
     }
     return;
   }
 
   // Single-click tools
-  if (activeTool === 'pivot') {
-    elements.push(mkPivot(sx, sy));
-  } else if (activeTool === 'force') {
-    elements.push(mkForce(sx, sy, 10, 270, 'F' + (elements.filter(e=>e.type==='force').length+1)));
-  } else if (activeTool === 'weight') {
-    elements.push(mkWeight(sx, sy, 10));
-  } else if (activeTool === 'label') {
-    const text = prompt('Enter label text:', 'Label');
-    if (text) elements.push(mkLabel(sx, sy, text));
-  } else if (activeTool === 'angle') {
-    elements.push(mkAngle(sx, sy, 0, 45));
+  snapshot();
+  if (activeTool==='pivot') elements.push(mkPivot(sx,sy));
+  else if (activeTool==='force') elements.push(mkForce(sx,sy,10,270,'F'+(elements.filter(e=>e.type==='force').length+1)));
+  else if (activeTool==='weight') elements.push(mkWeight(sx,sy,10));
+  else if (activeTool==='label') {
+    const t=prompt('Label text:','Label');
+    if (t) elements.push(mkLabel(sx,sy,t));
   }
+  setTool('select');
   redraw();
 });
 
 canvas.addEventListener('mousemove', e => {
-  const {x, y} = canvasCoord(e);
-  document.getElementById('statusPos').textContent = `x: ${Math.round(x)}  y: ${Math.round(y)}`;
+  const {x,y}=canvasCoord(e);
+  document.getElementById('statusPos').textContent=`x: ${Math.round(x)}  y: ${Math.round(y)}`;
 
   if (isDragging && selected) {
-    const sx = snap(x), sy = snap(y);
-    const dx = snap(x) - snap(dragOffX + (selected.x1 ?? selected.x ?? 0));
-    // Move element
-    if (selected.type === 'beam' || selected.type === 'dimension') {
-      const ddx = sx - snap(selected.x1 + dragOffX), ddy = sy - snap(selected.y1 + dragOffY);
-      selected.x1 = snap(x - dragOffX); selected.y1 = snap(y - dragOffY);
-      selected.x2 = snap(selected.x2 + ddx); selected.y2 = snap(selected.y2 + ddy);
-    } else if (selected.type === 'pivot' || selected.type === 'force' ||
-               selected.type === 'weight' || selected.type === 'angle') {
-      selected.x = snap(x - dragOffX); selected.y = snap(y - dragOffY);
-    } else if (selected.type === 'label') {
-      selected.x = snap(x - dragOffX); selected.y = snap(y - dragOffY);
+    if (selected.type==='beam'||selected.type==='dimension') {
+      const ddx=snap(x-dragOffX)-selected.x1, ddy=snap(y-dragOffY)-selected.y1;
+      selected.x1+=ddx; selected.y1+=ddy;
+      selected.x2+=ddx; selected.y2+=ddy;
+    } else if (selected.type==='pivot'||selected.type==='force'||selected.type==='weight'||selected.type==='label') {
+      selected.x=snap(x-dragOffX); selected.y=snap(y-dragOffY);
     }
-    dragOffX = x - (selected.x ?? selected.x1);
-    dragOffY = y - (selected.y ?? selected.y1);
-    showProps();
-    redraw();
-    return;
+    dragOffX=x-(selected.x??selected.x1);
+    dragOffY=y-(selected.y??selected.y1);
+    showProps(); redraw(); return;
   }
 
-  // Preview while placing two-click elements
   if (placing) {
     redraw();
+    const snapPt = activeTool==='dimension' ? findNearestLinkPoint(snap(x), snap(y), -1) : null;
+    const ex = snapPt ? snapPt.x : snap(x), ey = snapPt ? snapPt.y : snap(y);
     ctx.save();
-    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
-    ctx.beginPath(); ctx.moveTo(placing.x1, placing.y1); ctx.lineTo(snap(x), snap(y)); ctx.stroke();
+    ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(placing.x1,placing.y1); ctx.lineTo(ex,ey); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(placing.x1, placing.y1, 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='#f59e0b'; ctx.beginPath(); ctx.arc(placing.x1,placing.y1,5,0,Math.PI*2); ctx.fill();
+    // Snap target indicator
+    if (snapPt) {
+      ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(snapPt.x,snapPt.y,8,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='rgba(245,158,11,0.2)'; ctx.fill();
+    }
     ctx.restore();
   }
 
-  const hit = hitTest(x, y);
-  canvas.style.cursor = isDragging ? 'grabbing' : (hit && activeTool === 'select') ? 'grab' : 'crosshair';
+  const hit=hitTest(x,y);
+  canvas.style.cursor = isDragging ? 'grabbing' : (hit&&activeTool==='select') ? 'grab' : 'crosshair';
 });
 
-canvas.addEventListener('mouseup', () => { isDragging = false; });
-canvas.addEventListener('mouseleave', () => { isDragging = false; });
+canvas.addEventListener('mouseup', ()=>{ isDragging=false; });
+canvas.addEventListener('mouseleave', ()=>{ isDragging=false; });
 
-// Delete key
+// ════════════════════════════════════════════════════════
+//  KEYBOARD
+// ════════════════════════════════════════════════════════
 window.addEventListener('keydown', e => {
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selected &&
-      document.activeElement === document.body) {
-    elements = elements.filter(el => el.id !== selected.id);
-    selected = null; showProps(); redraw();
+  if (document.activeElement !== document.body && document.activeElement.tagName !== 'CANVAS') return;
+  if ((e.key==='Delete'||e.key==='Backspace') && selected) {
+    e.preventDefault();
+    snapshot();
+    elements=elements.filter(el=>el.id!==selected.id);
+    selected=null; showProps(); redraw();
   }
-  if (e.key === 'Escape') { placing = null; redraw(); }
+  if (e.key==='Escape') { placing=null; setTool('select'); document.getElementById('beamHelper').style.display='none'; redraw(); }
+  if (e.key==='z'&&e.ctrlKey) undo();
+  if (e.key==='y'&&e.ctrlKey) redo();
+  if (e.key==='s'&&!e.ctrlKey) {
+    const cb=document.getElementById('chkSnap');
+    cb.checked=!cb.checked; snapEnabled=cb.checked; updateSnapLabel();
+  }
+  if (e.key==='g'&&!e.ctrlKey) {
+    const cb=document.getElementById('chkGrid');
+    cb.checked=!cb.checked; gridEnabled=cb.checked; redraw();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key==='z') { e.preventDefault(); undo(); }
+  if (e.ctrlKey && e.key==='y') { e.preventDefault(); redo(); }
 });
 
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  DRAG FROM PALETTE
+// ════════════════════════════════════════════════════════
+const ghost = document.getElementById('ghostEl');
+const dropTarget = document.getElementById('dropTarget');
+let currentDragType = null;
+
+document.querySelectorAll('.drag-item').forEach(item => {
+  const type = item.dataset.type;
+
+  item.addEventListener('dragstart', e => {
+    currentDragType = type;
+    ghost.textContent = item.querySelector('.di-icon').textContent;
+    ghost.style.display = 'block';
+    e.dataTransfer.setDragImage(new Image(), 0, 0);
+    e.dataTransfer.effectAllowed = 'copy';
+  });
+
+  item.addEventListener('dragend', () => {
+    ghost.style.display = 'none';
+    dropTarget.style.display = 'none';
+    currentDragType = null;
+  });
+
+  // Click to place at center
+  item.addEventListener('click', () => {
+    const x=snap(CW/2), y=snap(CH/2);
+    snapshot();
+    placeElement(type, x, y);
+    setTool('select');
+    redraw();
+    switchTab('props');
+  });
+});
+
+document.addEventListener('dragover', e => {
+  if (!currentDragType) return;
+  e.preventDefault();
+  ghost.style.left = (e.clientX+10)+'px';
+  ghost.style.top = (e.clientY+10)+'px';
+});
+
+canvas.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropTarget.style.display = 'flex';
+  const {x,y} = canvasCoord(e);
+  dropX=snap(x); dropY=snap(y);
+});
+canvas.addEventListener('dragleave', () => { dropTarget.style.display='none'; });
+
+canvas.addEventListener('drop', e => {
+  e.preventDefault();
+  dropTarget.style.display = 'none';
+  if (!currentDragType) return;
+  const {x,y} = canvasCoord(e);
+  snapshot();
+  placeElement(currentDragType, snap(x), snap(y));
+  setTool('select');
+  redraw();
+  switchTab('props');
+});
+
+function placeElement(type, x, y) {
+  let el;
+  if (type==='beam') {
+    el = mkBeam(x-100, y, x+100, y);
+  } else if (type==='pivot') {
+    el = mkPivot(x, y);
+  } else if (type==='force') {
+    el = mkForce(x, y, 10, 270, 'F'+(elements.filter(e=>e.type==='force').length+1));
+  } else if (type==='weight') {
+    el = mkWeight(x, y, 10);
+  } else if (type==='label') {
+    const t=prompt('Label text:','Label');
+    if (!t) return;
+    el = mkLabel(x, y, t);
+  } else if (type==='dimension') {
+    el = mkDimension(x-80, y, x+80, y);
+  }
+  if (el) { elements.push(el); selected=el; showProps(); }
+}
+
+// ════════════════════════════════════════════════════════
+//  TOOL SELECTION
+// ════════════════════════════════════════════════════════
+function setTool(tool) {
+  activeTool=tool;
+  document.querySelectorAll('.ctlbtn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool===tool));
+  document.getElementById('statusTool').textContent=(tool==='select'?'↖ ':'')+tool.charAt(0).toUpperCase()+tool.slice(1);
+}
+document.getElementById('tool-select').addEventListener('click', ()=>{ placing=null; setTool('select'); document.getElementById('beamHelper').style.display='none'; });
+
+// ════════════════════════════════════════════════════════
+//  TOGGLES
+// ════════════════════════════════════════════════════════
+function updateSnapLabel() { document.getElementById('snapLabel').textContent = snapEnabled ? '(20px)' : '(off)'; }
+document.getElementById('chkGrid').onchange=e=>{gridEnabled=e.target.checked;redraw();};
+document.getElementById('chkSnap').onchange=e=>{snapEnabled=e.target.checked;updateSnapLabel();};
+document.getElementById('chkLabels').onchange=e=>{labelsEnabled=e.target.checked;redraw();};
+document.getElementById('chkArcs').onchange=e=>{arcsEnabled=e.target.checked;redraw();};
+
+// ════════════════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════════════════
+document.querySelectorAll('.rptab').forEach(tab => {
+  tab.addEventListener('click', ()=>switchTab(tab.dataset.tab));
+});
+function switchTab(tab) {
+  activeTab=tab;
+  document.querySelectorAll('.rptab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.getElementById('propPane').classList.toggle('visible', tab==='props');
+  document.getElementById('torquePane').classList.toggle('visible', tab==='torque');
+  document.getElementById('elemsPane').style.display = tab==='elems'?'block':'none';
+}
+
+// ════════════════════════════════════════════════════════
 //  PROPERTIES PANEL
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 function showProps() {
-  const el = selected;
-  document.getElementById('propNone').style.display = el ? 'none' : '';
-  document.getElementById('propFields').style.display = el ? '' : 'none';
+  const el=selected;
+  document.getElementById('propEmpty').style.display=el?'none':'';
+  document.getElementById('propFields').style.display=el?'':'none';
   if (!el) return;
 
-  const f = document.getElementById('propFields');
-  const field = (label, inputHtml) =>
-    `<div class="prop-row"><label>${label}</label>${inputHtml}</div>`;
+  const f=document.getElementById('propFields');
+  const row=(label,inputHtml,unit='')=>
+    `<div class="prop-row"><label>${label}</label>${inputHtml}${unit?`<span class="prop-unit">${unit}</span>`:''}</div>`;
 
-  let html = `<div class="prop-title">${el.type.toUpperCase()} #${el.id}</div>`;
+  let html='';
 
-  if (el.type === 'beam') {
-    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
-    html += field('Thickness', `<input type="range" id="pc-thick" min="2" max="20" value="${el.thickness}">`);
-    html += field('Label', `<input type="text" id="pc-label" value="${el.label}" placeholder="e.g. beam">`);
-    html += field('x1', `<input type="number" id="pc-x1" value="${el.x1}" step="${GRID}">`);
-    html += field('y1', `<input type="number" id="pc-y1" value="${el.y1}" step="${GRID}">`);
-    html += field('x2', `<input type="number" id="pc-x2" value="${el.x2}" step="${GRID}">`);
-    html += field('y2', `<input type="number" id="pc-y2" value="${el.y2}" step="${GRID}">`);
-  } else if (el.type === 'pivot') {
-    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
-    html += field('Label', `<input type="text" id="pc-label" value="${el.label}">`);
-    html += field('Size', `<input type="range" id="pc-size" min="8" max="36" value="${el.size}">`);
-    html += field('x', `<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`);
-    html += field('y', `<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`);
-  } else if (el.type === 'force' || el.type === 'weight') {
-    html += field('Label', `<input type="text" id="pc-label" value="${el.label}">`);
-    html += field('Magnitude', `<input type="number" id="pc-mag" value="${el.magnitude}" min="0" step="1"> N`);
-    html += field('Angle (°)', `<input type="number" id="pc-angle" value="${el.angle}" min="0" max="360">`);
-    html += field('Length', `<input type="range" id="pc-len" min="20" max="200" value="${el.length}">`);
-    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
-    html += field('x', `<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`);
-    html += field('y', `<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`);
-    html += `<div style="font-size:10px;color:var(--dim);margin-bottom:4px;">0°=right 90°=down 180°=left 270°=up</div>`;
-  } else if (el.type === 'label') {
-    html += field('Text', `<input type="text" id="pc-text" value="${el.text}">`);
-    html += field('Font size', `<input type="range" id="pc-fontsize" min="8" max="48" value="${el.fontSize||16}">`);
-    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
-    html += field('x', `<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`);
-    html += field('y', `<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`);
-  } else if (el.type === 'dimension') {
-    html += field('Value', `<input type="text" id="pc-val" value="${el.value}" placeholder="e.g. 2.5">`);
-    html += field('Unit', `<input type="text" id="pc-unit" value="${el.unit}">`);
-    html += field('Offset', `<input type="range" id="pc-offset" min="-80" max="80" value="${el.offset}">`);
-    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
-  } else if (el.type === 'angle') {
-    html += field('Label', `<input type="text" id="pc-label" value="${el.label}">`);
-    html += field('Start °', `<input type="number" id="pc-startdeg" value="${el.startDeg}" min="0" max="360">`);
-    html += field('End °', `<input type="number" id="pc-enddeg" value="${el.endDeg}" min="0" max="360">`);
-    html += field('Radius', `<input type="range" id="pc-radius" min="10" max="100" value="${el.radius}">`);
-    html += field('Color', `<input type="color" id="pc-color" value="${el.color}">`);
+  if (el.type==='beam') {
+    html+=`<div class="prop-group"><div class="prop-group-label">Geometry</div>
+      ${row('Start X',`<input type="number" id="pc-x1" value="${el.x1}" step="${GRID}">`, 'px')}
+      ${row('Start Y',`<input type="number" id="pc-y1" value="${el.y1}" step="${GRID}">`, 'px')}
+      ${row('End X',`<input type="number" id="pc-x2" value="${el.x2}" step="${GRID}">`, 'px')}
+      ${row('End Y',`<input type="number" id="pc-y2" value="${el.y2}" step="${GRID}">`, 'px')}
+    </div>
+    <div class="prop-group"><div class="prop-group-label">Style</div>
+      ${row('Thickness',`<input type="range" id="pc-thick" min="2" max="24" value="${el.thickness}">`)}
+      ${row('Color',`<input type="color" id="pc-color" value="${el.color}">`)}
+      ${row('Label',`<input type="text" id="pc-label" value="${el.label}" placeholder="optional">`)}
+    </div>`;
   }
 
-  html += `<button class="delbtn" id="pc-del">🗑 Delete</button>`;
-  f.innerHTML = html;
+  else if (el.type==='pivot') {
+    html+=`<div class="prop-group"><div class="prop-group-label">Position</div>
+      ${row('X',`<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`, 'px')}
+      ${row('Y',`<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`, 'px')}
+    </div>
+    <div class="prop-group"><div class="prop-group-label">Style</div>
+      ${row('Size',`<input type="range" id="pc-size" min="8" max="36" value="${el.size}">`)}
+      ${row('Color',`<input type="color" id="pc-color" value="${el.color}">`)}
+      ${row('Label',`<input type="text" id="pc-label" value="${el.label}">`)}
+    </div>`;
+  }
 
-  // Wire up all prop inputs
-  const bind = (id, key, parse) => {
-    const inp = document.getElementById(id);
-    if (!inp) return;
-    inp.addEventListener('input', () => {
-      el[key] = parse ? parse(inp.value) : inp.value;
+  else if (el.type==='force'||el.type==='weight') {
+    const angleDeg=el.angle;
+    const dirLabel=angleDeg===270?'↑ Up':angleDeg===90?'↓ Down':angleDeg===0?'→ Right':angleDeg===180?'← Left':`${angleDeg}°`;
+    html+=`<div class="prop-group"><div class="prop-group-label">Force</div>
+      ${row('Label',`<input type="text" id="pc-label" value="${el.label}">`)}
+      ${row('Magnitude',`<input type="number" id="pc-mag" value="${el.magnitude}" min="0" step="1">`, 'N')}
+    </div>
+    <div class="prop-group"><div class="prop-group-label">Direction — ${dirLabel}</div>
+      <div class="angle-widget">
+        <canvas id="angleWheel" width="60" height="60"></canvas>
+        <div class="angle-info">
+          <div class="big" id="angleBig">${Math.round(angleDeg)}°</div>
+          <div class="small">0°=right, 90°=down<br>270°=up, 180°=left</div>
+        </div>
+      </div>
+      ${row('Angle',`<input type="number" id="pc-angle" value="${angleDeg}" min="0" max="360">`, '°')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;">
+        <button class="ctlbtn" onclick="setAngle(270)" style="font-size:11px;">↑ Up (270°)</button>
+        <button class="ctlbtn" onclick="setAngle(90)" style="font-size:11px;">↓ Down (90°)</button>
+        <button class="ctlbtn" onclick="setAngle(0)" style="font-size:11px;">→ Right (0°)</button>
+        <button class="ctlbtn" onclick="setAngle(180)" style="font-size:11px;">← Left (180°)</button>
+      </div>
+    </div>
+    <div class="prop-group"><div class="prop-group-label">Position</div>
+      ${row('X',`<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`, 'px')}
+      ${row('Y',`<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`, 'px')}
+      ${row('Length',`<input type="range" id="pc-len" min="20" max="200" value="${el.length}">`)}
+      ${row('Color',`<input type="color" id="pc-color" value="${el.color}">`)}
+    </div>`;
+  }
+
+  else if (el.type==='label') {
+    html+=`<div class="prop-group"><div class="prop-group-label">Text</div>
+      ${row('Text',`<input type="text" id="pc-text" value="${el.text}">`)}
+      ${row('Font size',`<input type="range" id="pc-fontsize" min="8" max="60" value="${el.fontSize||16}">`)}
+      ${row('Color',`<input type="color" id="pc-color" value="${el.color}">`)}
+    </div>
+    <div class="prop-group"><div class="prop-group-label">Position</div>
+      ${row('X',`<input type="number" id="pc-x" value="${el.x}" step="${GRID}">`, 'px')}
+      ${row('Y',`<input type="number" id="pc-y" value="${el.y}" step="${GRID}">`, 'px')}
+    </div>`;
+  }
+
+  else if (el.type==='dimension') {
+    const l1name = el.link1 ? (elements.find(e=>e.id===el.link1.id)||{}).label || (elements.find(e=>e.id===el.link1.id)||{}).type || '?' : null;
+    const l2name = el.link2 ? (elements.find(e=>e.id===el.link2.id)||{}).label || (elements.find(e=>e.id===el.link2.id)||{}).type || '?' : null;
+    const linkStatus = (el.link1 || el.link2)
+      ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:6px 8px;font-size:10px;color:#15803d;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span>🔗</span>
+          <span>Linked: <b>${l1name||'free'}</b> → <b>${l2name||'free'}</b><br>
+          <span style="color:#57534e;">Endpoints follow their elements automatically.</span></span>
+          <button onclick="unlinkDim()" style="margin-left:auto;background:none;border:1px solid #bbf7d0;border-radius:4px;cursor:pointer;font-size:10px;color:#15803d;padding:2px 6px;">Unlink</button>
+        </div>`
+      : `<div style="background:#fafaf9;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:10px;color:var(--ink3);margin-bottom:8px;">
+          🔓 Not linked — endpoints are fixed. Draw a new dimension near elements to auto-link.
+        </div>`;
+    html+=`<div class="prop-group">${linkStatus}<div class="prop-group-label">Label</div>
+      ${row('Value',`<input type="text" id="pc-val" value="${el.value}" placeholder="e.g. 2.5">`)}
+      ${row('Unit',`<input type="text" id="pc-unit" value="${el.unit}">`)}
+      ${row('Offset',`<input type="range" id="pc-offset" min="-80" max="80" value="${el.offset}">`)}
+      ${row('Color',`<input type="color" id="pc-color" value="${el.color}">`)}
+    </div>`;
+  }
+
+  html+=`<button class="del-btn" id="pc-del">🗑 Remove Element</button>`;
+  f.innerHTML=html;
+
+  // Wire inputs
+  const bind=(id,key,parse)=>{
+    const inp=document.getElementById(id);
+    if(!inp) return;
+    inp.addEventListener('input',()=>{
+      snapshot();
+      el[key]=parse?parse(inp.value):inp.value;
+      if(key==='angle') updateAngleWheel(el.angle);
       redraw();
     });
   };
@@ -789,271 +1565,359 @@ function showProps() {
   bind('pc-x2','x2',Number); bind('pc-y2','y2',Number);
   bind('pc-mag','magnitude',Number); bind('pc-angle','angle',Number);
   bind('pc-len','length',Number); bind('pc-text','text');
-  bind('pc-fontsize','fontSize',Number); bind('pc-val','value');
-  bind('pc-unit','unit'); bind('pc-offset','offset',Number);
-  bind('pc-startdeg','startDeg',Number); bind('pc-enddeg','endDeg',Number);
-  bind('pc-radius','radius',Number);
+  bind('pc-fontsize','fontSize',Number);
+  bind('pc-val','value'); bind('pc-unit','unit'); bind('pc-offset','offset',Number);
 
-  document.getElementById('pc-del').onclick = () => {
-    elements = elements.filter(e => e.id !== el.id);
-    selected = null; showProps(); redraw();
+  document.getElementById('pc-del').onclick=()=>{
+    snapshot();
+    elements=elements.filter(e=>e.id!==el.id);
+    selected=null; showProps(); redraw();
   };
+
+  // Angle wheel
+  if (el.type==='force'||el.type==='weight') {
+    setTimeout(()=>{ initAngleWheel(el); },0);
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  ELEMENT LIST (sidebar)
-// ═══════════════════════════════════════════════════════════════
-function refreshElemList() {
-  const el = document.getElementById('elemList');
-  if (!elements.length) { el.textContent = 'No elements yet.'; return; }
-  el.innerHTML = elements.map(e => {
-    const isSel = selected && selected.id === e.id;
-    const icon = {beam:'━',pivot:'▲',force:'↓',weight:'W',label:'T',dimension:'↔',angle:'∠'}[e.type]||'?';
-    const lbl = e.label || e.text || e.type;
-    return `<div onclick="selectElem(${e.id})" style="padding:3px 5px;border-radius:3px;cursor:pointer;margin-bottom:2px;
-      background:${isSel?'#1a2d47':'transparent'};color:${isSel?'var(--accent)':'var(--dim)'};
-      border:1px solid ${isSel?'var(--accent)':'transparent'};font-size:11px;display:flex;gap:5px;align-items:center;">
-      <span style="font-size:13px">${icon}</span> ${e.type} · ${lbl}
+function setAngle(a) {
+  if (!selected) return;
+  snapshot();
+  selected.angle=a;
+  showProps(); redraw();
+}
+
+function initAngleWheel(el) {
+  const wc=document.getElementById('angleWheel');
+  if (!wc) return;
+  updateAngleWheel(el.angle);
+  wc.addEventListener('mousedown', startWheelDrag);
+  wc.addEventListener('mousemove', wheelMove);
+}
+
+function getWheelAngle(e) {
+  const wc=document.getElementById('angleWheel');
+  if (!wc) return 0;
+  const r=wc.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  return ((Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI)+360)%360;
+}
+let wheelDragging=false;
+function startWheelDrag(e) { wheelDragging=true; wheelMove(e); }
+window.addEventListener('mouseup', ()=>{ wheelDragging=false; });
+function wheelMove(e) {
+  if (!wheelDragging||!selected) return;
+  const a=Math.round(getWheelAngle(e));
+  snapshot();
+  selected.angle=a;
+  updateAngleWheel(a);
+  const ai=document.getElementById('pc-angle');
+  if(ai) ai.value=a;
+  const ab=document.getElementById('angleBig');
+  if(ab) ab.textContent=a+'°';
+  redraw();
+}
+
+function updateAngleWheel(angleDeg) {
+  const wc=document.getElementById('angleWheel');
+  if (!wc) return;
+  const c=wc.getContext('2d');
+  const w=wc.width, h=wc.height, cx=w/2, cy=h/2, r=cx-4;
+  c.clearRect(0,0,w,h);
+  // Background
+  c.fillStyle='#f5f3f0'; c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.fill();
+  c.strokeStyle='#e0dbd5'; c.lineWidth=1.5; c.stroke();
+  // 4 direction labels
+  c.fillStyle='#a8a29e'; c.font='8px DM Sans'; c.textAlign='center'; c.textBaseline='middle';
+  c.fillText('R',cx+r-8,cy); c.fillText('D',cx,cy+r-8);
+  c.fillText('L',cx-r+8,cy); c.fillText('U',cx,cy-r+8);
+  // Arrow
+  const rad=angleDeg*Math.PI/180;
+  const ex=cx+Math.cos(rad)*(r-4), ey=cy+Math.sin(rad)*(r-4);
+  c.strokeStyle='#d97706'; c.lineWidth=2;
+  c.beginPath(); c.moveTo(cx,cy); c.lineTo(ex,ey); c.stroke();
+  c.fillStyle='#d97706'; c.beginPath(); c.arc(ex,ey,3.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#78716c'; c.beginPath(); c.arc(cx,cy,3,0,Math.PI*2); c.fill();
+  const ab=document.getElementById('angleBig');
+  if (ab) ab.textContent=Math.round(angleDeg)+'°';
+}
+
+// ════════════════════════════════════════════════════════
+//  TORQUE PANEL
+// ════════════════════════════════════════════════════════
+function updateTorquePanel() {
+  const pivot=elements.find(e=>e.type==='pivot');
+  const container=document.getElementById('torqueContent');
+  const eqPill=document.getElementById('eqPill');
+
+  if (!pivot) {
+    container.innerHTML=`<div class="prop-empty"><div class="icon">▲</div><div>Add a pivot to the canvas to calculate torques.</div></div>`;
+    eqPill.className='equilibrium-pill eq-none'; eqPill.textContent='⚖ No pivot yet';
+    return;
+  }
+
+  const forces=elements.filter(e=>e.type==='force'||e.type==='weight');
+  if (!forces.length) {
+    container.innerHTML=`<div class="prop-empty" style="padding:20px 12px;"><div class="icon">↓</div><div>Add forces or weights to calculate torques.</div></div>`;
+    eqPill.className='equilibrium-pill eq-none'; eqPill.textContent='⚖ No forces';
+    return;
+  }
+
+  const scale=1/GRID;
+  let cwTotal=0, ccwTotal=0;
+  const torques=forces.map(f=>{
+    const rad=f.angle*Math.PI/180;
+    const fx=Math.cos(rad), fy=Math.sin(rad);
+    const rx=(f.x-pivot.x)*scale, ry=(f.y-pivot.y)*scale;
+    const τ=rx*fy*f.magnitude - ry*fx*f.magnitude;
+    if (τ>0) ccwTotal+=Math.abs(τ);
+    else if (τ<0) cwTotal+=Math.abs(τ);
+    return { f, τ };
+  });
+
+  const maxAbs=Math.max(...torques.map(t=>Math.abs(t.τ)),0.001);
+  const net=ccwTotal-cwTotal;
+  const isEq=Math.abs(net)<0.05;
+
+  let html=`<div style="padding:10px;">
+    <div class="torque-pivot-info">
+      Pivot: (${pivot.x}px, ${pivot.y}px) &nbsp;·&nbsp; <b>${forces.length}</b> force${forces.length!==1?'s':''}
+    </div>`;
+
+  torques.forEach(({f,τ})=>{
+    const dir=τ>0?'CCW':τ<0?'CW':'—';
+    const cls=τ>0?'ccw':τ<0?'cw':'';
+    const barW=Math.abs(τ)/maxAbs*100;
+    const rx=(f.x-pivot.x)*scale, ry=(f.y-pivot.y)*scale;
+    const r=Math.hypot(rx,ry).toFixed(2);
+    html+=`<div class="torque-force-row">
+      <div class="tf-top">
+        <span class="tf-name">${f.label}</span>
+        <span class="tf-val ${cls}">${dir} ${Math.abs(τ).toFixed(2)} N·m</span>
+      </div>
+      <div class="tf-detail">${f.magnitude}N × r=${r}m</div>
+      <div class="tf-bar-wrap"><div class="tf-bar ${cls}" style="width:${barW}%"></div></div>
+    </div>`;
+  });
+
+  html+=`<div class="torque-summary" style="margin-top:10px;">
+    <div class="ts-row"><span class="k">Σ CW</span><span class="v cw">${cwTotal.toFixed(2)} N·m</span></div>
+    <div class="ts-row"><span class="k">Σ CCW</span><span class="v ccw">${ccwTotal.toFixed(2)} N·m</span></div>
+    <div class="ts-net ${isEq?'eq-yes':'eq-no'}" style="border-radius:0 0 8px 8px;">
+      ${isEq ? '✓ In Equilibrium!' : `Net τ = ${Math.abs(net).toFixed(2)} N·m ${net>0?'CCW':'CW'}`}
+    </div>
+  </div>`;
+
+  // Step-by-step
+  html+=`<div class="step-box">
+    <div class="sh">📐 How it's calculated</div>`;
+  torques.slice(0,3).forEach(({f,τ})=>{
+    const rad=f.angle*Math.PI/180;
+    const fx=Math.cos(rad).toFixed(2), fy=Math.sin(rad).toFixed(2);
+    const rx=((f.x-pivot.x)*scale).toFixed(2), ry=((f.y-pivot.y)*scale).toFixed(2);
+    html+=`<div class="step-line">${f.label}: τ = (${rx})·(${fy})·${f.magnitude} − (${ry})·(${fx})·${f.magnitude} = <b>${τ.toFixed(2)}</b></div>`;
+  });
+  if (torques.length>3) html+=`<div class="step-line" style="color:var(--ink3);">… and ${torques.length-3} more</div>`;
+  html+='</div></div>';
+
+  container.innerHTML=html;
+
+  // Equilibrium pill
+  if (isEq) {
+    eqPill.className='equilibrium-pill eq-yes'; eqPill.textContent='✓ In Equilibrium';
+  } else {
+    eqPill.className='equilibrium-pill eq-no'; eqPill.textContent=`⚠ Net τ: ${Math.abs(net).toFixed(1)} N·m`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  ELEMENTS LIST
+// ════════════════════════════════════════════════════════
+function updateElemList() {
+  const c=document.getElementById('elemListContent');
+  if (!elements.length) { c.innerHTML='<div class="prop-empty"><div>No elements yet.</div></div>'; return; }
+  const icons={beam:'━',pivot:'▲',force:'↓',weight:'W',label:'T',dimension:'↔'};
+  c.innerHTML=elements.map(e=>{
+    const isSel=selected&&selected.id===e.id;
+    const lbl=e.label||e.text||e.type;
+    return `<div class="elem-item${isSel?' selected':''}" onclick="selectById(${e.id})">
+      <span class="elem-icon">${icons[e.type]||'?'}</span>
+      <span class="elem-name">${e.type} · ${lbl}</span>
+      <span class="elem-del" onclick="event.stopPropagation();delById(${e.id})" title="Remove">✕</span>
     </div>`;
   }).join('');
 }
-window.selectElem = id => {
-  selected = elements.find(e => e.id === id) || null;
-  showProps(); redraw();
-};
+window.selectById=id=>{ selected=elements.find(e=>e.id===id)||null; showProps(); redraw(); switchTab('props'); };
+window.delById=id=>{ snapshot(); elements=elements.filter(e=>e.id!==id); if(selected&&selected.id===id){selected=null;showProps();} redraw(); };
+window.unlinkDim=()=>{ if(!selected||selected.type!=='dimension') return; snapshot(); selected.link1=null; selected.link2=null; showProps(); };
 
-// ═══════════════════════════════════════════════════════════════
-//  TOOL SELECTION
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll('.toolbtn').forEach(btn => {
-  btn.onclick = () => {
-    activeTool = btn.dataset.tool;
-    placing = null;
-    document.querySelectorAll('.toolbtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('statusTool').textContent = 'Tool: ' + btn.dataset.tool;
-  };
-});
-document.getElementById('tool-select').classList.add('active');
+function updateStatusBar() {
+  const sel=selected;
+  document.getElementById('statusSel').textContent = sel ? `${sel.type} #${sel.id} selected` : 'Nothing selected';
+}
 
-// ═══════════════════════════════════════════════════════════════
-//  TOGGLES
-// ═══════════════════════════════════════════════════════════════
-document.getElementById('chkGrid').onchange = e => { gridEnabled = e.target.checked; redraw(); };
-document.getElementById('chkSnap').onchange = e => { snapEnabled = e.target.checked; };
-document.getElementById('chkLabels').onchange = e => { labelsEnabled = e.target.checked; redraw(); };
-document.getElementById('chkTorqueArcs').onchange = e => { torqueArcsEnabled = e.target.checked; redraw(); };
-document.getElementById('chkWhiteMode').onchange = () => redraw();
-
-// ═══════════════════════════════════════════════════════════════
-//  CLEAR
-// ═══════════════════════════════════════════════════════════════
-document.getElementById('btnClear').onclick = () => {
-  if (!elements.length || confirm('Clear all elements?')) {
-    elements = []; selected = null; placing = null;
-    showProps(); redraw();
+// ════════════════════════════════════════════════════════
+//  CLEAR + EXPORT
+// ════════════════════════════════════════════════════════
+document.getElementById('btnClear').onclick=()=>{
+  if(!elements.length||confirm('Clear all elements?')) {
+    snapshot(); elements=[]; selected=null; placing=null;
+    setTool('select'); showProps(); redraw();
   }
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  EXPORT
-// ═══════════════════════════════════════════════════════════════
-document.getElementById('btnExportPNG').onclick = () => {
-  // Render clean version (no grid, white bg)
-  const oldGrid = gridEnabled;
-  gridEnabled = false;
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,CW,CH);
-  elements.forEach(el => drawElement(el, false));
-  if (torqueArcsEnabled) drawTorqueArcs();
-  gridEnabled = oldGrid;
-
-  const a = document.createElement('a');
-  a.download = 'rotational-equilibrium.png';
-  a.href = canvas.toDataURL('image/png');
-  a.click();
+document.getElementById('btnExportPNG').onclick=()=>{
+  const wasGrid=gridEnabled; gridEnabled=false;
   redraw();
+  // Hide selection
+  const wasSel=selected; selected=null; redraw();
+  const a=document.createElement('a');
+  a.download='rotational-equilibrium.png';
+  a.href=canvas.toDataURL('image/png'); a.click();
+  selected=wasSel; gridEnabled=wasGrid; redraw();
 };
 
-document.getElementById('btnExportSVG').onclick = () => {
-  // Build a clean SVG representation
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH}" viewBox="0 0 ${CW} ${CH}">`;
-  svg += `<rect width="${CW}" height="${CH}" fill="white"/>`;
-
-  elements.forEach(el => {
-    if (el.type === 'beam') {
-      svg += `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x2}" y2="${el.y2}" stroke="${el.color}" stroke-width="${el.thickness}" stroke-linecap="round"/>`;
-      if (el.label) {
-        const mx=(el.x1+el.x2)/2, my=(el.y1+el.y2)/2;
-        svg += `<text x="${mx}" y="${my-14}" text-anchor="middle" font-family="serif" font-size="14" fill="${el.color}" font-style="italic">${el.label}</text>`;
-      }
-    } else if (el.type === 'pivot') {
+document.getElementById('btnExportSVG').onclick=()=>{
+  let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH}"><rect width="${CW}" height="${CH}" fill="white"/>`;
+  elements.forEach(el=>{
+    if (el.type==='beam') {
+      svg+=`<line x1="${el.x1}" y1="${el.y1}" x2="${el.x2}" y2="${el.y2}" stroke="${el.color}" stroke-width="${el.thickness}" stroke-linecap="round"/>`;
+    } else if (el.type==='pivot') {
       const s=el.size;
-      svg += `<polygon points="${el.x},${el.y} ${el.x-s},${el.y+s*1.4} ${el.x+s},${el.y+s*1.4}" fill="${el.color}"/>`;
-      svg += `<line x1="${el.x-s*1.3}" y1="${el.y+s*1.4}" x2="${el.x+s*1.3}" y2="${el.y+s*1.4}" stroke="${el.color}" stroke-width="1.5"/>`;
-      svg += `<circle cx="${el.x}" cy="${el.y}" r="3" fill="white" stroke="${el.color}" stroke-width="1.5"/>`;
-      if (el.label) svg += `<text x="${el.x}" y="${el.y-s*0.5}" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="${el.color}">${el.label}</text>`;
-    } else if (el.type === 'force' || el.type === 'weight') {
+      svg+=`<polygon points="${el.x},${el.y} ${el.x-s},${el.y+s*1.4} ${el.x+s},${el.y+s*1.4}" fill="${el.color}"/>`;
+      svg+=`<circle cx="${el.x}" cy="${el.y}" r="3.5" fill="white" stroke="${el.color}" stroke-width="1.5"/>`;
+    } else if (el.type==='force'||el.type==='weight') {
       const rad=el.angle*Math.PI/180;
       const ex=el.x+Math.cos(rad)*el.length, ey=el.y+Math.sin(rad)*el.length;
-      const ux=Math.cos(rad),uy=Math.sin(rad), as=el.arrowSize||10, ss=as*0.4;
-      svg += `<line x1="${el.x}" y1="${el.y}" x2="${ex}" y2="${ey}" stroke="${el.color}" stroke-width="${el.lineWidth||2.5}"/>`;
-      svg += `<polygon points="${ex},${ey} ${ex-ux*as-uy*ss},${ey-uy*as+ux*ss} ${ex-ux*as+uy*ss},${ey-uy*as-ux*ss}" fill="${el.color}"/>`;
+      const ux=Math.cos(rad),uy=Math.sin(rad),as=el.arrowSize||10,ss=as*0.38;
+      svg+=`<line x1="${el.x}" y1="${el.y}" x2="${ex}" y2="${ey}" stroke="${el.color}" stroke-width="${el.lineWidth||2.5}"/>`;
+      svg+=`<polygon points="${ex},${ey} ${ex-ux*as-uy*ss},${ey-uy*as+ux*ss} ${ex-ux*as+uy*ss},${ey-uy*as-ux*ss}" fill="${el.color}"/>`;
       if (el.label) {
-        const lx=el.x+Math.cos(rad)*(el.length*0.5)+Math.cos(rad+Math.PI/2)*20;
-        const ly=el.y+Math.sin(rad)*(el.length*0.5)+Math.sin(rad+Math.PI/2)*20;
-        svg += `<text x="${lx}" y="${ly}" text-anchor="middle" font-family="sans-serif" font-size="14" fill="${el.color}">${el.label} = ${el.magnitude} N</text>`;
+        const lx=el.x+Math.cos(rad)*el.length*0.5+Math.cos(rad+Math.PI/2)*18;
+        const ly=el.y+Math.sin(rad)*el.length*0.5+Math.sin(rad+Math.PI/2)*18;
+        svg+=`<text x="${lx}" y="${ly}" text-anchor="middle" font-family="sans-serif" font-size="13" fill="${el.color}">${el.label} = ${el.magnitude} N</text>`;
       }
-    } else if (el.type === 'label') {
-      svg += `<text x="${el.x}" y="${el.y+(el.fontSize||16)}" font-family="sans-serif" font-size="${el.fontSize||16}" fill="${el.color}" ${el.bold?'font-weight="bold"':''}>${el.text}</text>`;
-    } else if (el.type === 'dimension') {
-      const ang=Math.atan2(el.y2-el.y1,el.x2-el.x1), perp=ang+Math.PI/2;
-      const ox=Math.cos(perp)*el.offset, oy=Math.sin(perp)*el.offset;
-      svg += `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x1+ox}" y2="${el.y1+oy}" stroke="${el.color}" stroke-width="1"/>`;
-      svg += `<line x1="${el.x2}" y1="${el.y2}" x2="${el.x2+ox}" y2="${el.y2+oy}" stroke="${el.color}" stroke-width="1"/>`;
-      svg += `<line x1="${el.x1+ox}" y1="${el.y1+oy}" x2="${el.x2+ox}" y2="${el.y2+oy}" stroke="${el.color}" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>`;
+    } else if (el.type==='label') {
+      svg+=`<text x="${el.x}" y="${el.y+(el.fontSize||16)}" font-family="sans-serif" font-size="${el.fontSize||16}" fill="${el.color}"${el.bold?' font-weight="bold"':''}>${el.text}</text>`;
+    } else if (el.type==='dimension') {
+      const ang=Math.atan2(el.y2-el.y1,el.x2-el.x1),perp=ang+Math.PI/2;
+      const ox=Math.cos(perp)*el.offset,oy=Math.sin(perp)*el.offset;
+      svg+=`<line x1="${el.x1}" y1="${el.y1}" x2="${el.x1+ox}" y2="${el.y1+oy}" stroke="${el.color}" stroke-width="1"/>`;
+      svg+=`<line x1="${el.x2}" y1="${el.y2}" x2="${el.x2+ox}" y2="${el.y2+oy}" stroke="${el.color}" stroke-width="1"/>`;
+      svg+=`<line x1="${el.x1+ox}" y1="${el.y1+oy}" x2="${el.x2+ox}" y2="${el.y2+oy}" stroke="${el.color}" stroke-width="1"/>`;
       const lbl=el.value?`${el.value} ${el.unit}`:(el.label||'');
-      const mx=(el.x1+el.x2)/2+ox, my=(el.y1+el.y2)/2+oy;
-      svg += `<rect x="${mx-22}" y="${my-8}" width="44" height="16" fill="white"/>`;
-      svg += `<text x="${mx}" y="${my+4}" text-anchor="middle" font-family="monospace" font-size="12" fill="${el.color}">${lbl}</text>`;
+      const mx=(el.x1+el.x2)/2+ox,my=(el.y1+el.y2)/2+oy;
+      svg+=`<rect x="${mx-24}" y="${my-9}" width="48" height="18" fill="white"/>`;
+      svg+=`<text x="${mx}" y="${my+4}" text-anchor="middle" font-family="monospace" font-size="11" fill="${el.color}">${lbl}</text>`;
     }
   });
-
-  svg += '</svg>';
-  const blob = new Blob([svg], {type:'image/svg+xml'});
-  const a = document.createElement('a');
-  a.download = 'rotational-equilibrium.svg';
-  a.href = URL.createObjectURL(blob);
+  svg+='</svg>';
+  const a=document.createElement('a');
+  a.download='rotational-equilibrium.svg';
+  a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
   a.click();
 };
 
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  TEMPLATES
-// ═══════════════════════════════════════════════════════════════
-const TEMPLATES = [
-  {
-    name: 'Simple Lever', icon: '━▲━',
-    desc: 'Beam on center pivot with two forces',
-    build: () => {
-      elements = [];
-      elements.push(mkBeam(200, 250, 800, 250));
-      elements.push(mkPivot(500, 250));
-      const f1 = mkForce(300, 250, 20, 90, 'F₁'); f1.color='#c0392b'; elements.push(f1);
-      const f2 = mkForce(700, 250, 10, 90, 'F₂'); f2.color='#2980b9'; elements.push(f2);
-      elements.push(mkDimension(300, 250, 500, 250));
-      elements[elements.length-1].value='2'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-40;
-      elements.push(mkDimension(500, 250, 700, 250));
-      elements[elements.length-1].value='4'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-40;
+// ════════════════════════════════════════════════════════
+const TEMPLATES=[
+  { name:'Simple Lever', icon:'⚖️', desc:'Beam on center pivot with two opposing forces',
+    build:()=>{
+      elements=[];
+      const beam=mkBeam(200,250,800,250); elements.push(beam);
+      const piv=mkPivot(500,250); elements.push(piv);
+      const f1=mkForce(300,250,20,90,'F₁'); f1.color='#b91c1c'; elements.push(f1);
+      const f2=mkForce(700,250,10,90,'F₂'); f2.color='#0369a1'; elements.push(f2);
+      const d1=mkDimension(300,250,500,250,{id:f1.id,point:'xy'},{id:piv.id,point:'xy'}); d1.value='2';d1.unit='m';d1.offset=-45; elements.push(d1);
+      const d2=mkDimension(500,250,700,250,{id:piv.id,point:'xy'},{id:f2.id,point:'xy'}); d2.value='4';d2.unit='m';d2.offset=-45; elements.push(d2);
     }
   },
-  {
-    name: 'Off-Center Pivot', icon: '━▲━━',
-    desc: 'Beam with pivot offset from center',
-    build: () => {
-      elements = [];
-      elements.push(mkBeam(150, 250, 850, 250));
-      elements.push(mkPivot(350, 250));
-      const f1 = mkForce(200, 250, 30, 90, 'F₁'); f1.color='#c0392b'; elements.push(f1);
-      const f2 = mkForce(650, 250, 15, 90, 'F₂'); f2.color='#27ae60'; elements.push(f2);
-      const w = mkWeight(500, 250, 20); w.label='W'; elements.push(w);
+  { name:'Seesaw', icon:'🎠', desc:'Classic seesaw with two weights — find equilibrium',
+    build:()=>{
+      elements=[];
+      elements.push(mkBeam(180,280,820,280));
+      const piv=mkPivot(500,280); elements.push(piv);
+      const w1=mkWeight(250,280,40); w1.label='W₁ = 40 N'; elements.push(w1);
+      const w2=mkWeight(700,280,25); w2.label='W₂ = 25 N'; elements.push(w2);
+      const d1=mkDimension(250,280,500,280,{id:w1.id,point:'xy'},{id:piv.id,point:'xy'}); d1.value='2.5';d1.unit='m';d1.offset=-55; elements.push(d1);
+      const d2=mkDimension(500,280,700,280,{id:piv.id,point:'xy'},{id:w2.id,point:'xy'}); d2.value='?';d2.unit='m';d2.offset=-55; elements.push(d2);
+      elements.push(mkLabel(350,150,'Find x for equilibrium')); elements[elements.length-1].fontSize=15; elements[elements.length-1].color='#57534e';
     }
   },
-  {
-    name: 'Angled Force', icon: '↗ ━▲━',
-    desc: 'Horizontal beam with diagonal applied force',
-    build: () => {
-      elements = [];
-      elements.push(mkBeam(200, 300, 800, 300));
-      elements.push(mkPivot(200, 300));
-      const f1 = mkForce(700, 300, 25, 225, 'F'); f1.color='#8e44ad'; elements.push(f1);
-      const w = mkWeight(500, 300, 15); elements.push(w);
-      elements.push(mkAngle(700, 300, 180, 225));
-      elements[elements.length-1].label='θ=45°';
-      elements.push(mkLabel(350, 200, 'Rotational Equilibrium'));
-      elements[elements.length-1].fontSize=18; elements[elements.length-1].color='#1a1a2e';
+  { name:'Angled Force', icon:'↗️', desc:'Horizontal beam with diagonal applied force',
+    build:()=>{
+      elements=[];
+      elements.push(mkBeam(200,300,800,300));
+      elements.push(mkPivot(200,300));
+      const f=mkForce(700,300,25,225,'F'); f.color='#7c3aed'; elements.push(f);
+      const w=mkWeight(500,300,15); elements.push(w);
+      elements.push(mkLabel(340,180,'Angled Force Example')); elements[elements.length-1].fontSize=16;
     }
   },
-  {
-    name: 'Seesaw', icon: '↓ ━▲━ ↓',
-    desc: 'Classic seesaw with two weights',
-    build: () => {
-      elements = [];
-      elements.push(mkBeam(180, 280, 820, 280));
-      elements.push(mkPivot(500, 280));
-      const w1 = mkWeight(250, 280, 40); w1.label='W₁ = 40 N'; elements.push(w1);
-      const w2 = mkWeight(700, 280, 25); w2.label='W₂ = 25 N'; elements.push(w2);
-      elements.push(mkDimension(250, 280, 500, 280));
-      elements[elements.length-1].value='2.5'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-50;
-      elements.push(mkDimension(500, 280, 700, 280));
-      elements[elements.length-1].value='?'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-50;
-      elements.push(mkLabel(390, 150, 'Find x for equilibrium'));
-      elements[elements.length-1].fontSize=15; elements[elements.length-1].color='#555';
+  { name:'Wall Bracket', icon:'🔩', desc:'Cantilevered beam attached to wall with cable tension',
+    build:()=>{
+      elements=[];
+      const wall=mkBeam(200,160,200,380); wall.thickness=14; wall.color='#78716c'; elements.push(wall);
+      elements.push(mkBeam(200,280,700,280));
+      elements.push(mkPivot(200,280));
+      const w=mkWeight(700,280,50); w.label='W = 50 N'; elements.push(w);
+      const t=mkForce(700,280,40,233,'T'); t.color='#d97706'; elements.push(t);
     }
   },
-  {
-    name: 'Wall Bracket', icon: '|━',
-    desc: 'Horizontal beam attached to wall with angled cable',
-    build: () => {
-      elements = [];
-      // Wall line
-      elements.push(mkBeam(200, 160, 200, 380));
-      elements[elements.length-1].thickness=14; elements[elements.length-1].color='#555';
-      // Horizontal beam
-      elements.push(mkBeam(200, 280, 700, 280));
-      elements.push(mkPivot(200, 280));
-      // Weight at end
-      const w = mkWeight(700, 280, 50); w.label='W = 50 N'; elements.push(w);
-      // Tension cable (diagonal)
-      const t = mkForce(700, 280, 40, 233, 'T'); t.color='#e67e22'; elements.push(t);
-      elements.push(mkAngle(200, 280, 0, -37));
-      elements[elements.length-1].startDeg=323; elements[elements.length-1].endDeg=360;
-      elements[elements.length-1].label='37°';
+  { name:'Torque Problem', icon:'📐', desc:'Three forces — test your Σ τ = 0 skills',
+    build:()=>{
+      elements=[];
+      elements.push(mkBeam(100,260,900,260));
+      const piv=mkPivot(400,260); elements.push(piv);
+      const f1=mkForce(200,260,30,90,'F₁'); f1.color='#b91c1c'; elements.push(f1);
+      const f2=mkForce(600,260,20,90,'F₂'); f2.color='#0369a1'; elements.push(f2);
+      const f3=mkForce(800,260,15,270,'F₃'); f3.color='#15803d'; elements.push(f3);
+      const d1=mkDimension(200,260,400,260,{id:f1.id,point:'xy'},{id:piv.id,point:'xy'}); d1.value='2';d1.unit='m';d1.offset=-45; elements.push(d1);
+      const d2=mkDimension(400,260,600,260,{id:piv.id,point:'xy'},{id:f2.id,point:'xy'}); d2.value='2';d2.unit='m';d2.offset=-45; elements.push(d2);
+      const d3=mkDimension(400,260,800,260,{id:piv.id,point:'xy'},{id:f3.id,point:'xy'}); d3.value='4';d3.unit='m';d3.offset=45; elements.push(d3);
     }
   },
-  {
-    name: 'Torque Problem', icon: '∑τ=0',
-    desc: 'Multi-force torque equilibrium setup',
-    build: () => {
-      elements = [];
-      elements.push(mkBeam(100, 260, 900, 260));
-      elements.push(mkPivot(400, 260));
-      const f1=mkForce(200, 260, 30, 90, 'F₁'); f1.color='#e74c3c'; elements.push(f1);
-      const f2=mkForce(600, 260, 20, 90, 'F₂'); f2.color='#3498db'; elements.push(f2);
-      const f3=mkForce(800, 260, 15, 270, 'F₃'); f3.color='#27ae60'; elements.push(f3);
-      elements.push(mkDimension(200, 260, 400, 260));
-      elements[elements.length-1].value='2'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-45;
-      elements.push(mkDimension(400, 260, 600, 260));
-      elements[elements.length-1].value='2'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=-45;
-      elements.push(mkDimension(400, 260, 800, 260));
-      elements[elements.length-1].value='4'; elements[elements.length-1].unit='m'; elements[elements.length-1].offset=45;
+  { name:'Off-Center Pivot', icon:'↔️', desc:'Beam with pivot offset from center',
+    build:()=>{
+      elements=[];
+      elements.push(mkBeam(150,250,850,250));
+      elements.push(mkPivot(350,250));
+      const f1=mkForce(200,250,30,90,'F₁'); f1.color='#b91c1c'; elements.push(f1);
+      const f2=mkForce(650,250,15,90,'F₂'); f2.color='#0369a1'; elements.push(f2);
+      const w=mkWeight(500,250,20); elements.push(w);
     }
   }
 ];
 
-const modal = document.getElementById('modalOverlay');
-document.getElementById('btnTemplate').onclick = () => {
-  const list = document.getElementById('templateList');
-  list.innerHTML = TEMPLATES.map((t,i) =>
-    `<div onclick="loadTemplate(${i})" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:12px;cursor:pointer;transition:border-color .15s;"
-      onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="font-size:20px;margin-bottom:5px;font-family:monospace;">${t.icon}</div>
-      <div style="font-weight:600;font-size:12px;margin-bottom:3px;">${t.name}</div>
-      <div style="font-size:11px;color:var(--dim);">${t.desc}</div>
-    </div>`).join('');
-  modal.style.display = 'flex';
+const modal=document.getElementById('modal');
+document.getElementById('btnTemplate').onclick=()=>{
+  const grid=document.getElementById('templateGrid');
+  grid.innerHTML=TEMPLATES.map((t,i)=>
+    `<div class="tcard" onclick="loadTemplate(${i})">
+      <div class="ticon">${t.icon}</div>
+      <div class="tname">${t.name}</div>
+      <div class="tdesc">${t.desc}</div>
+    </div>`
+  ).join('');
+  modal.classList.add('open');
 };
-window.loadTemplate = i => {
+window.loadTemplate=i=>{
+  snapshot();
   TEMPLATES[i].build();
-  selected = null; showProps(); redraw();
-  modal.style.display = 'none';
+  nextId=Math.max(...elements.map(e=>e.id),0)+1;
+  selected=null; showProps(); redraw();
+  modal.classList.remove('open');
 };
-document.getElementById('btnModalClose').onclick = () => modal.style.display = 'none';
-modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
+document.getElementById('modalClose').onclick=()=>modal.classList.remove('open');
+modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.remove('open'); });
 
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════════════════════
-TEMPLATES[0].build(); // Load simple lever on startup
-selected = null; showProps(); redraw();
+// ════════════════════════════════════════════════════════
+TEMPLATES[0].build();
+nextId=Math.max(...elements.map(e=>e.id),0)+1;
+selected=null; showProps(); redraw();
 </script>
 </body>
 </html>
