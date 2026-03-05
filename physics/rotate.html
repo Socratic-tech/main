@@ -717,7 +717,7 @@ body {
       <button class="ctlbtn active" id="tool-select" data-tool="select">↖ Select</button>
       <div class="ctlsep"></div>
       <label class="ctlcheck"><input type="checkbox" id="chkGrid" checked> Grid</label>
-      <label class="ctlcheck"><input type="checkbox" id="chkSnap" checked> Snap <span id="snapLabel" style="color:var(--ink3);font-size:10px;">(20px)</span></label>
+      <label class="ctlcheck"><input type="checkbox" id="chkSnap" checked> Snap <span id="snapLabel" style="color:var(--ink3);font-size:10px;">(place only)</span></label>
       <label class="ctlcheck"><input type="checkbox" id="chkLabels" checked> Labels</label>
       <label class="ctlcheck"><input type="checkbox" id="chkArcs" checked> Torque arcs</label>
       <div class="ctlsep"></div>
@@ -1259,12 +1259,14 @@ canvas.addEventListener('mousemove', e => {
   document.getElementById('statusPos').textContent=`x: ${Math.round(x)}  y: ${Math.round(y)}`;
 
   if (isDragging && selected) {
+    // During drag: move freely (no snap) for fluid repositioning.
+    // Snap only applies when initially placing new elements.
     if (selected.type==='beam'||selected.type==='dimension') {
-      const ddx=snap(x-dragOffX)-selected.x1, ddy=snap(y-dragOffY)-selected.y1;
+      const ddx=(x-dragOffX)-selected.x1, ddy=(y-dragOffY)-selected.y1;
       selected.x1+=ddx; selected.y1+=ddy;
       selected.x2+=ddx; selected.y2+=ddy;
     } else if (selected.type==='pivot'||selected.type==='force'||selected.type==='weight'||selected.type==='label') {
-      selected.x=snap(x-dragOffX); selected.y=snap(y-dragOffY);
+      selected.x=x-dragOffX; selected.y=y-dragOffY;
     }
     dragOffX=x-(selected.x??selected.x1);
     dragOffY=y-(selected.y??selected.y1);
@@ -1419,7 +1421,7 @@ document.getElementById('tool-select').addEventListener('click', ()=>{ placing=n
 // ════════════════════════════════════════════════════════
 //  TOGGLES
 // ════════════════════════════════════════════════════════
-function updateSnapLabel() { document.getElementById('snapLabel').textContent = snapEnabled ? '(20px)' : '(off)'; }
+function updateSnapLabel() { document.getElementById('snapLabel').textContent = snapEnabled ? '(place only)' : '(off)'; }
 document.getElementById('chkGrid').onchange=e=>{gridEnabled=e.target.checked;redraw();};
 document.getElementById('chkSnap').onchange=e=>{snapEnabled=e.target.checked;updateSnapLabel();};
 document.getElementById('chkLabels').onchange=e=>{labelsEnabled=e.target.checked;redraw();};
