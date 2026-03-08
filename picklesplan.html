@@ -1012,22 +1012,39 @@ tr:hover td { background: var(--gray-50); }
       <h2>⚙ Setup & Connection</h2>
       <p>Connect to your Google Sheets backend to save and sync data across sessions.</p>
       <div class="url-input-wrap">
-        <input type="text" id="script-url-input" placeholder="Paste your Google Apps Script Web App URL here…">
+        <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/…/exec">
         <button class="btn btn-primary" onclick="saveScriptUrl()">Connect</button>
       </div>
+      <p style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:8px">
+        ⚠ URL must end in <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px">/exec</code> — not <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px">/dev</code>
+      </p>
     </div>
 
     <div class="card">
       <div class="card-title" style="margin-bottom:16px">📋 Setup Instructions</div>
       <ol style="font-size:14px;line-height:2;padding-left:20px;color:var(--gray-700)">
         <li>Create a new Google Sheet.</li>
-        <li>Go to <strong>Extensions → Apps Script</strong> and paste the contents of <code>Code.gs</code>.</li>
-        <li>Click <strong>Deploy → New Deployment</strong> → Web App.</li>
-        <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong>Anyone</strong>.</li>
-        <li>Copy the Web App URL and paste it above, then click Connect.</li>
-        <li>Go to the <strong>👥 Classes</strong> tab and add your classes.</li>
-        <li>You're ready — start planning on the <strong>📋 Lesson Plans</strong> tab!</li>
+        <li>Go to <strong>Extensions → Apps Script</strong> and paste the contents of <code>Code.gs</code>. Save it.</li>
+        <li>Select <strong>forceRebuild</strong> in the function dropdown and click ▶ Run. Accept permissions when prompted.</li>
+        <li>Click <strong>Deploy → New Deployment → Web App</strong>.</li>
+        <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong>Anyone</strong>. Click Deploy.</li>
+        <li>Copy the URL — it should look like <code>https://script.google.com/macros/s/ABC.../exec</code></li>
+        <li>Paste it above and click Connect. You should see <strong>Connected ✓</strong> in the top right.</li>
       </ol>
+    </div>
+
+    <div class="card" style="border-left:4px solid #F57C00">
+      <div class="card-title" style="margin-bottom:12px;color:#E65100">🔧 Connection Troubleshooting</div>
+      <div style="font-size:13px;color:var(--gray-700);line-height:1.8">
+        <strong>Still says "Not connected"?</strong> Work through this checklist:<br>
+        <ul style="padding-left:18px;margin-top:8px">
+          <li>In Apps Script: <strong>Deploy → Manage Deployments</strong> — confirm <em>Who has access</em> is <strong>Anyone</strong> (not "Anyone with Google account" or "Just me")</li>
+          <li>Make sure you copied the URL from <strong>Manage Deployments</strong>, not from the browser address bar</li>
+          <li>The URL must end in <strong>/exec</strong> — the <strong>/dev</strong> URL requires login and won't work here</li>
+          <li>If you edited Code.gs after deploying, you must <strong>redeploy with a New Version</strong> — the old deployment won't have the changes</li>
+          <li>Try opening the URL directly in a browser tab — you should see JSON data, not an error page</li>
+        </ul>
+      </div>
     </div>
 
     <div class="card">
@@ -1300,11 +1317,17 @@ async function apiPost(payload) {
 
 async function syncAll() {
   const data = await apiGet('getAll');
-  if (!data) return;
+  if (!data) {
+    setSyncStatus('error', 'Connection failed');
+    toast('❌ Could not connect. Check: (1) Deployed as Web App, (2) "Who has access" = Anyone, (3) URL is the /exec link not /dev.', 'error');
+    return;
+  }
   DB.classes  = data.classes  || [];
   DB.lessons  = data.lessons  || [];
   DB.progress = data.progress || [];
   DB.rotation = data.rotation || [];
+  setSyncStatus('synced', 'Connected ✓');
+  toast('✅ Connected and synced!', 'success');
   updateDayCounts();
   updateCurrentDayBadge();
   populateClassFilters();
@@ -1317,9 +1340,18 @@ async function syncAll() {
 function saveScriptUrl() {
   const url = document.getElementById('script-url-input').value.trim();
   if (!url) { toast('Please enter a URL', 'error'); return; }
+  if (!url.startsWith('https://script.google.com')) {
+    toast('URL should start with https://script.google.com — make sure you copied the Web App URL, not the editor URL.', 'error');
+    return;
+  }
+  if (url.includes('/dev')) {
+    toast('⚠ That looks like a /dev (test) URL — use the /exec URL instead. In Apps Script: Deploy → Manage Deployments → copy the URL ending in /exec.', 'error');
+    return;
+  }
   SCRIPT_URL = url;
   localStorage.setItem('cdp_script_url', url);
-  toast('Connected! Syncing…', 'success');
+  setSyncStatus('syncing', 'Testing…');
+  toast('Testing connection…');
   syncAll();
 }
 
