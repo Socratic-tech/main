@@ -1301,11 +1301,16 @@ async function apiPost(payload) {
   if (!SCRIPT_URL) { toast('Not connected — connect in ⚙ Setup first', 'error'); return null; }
   setSyncStatus('syncing', 'Saving…');
   try {
-    const r = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
+    // Send as GET with base64 payload to avoid CORS preflight failures with Apps Script
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const url = `${SCRIPT_URL}?action=${payload.action}&payload=${encodeURIComponent(encoded)}`;
+    const r = await fetch(url);
     const d = await r.json();
+    if (d.error) {
+      setSyncStatus('error', 'Save failed');
+      toast('Save failed: ' + d.error, 'error');
+      return null;
+    }
     setSyncStatus('synced', 'Saved ✓');
     return d;
   } catch(e) {
