@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Day Lesson Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:        #D93025;
+  --red-light:  #FDECEA;
+  --red-mid:    #F28B82;
+  --blue:       #1A73E8;
+  --blue-light: #E8F0FE;
+  --blue-mid:   #8AB4F8;
+  --green:      #188038;
+  --green-light:#E6F4EA;
+  --green-mid:  #81C995;
+  --gray-900:   #1C1C1E;
+  --gray-700:   #3A3A3C;
+  --gray-500:   #636366;
+  --gray-300:   #C7C7CC;
+  --gray-100:   #F2F2F7;
+  --gray-50:    #FAFAFA;
+  --white:      #FFFFFF;
+  --snow:       #E3F2FD;
+  --snow-dark:  #1565C0;
+  --orange:     #F57C00;
+  --surface:    #FFFFFF;
+  --radius:     12px;
+  --radius-sm:  8px;
+  --shadow:     0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.12);
+  --day-color:  var(--gray-700);
+  --day-light:  var(--gray-100);
+  --day-mid:    var(--gray-300);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-100);
+  color: var(--gray-900);
+  min-height: 100vh;
+}
+
+/* ── Top Bar ───────────────────────────────────────────── */
+#topbar {
+  background: var(--gray-900);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+#topbar h1 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+#topbar .day-badge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-RED   { background: var(--red);   color: #fff; }
+.badge-BLUE  { background: var(--blue);  color: #fff; }
+.badge-GREEN { background: var(--green); color: #fff; }
+.badge-gray  { background: var(--gray-500); color: #fff; }
+
+#sync-status {
+  font-size: 12px;
+  color: var(--gray-300);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#sync-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gray-500);
+  transition: background 0.3s;
+}
+#sync-dot.synced  { background: #34A853; }
+#sync-dot.syncing { background: var(--orange); animation: pulse 1s infinite; }
+#sync-dot.error   { background: var(--red); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── Nav Tabs ──────────────────────────────────────────── */
+#nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-300);
+  display: flex;
+  gap: 0;
+  padding: 0 24px;
+  overflow-x: auto;
+}
+.nav-tab {
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+  user-select: none;
+}
+.nav-tab:hover { color: var(--gray-900); }
+.nav-tab.active {
+  color: var(--gray-900);
+  border-bottom-color: var(--gray-900);
+  font-weight: 600;
+}
+.nav-tab.red.active    { color: var(--red);   border-bottom-color: var(--red); }
+.nav-tab.blue.active   { color: var(--blue);  border-bottom-color: var(--blue); }
+.nav-tab.green.active  { color: var(--green); border-bottom-color: var(--green); }
+
+/* ── Main Content ──────────────────────────────────────── */
+#main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Cards ─────────────────────────────────────────────── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.card-sub {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--gray-900); color: var(--white); }
+.btn-primary:hover { background: var(--gray-700); }
+.btn-red    { background: var(--red);   color: #fff; }
+.btn-blue   { background: var(--blue);  color: #fff; }
+.btn-green  { background: var(--green); color: #fff; }
+.btn-ghost  { background: transparent; color: var(--gray-700); border: 1.5px solid var(--gray-300); }
+.btn-ghost:hover { background: var(--gray-100); }
+.btn-danger { background: #FFF0EE; color: var(--red); border: 1.5px solid var(--red-mid); }
+.btn-danger:hover { background: var(--red-light); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-snow { background: var(--snow); color: var(--snow-dark); border: 1.5px solid var(--blue-mid); }
+
+/* ── Forms ──────────────────────────────────────────────── */
+.form-row {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 14px;
+}
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 12px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--gray-900);
+  transition: border 0.15s;
+  outline: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: var(--gray-700); }
+.form-group textarea { resize: vertical; min-height: 72px; }
+
+/* ── Tables ─────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border-bottom: 1.5px solid var(--gray-300);
+}
+td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+
+/* ── Day colors on lesson rows ──────────────────────────── */
+.day-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.pill-RED   { background: var(--red-light);   color: var(--red); }
+.pill-BLUE  { background: var(--blue-light);  color: var(--blue); }
+.pill-GREEN { background: var(--green-light); color: var(--green); }
+
+/* ── Lesson Plan Layout ─────────────────────────────────── */
+#lesson-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.day-selector-btn {
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.18s;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+.day-selector-btn.RED   { color: var(--red);   border-color: var(--red-mid); }
+.day-selector-btn.BLUE  { color: var(--blue);  border-color: var(--blue-mid); }
+.day-selector-btn.GREEN { color: var(--green); border-color: var(--green-mid); }
+.day-selector-btn.active.RED   { background: var(--red);   color: #fff; border-color: var(--red); }
+.day-selector-btn.active.BLUE  { background: var(--blue);  color: #fff; border-color: var(--blue); }
+.day-selector-btn.active.GREEN { background: var(--green); color: #fff; border-color: var(--green); }
+.day-selector-btn .day-count {
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 3px;
+  opacity: 0.8;
+}
+
+.lesson-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--gray-300);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.lesson-card:hover { box-shadow: var(--shadow-lg); }
+.lesson-card.RED   { border-left-color: var(--red); }
+.lesson-card.BLUE  { border-left-color: var(--blue); }
+.lesson-card.GREEN { border-left-color: var(--green); }
+.lesson-card.carried { border-left-color: var(--snow-dark); border-left-width: 4px; }
+
+.lesson-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.lesson-class-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.lesson-card-body {
+  padding: 0 18px 16px;
+  display: none;
+}
+.lesson-card-body.open { display: block; }
+
+.lesson-field {
+  margin-bottom: 12px;
+}
+.lesson-field label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--gray-500);
+  display: block;
+  margin-bottom: 4px;
+}
+.lesson-field textarea {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+  min-height: 60px;
+  background: var(--gray-50);
+  transition: border 0.15s;
+  outline: none;
+}
+.lesson-field textarea:focus { border-color: var(--gray-700); background: var(--white); }
+
+.snow-banner {
+  background: var(--snow);
+  border: 1.5px solid var(--blue-mid);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--snow-dark);
+}
+
+.carry-badge {
+  background: var(--snow);
+  color: var(--snow-dark);
+  border: 1px solid var(--blue-mid);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+}
+
+/* ── Progress Tracker ───────────────────────────────────── */
+.progress-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-done    { background: #E6F4EA; color: #1E7E34; }
+.status-partial { background: #FFF8E1; color: #F57F17; }
+.status-not     { background: #FDECEA; color: var(--red); }
+.status-repeat  { background: #EDE7F6; color: #512DA8; }
+.status-snow    { background: var(--snow); color: var(--snow-dark); }
+
+.pacing-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+.pacing-ahead   { background: #E6F4EA; color: #1E7E34; }
+.pacing-on      { background: #E8F0FE; color: var(--blue); }
+.pacing-behind  { background: #FDECEA; color: var(--red); }
+
+/* ── Rotation Log ───────────────────────────────────────── */
+.rotation-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.rotation-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.rotation-chip:hover { transform: scale(1.05); }
+.rotation-chip.RED   { background: var(--red-light);   color: var(--red); border: 2px solid var(--red-mid); }
+.rotation-chip.BLUE  { background: var(--blue-light);  color: var(--blue); border: 2px solid var(--blue-mid); }
+.rotation-chip.GREEN { background: var(--green-light); color: var(--green); border: 2px solid var(--green-mid); }
+.rotation-chip.snow  { background: var(--snow); color: var(--snow-dark); border: 2px solid var(--blue-mid); opacity: 0.7; }
+.rotation-chip.current { box-shadow: 0 0 0 3px rgba(0,0,0,0.15); transform: scale(1.08); }
+
+/* ── Setup Page ─────────────────────────────────────────── */
+.settings-banner {
+  background: linear-gradient(135deg, var(--gray-900) 0%, #2d3748 100%);
+  border-radius: var(--radius);
+  padding: 28px;
+  color: var(--white);
+  margin-bottom: 24px;
+}
+.settings-banner h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.settings-banner p  { font-size: 14px; opacity: 0.7; }
+
+.url-input-wrap {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.url-input-wrap input {
+  flex: 1;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 10px 14px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.1);
+  color: var(--white);
+  outline: none;
+}
+.url-input-wrap input::placeholder { color: rgba(255,255,255,0.4); }
+.url-input-wrap input:focus { border-color: rgba(255,255,255,0.5); }
+
+.class-list { display: flex; flex-direction: column; gap: 8px; }
+.class-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 120px 130px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--gray-100);
+  transition: border 0.15s;
+}
+.class-row:hover { border-color: var(--gray-300); }
+.class-row span { font-size: 14px; font-weight: 500; }
+.class-row .grade { font-size: 13px; color: var(--gray-500); }
+.class-row .period { font-size: 13px; color: var(--gray-500); font-family: 'DM Mono', monospace; }
+
+/* ── Empty state ────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-500);
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state h3 { font-size: 17px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+.empty-state p  { font-size: 14px; }
+
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+/* ── Toasts ─────────────────────────────────────────────── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--gray-900);
+  color: var(--white);
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeInUp 0.25s ease;
+  max-width: 320px;
+}
+.toast.success { background: #1E7E34; }
+.toast.error   { background: var(--red); }
+@keyframes fadeInUp { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* ── Misc ───────────────────────────────────────────────── */
+.divider { border: none; border-top: 1px solid var(--gray-100); margin: 16px 0; }
+.text-muted { color: var(--gray-500); font-size: 13px; }
+.week-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.week-meta input[type="date"],
+.week-meta input[type="text"] {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.week-meta input:focus { border-color: var(--gray-700); }
+.inline-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.save-row-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1.5px solid var(--gray-300);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: all 0.15s;
+}
+.save-row-btn:hover { background: var(--gray-100); }
+.save-row-btn.saved { border-color: #34A853; color: #1E7E34; background: #E6F4EA; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div id="topbar">
+  <h1>🎨 Color Day Lesson Planner</h1>
+  <span id="current-day-badge" class="day-badge badge-gray">No Day Set</span>
+  <div id="sync-status">
+    <div id="sync-dot"></div>
+    <span id="sync-label">Not connected</span>
+  </div>
+</div>
+
+<!-- Nav -->
+<div id="nav">
+  <div class="nav-tab active"       data-page="lessons">📋 Lesson Plans</div>
+  <div class="nav-tab"              data-page="progress">📊 Progress</div>
+  <div class="nav-tab"              data-page="rotation">📅 Rotation</div>
+  <div class="nav-tab"              data-page="classes">👥 Classes</div>
+  <div class="nav-tab"              data-page="setup">⚙ Setup</div>
+</div>
+
+<!-- Main -->
+<div id="main">
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: LESSON PLANS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="page active" id="page-lessons">
+
+    <div id="lesson-header">
+      <button class="day-selector-btn RED"   onclick="selectDay('RED')"  >🔴 Red Day<div class="day-count" id="count-RED">0 classes</div></button>
+      <button class="day-selector-btn BLUE"  onclick="selectDay('BLUE')" >🔵 Blue Day<div class="day-count" id="count-BLUE">0 classes</div></button>
+      <button class="day-selector-btn GREEN" onclick="selectDay('GREEN')">🟢 Green Day<div class="day-count" id="count-GREEN">0 classes</div></button>
+    </div>
+
+    <div class="week-meta">
+      <span class="inline-label">Week of</span>
+      <input type="date" id="lesson-week" onchange="saveWeekMeta()">
+      <span class="inline-label">Day #</span>
+      <input type="text" id="lesson-day-num" placeholder="e.g. 12" style="width:80px" onchange="saveWeekMeta()">
+      <button class="btn btn-ghost btn-sm" onclick="markSnowDay()">❄ Snow Day</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAllLessons()">💾 Save All</button>
+    </div>
+
+    <div id="lesson-list">
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <h3>Select a day above</h3>
+        <p>Choose Red, Blue, or Green to see your lesson plans.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: PROGRESS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="page" id="page-progress">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Class Progress Log</div>
+          <div class="card-sub">Track completion, pacing, and notes for every session</div>
+        </div>
+        <button class="btn btn-primary" onclick="openProgressModal()">+ Log Session</button>
+      </div>
+
+      <div class="progress-filters">
+        <select id="filter-class" class="form-group" style="padding:7px 11px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:13px;outline:none;" onchange="renderProgress()">
+          <option value="">All Classes</option>
+        </select>
+        <select id="filter-day" style="padding:7px 11px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:13px;outline:none;" onchange="renderProgress()">
+          <option value="">All Days</option>
+          <option value="RED">🔴 Red</option>
+          <option value="BLUE">🔵 Blue</option>
+          <option value="GREEN">🟢 Green</option>
+        </select>
+        <select id="filter-status" style="padding:7px 11px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:13px;outline:none;" onchange="renderProgress()">
+          <option value="">All Statuses</option>
+          <option value="done">✅ Done</option>
+          <option value="partial">⏳ Partial</option>
+          <option value="not">❌ Not Done</option>
+          <option value="snow">❄ Snow / Missed</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table id="progress-table">
+          <thead>
+            <tr>
+              <th>Date</th><th>Day</th><th>Class</th><th>Topic</th>
+              <th>Status</th><th>Pacing</th><th>Notes</th><th>Follow-Up</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="progress-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: ROTATION LOG
+  ═══════════════════════════════════════════════════════ -->
+  <div class="page" id="page-rotation">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Color Day Rotation</div>
+          <div class="card-sub">Tap a day to log it. Mark ❄ for snow days — rotation still advances.</div>
+        </div>
+        <button class="btn btn-primary" onclick="logNextDay()">+ Log Next Day</button>
+      </div>
+      <div id="rotation-strip" class="rotation-strip"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Date</th><th>Color Day</th><th>Week Of</th><th>Notes</th><th>❄</th><th></th></tr>
+          </thead>
+          <tbody id="rotation-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: CLASSES
+  ═══════════════════════════════════════════════════════ -->
+  <div class="page" id="page-classes">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Class Roster</div>
+          <div class="card-sub">Add all your classes and assign each a color day</div>
+        </div>
+        <button class="btn btn-primary" onclick="openClassModal()">+ Add Class</button>
+      </div>
+      <div id="class-list" class="class-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: SETUP
+  ═══════════════════════════════════════════════════════ -->
+  <div class="page" id="page-setup">
+    <div class="settings-banner">
+      <h2>⚙ Setup & Connection</h2>
+      <p>Connect to your Google Sheets backend to save and sync data across sessions.</p>
+      <div class="url-input-wrap">
+        <input type="text" id="script-url-input" placeholder="Paste your Google Apps Script Web App URL here…">
+        <button class="btn btn-primary" onclick="saveScriptUrl()">Connect</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">📋 Setup Instructions</div>
+      <ol style="font-size:14px;line-height:2;padding-left:20px;color:var(--gray-700)">
+        <li>Create a new Google Sheet.</li>
+        <li>Go to <strong>Extensions → Apps Script</strong> and paste the contents of <code>Code.gs</code>.</li>
+        <li>Click <strong>Deploy → New Deployment</strong> → Web App.</li>
+        <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong>Anyone</strong>.</li>
+        <li>Copy the Web App URL and paste it above, then click Connect.</li>
+        <li>Go to the <strong>👥 Classes</strong> tab and add your classes.</li>
+        <li>You're ready — start planning on the <strong>📋 Lesson Plans</strong> tab!</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Teacher Info</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Teacher Name</label>
+          <input type="text" id="teacher-name" placeholder="Your name" oninput="saveLocalSettings()">
+        </div>
+        <div class="form-group">
+          <label>School</label>
+          <input type="text" id="teacher-school" placeholder="School name" oninput="saveLocalSettings()">
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" id="teacher-subject" placeholder="e.g. Elective / Specials" oninput="saveLocalSettings()">
+        </div>
+        <div class="form-group">
+          <label>School Year</label>
+          <input type="text" id="teacher-year" placeholder="2024–2025" oninput="saveLocalSettings()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════ -->
+
+<!-- Add/Edit Class -->
+<div class="modal-overlay" id="class-modal">
+  <div class="modal">
+    <h2 id="class-modal-title">Add Class</h2>
+    <input type="hidden" id="class-modal-id">
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Class Name / Section</label>
+        <input type="text" id="cm-name" placeholder="e.g. 3rd Grade - Mrs. Smith">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Grade Level</label>
+        <input type="text" id="cm-grade" placeholder="e.g. 3rd">
+      </div>
+      <div class="form-group">
+        <label>Color Day</label>
+        <select id="cm-day">
+          <option value="RED">🔴 Red</option>
+          <option value="BLUE">🔵 Blue</option>
+          <option value="GREEN">🟢 Green</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Period / Time</label>
+        <input type="text" id="cm-period" placeholder="e.g. 9:00 AM">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="cm-notes" placeholder="Optional notes about this class…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('class-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClass()">Save Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Progress -->
+<div class="modal-overlay" id="progress-modal">
+  <div class="modal">
+    <h2>Log Session</h2>
+    <input type="hidden" id="pm-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="pm-date">
+      </div>
+      <div class="form-group">
+        <label>Color Day</label>
+        <select id="pm-day">
+          <option value="RED">🔴 Red</option>
+          <option value="BLUE">🔵 Blue</option>
+          <option value="GREEN">🟢 Green</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Class</label>
+        <select id="pm-class"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Topic / Unit</label>
+      <input type="text" id="pm-topic" placeholder="What you covered today">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="pm-status">
+          <option value="done">✅ Done</option>
+          <option value="partial">⏳ Partial</option>
+          <option value="not">❌ Not Done</option>
+          <option value="repeat">🔁 Repeated</option>
+          <option value="snow">❄ Missed – Snow Day</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Pacing</label>
+        <select id="pm-pacing">
+          <option value="on">✔ On Track</option>
+          <option value="ahead">🚀 Ahead</option>
+          <option value="behind">🐢 Behind</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Session Notes</label>
+      <textarea id="pm-notes" placeholder="What happened, what to remember…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Follow-Up Needed</label>
+      <input type="text" id="pm-followup" placeholder="e.g. Re-teach fractions next time">
+    </div>
+    <div class="form-group">
+      <label>❄ Snow Day?</label>
+      <select id="pm-snow">
+        <option value="no">No</option>
+        <option value="yes">Yes – school cancelled</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('progress-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProgress()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let DB = { classes: [], lessons: [], progress: [], rotation: [] };
+let SCRIPT_URL = '';
+let activeDay = null;
+let pendingLessonSaves = {}; // lessonId -> data
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadLocalSettings();
+  SCRIPT_URL = localStorage.getItem('cdp_script_url') || '';
+  if (SCRIPT_URL) {
+    document.getElementById('script-url-input').value = SCRIPT_URL;
+    syncAll();
+  }
+  // Nav
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('page-' + tab.dataset.page).classList.add('active');
+      if (tab.dataset.page === 'progress') renderProgress();
+      if (tab.dataset.page === 'rotation') renderRotation();
+      if (tab.dataset.page === 'classes')  renderClasses();
+    });
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// API
+// ══════════════════════════════════════════════════════════
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = state;
+  lbl.textContent = label;
+}
+
+async function apiGet(action) {
+  if (!SCRIPT_URL) return null;
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=${action}`);
+    const d = await r.json();
+    setSyncStatus('synced', 'Synced');
+    return d;
+  } catch(e) {
+    setSyncStatus('error', 'Error');
+    return null;
+  }
+}
+
+async function apiPost(payload) {
+  if (!SCRIPT_URL) { toast('Not connected — connect in ⚙ Setup first', 'error'); return null; }
+  setSyncStatus('syncing', 'Saving…');
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    setSyncStatus('synced', 'Saved ✓');
+    return d;
+  } catch(e) {
+    setSyncStatus('error', 'Save failed');
+    toast('Save failed — check connection', 'error');
+    return null;
+  }
+}
+
+async function syncAll() {
+  const data = await apiGet('getAll');
+  if (!data) return;
+  DB.classes  = data.classes  || [];
+  DB.lessons  = data.lessons  || [];
+  DB.progress = data.progress || [];
+  DB.rotation = data.rotation || [];
+  updateDayCounts();
+  updateCurrentDayBadge();
+  populateClassFilters();
+  if (activeDay) renderLessons(activeDay);
+}
+
+// ══════════════════════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════════════════════
+function saveScriptUrl() {
+  const url = document.getElementById('script-url-input').value.trim();
+  if (!url) { toast('Please enter a URL', 'error'); return; }
+  SCRIPT_URL = url;
+  localStorage.setItem('cdp_script_url', url);
+  toast('Connected! Syncing…', 'success');
+  syncAll();
+}
+
+function saveLocalSettings() {
+  localStorage.setItem('cdp_settings', JSON.stringify({
+    name:    document.getElementById('teacher-name').value,
+    school:  document.getElementById('teacher-school').value,
+    subject: document.getElementById('teacher-subject').value,
+    year:    document.getElementById('teacher-year').value
+  }));
+}
+
+function loadLocalSettings() {
+  const s = JSON.parse(localStorage.getItem('cdp_settings') || '{}');
+  if (s.name)    document.getElementById('teacher-name').value    = s.name;
+  if (s.school)  document.getElementById('teacher-school').value  = s.school;
+  if (s.subject) document.getElementById('teacher-subject').value = s.subject;
+  if (s.year)    document.getElementById('teacher-year').value    = s.year;
+}
+
+// ══════════════════════════════════════════════════════════
+// CLASSES
+// ══════════════════════════════════════════════════════════
+function openClassModal(id) {
+  document.getElementById('class-modal-id').value = id || '';
+  if (id) {
+    const cls = DB.classes.find(c => String(c.id) === String(id));
+    if (!cls) return;
+    document.getElementById('class-modal-title').textContent = 'Edit Class';
+    document.getElementById('cm-name').value   = cls.name   || '';
+    document.getElementById('cm-grade').value  = cls.grade  || '';
+    document.getElementById('cm-day').value    = cls.colorDay || 'RED';
+    document.getElementById('cm-period').value = cls.period  || '';
+    document.getElementById('cm-notes').value  = cls.notes   || '';
+  } else {
+    document.getElementById('class-modal-title').textContent = 'Add Class';
+    document.getElementById('cm-name').value   = '';
+    document.getElementById('cm-grade').value  = '';
+    document.getElementById('cm-day').value    = 'RED';
+    document.getElementById('cm-period').value = '';
+    document.getElementById('cm-notes').value  = '';
+  }
+  document.getElementById('class-modal').classList.add('open');
+}
+
+async function saveClass() {
+  const id  = document.getElementById('class-modal-id').value;
+  const name = document.getElementById('cm-name').value.trim();
+  if (!name) { toast('Class name is required', 'error'); return; }
+
+  const row = {
+    id:       id || uid(),
+    name,
+    grade:    document.getElementById('cm-grade').value.trim(),
+    colorDay: document.getElementById('cm-day').value,
+    period:   document.getElementById('cm-period').value.trim(),
+    notes:    document.getElementById('cm-notes').value.trim(),
+    active:   'TRUE'
+  };
+
+  if (id) {
+    const idx = DB.classes.findIndex(c => String(c.id) === String(id));
+    if (idx >= 0) DB.classes[idx] = row;
+    await apiPost({ action: 'update', tab: 'Classes', id, row });
+  } else {
+    DB.classes.push(row);
+    await apiPost({ action: 'insert', tab: 'Classes', row });
+  }
+
+  closeModal('class-modal');
+  renderClasses();
+  updateDayCounts();
+  populateClassFilters();
+  toast('Class saved!', 'success');
+}
+
+async function deleteClass(id) {
+  if (!confirm('Remove this class?')) return;
+  DB.classes = DB.classes.filter(c => String(c.id) !== String(id));
+  await apiPost({ action: 'delete', tab: 'Classes', id });
+  renderClasses();
+  updateDayCounts();
+  toast('Class removed');
+}
+
+function renderClasses() {
+  const list = document.getElementById('class-list');
+  if (!DB.classes.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">👥</div><h3>No classes yet</h3><p>Add your classes to get started.</p></div>`;
+    return;
+  }
+  const byDay = { RED: [], BLUE: [], GREEN: [] };
+  DB.classes.forEach(c => { if (byDay[c.colorDay]) byDay[c.colorDay].push(c); });
+
+  list.innerHTML = ['RED','BLUE','GREEN'].map(day => {
+    if (!byDay[day].length) return '';
+    const emoji = day === 'RED' ? '🔴' : day === 'BLUE' ? '🔵' : '🟢';
+    const rows = byDay[day].map(c => `
+      <div class="class-row">
+        <span>${c.name}</span>
+        <span class="grade">${c.grade || '—'}</span>
+        <span class="period">${c.period || '—'}</span>
+        <span><span class="day-pill pill-${day}">${emoji} ${day}</span></span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="openClassModal('${c.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteClass('${c.id}')">✕</button>
+        </div>
+      </div>`).join('');
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-500);margin-bottom:8px;padding-left:4px">${emoji} ${day} Day</div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// LESSON PLANS
+// ══════════════════════════════════════════════════════════
+function selectDay(day) {
+  activeDay = day;
+  document.querySelectorAll('.day-selector-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.day-selector-btn.${day}`).classList.add('active');
+  updateCurrentDayBadge();
+  renderLessons(day);
+}
+
+function renderLessons(day) {
+  const classes = DB.classes.filter(c => c.colorDay === day);
+  const list    = document.getElementById('lesson-list');
+  const weekOf  = document.getElementById('lesson-week').value;
+  const emoji   = day === 'RED' ? '🔴' : day === 'BLUE' ? '🔵' : '🟢';
+
+  if (!classes.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">${emoji}</div><h3>No classes on ${day} Day</h3><p>Go to 👥 Classes and assign classes to ${day} day.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = classes.map(cls => {
+    // find existing lesson for this class+day+week
+    const lesson = DB.lessons.find(l =>
+      String(l.classId) === String(cls.id) &&
+      l.colorDay === day &&
+      l.weekOf   === weekOf
+    ) || {};
+    const lid = lesson.id || `tmp_${cls.id}_${day}_${weekOf || 'noweek'}`;
+    const carried = lesson.carriedForward === 'YES' || lesson.carriedForward === true;
+
+    return `
+    <div class="lesson-card ${day}${carried ? ' carried' : ''}" id="card-${lid}">
+      <div class="lesson-card-header" onclick="toggleCard('body-${lid}')">
+        <div>
+          <div class="lesson-class-name">${cls.name}</div>
+          <div class="text-muted" style="font-size:12px;margin-top:2px">${cls.grade || ''} ${cls.period ? '· ' + cls.period : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${carried ? '<span class="carry-badge">❄ Carried Forward</span>' : ''}
+          <span style="font-size:18px;color:var(--gray-300)" id="chevron-${lid}">▾</span>
+        </div>
+      </div>
+      <div class="lesson-card-body" id="body-${lid}">
+        ${carried ? `<div class="snow-banner">❄ This lesson was carried forward from <strong>${lesson.originalDate || 'a missed day'}</strong>. ${lesson.carryNotes ? '— ' + lesson.carryNotes : ''}</div>` : ''}
+        <div class="lesson-field">
+          <label>Objective / Standard</label>
+          <textarea id="f-obj-${lid}" rows="2" placeholder="What will students know or be able to do?">${lesson.objective || ''}</textarea>
+        </div>
+        <div class="lesson-field">
+          <label>Materials Needed</label>
+          <textarea id="f-mat-${lid}" rows="2" placeholder="List materials, links, supplies…">${lesson.materials || ''}</textarea>
+        </div>
+        <div class="lesson-field">
+          <label>Activity / Procedure Steps</label>
+          <textarea id="f-act-${lid}" rows="4" placeholder="Step-by-step plan for the lesson…">${lesson.activity || ''}</textarea>
+        </div>
+        <div class="lesson-field">
+          <label>Assessment / Exit Ticket</label>
+          <textarea id="f-asmt-${lid}" rows="2" placeholder="How will you check for understanding?">${lesson.assessment || ''}</textarea>
+        </div>
+        <hr class="divider">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <label style="font-size:12px;font-weight:600;color:var(--gray-500)">
+            <input type="checkbox" id="f-carried-${lid}" ${carried ? 'checked' : ''}
+              onchange="toggleCarried('${lid}','${cls.id}','${day}')">
+            &nbsp;❄ Carried Forward (snow/missed)
+          </label>
+          <input type="text" id="f-origdate-${lid}" placeholder="Original date missed"
+            style="font-size:12px;padding:5px 9px;border:1.5px solid var(--gray-300);border-radius:6px;font-family:inherit;outline:none"
+            value="${lesson.originalDate || ''}">
+          <input type="text" id="f-carrynotes-${lid}" placeholder="Carry notes…"
+            style="font-size:12px;padding:5px 9px;border:1.5px solid var(--gray-300);border-radius:6px;font-family:inherit;flex:1;min-width:140px;outline:none"
+            value="${lesson.carryNotes || ''}">
+          <button class="save-row-btn" id="savebtn-${lid}" onclick="saveSingleLesson('${lid}','${cls.id}','${day}','${lesson.id || ''}')">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(bodyId) {
+  const body  = document.getElementById(bodyId);
+  const lid   = bodyId.replace('body-', '');
+  const chev  = document.getElementById('chevron-' + lid);
+  const open  = body.classList.toggle('open');
+  if (chev) chev.textContent = open ? '▴' : '▾';
+}
+
+function toggleCarried(lid, classId, day) {
+  // visual only — saved on Save
+}
+
+async function saveSingleLesson(lid, classId, day, existingId) {
+  const weekOf  = document.getElementById('lesson-week').value;
+  const dayNum  = document.getElementById('lesson-day-num').value;
+  const btn     = document.getElementById(`savebtn-${lid}`);
+
+  const row = {
+    id:             existingId || lid,
+    colorDay:       day,
+    weekOf,
+    date:           weekOf,
+    colorDayNum:    dayNum,
+    classId,
+    objective:      document.getElementById(`f-obj-${lid}`)?.value   || '',
+    materials:      document.getElementById(`f-mat-${lid}`)?.value   || '',
+    activity:       document.getElementById(`f-act-${lid}`)?.value   || '',
+    assessment:     document.getElementById(`f-asmt-${lid}`)?.value  || '',
+    carriedForward: document.getElementById(`f-carried-${lid}`)?.checked ? 'YES' : 'NO',
+    originalDate:   document.getElementById(`f-origdate-${lid}`)?.value  || '',
+    carryNotes:     document.getElementById(`f-carrynotes-${lid}`)?.value || ''
+  };
+
+  // Upsert local DB
+  const idx = DB.lessons.findIndex(l => String(l.id) === String(row.id));
+  if (idx >= 0) DB.lessons[idx] = row;
+  else DB.lessons.push(row);
+
+  const action = existingId ? 'update' : 'insert';
+  const result = await apiPost({ action, tab: 'Lessons', id: row.id, row });
+  if (result) {
+    btn.textContent = '✓ Saved';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = 'Save'; btn.classList.remove('saved'); }, 2000);
+  }
+}
+
+async function saveAllLessons() {
+  if (!activeDay) { toast('Select a day first'); return; }
+  const classes = DB.classes.filter(c => c.colorDay === activeDay);
+  for (const cls of classes) {
+    const weekOf = document.getElementById('lesson-week').value;
+    const existing = DB.lessons.find(l =>
+      String(l.classId) === String(cls.id) &&
+      l.colorDay === activeDay && l.weekOf === weekOf
+    );
+    const lid = existing?.id || `tmp_${cls.id}_${activeDay}_${weekOf || 'noweek'}`;
+    await saveSingleLesson(lid, cls.id, activeDay, existing?.id || '');
+  }
+  toast('All lessons saved!', 'success');
+}
+
+function saveWeekMeta() {
+  if (activeDay) renderLessons(activeDay);
+}
+
+function markSnowDay() {
+  if (!activeDay) { toast('Select a day first'); return; }
+  if (!confirm(`Mark all ${activeDay} Day classes today as ❄ Carried Forward (snow day)?`)) return;
+  const date = document.getElementById('lesson-week').value || new Date().toISOString().split('T')[0];
+  DB.classes.filter(c => c.colorDay === activeDay).forEach(cls => {
+    const weekOf = document.getElementById('lesson-week').value;
+    const lid = `tmp_${cls.id}_${activeDay}_${weekOf || 'noweek'}`;
+    const cb  = document.getElementById(`f-carried-${lid}`);
+    const od  = document.getElementById(`f-origdate-${lid}`);
+    if (cb) cb.checked = true;
+    if (od && !od.value) od.value = date;
+  });
+  toast('❄ All classes marked as carried forward');
+}
+
+// ══════════════════════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════════════════════
+function openProgressModal(id) {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('pm-id').value    = id || '';
+  document.getElementById('pm-date').value  = today;
+  document.getElementById('pm-snow').value  = 'no';
+  document.getElementById('pm-status').value = 'done';
+  document.getElementById('pm-pacing').value = 'on';
+  document.getElementById('pm-notes').value  = '';
+  document.getElementById('pm-topic').value  = '';
+  document.getElementById('pm-followup').value = '';
+
+  // Populate class dropdown
+  const sel = document.getElementById('pm-class');
+  sel.innerHTML = DB.classes.map(c =>
+    `<option value="${c.id}">${c.name} (${c.colorDay})</option>`
+  ).join('');
+
+  if (id) {
+    const p = DB.progress.find(r => String(r.id) === String(id));
+    if (p) {
+      document.getElementById('pm-date').value    = p.date    || today;
+      document.getElementById('pm-day').value     = p.colorDay || 'RED';
+      document.getElementById('pm-class').value   = p.classId || '';
+      document.getElementById('pm-topic').value   = p.topic   || '';
+      document.getElementById('pm-status').value  = p.status  || 'done';
+      document.getElementById('pm-pacing').value  = p.pacing  || 'on';
+      document.getElementById('pm-notes').value   = p.notes   || '';
+      document.getElementById('pm-followup').value= p.followUp || '';
+      document.getElementById('pm-snow').value    = p.snowDay || 'no';
+    }
+  }
+  document.getElementById('progress-modal').classList.add('open');
+}
+
+async function saveProgress() {
+  const id = document.getElementById('pm-id').value;
+  const row = {
+    id:       id || uid(),
+    date:     document.getElementById('pm-date').value,
+    colorDay: document.getElementById('pm-day').value,
+    classId:  document.getElementById('pm-class').value,
+    topic:    document.getElementById('pm-topic').value,
+    status:   document.getElementById('pm-status').value,
+    pacing:   document.getElementById('pm-pacing').value,
+    notes:    document.getElementById('pm-notes').value,
+    followUp: document.getElementById('pm-followup').value,
+    snowDay:  document.getElementById('pm-snow').value,
+    resolved: 'no'
+  };
+  if (id) {
+    const idx = DB.progress.findIndex(r => String(r.id) === String(id));
+    if (idx >= 0) DB.progress[idx] = row;
+    await apiPost({ action: 'update', tab: 'Progress', id, row });
+  } else {
+    DB.progress.push(row);
+    await apiPost({ action: 'insert', tab: 'Progress', row });
+  }
+  closeModal('progress-modal');
+  renderProgress();
+  toast('Session logged!', 'success');
+}
+
+function renderProgress() {
+  const filterClass  = document.getElementById('filter-class')?.value  || '';
+  const filterDay    = document.getElementById('filter-day')?.value    || '';
+  const filterStatus = document.getElementById('filter-status')?.value || '';
+
+  let rows = [...DB.progress].reverse();
+  if (filterClass)  rows = rows.filter(r => String(r.classId) === filterClass);
+  if (filterDay)    rows = rows.filter(r => r.colorDay === filterDay);
+  if (filterStatus) rows = rows.filter(r => (r.status || '').includes(filterStatus));
+
+  const tbody = document.getElementById('progress-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--gray-500)">No sessions logged yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const cls   = DB.classes.find(c => String(c.id) === String(r.classId));
+    const sChip = statusChip(r.status);
+    const pChip = pacingChip(r.pacing);
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${r.date || '—'}</td>
+      <td><span class="day-pill pill-${r.colorDay}">${r.colorDay || '—'}</span></td>
+      <td style="font-weight:500">${cls?.name || r.classId || '—'}</td>
+      <td>${r.topic || '—'}</td>
+      <td>${sChip}</td>
+      <td>${pChip}</td>
+      <td style="max-width:200px">${r.notes || '—'}</td>
+      <td style="max-width:140px;color:${r.followUp ? 'var(--orange)' : 'var(--gray-500)'}">${r.followUp || '—'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openProgressModal('${r.id}')">Edit</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function statusChip(s) {
+  const map = {
+    done: '<span class="status-chip status-done">✅ Done</span>',
+    partial: '<span class="status-chip status-partial">⏳ Partial</span>',
+    not: '<span class="status-chip status-not">❌ Not Done</span>',
+    repeat: '<span class="status-chip status-repeat">🔁 Repeated</span>',
+    snow: '<span class="status-chip status-snow">❄ Snow</span>',
+  };
+  return map[s] || s || '—';
+}
+function pacingChip(p) {
+  const map = {
+    ahead:  '<span class="pacing-chip pacing-ahead">🚀 Ahead</span>',
+    on:     '<span class="pacing-chip pacing-on">✔ On Track</span>',
+    behind: '<span class="pacing-chip pacing-behind">🐢 Behind</span>',
+  };
+  return map[p] || p || '—';
+}
+
+// ══════════════════════════════════════════════════════════
+// ROTATION LOG
+// ══════════════════════════════════════════════════════════
+function renderRotation() {
+  const tbody = document.getElementById('rotation-tbody');
+  const strip = document.getElementById('rotation-strip');
+  const rotation = ['RED','BLUE','GREEN'];
+
+  // Determine next expected day
+  const lastEntry = DB.rotation[DB.rotation.length - 1];
+  const lastDayIdx = lastEntry ? rotation.indexOf(lastEntry.colorDay) : -1;
+  const nextIdx    = (lastDayIdx + 1) % 3;
+
+  // Strip preview — next 6 upcoming
+  strip.innerHTML = Array.from({length: 6}, (_, i) => {
+    const d = rotation[(nextIdx + i) % 3];
+    const e = d === 'RED' ? '🔴' : d === 'BLUE' ? '🔵' : '🟢';
+    return `<span class="rotation-chip ${d}${i === 0 ? ' current' : ''}" title="Click to log"
+      onclick="logDayEntry('${d}')">${e} ${d}${i === 0 ? ' ← Next' : ''}</span>`;
+  }).join('');
+
+  if (!DB.rotation.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-500)">No rotation entries yet. Click "+ Log Next Day" to start.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = [...DB.rotation].reverse().map((r, i) => {
+    const snow = r.snowDay === 'yes' || r.snowDay === '❄ SNOW DAY';
+    return `<tr style="${snow ? 'opacity:0.7' : ''}">
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${DB.rotation.length - i}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${r.date || '—'}</td>
+      <td><span class="day-pill pill-${r.colorDay}">${r.colorDay}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${r.weekOf || '—'}</td>
+      <td>${r.notes || '—'}</td>
+      <td>${snow ? '❄' : ''}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRotation('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function logNextDay() {
+  const rotation  = ['RED','BLUE','GREEN'];
+  const lastEntry = DB.rotation[DB.rotation.length - 1];
+  const lastIdx   = lastEntry ? rotation.indexOf(lastEntry.colorDay) : -1;
+  const nextDay   = rotation[(lastIdx + 1) % 3];
+  logDayEntry(nextDay);
+}
+
+async function logDayEntry(day, isSnow) {
+  const today = new Date().toISOString().split('T')[0];
+  const weekOf = getWeekOf(new Date());
+  const row = {
+    id:      uid(),
+    date:    today,
+    colorDay: day,
+    notes:   '',
+    weekOf,
+    snowDay: isSnow ? 'yes' : 'no'
+  };
+  DB.rotation.push(row);
+  await apiPost({ action: 'insert', tab: 'Rotation', row });
+  updateCurrentDayBadge();
+  renderRotation();
+  toast(`${day} Day logged${isSnow ? ' ❄' : ''}`, 'success');
+}
+
+async function deleteRotation(id) {
+  DB.rotation = DB.rotation.filter(r => String(r.id) !== String(id));
+  await apiPost({ action: 'delete', tab: 'Rotation', id });
+  renderRotation();
+  updateCurrentDayBadge();
+}
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function updateDayCounts() {
+  ['RED','BLUE','GREEN'].forEach(day => {
+    const n = DB.classes.filter(c => c.colorDay === day).length;
+    const el = document.getElementById('count-' + day);
+    if (el) el.textContent = `${n} class${n !== 1 ? 'es' : ''}`;
+  });
+}
+
+function updateCurrentDayBadge() {
+  const badge = document.getElementById('current-day-badge');
+  const lastEntry = DB.rotation[DB.rotation.length - 1];
+  if (!lastEntry) {
+    badge.textContent = 'No Day Logged';
+    badge.className   = 'day-badge badge-gray';
+    return;
+  }
+  const rotation = ['RED','BLUE','GREEN'];
+  const lastIdx  = rotation.indexOf(lastEntry.colorDay);
+  const nextDay  = rotation[(lastIdx + 1) % 3];
+  badge.textContent = `Next: ${nextDay}`;
+  badge.className   = `day-badge badge-${nextDay}`;
+}
+
+function populateClassFilters() {
+  const sel = document.getElementById('filter-class');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">All Classes</option>' +
+    DB.classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function getWeekOf(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.setDate(diff));
+  return mon.toISOString().split('T')[0];
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function toast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast${type ? ' ' + type : ''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+</script>
+</body>
+</html>
