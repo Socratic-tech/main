@@ -1322,10 +1322,12 @@ async function syncAll() {
     toast('❌ Could not connect. Check: (1) Deployed as Web App, (2) "Who has access" = Anyone, (3) URL is the /exec link not /dev.', 'error');
     return;
   }
-  DB.classes  = data.classes  || [];
-  DB.lessons  = data.lessons  || [];
-  DB.progress = data.progress || [];
-  DB.rotation = data.rotation || [];
+  // Merge: sheet data wins, but preserve any locally-entered rows not yet pushed
+  // Only overwrite a collection if the sheet returned actual rows for it
+  if (data.classes  && data.classes.length)  DB.classes  = data.classes;
+  if (data.lessons  && data.lessons.length)  DB.lessons  = data.lessons;
+  if (data.progress && data.progress.length) DB.progress = data.progress;
+  if (data.rotation && data.rotation.length) DB.rotation = data.rotation;
   setSyncStatus('synced', 'Connected ✓');
   toast('✅ Connected and synced!', 'success');
   updateDayCounts();
@@ -1608,7 +1610,7 @@ function renderLessons(day) {
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveGradeLesson('${glId}','${grade}','${day}','${glLesson.id||''}')">
             💾 Save
           </button>
-          <span style="font-size:18px;color:var(--gray-300)" id="glchev-${grade.replace(/\s/g,'-')}-${day}">▾</span>
+          <span style="font-size:18px;color:var(--gray-300)" id="glchev-${grade.replace(/\s/g,'-')}-${day}">▴</span>
         </div>
       </div>
 
