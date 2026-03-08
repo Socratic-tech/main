@@ -572,6 +572,295 @@ tr:hover td { background: var(--gray-50); }
 }
 .save-row-btn:hover { background: var(--gray-100); }
 .save-row-btn.saved { border-color: #34A853; color: #1E7E34; background: #E6F4EA; }
+
+/* ── Grade-Grouped Lesson Cards ─────────────────────────── */
+.grade-lesson-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border-left: 5px solid var(--gray-300);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.grade-lesson-card.RED   { border-left-color: var(--red); }
+.grade-lesson-card.BLUE  { border-left-color: var(--blue); }
+.grade-lesson-card.GREEN { border-left-color: var(--green); }
+
+.grade-lesson-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+.grade-lesson-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.grade-lesson-sub {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.grade-carry-count {
+  background: var(--snow);
+  color: var(--snow-dark);
+  border: 1px solid var(--blue-mid);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+}
+
+.grade-lesson-body { display: none; }
+.grade-lesson-body.open { display: block; }
+
+.shared-lesson-section {
+  padding: 4px 20px 18px;
+  border-bottom: 1.5px solid var(--gray-100);
+}
+.shared-lesson-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--gray-500);
+  margin-bottom: 14px;
+  margin-top: 4px;
+}
+
+.class-status-section {
+  padding: 14px 20px 18px;
+}
+.class-status-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--gray-500);
+  margin-bottom: 10px;
+}
+
+.class-queue-row {
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-100);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.class-queue-row.carried {
+  background: var(--snow);
+  border-color: var(--blue-mid);
+}
+
+.cqr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  gap: 10px;
+}
+.cqr-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.cqr-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+.cqr-status.on-track { background: var(--green-light); color: var(--green); }
+
+.carry-panel {
+  display: none;
+  padding: 14px 14px 14px;
+  border-top: 1px solid var(--blue-mid);
+  background: #F0F8FF;
+}
+.carry-panel.open { display: block; }
+
+.carry-readonly {
+  font-size: 13px;
+  color: var(--gray-700);
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  line-height: 1.5;
+  min-height: 52px;
+  font-family: 'DM Mono', monospace;
+}
+
+.upnext-banner {
+  margin-top: 12px;
+  background: #FFF9C4;
+  border: 1.5px solid #F9A825;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #5D4037;
+}
+</style>
+.standards-hero {
+  background: linear-gradient(135deg, #1C1C1E 0%, #2d3748 100%);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  color: var(--white);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.standards-hero h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.standards-hero p  { font-size: 12px; opacity: 0.6; }
+.standards-controls { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.standards-controls .form-group label { color: rgba(255,255,255,0.6); }
+.standards-controls input,
+.standards-controls select {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: var(--white);
+}
+.standards-controls input::placeholder { color: rgba(255,255,255,0.35); }
+.standards-controls input:focus,
+.standards-controls select:focus { border-color: rgba(255,255,255,0.5); }
+.standards-controls select option { background: #2d3748; color: #fff; }
+
+#standards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.std-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.std-card:hover { box-shadow: var(--shadow-lg); }
+.std-card.hidden { display: none; }
+
+.std-card-header {
+  padding: 16px 18px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.std-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.std-header-text { flex: 1; }
+.std-num {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 2px;
+}
+.std-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.std-tagline { font-size: 12px; color: var(--gray-500); margin-top: 3px; line-height: 1.4; }
+
+.std-body { padding: 0 18px 16px; display: none; }
+.std-body.open { display: block; }
+
+.std-band {
+  margin-bottom: 14px;
+}
+.std-band-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-500);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.band-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.band-k2   { background: #FFF3E0; color: #E65100; }
+.band-35   { background: #E8F5E9; color: #2E7D32; }
+
+.std-sub {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 7px;
+  align-items: flex-start;
+}
+.std-sub-code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--white);
+  padding: 2px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.std-sub-text {
+  font-size: 13px;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+.std-sub-text mark {
+  background: #FFF176;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.std-use-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--gray-300);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--gray-700);
+  transition: all 0.15s;
+  margin-top: 8px;
+}
+.std-use-btn:hover { background: var(--gray-100); }
+.std-use-btn.used  { border-color: #34A853; color: #1E7E34; background: #E6F4EA; }
+
+.std-divider { border: none; border-top: 1px solid var(--gray-100); margin: 12px 0 14px; }
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-500);
+  font-size: 15px;
+}
 </style>
 </head>
 <body>
@@ -592,6 +881,7 @@ tr:hover td { background: var(--gray-50); }
   <div class="nav-tab"              data-page="progress">📊 Progress</div>
   <div class="nav-tab"              data-page="rotation">📅 Rotation</div>
   <div class="nav-tab"              data-page="classes">👥 Classes</div>
+  <div class="nav-tab"              data-page="standards">📐 MI Standards</div>
   <div class="nav-tab"              data-page="setup">⚙ Setup</div>
 </div>
 
@@ -614,7 +904,7 @@ tr:hover td { background: var(--gray-50); }
       <input type="date" id="lesson-week" onchange="saveWeekMeta()">
       <span class="inline-label">Day #</span>
       <input type="text" id="lesson-day-num" placeholder="e.g. 12" style="width:80px" onchange="saveWeekMeta()">
-      <button class="btn btn-ghost btn-sm" onclick="markSnowDay()">❄ Snow Day</button>
+      <button class="btn btn-ghost btn-sm" onclick="markSnowDay()" id="snow-day-btn">❄ Snow Day (this color day only)</button>
       <button class="btn btn-primary btn-sm" onclick="saveAllLessons()">💾 Save All</button>
     </div>
 
@@ -762,6 +1052,36 @@ tr:hover td { background: var(--gray-50); }
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: MI STANDARDS (MITECS)
+  ═══════════════════════════════════════════════════════ -->
+  <div class="page" id="page-standards">
+
+    <div class="standards-hero">
+      <div class="standards-hero-text">
+        <h2>Michigan Integrated Technology Competencies for Students</h2>
+        <p>MITECS · Adapted from ISTE Standards for Students (2016) · Michigan MDE, 2017</p>
+      </div>
+      <div class="standards-controls">
+        <div class="form-group" style="min-width:140px">
+          <label>Grade Band</label>
+          <select id="std-grade-filter" onchange="filterStandards()">
+            <option value="all">All Grades</option>
+            <option value="K-2">K–2 (Ages 4–7)</option>
+            <option value="3-5">3–5 (Ages 8–11)</option>
+          </select>
+        </div>
+        <div class="form-group" style="min-width:200px">
+          <label>Search Standards</label>
+          <input type="text" id="std-search" placeholder="e.g. digital identity, design…" oninput="filterStandards()">
+        </div>
+      </div>
+    </div>
+
+    <div id="standards-grid"></div>
+
   </div>
 
 </div><!-- /main -->
@@ -1097,149 +1417,298 @@ function renderClasses() {
 }
 
 // ══════════════════════════════════════════════════════════
-// LESSON PLANS
+// LESSON PLANS — Grade-grouped with carry queue
 // ══════════════════════════════════════════════════════════
 function selectDay(day) {
   activeDay = day;
   document.querySelectorAll('.day-selector-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.day-selector-btn.${day}`).classList.add('active');
+  // Keep snow day button scoped label clear
+  const snowBtn = document.getElementById('snow-day-btn');
+  if (snowBtn) snowBtn.textContent = `❄ Snow Day (${day} only)`;
   updateCurrentDayBadge();
   renderLessons(day);
 }
 
-function renderLessons(day) {
+function getGradeGroups(day) {
   const classes = DB.classes.filter(c => c.colorDay === day);
-  const list    = document.getElementById('lesson-list');
-  const weekOf  = document.getElementById('lesson-week').value;
-  const emoji   = day === 'RED' ? '🔴' : day === 'BLUE' ? '🔵' : '🟢';
+  const grades  = {};
+  classes.forEach(c => {
+    const g = c.grade || 'Unassigned';
+    if (!grades[g]) grades[g] = [];
+    grades[g].push(c);
+  });
+  // Sort grades naturally: K, 1, 2, 3, 4, 5, then others
+  const order = ['K','1','2','3','4','5'];
+  return Object.entries(grades).sort(([a],[b]) => {
+    const ai = order.indexOf(a), bi = order.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+}
 
-  if (!classes.length) {
+// A grade-level lesson is keyed by: grade + colorDay + weekOf
+// (shared across all classes at that grade/day/week)
+function gradeLessonKey(grade, day, weekOf) {
+  return `grade_${grade}_${day}_${weekOf || 'noweek'}`;
+}
+
+// Per-class carry is keyed by classId + colorDay (most recent unresolved)
+function getClassCarry(classId, day) {
+  // Find the most recent carried-forward lesson for this class that hasn't been resolved
+  return DB.lessons
+    .filter(l =>
+      String(l.classId) === String(classId) &&
+      l.colorDay === day &&
+      l.carriedForward === 'YES' &&
+      l.carryResolved !== 'YES'
+    )
+    .sort((a, b) => (b.weekOf || '').localeCompare(a.weekOf || ''))
+  [0] || null;
+}
+
+function renderLessons(day) {
+  const list   = document.getElementById('lesson-list');
+  const weekOf = document.getElementById('lesson-week').value;
+  const emoji  = day === 'RED' ? '🔴' : day === 'BLUE' ? '🔵' : '🟢';
+  const groups = getGradeGroups(day);
+
+  if (!groups.length) {
     list.innerHTML = `<div class="empty-state"><div class="icon">${emoji}</div><h3>No classes on ${day} Day</h3><p>Go to 👥 Classes and assign classes to ${day} day.</p></div>`;
     return;
   }
 
-  list.innerHTML = classes.map(cls => {
-    // find existing lesson for this class+day+week
-    const lesson = DB.lessons.find(l =>
-      String(l.classId) === String(cls.id) &&
-      l.colorDay === day &&
-      l.weekOf   === weekOf
-    ) || {};
-    const lid = lesson.id || `tmp_${cls.id}_${day}_${weekOf || 'noweek'}`;
-    const carried = lesson.carriedForward === 'YES' || lesson.carriedForward === true;
+  list.innerHTML = groups.map(([grade, classes]) => {
+    // Find existing shared grade-level lesson for this week
+    const glKey    = gradeLessonKey(grade, day, weekOf);
+    const glLesson = DB.lessons.find(l => l.id === glKey || l.gradeLessonKey === glKey) || {};
+    const glId     = glLesson.id || glKey;
+
+    // Build class status rows
+    const classRows = classes.map(cls => {
+      const carry = getClassCarry(cls.id, day);
+      const hasCarry = !!carry;
+
+      if (hasCarry) {
+        const cid = carry.id;
+        return `
+        <div class="class-queue-row carried" id="cqr-${cls.id}">
+          <div class="cqr-header">
+            <div>
+              <span class="cqr-name">${cls.name}</span>
+              <span class="carry-badge" style="margin-left:8px">❄ Carry in Queue</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="toggleCarryPanel('cpanel-${cls.id}')">View / Resolve ▾</button>
+          </div>
+          <div class="carry-panel" id="cpanel-${cls.id}">
+            <div class="snow-banner" style="margin-bottom:12px">
+              ❄ This class missed <strong>${carry.originalDate || carry.weekOf || 'a previous day'}</strong>.
+              The lesson below is queued to be taught before the new week's lesson.
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="lesson-field">
+                <label>Carried Objective</label>
+                <div class="carry-readonly">${carry.objective || '<em style="color:var(--gray-500)">No objective recorded</em>'}</div>
+              </div>
+              <div class="lesson-field">
+                <label>Carried Activity</label>
+                <div class="carry-readonly">${carry.activity || '<em style="color:var(--gray-500)">No activity recorded</em>'}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <input type="text" id="carry-note-${cls.id}" placeholder="Resolution note (optional)…"
+                style="flex:1;min-width:160px;font-size:12px;padding:6px 10px;border:1.5px solid var(--gray-300);border-radius:6px;font-family:inherit;outline:none">
+              <button class="btn btn-green btn-sm" onclick="resolveCarry('${cid}','${cls.id}','${day}')">
+                ✅ Mark Taught — Advance to New Lesson
+              </button>
+            </div>
+            <div class="upnext-banner">
+              ⏭ <strong>Up Next</strong> — New week's lesson (below) is queued and will become active once carry is resolved.
+            </div>
+          </div>
+        </div>`;
+      } else {
+        return `
+        <div class="class-queue-row" id="cqr-${cls.id}">
+          <div class="cqr-header">
+            <span class="cqr-name">${cls.name}</span>
+            <span class="cqr-status on-track">✔ On Track</span>
+          </div>
+        </div>`;
+      }
+    }).join('');
+
+    // Count how many classes in this grade have carries
+    const carryCount = classes.filter(c => !!getClassCarry(c.id, day)).length;
+    const carryNote  = carryCount > 0
+      ? `<span class="grade-carry-count">❄ ${carryCount} class${carryCount>1?'es':''} with carry</span>`
+      : '';
 
     return `
-    <div class="lesson-card ${day}${carried ? ' carried' : ''}" id="card-${lid}">
-      <div class="lesson-card-header" onclick="toggleCard('body-${lid}')">
+    <div class="grade-lesson-card ${day}" id="glcard-${grade.replace(/\s/g,'-')}-${day}">
+      <div class="grade-lesson-header" onclick="toggleGradeCard('glbody-${grade.replace(/\s/g,'-')}-${day}')">
         <div>
-          <div class="lesson-class-name">${cls.name}</div>
-          <div class="text-muted" style="font-size:12px;margin-top:2px">${cls.grade || ''} ${cls.period ? '· ' + cls.period : ''}</div>
+          <div class="grade-lesson-title">Grade ${grade}</div>
+          <div class="grade-lesson-sub">${classes.length} class${classes.length!==1?'es':''} · ${day} Day ${carryNote}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${carried ? '<span class="carry-badge">❄ Carried Forward</span>' : ''}
-          <span style="font-size:18px;color:var(--gray-300)" id="chevron-${lid}">▾</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveGradeLesson('${glId}','${grade}','${day}','${glLesson.id||''}')">
+            💾 Save
+          </button>
+          <span style="font-size:18px;color:var(--gray-300)" id="glchev-${grade.replace(/\s/g,'-')}-${day}">▾</span>
         </div>
       </div>
-      <div class="lesson-card-body" id="body-${lid}">
-        ${carried ? `<div class="snow-banner">❄ This lesson was carried forward from <strong>${lesson.originalDate || 'a missed day'}</strong>. ${lesson.carryNotes ? '— ' + lesson.carryNotes : ''}</div>` : ''}
-        <div class="lesson-field">
-          <label>Objective / Standard</label>
-          <textarea id="f-obj-${lid}" rows="2" placeholder="What will students know or be able to do?">${lesson.objective || ''}</textarea>
+
+      <div class="grade-lesson-body open" id="glbody-${grade.replace(/\s/g,'-')}-${day}">
+
+        <!-- Shared lesson fields for whole grade -->
+        <div class="shared-lesson-section">
+          <div class="shared-lesson-label">📝 Shared Lesson — applies to all Grade ${grade} classes on this day</div>
+          <div class="lesson-field">
+            <label>Objective / Standard</label>
+            <textarea id="gl-obj-${glId}" rows="2" placeholder="What will all Grade ${grade} students know or be able to do?">${glLesson.objective||''}</textarea>
+          </div>
+          <div class="lesson-field">
+            <label>Materials Needed</label>
+            <textarea id="gl-mat-${glId}" rows="2" placeholder="Materials for Grade ${grade}…">${glLesson.materials||''}</textarea>
+          </div>
+          <div class="lesson-field">
+            <label>Activity / Procedure Steps</label>
+            <textarea id="gl-act-${glId}" rows="4" placeholder="Step-by-step plan for Grade ${grade}…">${glLesson.activity||''}</textarea>
+          </div>
+          <div class="lesson-field">
+            <label>Assessment / Exit Ticket</label>
+            <textarea id="gl-asmt-${glId}" rows="2" placeholder="How will you check understanding for Grade ${grade}?">${glLesson.assessment||''}</textarea>
+          </div>
         </div>
-        <div class="lesson-field">
-          <label>Materials Needed</label>
-          <textarea id="f-mat-${lid}" rows="2" placeholder="List materials, links, supplies…">${lesson.materials || ''}</textarea>
+
+        <!-- Per-class carry status -->
+        <div class="class-status-section">
+          <div class="class-status-label">🏫 Class Status — individual carry queues</div>
+          ${classRows}
+          <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-snow btn-sm" onclick="markGradeSnowDay('${grade}','${day}')">
+              ❄ Snow Day — Grade ${grade} ${day} classes only
+            </button>
+          </div>
         </div>
-        <div class="lesson-field">
-          <label>Activity / Procedure Steps</label>
-          <textarea id="f-act-${lid}" rows="4" placeholder="Step-by-step plan for the lesson…">${lesson.activity || ''}</textarea>
-        </div>
-        <div class="lesson-field">
-          <label>Assessment / Exit Ticket</label>
-          <textarea id="f-asmt-${lid}" rows="2" placeholder="How will you check for understanding?">${lesson.assessment || ''}</textarea>
-        </div>
-        <hr class="divider">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <label style="font-size:12px;font-weight:600;color:var(--gray-500)">
-            <input type="checkbox" id="f-carried-${lid}" ${carried ? 'checked' : ''}
-              onchange="toggleCarried('${lid}','${cls.id}','${day}')">
-            &nbsp;❄ Carried Forward (snow/missed)
-          </label>
-          <input type="text" id="f-origdate-${lid}" placeholder="Original date missed"
-            style="font-size:12px;padding:5px 9px;border:1.5px solid var(--gray-300);border-radius:6px;font-family:inherit;outline:none"
-            value="${lesson.originalDate || ''}">
-          <input type="text" id="f-carrynotes-${lid}" placeholder="Carry notes…"
-            style="font-size:12px;padding:5px 9px;border:1.5px solid var(--gray-300);border-radius:6px;font-family:inherit;flex:1;min-width:140px;outline:none"
-            value="${lesson.carryNotes || ''}">
-          <button class="save-row-btn" id="savebtn-${lid}" onclick="saveSingleLesson('${lid}','${cls.id}','${day}','${lesson.id || ''}')">
-            Save
-          </button>
-        </div>
+
       </div>
     </div>`;
   }).join('');
 }
 
-function toggleCard(bodyId) {
-  const body  = document.getElementById(bodyId);
-  const lid   = bodyId.replace('body-', '');
-  const chev  = document.getElementById('chevron-' + lid);
-  const open  = body.classList.toggle('open');
+function toggleGradeCard(bodyId) {
+  const body = document.getElementById(bodyId);
+  const key  = bodyId.replace('glbody-','');
+  const chev = document.getElementById('glchev-' + key);
+  const open = body.classList.toggle('open');
   if (chev) chev.textContent = open ? '▴' : '▾';
 }
 
-function toggleCarried(lid, classId, day) {
-  // visual only — saved on Save
+function toggleCarryPanel(panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  panel.classList.toggle('open');
+  const btn = panel.previousElementSibling?.querySelector('button');
+  if (btn) btn.textContent = panel.classList.contains('open') ? 'Hide ▴' : 'View / Resolve ▾';
 }
 
-async function saveSingleLesson(lid, classId, day, existingId) {
-  const weekOf  = document.getElementById('lesson-week').value;
-  const dayNum  = document.getElementById('lesson-day-num').value;
-  const btn     = document.getElementById(`savebtn-${lid}`);
+async function saveGradeLesson(glId, grade, day, existingId) {
+  const weekOf = document.getElementById('lesson-week').value;
+  const dayNum = document.getElementById('lesson-day-num').value;
 
   const row = {
-    id:             existingId || lid,
+    id:             existingId || glId,
+    gradeLessonKey: gradeLessonKey(grade, day, weekOf),
     colorDay:       day,
     weekOf,
     date:           weekOf,
     colorDayNum:    dayNum,
-    classId,
-    objective:      document.getElementById(`f-obj-${lid}`)?.value   || '',
-    materials:      document.getElementById(`f-mat-${lid}`)?.value   || '',
-    activity:       document.getElementById(`f-act-${lid}`)?.value   || '',
-    assessment:     document.getElementById(`f-asmt-${lid}`)?.value  || '',
-    carriedForward: document.getElementById(`f-carried-${lid}`)?.checked ? 'YES' : 'NO',
-    originalDate:   document.getElementById(`f-origdate-${lid}`)?.value  || '',
-    carryNotes:     document.getElementById(`f-carrynotes-${lid}`)?.value || ''
+    classId:        `GRADE_${grade}`,   // sentinel — means "applies to whole grade"
+    grade,
+    objective:      document.getElementById(`gl-obj-${glId}`)?.value   || '',
+    materials:      document.getElementById(`gl-mat-${glId}`)?.value   || '',
+    activity:       document.getElementById(`gl-act-${glId}`)?.value   || '',
+    assessment:     document.getElementById(`gl-asmt-${glId}`)?.value  || '',
+    carriedForward: 'NO',
+    carryResolved:  '',
+    originalDate:   '',
+    carryNotes:     ''
   };
 
-  // Upsert local DB
   const idx = DB.lessons.findIndex(l => String(l.id) === String(row.id));
   if (idx >= 0) DB.lessons[idx] = row;
   else DB.lessons.push(row);
 
   const action = existingId ? 'update' : 'insert';
   const result = await apiPost({ action, tab: 'Lessons', id: row.id, row });
-  if (result) {
-    btn.textContent = '✓ Saved';
-    btn.classList.add('saved');
-    setTimeout(() => { btn.textContent = 'Save'; btn.classList.remove('saved'); }, 2000);
+  if (result) toast(`Grade ${grade} lesson saved!`, 'success');
+}
+
+async function resolveCarry(carryId, classId, day) {
+  const note = document.getElementById(`carry-note-${classId}`)?.value || '';
+  // Mark carry as resolved
+  const idx = DB.lessons.findIndex(l => String(l.id) === String(carryId));
+  if (idx >= 0) {
+    DB.lessons[idx].carryResolved = 'YES';
+    DB.lessons[idx].carryNotes    = note || DB.lessons[idx].carryNotes;
+    await apiPost({ action: 'update', tab: 'Lessons', id: carryId, row: DB.lessons[idx] });
   }
+  toast('✅ Carry resolved — class is now on track with the shared lesson.', 'success');
+  renderLessons(activeDay);
+}
+
+async function markGradeSnowDay(grade, day) {
+  const weekOf = document.getElementById('lesson-week').value;
+  if (!weekOf) { toast('Set the week date first', 'error'); return; }
+
+  // Only called for the active color day — Blue/Green classes on other days are unaffected
+  const classes = DB.classes.filter(c => c.colorDay === day && c.grade === grade);
+  // Get the shared grade lesson to copy its content into per-class carry records
+  const glKey    = gradeLessonKey(grade, day, weekOf);
+  const glLesson = DB.lessons.find(l => l.id === glKey || l.gradeLessonKey === glKey) || {};
+
+  for (const cls of classes) {
+    const existingCarry = getClassCarry(cls.id, day);
+    if (existingCarry) continue; // already has an unresolved carry
+    const carryRow = {
+      id:             uid(),
+      gradeLessonKey: '',
+      colorDay:       day,
+      weekOf,
+      date:           weekOf,
+      colorDayNum:    document.getElementById('lesson-day-num').value || '',
+      classId:        cls.id,
+      grade,
+      objective:      glLesson.objective  || '',
+      materials:      glLesson.materials  || '',
+      activity:       glLesson.activity   || '',
+      assessment:     glLesson.assessment || '',
+      carriedForward: 'YES',
+      carryResolved:  'NO',
+      originalDate:   weekOf,
+      carryNotes:     'Snow day — lesson not taught'
+    };
+    DB.lessons.push(carryRow);
+    await apiPost({ action: 'insert', tab: 'Lessons', row: carryRow });
+  }
+  toast(`❄ Snow Day logged — Grade ${grade} ${day} Day classes queued. Other color days unaffected.`, 'success');
+  renderLessons(activeDay);
 }
 
 async function saveAllLessons() {
   if (!activeDay) { toast('Select a day first'); return; }
-  const classes = DB.classes.filter(c => c.colorDay === activeDay);
-  for (const cls of classes) {
-    const weekOf = document.getElementById('lesson-week').value;
-    const existing = DB.lessons.find(l =>
-      String(l.classId) === String(cls.id) &&
-      l.colorDay === activeDay && l.weekOf === weekOf
-    );
-    const lid = existing?.id || `tmp_${cls.id}_${activeDay}_${weekOf || 'noweek'}`;
-    await saveSingleLesson(lid, cls.id, activeDay, existing?.id || '');
+  const weekOf  = document.getElementById('lesson-week').value;
+  const groups  = getGradeGroups(activeDay);
+  for (const [grade] of groups) {
+    const glKey    = gradeLessonKey(grade, activeDay, weekOf);
+    const existing = DB.lessons.find(l => l.id === glKey || l.gradeLessonKey === glKey);
+    await saveGradeLesson(existing?.id || glKey, grade, activeDay, existing?.id || '');
   }
-  toast('All lessons saved!', 'success');
+  toast('All grade lessons saved!', 'success');
 }
 
 function saveWeekMeta() {
@@ -1248,17 +1717,17 @@ function saveWeekMeta() {
 
 function markSnowDay() {
   if (!activeDay) { toast('Select a day first'); return; }
-  if (!confirm(`Mark all ${activeDay} Day classes today as ❄ Carried Forward (snow day)?`)) return;
-  const date = document.getElementById('lesson-week').value || new Date().toISOString().split('T')[0];
-  DB.classes.filter(c => c.colorDay === activeDay).forEach(cls => {
-    const weekOf = document.getElementById('lesson-week').value;
-    const lid = `tmp_${cls.id}_${activeDay}_${weekOf || 'noweek'}`;
-    const cb  = document.getElementById(`f-carried-${lid}`);
-    const od  = document.getElementById(`f-origdate-${lid}`);
-    if (cb) cb.checked = true;
-    if (od && !od.value) od.value = date;
-  });
-  toast('❄ All classes marked as carried forward');
+  const groups = getGradeGroups(activeDay);
+  if (!groups.length) return;
+  const weekOf = document.getElementById('lesson-week').value;
+  if (!weekOf) { toast('Set the week date first', 'error'); return; }
+  if (!confirm(
+    `❄ Snow Day — ${activeDay} Day (week of ${weekOf})\n\n` +
+    `This will queue a carry for every ${activeDay} Day class.\n` +
+    `Blue and Green Day classes are NOT affected — they haven't met yet.\n\n` +
+    `Continue?`
+  )) return;
+  groups.forEach(([grade]) => markGradeSnowDay(grade, activeDay));
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1513,7 +1982,310 @@ function toast(msg, type) {
   t.textContent = msg;
   c.appendChild(t);
   setTimeout(() => t.remove(), 3200);
+// ══════════════════════════════════════════════════════════
+// MICHIGAN MITECS STANDARDS DATA (K-5, ISTE-adapted 2017)
+// ══════════════════════════════════════════════════════════
+const MITECS = [
+  {
+    id: 1, code: "1", emoji: "🚀", color: "#F57C00", bg: "#FFF3E0",
+    title: "Empowered Learner",
+    tagline: "Students leverage technology to take an active role in choosing, achieving, and demonstrating competency in their learning goals.",
+    subs: [
+      { code: "1a", text: "Articulate and set personal learning goals, develop strategies leveraging technology to achieve them, and reflect on the learning process itself to improve learning outcomes." },
+      { code: "1b", text: "Build networks and customize their learning environments in ways that support the learning process." },
+      { code: "1c", text: "Use technology to seek feedback that informs and improves their practice and to demonstrate their learning in a variety of ways." },
+      { code: "1d", text: "Understand the fundamental concepts of technology operations, demonstrate the ability to choose, use, and troubleshoot current technologies, and are able to transfer their knowledge to explore emerging technologies." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "1a", text: "With guidance, students consider and set personal learning goals and utilize appropriate technologies that will demonstrate knowledge and reflection of the process." },
+        { code: "1b", text: "With guidance, students learn about various technologies that can be used to connect to others or make their learning environments personal and select resources to enhance their learning." },
+        { code: "1c", text: "With guidance, students recognize performance feedback from digital tools, make adjustments based on that feedback, and use age-appropriate technology to share learning." },
+        { code: "1d", text: "With guidance, students explore a variety of technologies that will help them in their learning and begin to demonstrate how knowledge can be transferred between tools." }
+      ],
+      "3-5": [
+        { code: "1a", text: "Students develop learning goals in collaboration with an educator, select the technology tools to achieve them, and reflect on and revise the learning process as needed." },
+        { code: "1b", text: "With oversight, students build a network of experts and peers within school policy and customize their environments to enhance their learning." },
+        { code: "1c", text: "Students seek feedback from both people and features embedded in digital tools, and use age-appropriate technology to share learning." },
+        { code: "1d", text: "Students explore age-appropriate technologies and begin to transfer their learning to different tools or learning environments." }
+      ]
+    }
+  },
+  {
+    id: 2, code: "2", emoji: "🔐", color: "#1565C0", bg: "#E3F2FD",
+    title: "Digital Citizen",
+    tagline: "Students recognize the rights, responsibilities, and opportunities of living, learning, and working in an interconnected digital world.",
+    subs: [
+      { code: "2a", text: "Cultivate and manage their digital identity and reputation and are aware of the permanence of their actions in the digital world." },
+      { code: "2b", text: "Engage in positive, safe, legal, and ethical behavior when using technology, including social interactions online or when using networked devices." },
+      { code: "2c", text: "Demonstrate an understanding of and respect for the rights and obligations of using and sharing intellectual property." },
+      { code: "2d", text: "Manage their personal data to maintain digital privacy and security and are aware of data-collection technology used to track their navigation online." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "2a", text: "Students practice responsible use of technology through teacher-guided online activities and interactions to understand how the digital space impacts their life." },
+        { code: "2b", text: "With guidance, students understand how to be careful when using devices and how to be safe online, follow safety rules when using the internet, and collaborate with others." },
+        { code: "2c", text: "With guidance, students learn about ownership and sharing of information, and how to respect the work of others." },
+        { code: "2d", text: "With guidance, students demonstrate an understanding that technology is all around them and the importance of keeping their information private." }
+      ],
+      "3-5": [
+        { code: "2a", text: "Students demonstrate an understanding of the role an online identity plays in the digital world and learn the permanence of their decisions when interacting online." },
+        { code: "2b", text: "Students practice and encourage others in safe, legal, and ethical behavior when using technology and interacting online, with guidance from an educator." },
+        { code: "2c", text: "Students learn about, demonstrate, and encourage respect for intellectual property with both print and digital media when using and sharing the work of others." },
+        { code: "2d", text: "Students demonstrate an understanding of what personal data is, how to keep it private, and how it might be shared online." }
+      ]
+    }
+  },
+  {
+    id: 3, code: "3", emoji: "🔍", color: "#2E7D32", bg: "#E8F5E9",
+    title: "Knowledge Constructor",
+    tagline: "Students critically curate a variety of resources using digital tools to construct knowledge, produce creative artifacts, and make meaningful learning experiences.",
+    subs: [
+      { code: "3a", text: "Plan and employ effective research strategies to locate information and other resources for their intellectual or creative pursuits." },
+      { code: "3b", text: "Evaluate the accuracy, perspective, credibility, and relevance of information, media, data, or other resources." },
+      { code: "3c", text: "Curate information from digital resources using a variety of tools and methods to create collections of artifacts that demonstrate meaningful connections or conclusions." },
+      { code: "3d", text: "Build knowledge by actively exploring real-world issues and problems, developing ideas and theories, and pursuing answers and solutions." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "3a", text: "With guidance, students use digital tools and resources, contained within a classroom platform or otherwise provided by the teacher, to find information on topics of interest." },
+        { code: "3b", text: "With guidance, students become familiar with age-appropriate criteria for evaluating digital content." },
+        { code: "3c", text: "With guidance, students explore a variety of teacher-selected tools to organize information and make connections to their learning." },
+        { code: "3d", text: "With guidance, students explore real-world issues and problems and share their ideas about them with others." }
+      ],
+      "3-5": [
+        { code: "3a", text: "Students collaborate with a teacher to employ appropriate research techniques to locate digital resources that will help them in their learning process." },
+        { code: "3b", text: "Students learn how to evaluate sources for accuracy, perspective, credibility, and relevance." },
+        { code: "3c", text: "Using a variety of strategies, students organize information and make meaningful connections between resources." },
+        { code: "3d", text: "Students explore real-world problems and issues and collaborate with others to find answers or solutions." }
+      ]
+    }
+  },
+  {
+    id: 4, code: "4", emoji: "💡", color: "#6A1B9A", bg: "#F3E5F5",
+    title: "Innovative Designer",
+    tagline: "Students use a variety of technologies within a design process to identify and solve problems by creating new, useful, or imaginative solutions.",
+    subs: [
+      { code: "4a", text: "Know and use a deliberate design process for generating ideas, testing theories, creating innovative artifacts, or solving authentic problems." },
+      { code: "4b", text: "Select and use digital tools to plan and manage a design process that considers design constraints and calculated risks." },
+      { code: "4c", text: "Develop, test, and refine prototypes as part of a cyclical design process." },
+      { code: "4d", text: "Exhibit a tolerance for ambiguity, perseverance, and the capacity to work with open-ended problems." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "4a", text: "With guidance, students ask questions, suggest solutions, test ideas to solve problems, and share their learning." },
+        { code: "4b", text: "Students use age-appropriate digital and non-digital tools to design something and are aware of the step-by-step process of designing." },
+        { code: "4c", text: "Students use a design process to develop ideas or creations, and they test their design and redesign if necessary." },
+        { code: "4d", text: "Students demonstrate perseverance when working to complete a challenging task." }
+      ],
+      "3-5": [
+        { code: "4a", text: "Students explore and practice how a design process works to generate ideas, consider solutions, plan to solve a problem, or create innovative products that are shared with others." },
+        { code: "4b", text: "Students use digital and non-digital tools to plan and manage a design process." },
+        { code: "4c", text: "Students engage in a cyclical design process to develop prototypes and reflect on the role that trial and error plays." },
+        { code: "4d", text: "Students demonstrate perseverance when working with open-ended problems." }
+      ]
+    }
+  },
+  {
+    id: 5, code: "5", emoji: "⚙️", color: "#00695C", bg: "#E0F2F1",
+    title: "Computational Thinker",
+    tagline: "Students develop and employ strategies for understanding and solving problems in ways that leverage the power of technological methods to develop and test solutions.",
+    subs: [
+      { code: "5a", text: "Formulate problem definitions suited for technology-assisted methods such as data analysis, abstract models, and algorithmic thinking in exploring and finding solutions." },
+      { code: "5b", text: "Collect data or identify relevant data sets, use digital tools to analyze them, and represent data in various ways to facilitate problem-solving and decision-making." },
+      { code: "5c", text: "Break problems into component parts, extract key information, and develop descriptive models to understand complex systems or facilitate problem-solving." },
+      { code: "5d", text: "Understand how automation works and use algorithmic thinking to develop a sequence of steps to create and test automated solutions." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "5a", text: "With guidance, students identify a problem and select appropriate technology tools to explore and find solutions." },
+        { code: "5b", text: "With guidance, students analyze age-appropriate data and look for similarities in order to identify patterns and categories." },
+        { code: "5c", text: "With guidance, students break a problem into parts and identify ways to solve the problem." },
+        { code: "5d", text: "Students understand how technology is used to make a task easier or repeatable and can identify real-world examples." }
+      ],
+      "3-5": [
+        { code: "5a", text: "Students explore or solve problems by selecting technology for data analysis, modeling, and algorithmic thinking, with guidance from an educator." },
+        { code: "5b", text: "Students select effective technology to represent data." },
+        { code: "5c", text: "Students break down problems into smaller parts, identify key information, and propose solutions." },
+        { code: "5d", text: "Students understand and explore basic concepts related to automation, patterns, and algorithmic thinking." }
+      ]
+    }
+  },
+  {
+    id: 6, code: "6", emoji: "🎨", color: "#C62828", bg: "#FDECEA",
+    title: "Creative Communicator",
+    tagline: "Students communicate clearly and express themselves creatively for a variety of purposes using the platforms, tools, styles, formats, and digital media appropriate to their goals.",
+    subs: [
+      { code: "6a", text: "Choose the appropriate platforms and tools for meeting the desired objectives of their creation or communication." },
+      { code: "6b", text: "Create original works or responsibly repurpose or remix digital resources into new creations." },
+      { code: "6c", text: "Communicate complex ideas clearly and effectively by creating or using a variety of digital objects such as visualizations, models, or simulations." },
+      { code: "6d", text: "Publish or present content that customizes the message and medium for their intended audiences." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "6a", text: "With guidance, students choose different tools for creating something new or for communicating with others." },
+        { code: "6b", text: "Students use digital tools to create original works." },
+        { code: "6c", text: "With guidance, students share ideas in multiple ways — visual, audio, etc." },
+        { code: "6d", text: "With guidance, students select technology to share their ideas with different people." }
+      ],
+      "3-5": [
+        { code: "6a", text: "Students recognize and utilize the features and functions of a variety of creation or communication tools." },
+        { code: "6b", text: "Students create original works and learn strategies for remixing or repurposing to create new artifacts." },
+        { code: "6c", text: "Students create digital artifacts to communicate ideas visually and graphically." },
+        { code: "6d", text: "Students learn about audience and consider their expected audience when creating digital artifacts and presentations." }
+      ]
+    }
+  },
+  {
+    id: 7, code: "7", emoji: "🌍", color: "#1565C0", bg: "#E8F0FE",
+    title: "Global Collaborator",
+    tagline: "Students use digital tools to broaden their perspectives and enrich their learning by collaborating with others and working effectively in teams locally and globally.",
+    subs: [
+      { code: "7a", text: "Use digital tools to connect with learners from a variety of backgrounds and cultures, engaging with them in ways that broaden mutual understanding and learning." },
+      { code: "7b", text: "Use collaborative technologies to work with others, including peers, experts, or community members, to examine issues and problems from multiple viewpoints." },
+      { code: "7c", text: "Contribute constructively to project teams, assuming various roles and responsibilities to work effectively toward a common goal." },
+      { code: "7d", text: "Explore local and global issues and use collaborative technologies to work with others to investigate solutions." }
+    ],
+    bands: {
+      "K-2": [
+        { code: "7a", text: "With guidance, students use technology tools to work with friends and with people outside their neighborhood, city, and beyond." },
+        { code: "7b", text: "With guidance, students use technology to communicate with others and to look at problems from different perspectives." },
+        { code: "7c", text: "With guidance, students take on different team roles and use age-appropriate technologies to complete projects." },
+        { code: "7d", text: "With guidance, students use age-appropriate technologies to work together to understand problems and suggest solutions." }
+      ],
+      "3-5": [
+        { code: "7a", text: "Students use digital tools to work with friends and people from different backgrounds or cultures." },
+        { code: "7b", text: "Students use collaborative technologies to connect with others, including peers, experts, and community members, to explore different points of view on various topics." },
+        { code: "7c", text: "Students perform a variety of roles within a team using age-appropriate technology to complete a project or solve a problem." },
+        { code: "7d", text: "Students work with others using collaborative technologies to explore local and global issues." }
+      ]
+    }
+  }
+];
+
+// ══════════════════════════════════════════════════════════
+// STANDARDS RENDERING
+// ══════════════════════════════════════════════════════════
+function initStandards() {
+  const grid = document.getElementById('standards-grid');
+  grid.innerHTML = MITECS.map(std => renderStdCard(std)).join('');
 }
+
+function renderStdCard(std) {
+  const bandFilter = document.getElementById('std-grade-filter')?.value || 'all';
+  const bandLabel  = bandFilter === 'K-2' ? 'K–2 (Ages 4–7)' : bandFilter === '3-5' ? '3–5 (Ages 8–11)' : null;
+
+  const renderBand = (bandKey, label) => {
+    const items = std.bands[bandKey] || [];
+    return `
+      <div class="std-band">
+        <div class="std-band-label">
+          <span class="band-pill ${bandKey === 'K-2' ? 'band-k2' : 'band-35'}">${label}</span>
+          Age Band Articulation
+        </div>
+        ${items.map(sub => `
+          <div class="std-sub">
+            <span class="std-sub-code" style="background:${std.color}">${sub.code}</span>
+            <span class="std-sub-text">${sub.text}</span>
+          </div>
+          <div style="padding-left:44px;margin-bottom:6px">
+            <button class="std-use-btn" onclick="copyStandard('${std.code}${sub.code}','${bandKey}',this)"
+              title="Copy to clipboard">
+              📋 Copy
+            </button>
+          </div>
+        `).join('')}
+      </div>`;
+  };
+
+  const bandsHTML = bandFilter === 'all'
+    ? renderBand('K-2', 'K–2') + '<hr class="std-divider">' + renderBand('3-5', '3–5')
+    : renderBand(bandFilter, bandLabel);
+
+  return `
+  <div class="std-card" id="std-card-${std.id}" data-title="${std.title.toLowerCase()}" data-text="${std.subs.map(s=>s.text).join(' ').toLowerCase()}">
+    <div class="std-card-header" onclick="toggleStdCard(${std.id})">
+      <div class="std-icon" style="background:${std.bg}">${std.emoji}</div>
+      <div class="std-header-text">
+        <div class="std-num" style="color:${std.color}">MITECS ${std.code}</div>
+        <div class="std-title">${std.title}</div>
+        <div class="std-tagline">${std.tagline}</div>
+      </div>
+      <span style="font-size:16px;color:var(--gray-300);margin-left:4px" id="std-chev-${std.id}">▾</span>
+    </div>
+    <div class="std-body" id="std-body-${std.id}">
+      <div style="margin-bottom:14px">
+        <div class="std-band-label" style="margin-bottom:8px">Full Competency Statements</div>
+        ${std.subs.map(sub => `
+          <div class="std-sub">
+            <span class="std-sub-code" style="background:${std.color}">${sub.code}</span>
+            <span class="std-sub-text">${sub.text}</span>
+          </div>
+        `).join('')}
+      </div>
+      <hr class="std-divider">
+      ${bandsHTML}
+    </div>
+  </div>`;
+}
+
+function toggleStdCard(id) {
+  const body = document.getElementById(`std-body-${id}`);
+  const chev = document.getElementById(`std-chev-${id}`);
+  const open = body.classList.toggle('open');
+  chev.textContent = open ? '▴' : '▾';
+}
+
+function filterStandards() {
+  const grade  = document.getElementById('std-grade-filter').value;
+  const search = document.getElementById('std-search').value.toLowerCase().trim();
+
+  // Re-render all cards to reflect band filter
+  const grid = document.getElementById('standards-grid');
+  grid.innerHTML = MITECS.map(std => renderStdCard(std)).join('');
+
+  // Then apply search filter
+  let visibleCount = 0;
+  document.querySelectorAll('.std-card').forEach(card => {
+    if (!search) { card.classList.remove('hidden'); visibleCount++; return; }
+    const haystack = card.dataset.title + ' ' + card.dataset.text;
+    const match    = search.split(' ').every(word => haystack.includes(word));
+    card.classList.toggle('hidden', !match);
+    if (match) visibleCount++;
+  });
+
+  // Show no-results if needed
+  const existing = grid.querySelector('.no-results');
+  if (existing) existing.remove();
+  if (visibleCount === 0) {
+    grid.innerHTML += `<div class="no-results">No standards match your search. Try different keywords.</div>`;
+  }
+}
+
+function copyStandard(code, band, btn) {
+  const std   = MITECS.find(s => code.startsWith(s.code));
+  const subKey = code.slice(std.code.length);
+  const subArr = band ? std.bands[band] : std.subs;
+  const sub    = subArr?.find(s => s.code === code || s.code === std.code + subKey);
+  if (!sub) return;
+  const text = `MITECS ${code} (${std.title}) — ${sub.text}`;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('used');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('used'); }, 2000);
+  }).catch(() => {
+    toast('Could not copy — try manually', 'error');
+  });
+}
+
+// Initialize standards on first render
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.page === 'standards' && !document.getElementById('standards-grid').innerHTML) {
+      initStandards();
+    }
+  });
+});
 </script>
 </body>
 </html>
