@@ -704,7 +704,7 @@ function resize(){
   canvas.style.height = h + 'px';
 }
   
-function injectSliders(){
+(function injectSliders(){
   const existing = document.getElementById('row-x0');
   const newRows = `
     <div class="param-row hidden" id="row-freq">
