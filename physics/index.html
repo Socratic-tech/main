@@ -1666,6 +1666,135 @@ function printReportWindow(){
 }
 
 // ═══════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════
+function switchToTable(){
+  document.getElementById('tabTable').classList.add('active');
+  document.getElementById('tabGraph').classList.remove('active');
+  const theoryTab = document.getElementById('tabTheory');
+  const reportTab = document.getElementById('tabReport');
+  if(theoryTab) theoryTab.classList.remove('active');
+  if(reportTab) reportTab.classList.remove('active');
+  document.getElementById('readout').style.display = '';
+  document.getElementById('graphWrap').style.display = 'none';
+  document.getElementById('theoryView').style.display = 'none';
+  document.getElementById('reportView').style.display = 'none';
+  graphMode = false;
+}
+
+function switchToGraph(){
+  document.getElementById('tabTable').classList.remove('active');
+  document.getElementById('tabGraph').classList.add('active');
+  const theoryTab = document.getElementById('tabTheory');
+  const reportTab = document.getElementById('tabReport');
+  if(theoryTab) theoryTab.classList.remove('active');
+  if(reportTab) reportTab.classList.remove('active');
+  document.getElementById('readout').style.display = 'none';
+  document.getElementById('graphWrap').style.display = '';
+  document.getElementById('theoryView').style.display = 'none';
+  document.getElementById('reportView').style.display = 'none';
+  graphMode = true;
+  refreshSeriesSel();
+}
+
+function refreshSeriesSel(){
+  if(!active || !active.series) return;
+  const sel = document.getElementById('seriesSel');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  const series = active.series();
+  series.forEach((s, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = s.label;
+    sel.appendChild(o);
+  });
+  if(prev !== '' && series[+prev]) sel.value = prev;
+  graphIdx = +sel.value || 0;
+}
+
+function getOverlaySeries(){
+  if(!document.getElementById('toggleSavedOverlay').checked) return [];
+  const mainLabel = active && active.series ? active.series()[graphIdx]?.label : null;
+  return runs.list
+    .filter(r => r.vis && r.graphSeries && r.graphSeries[graphIdx])
+    .map(r => r.graphSeries[graphIdx]);
+}
+
+document.getElementById('tabTable').onclick = switchToTable;
+document.getElementById('tabGraph').onclick = switchToGraph;
+
+document.getElementById('seriesSel').onchange = e => {
+  graphIdx = +e.target.value || 0;
+};
+
+document.getElementById('toggleSavedOverlay').onchange = () => {};
+
+document.getElementById('btnExportGraph').onclick = () => {
+  const link = document.createElement('a');
+  link.download = 'graph.png';
+  link.href = document.getElementById('graphCanvas').toDataURL();
+  link.click();
+};
+
+// ═══════════════════════════════════════════
+//  TOOLBAR BUTTON HANDLERS
+// ═══════════════════════════════════════════
+document.getElementById('btnStart').onclick = () => {
+  if(active) active.start();
+};
+
+document.getElementById('btnPause').onclick = () => {
+  if(active) active.pause();
+};
+
+document.getElementById('btnReset').onclick = () => {
+  if(active) active.reset();
+};
+
+document.getElementById('btnNew').onclick = () => {
+  if(active) active.newRun();
+};
+
+document.getElementById('btnSave').onclick = () => {
+  if(active) { active.save(); toast('Run saved!'); }
+};
+
+(function setupClearAll(){
+  const btn = document.getElementById('btnClearAll');
+  let confirmTimer = null;
+  btn.onclick = () => {
+    if(btn.classList.contains('confirm')){
+      clearTimeout(confirmTimer);
+      btn.classList.remove('confirm');
+      runs.list = [];
+      runs.next = 1;
+      refreshRunList();
+      if(active) active.reset();
+      toast('All runs cleared');
+    } else {
+      btn.classList.add('confirm');
+      btn.textContent = '🗑 Sure?';
+      confirmTimer = setTimeout(() => {
+        btn.classList.remove('confirm');
+        btn.textContent = '🗑 Clear All';
+      }, 2500);
+    }
+  };
+})();
+
+document.getElementById('btnReportFill').onclick = () => {
+  fillReportFromCurrent();
+  toast('Report filled');
+};
+
+// ═══════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════
+window.addEventListener('resize', resize);
+resize();
+
+// ═══════════════════════════════════════════
 //  LOOP
 // ═══════════════════════════════════════════
 let last=0;
