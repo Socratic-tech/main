@@ -596,66 +596,100 @@ registerExp('freefall', ()=>({
   ui(){const theorY=P.x0-0.5*P.g*this.t*this.t;const k=this._k();const vt=Math.sqrt(P.g/k);const dragF=k*P.mass*this.vy*this.vy;updateReadout({'Time':this.t.toFixed(2)+' s','Height (y)':this.y.toFixed(2)+' m','Velocity (vy)':this.vy.toFixed(2)+' m/s','No-drag h (½gt²)':Math.max(0,theorY).toFixed(2)+' m','Terminal v':vt.toFixed(2)+' m/s','Drag force':dragF.toFixed(3)+' N','KE':(0.5*P.mass*this.vy*this.vy).toFixed(2)+' J','PE':(P.mass*P.g*Math.max(0,this.y)).toFixed(2)+' J'});},
   series(){return [{label:'Height (m)',values:this.pts.map(p=>({t:p.t,v:p.y}))},{label:'Velocity (m/s)',values:this.pts.map(p=>({t:p.t,v:p.vy}))},{label:'KE (J)',values:this.pts.map(p=>({t:p.t,v:0.5*P.mass*p.vy*p.vy}))},{label:'PE (J)',values:this.pts.map(p=>({t:p.t,v:P.mass*P.g*Math.max(0,p.y)}))}];}
 }), {label:'Free Fall',rows:['row-grav','row-mass','row-x0'],cam:{x:0,y:10,scale:20},presets:[{label:'Earth — feather (20 m)',p:{g:9.81,mass:0.1,x0:20}},{label:'Earth — cannonball (20 m)',p:{g:9.81,mass:10,x0:20}},{label:'Moon (20 m)',p:{g:1.62,mass:1,x0:20}},{label:'Mars (20 m)',p:{g:3.72,mass:1,x0:20}},{label:'Jupiter (20 m)',p:{g:24.79,mass:1,x0:20}},{label:'Skyscraper — feather (300 m)',p:{g:9.81,mass:0.1,x0:300}},{label:'Skyscraper — cannonball (300 m)',p:{g:9.81,mass:10,x0:300}}]});
+let active = null;
+let activeExpId = null;
+let graphMode = false;
+let graphIdx = 0;
 
-let active=null; let graphMode=false, graphIdx=0;
+function hasUnsavedActiveData(){
+  if(!active) return false;
+  if(typeof active.pts !== 'undefined' && Array.isArray(active.pts) && active.pts.length > 1){
+    return true;
+  }
+  return false;
+}
+
+function confirmExperimentSwitch(nextId){
+  if(!active || !hasUnsavedActiveData()){
+    activate(nextId);
+    return;
+  }
+
+  const shouldSave = window.confirm(
+    'You have unsaved experiment data. Click OK to save before switching. Click Cancel to switch without saving.'
+  );
+
+  if(shouldSave){
+    active.save?.();
+  }
+
+  activate(nextId);
+}
+
 function activate(id){
-  runs.list=[];refreshRunList();
-  const rec=registry.get(id);if(!rec) return;
-  const {factory,meta}=rec;
-  active=factory();
-  showRows(meta.rows||[]);
-  const lx0el=document.getElementById('labelX0');
-  const sx0=document.getElementById('sX0');
-  if(id==='freefall'){
-    lx0el.innerHTML='Drop Height: <span class="val" id="lx0">'+P.x0.toFixed(0)+'</span> m';
-    sx0.min=1; sx0.max=500; sx0.step=1;
-    if(parseFloat(sx0.value)<1||parseFloat(sx0.value)>500) { sx0.value=20; P.x0=20; }
-  } else {
-    lx0el.innerHTML='Initial Displacement: <span class="val" id="lx0">'+P.x0.toFixed(1)+'</span> m';
-    sx0.min=0.1; sx0.max=4; sx0.step=0.1;
-  }
-  if(meta.cam){cam.x=meta.cam.x;cam.y=meta.cam.y;cam.scale=meta.cam.scale;}
-  const psel=document.getElementById('presetSel');
-  psel.innerHTML='<option value="">Presets…</option>';
-  (meta.presets||[]).forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.label;psel.appendChild(o);});
-  psel.onchange=(e)=>{if(e.target.value==='') return;const pr=(meta.presets||[])[+e.target.value];if(pr){setSlidersFromP(pr.p||{});active.reset();active.start();toast('Loaded: '+pr.label);fillReportFromCurrent();}e.target.value='';};
-  active.reset();active.start();graphMode=false;switchToTable();fillReportFromCurrent();
-}
+  const rec = registry.get(id);
+  if(!rec) return;
 
-function getOverlaySeries(){
-  if(!document.getElementById('toggleSavedOverlay').checked || !active || !active.series) return [];
-  const currentSeries=active.series();
-  const label=currentSeries[graphIdx]?.label;
-  if(!label) return [];
-  return runs.list.flatMap(r=>{
-    const found=(r.graphSeries||[]).find(s=>s.label===label);
-    return found ? [found] : [];
+  activeExpId = id;
+  const {factory,meta} = rec;
+  active = factory();
+
+  showRows(meta.rows || []);
+  const lx0el = document.getElementById('labelX0');
+  const sx0 = document.getElementById('sX0');
+
+  if(id === 'freefall'){
+    lx0el.innerHTML = 'Drop Height: <span class="val" id="lx0">' + P.x0.toFixed(0) + '</span> m';
+    sx0.min = 1; sx0.max = 500; sx0.step = 1;
+    if(parseFloat(sx0.value) < 1 || parseFloat(sx0.value) > 500) {
+      sx0.value = 20;
+      P.x0 = 20;
+    }
+  } else {
+    lx0el.innerHTML = 'Initial Displacement: <span class="val" id="lx0">' + P.x0.toFixed(1) + '</span> m';
+    sx0.min = 0.1; sx0.max = 4; sx0.step = 0.1;
+  }
+
+  if(meta.cam){
+    cam.x = meta.cam.x;
+    cam.y = meta.cam.y;
+    cam.scale = meta.cam.scale;
+  }
+
+  const psel = document.getElementById('presetSel');
+  psel.innerHTML = '<option value="">Presets…</option>';
+  (meta.presets || []).forEach((p,i)=>{
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = p.label;
+    psel.appendChild(o);
   });
+
+  psel.onchange = (e)=>{
+    if(e.target.value === '') return;
+    const pr = (meta.presets || [])[+e.target.value];
+    if(pr){
+      setSlidersFromP(pr.p || {});
+      active.reset();
+      active.start();
+      toast('Loaded: ' + pr.label);
+      fillReportFromCurrent();
+    }
+    e.target.value = '';
+  };
+
+  active.reset();
+  active.start();
+  graphMode = false;
+  switchToTable();
+  fillReportFromCurrent();
 }
-function switchToTable(){graphMode=false;document.getElementById('tabTable').classList.add('active');document.getElementById('tabGraph').classList.remove('active');document.getElementById('tabTheory').classList.remove('active');document.getElementById('tabReport').classList.remove('active');document.getElementById('readout').style.display='';document.getElementById('graphWrap').style.display='none';document.getElementById('theoryView').style.display='none';document.getElementById('reportView').style.display='none';}
-function switchToGraph(){graphMode=true;document.getElementById('tabGraph').classList.add('active');document.getElementById('tabTable').classList.remove('active');document.getElementById('tabTheory').classList.remove('active');document.getElementById('tabReport').classList.remove('active');document.getElementById('readout').style.display='none';document.getElementById('graphWrap').style.display='';document.getElementById('theoryView').style.display='none';document.getElementById('reportView').style.display='none';if(active&&active.series){const s=active.series();const sel=document.getElementById('seriesSel');sel.innerHTML=s.map((sr,i)=>`<option value="${i}">${sr.label}</option>`).join('');graphIdx=0;sel.value=0;if(s[0]) drawGraph(s[0], getOverlaySeries());}}
-document.getElementById('tabTable').onclick=switchToTable;
-document.getElementById('tabGraph').onclick=switchToGraph;
-document.getElementById('seriesSel').onchange=e=>{graphIdx=+e.target.value;if(active&&active.series){const s=active.series();if(s[graphIdx]) drawGraph(s[graphIdx], getOverlaySeries());}};
-document.getElementById('toggleSavedOverlay').onchange=()=>{if(active&&active.series){const s=active.series();if(s[graphIdx]) drawGraph(s[graphIdx], getOverlaySeries());}};
-document.getElementById('btnExportGraph').onclick=()=>{const a=document.createElement('a');a.href=GC.toDataURL('image/png');a.download='openphysics-graph.png';a.click();};
 
-document.getElementById('btnStart').onclick=()=>active?.start();
-document.getElementById('btnPause').onclick=()=>active?.pause();
-document.getElementById('btnReset').onclick=()=>{active?.reset();active?.start();fillReportFromCurrent();};
-document.getElementById('btnNew').onclick=()=>active?.newRun();
-document.getElementById('btnSave').onclick=()=>active?.save();
-document.getElementById('btnReportFill').onclick=()=>{fillReportFromCurrent();toast('Report refreshed');};
-
-let _clearConfirmTimer;
-document.getElementById('btnClearAll').onclick=function(){
-  if(this.classList.contains('confirm')){
-    clearTimeout(_clearConfirmTimer);this.classList.remove('confirm');this.textContent='🗑 Clear All';runs.list=[];refreshRunList();active?.reset();fillReportFromCurrent();toast('All runs cleared');
-  } else {
-    this.classList.add('confirm');this.textContent='⚠ Confirm Clear?';_clearConfirmTimer=setTimeout(()=>{this.classList.remove('confirm');this.textContent='🗑 Clear All';}, 3000);
-  }
+document.getElementById('expSel').onchange = e => {
+  const nextId = e.target.value;
+  if(nextId === activeExpId) return;
+  confirmExperimentSwitch(nextId);
 };
-document.getElementById('expSel').onchange=e=>activate(e.target.value);
 
 function resize(){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
