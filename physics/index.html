@@ -189,7 +189,7 @@ const R = {
   axisLabels(xUnit='m', yUnit='m'){
     const ox=w2s(0,0);
     ctx.fillStyle='#3a4a5a'; ctx.font='11px ui-monospace,monospace';
-    ctx.fillText(`x (${xUnit}) →`, canvas.width-320-60, ox.y-6);
+    ctx.fillText(`x (${xUnit}) →`, canvas.width - 90, ox.y - 6);
     ctx.save(); ctx.translate(ox.x+8, 60);
     ctx.fillText(`↑ y (${yUnit})`, 0, 0);
     ctx.restore();
