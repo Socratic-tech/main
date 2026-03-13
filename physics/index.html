@@ -657,10 +657,20 @@ document.getElementById('btnClearAll').onclick=function(){
 };
 document.getElementById('expSel').onchange=e=>activate(e.target.value);
 
-function resize(){const dpr=Math.max(1,window.devicePixelRatio||1);const w=window.innerWidth-320, h=window.innerHeight-50;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';}
-resize();window.addEventListener('resize',resize);
+function resize(){
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const mobileLayout = window.innerWidth <= 900;
 
-(function injectSliders(){
+  const w = mobileLayout ? window.innerWidth : (window.innerWidth - 320);
+  const h = mobileLayout ? Math.floor((window.innerHeight - 50) * 0.5) : (window.innerHeight - 50);
+
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+}
+  
+function injectSliders(){
   const existing = document.getElementById('row-x0');
   const newRows = `
     <div class="param-row hidden" id="row-freq">
