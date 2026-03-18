@@ -1,839 +1,883 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drawing Magic → SVG</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖍️</text></svg>">
-    <style>
-/* ═══════════════════════════════════════
-   RESET
-═══════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body { display: flex; flex-direction: column; transition: background 0.45s; }
-/* Critical layout fix: every flex child that needs to scroll must have min-height:0 */
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drawing → TinkerCAD SVG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;transition:background .4s}
 
-/* ═══════════════════════════════════════
-   TEACHER MODE (default)
-═══════════════════════════════════════ */
-body.mode-teacher {
-    font-family: 'DM Sans', sans-serif;
-    color: #334155;
-    background: #f1f5f9;
-    --primary: #2563eb;
-    --primary-light: #eff6ff;
-    --green: #10b981;
-    --border: #e2e8f0;
-    --sub: #64748b;
-    --sidebar-w: 330px;
-    --header-h: 50px;
-    --r: 7px;
+/* ── Teacher tokens ─────────────────────────────────── */
+body.T{
+  font-family:'DM Sans',sans-serif;color:#334155;background:#f1f5f9;
+  --acc:#2563eb;--acc-l:#eff6ff;--grn:#10b981;--bdr:#e2e8f0;--sub:#64748b;
+  --sw:330px;--hh:50px;
 }
-
-/* ═══════════════════════════════════════
-   KID MODE
-═══════════════════════════════════════ */
-body.mode-kid {
-    font-family: 'Nunito', sans-serif;
-    color: #1e1b4b;
-    background: #fef9f0;
-    --primary: #f43f5e;
-    --primary-light: #fff1f2;
-    --green: #22c55e;
-    --border: #fde68a;
-    --sub: #78716c;
-    --sidebar-w: 300px;
-    --header-h: 64px;
-    --r: 16px;
+/* ── Kid tokens ─────────────────────────────────────── */
+body.K{
+  font-family:'Nunito',sans-serif;color:#1e1b4b;background:#fef9f0;
+  --acc:#f43f5e;--acc-l:#fff1f2;--grn:#22c55e;--bdr:#fde68a;--sub:#78716c;
+  --sw:300px;--hh:64px;
 }
-body.mode-kid::before {
-    content: '';
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-        radial-gradient(circle at 10% 15%, #fde68a44 0%, transparent 38%),
-        radial-gradient(circle at 88% 80%, #a5f3fc44 0%, transparent 38%),
-        radial-gradient(circle at 50% 50%, #fbcfe844 0%, transparent 55%);
-}
+body.K::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 10% 15%,#fde68a44 0%,transparent 38%),
+             radial-gradient(circle at 88% 80%,#a5f3fc44 0%,transparent 38%),
+             radial-gradient(circle at 50% 50%,#fbcfe844 0%,transparent 55%)}
 
-/* ═══════════════════════════════════════
-   HEADER
-═══════════════════════════════════════ */
-.app-header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 0 20px; height: var(--header-h);
-    background: white; flex-shrink: 0;
-    position: relative; z-index: 10;
-    transition: all 0.4s;
-}
-.mode-teacher .app-header { border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-.mode-kid     .app-header { border-bottom: none; box-shadow: 0 5px 0 #fde68a; }
+/* ── Header ─────────────────────────────────────────── */
+.hdr{display:flex;align-items:center;gap:12px;padding:0 20px;height:var(--hh);
+  background:#fff;flex-shrink:0;position:relative;z-index:10;transition:all .3s}
+.T .hdr{border-bottom:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.K .hdr{box-shadow:0 5px 0 #fde68a}
+.hdr-title{display:flex;flex-direction:column}
+.T .hdr-title h1{font-size:1.05rem;font-weight:800}
+.K .hdr-title h1{font-family:'Fredoka One',cursive;font-size:1.5rem;color:#f43f5e}
+.K .hdr-title h1 span{color:#8b5cf6}
+.hdr-sub{font-size:.73rem;color:var(--sub);font-weight:600}
+.K .hdr-sub{display:none}
+.hdr-space{flex:1}
+.badge{font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;transition:all .3s}
+.T .badge{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.K .badge{background:#ede9fe;color:#6d28d9;border:2px solid #c4b5fd;font-family:'Fredoka One',cursive;font-size:.88rem}
 
-.hdr-title { display: flex; flex-direction: column; }
-.mode-teacher .hdr-title h1 { font-size: 1.05rem; font-weight: 800; }
-.mode-kid     .hdr-title h1 { font-family: 'Fredoka One', cursive; font-size: 1.55rem; color: #f43f5e; }
-.mode-kid     .hdr-title h1 span { color: #8b5cf6; }
-.hdr-sub { font-size: 0.73rem; color: var(--sub); font-weight: 600; }
-.mode-kid .hdr-sub { display: none; }
+/* ── Mode toggle pill ──────────────────────────────── */
+.pill{display:flex;align-items:center;gap:8px;background:#f8fafc;border:2px solid #e2e8f0;
+  border-radius:50px;padding:4px 12px 4px 6px;cursor:pointer;user-select:none;transition:all .3s}
+.K .pill{background:#fdf4ff;border-color:#e9d5ff}
+.pill-track{width:44px;height:24px;background:#e2e8f0;border-radius:12px;
+  position:relative;transition:background .3s;flex-shrink:0}
+.K .pill-track{background:#c4b5fd}
+.pill-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;
+  background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.2);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  display:flex;align-items:center;justify-content:center;font-size:11px}
+.K .pill-thumb{transform:translateX(20px)}
+.pill-lbl{font-size:.82rem;font-weight:700;color:#64748b}
+.K .pill-lbl{color:#7c3aed;font-family:'Nunito',sans-serif}
 
-.hdr-space { flex: 1; }
+/* ── App body ────────────────────────────────────────── */
+.body{display:flex;flex:1;min-height:0;overflow:hidden;position:relative;z-index:1}
 
-.badge {
-    font-size: 0.72rem; font-weight: 700; padding: 3px 9px;
-    border-radius: 20px; white-space: nowrap; transition: all 0.3s;
-}
-.mode-teacher .badge { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-.mode-kid     .badge { background: #ede9fe; color: #6d28d9; border: 2px solid #c4b5fd; font-family: 'Fredoka One', cursive; font-size: 0.88rem; }
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar{width:var(--sw);flex-shrink:0;background:#fff;
+  display:flex;flex-direction:column;min-height:0;transition:width .3s}
+.T .sidebar{border-right:1px solid #e2e8f0}
+.K .sidebar{border-right:3px solid #fde68a}
 
-/* Toggle pill */
-.mode-pill {
-    display: flex; align-items: center; gap: 8px;
-    background: #f8fafc; border: 2px solid #e2e8f0;
-    border-radius: 50px; padding: 4px 12px 4px 6px;
-    cursor: pointer; user-select: none; transition: all 0.3s;
-}
-.mode-kid .mode-pill { background: #fdf4ff; border-color: #e9d5ff; }
-.pill-track {
-    width: 44px; height: 24px; background: #e2e8f0;
-    border-radius: 12px; position: relative; transition: background 0.3s;
-    flex-shrink: 0;
-}
-.mode-kid .pill-track { background: #c4b5fd; }
-.pill-thumb {
-    position: absolute; top: 3px; left: 3px;
-    width: 18px; height: 18px; background: white;
-    border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    display: flex; align-items: center; justify-content: center; font-size: 11px;
-}
-.mode-kid .pill-thumb { transform: translateX(20px); }
-.pill-lbl { font-size: 0.82rem; font-weight: 700; color: #64748b; }
-.mode-kid .pill-lbl { color: #7c3aed; font-family: 'Nunito', sans-serif; }
+/* Teacher scrollable area */
+.t-scroll{flex:1;min-height:0;overflow-y:auto;padding:14px}
+.K .t-scroll{display:none}
+.K .t-foot{display:none}
 
-/* ═══════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════ */
-.app-body { display: flex; flex: 1; min-height: 0; overflow: hidden; position: relative; z-index: 1; }
+/* Teacher controls */
+.uzone{border:2px dashed #bfdbfe;background:var(--acc-l);color:var(--acc);
+  font-weight:700;padding:11px;text-align:center;border-radius:8px;
+  cursor:pointer;margin-bottom:12px;font-size:.86rem;transition:background .15s}
+.uzone:hover{background:#dbeafe}
+.slbl{font-size:.67rem;font-weight:700;text-transform:uppercase;color:#94a3b8;margin:13px 0 7px}
+.div{border:none;border-top:1px solid #e2e8f0;margin:12px 0}
+.ttabs{display:flex;background:#f1f5f9;padding:3px;border-radius:7px}
+.ttab{flex:1;border:none;background:transparent;padding:6px;font-weight:600;
+  font-size:.81rem;color:#64748b;cursor:pointer;border-radius:5px}
+.ttab.on{background:#fff;color:var(--acc);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.cr{margin-bottom:11px}
+.lr{display:flex;justify-content:space-between;margin-bottom:5px;font-size:.82rem;font-weight:600}
+.vb{background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:.74rem;color:#64748b}
+.ht{font-size:.71rem;color:#64748b;margin-top:3px;line-height:1.35}
+input[type=range]{width:100%;height:5px;background:#e2e8f0;border-radius:3px;outline:none;-webkit-appearance:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;
+  background:var(--acc);border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.t-foot{padding:11px 14px;border-top:1px solid #e2e8f0;display:flex;flex-direction:column;gap:7px}
+.btn{padding:11px;border:none;border-radius:7px;font-weight:700;cursor:pointer;color:#fff;
+  display:flex;justify-content:center;align-items:center;gap:5px;font-size:.93rem}
+.btn-svg{background:var(--grn);width:100%}
+.btn-png{background:#334155;font-size:.84rem;padding:8px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.cropbtn{width:100%;padding:8px;background:#fff7ed;border:1.5px solid #fed7aa;
+  color:#c2410c;border-radius:7px;font-weight:700;cursor:pointer}
+.cropbadge{display:none;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;
+  font-size:.73rem;font-weight:600;border-radius:6px;padding:6px 9px;margin-top:6px;
+  align-items:center;justify-content:space-between}
+.cropbadge.on{display:flex}
+.tcnote{background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;
+  padding:8px 10px;font-size:.74rem;color:#78350f;line-height:1.5;margin-top:6px}
 
-.sidebar {
-    width: var(--sidebar-w); flex-shrink: 0;
-    background: white; display: flex; flex-direction: column;
-    overflow: hidden; transition: width 0.4s; min-height: 0;
-}
-.mode-teacher .sidebar { border-right: 1px solid #e2e8f0; }
-.mode-kid     .sidebar { border-right: 3px solid #fde68a; }
+/* ── Kid sidebar ─────────────────────────────────────── */
+.k-scroll{display:none;flex:1;min-height:0;overflow-y:auto;
+  flex-direction:column;gap:12px;padding:14px}
+.K .k-scroll{display:flex}
+.k-foot{display:none;padding:14px;border-top:3px dashed #fde68a;flex-direction:column;gap:10px}
+.K .k-foot{display:flex}
 
+.scard{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:9px;
+  border:3px solid transparent;transition:transform .15s}
+.scard:hover{transform:translateY(-2px)}
+.s1{background:#fff1f2;border-color:#fda4af}
+.s2{background:#fefce8;border-color:#fde047}
+.s3{background:#f0fdf4;border-color:#86efac}
+.s4{background:#f5f3ff;border-color:#c4b5fd}
+.sc-hdr{display:flex;align-items:center;gap:9px}
+.snum{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:50%;font-family:'Fredoka One',cursive;font-size:1rem;color:#fff;flex-shrink:0}
+.s1 .snum{background:#f43f5e}.s2 .snum{background:#eab308}
+.s3 .snum{background:#22c55e}.s4 .snum{background:#8b5cf6}
+.stitle{font-family:'Fredoka One',cursive;font-size:1.05rem}
+.s1 .stitle{color:#be123c}.s2 .stitle{color:#a16207}
+.s3 .stitle{color:#15803d}.s4 .stitle{color:#6d28d9}
+.shint{font-size:.78rem;color:#6b7280;font-weight:700;line-height:1.45}
+.k-up{width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#f43f5e,#fb923c);color:#fff;
+  font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;
+  box-shadow:0 4px 0 #be123c;transition:transform .1s,box-shadow .1s}
+.k-up:active{transform:translateY(3px);box-shadow:0 1px 0 #be123c}
+.k-cropbtn{width:100%;padding:10px;background:#fff;border:3px dashed #fde047;
+  border-radius:12px;font-family:'Fredoka One',cursive;font-size:.95rem;
+  color:#a16207;cursor:pointer;transition:background .15s}
+.k-cropbtn:hover{background:#fefce8}
+.k-cropbtn:disabled{opacity:.4;cursor:not-allowed}
+.k-cropbadge{display:none;align-items:center;justify-content:space-between;
+  background:#fefce8;border:2px solid #fde047;border-radius:12px;
+  padding:8px 12px;font-size:.78rem;font-weight:800;color:#a16207}
+.k-cropbadge.on{display:flex}
+.k-sw{display:flex;flex-direction:column;gap:6px}
+.k-slbls{display:flex;justify-content:space-between;font-size:.8rem;font-weight:800}
+.k-range{width:100%;height:12px;border-radius:6px;outline:none;-webkit-appearance:none;cursor:pointer;
+  background:linear-gradient(to right,#f43f5e 0%,#f43f5e var(--pct,46%),#fecdd3 var(--pct,46%),#fecdd3 100%)}
+.k-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;
+  border-radius:50%;background:#fff;border:3px solid #f43f5e;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:grab}
+.k-emoji{font-size:1.6rem;text-align:center}
+.k-inv{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;
+  padding:10px 12px;border:2px solid #d1fae5;cursor:pointer;font-weight:800;font-size:.8rem;color:#065f46}
+.k-inv input{width:18px;height:18px;cursor:pointer;accent-color:#f43f5e}
+.k-dl{width:100%;padding:16px;border:none;border-radius:16px;
+  font-family:'Fredoka One',cursive;font-size:1.15rem;cursor:pointer;color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .1s,box-shadow .1s}
+.k-dl:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.k-dl-svg{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 5px 0 #15803d}
+.k-dl-svg:not(:disabled):active{transform:translateY(4px);box-shadow:0 1px 0 #15803d}
+.k-dl-png{background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 4px 0 #4c1d95;font-size:.96rem}
+.k-dl-png:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 #4c1d95}
 
-.preview-area { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 16px; overflow: hidden; gap: 8px; }
+/* ── Preview area ───────────────────────────────────── */
+.preview{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;
+  padding:16px;overflow:hidden;gap:8px}
 
-/* ═══════════════════════════════════════
-   TEACHER SIDEBAR
-═══════════════════════════════════════ */
-.teacher-ui { display: block; flex: 1; min-height: 0; overflow-y: auto; padding: 14px; }
-.mode-kid .teacher-ui { display: none; }
-.mode-kid .teacher-footer { display: none; }
+/* Crop toolbar */
+.ctbar{display:none;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px 14px;font-size:.82rem;font-weight:600;flex-shrink:0;border-radius:10px}
+.T .ctbar{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
+.K .ctbar{background:#fefce8;border:2px solid #fde047;color:#713f12;border-radius:14px}
+.ctbar.on{display:flex}
+.ctbtns{display:flex;gap:8px}
 
-.upload-zone {
-    border: 2px dashed #bfdbfe; background: var(--primary-light);
-    color: var(--primary); font-weight: 700; padding: 11px;
-    text-align: center; border-radius: 8px; cursor: pointer;
-    margin-bottom: 12px; font-size: 0.86rem; transition: background 0.15s;
-}
-.upload-zone:hover { background: #dbeafe; }
-.sec-lbl { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin: 13px 0 7px 0; }
-.divider { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
-.t-tabs { display: flex; background: #f1f5f9; padding: 3px; border-radius: 7px; }
-.t-tab { flex: 1; border: none; background: transparent; padding: 6px; font-weight: 600; font-size: 0.81rem; color: #64748b; cursor: pointer; border-radius: 5px; }
-.t-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-.cr { margin-bottom: 11px; }
-.lr { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.82rem; font-weight: 600; }
-.vb { background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-size: 0.74rem; color: #64748b; }
-.hint { font-size: 0.71rem; color: #64748b; margin-top: 3px; line-height: 1.35; }
-input[type="range"] { width: 100%; height: 5px; background: #e2e8f0; border-radius: 3px; outline: none; -webkit-appearance: none; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
-.teacher-footer { padding: 11px 14px; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 7px; }
-.btn { padding: 11px; border: none; border-radius: 7px; font-weight: 700; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 5px; font-size: 0.93rem; }
-.btn-svg { background: var(--green); width: 100%; }
-.btn-png { background: #334155; font-size: 0.84rem; padding: 8px; }
-.btn:disabled { opacity: 0.38; cursor: not-allowed; }
-.btn-crop-t { width: 100%; padding: 8px; background: #fff7ed; border: 1.5px solid #fed7aa; color: #c2410c; border-radius: 7px; font-weight: 700; cursor: pointer; }
-.crop-badge { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.73rem; font-weight: 600; border-radius: 6px; padding: 6px 9px; margin-top: 6px; align-items: center; justify-content: space-between; }
-.crop-badge.on { display: flex; }
-.tc-note { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 10px; font-size: 0.74rem; color: #78350f; line-height: 1.5; margin-top: 6px; }
+/* Canvas frame */
+.frame{flex:1;min-height:0;border-radius:10px;position:relative;overflow:hidden;transition:background .4s,box-shadow .4s}
+.T .frame{background:#94a3b8}
+.K .frame{background:repeating-linear-gradient(0deg,#f0f9ff 0,#f0f9ff 29px,#e0f2fe 29px,#e0f2fe 31px);
+  box-shadow:inset 0 0 0 3px #bae6fd}
 
-/* ═══════════════════════════════════════
-   KID SIDEBAR — STEP CARDS
-═══════════════════════════════════════ */
-.kid-ui { display: none; flex-direction: column; gap: 12px; padding: 14px; flex: 1; min-height: 0; overflow-y: auto; }
-.mode-kid .kid-ui { display: flex; }
-.kid-footer { display: none; padding: 14px; border-top: 3px dashed #fde68a; flex-direction: column; gap: 10px; }
-.mode-kid .kid-footer { display: flex; }
+/* Placeholder */
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;font-size:.9rem;transition:all .3s;pointer-events:none}
+.T .ph{color:#94a3b8}.K .ph{color:#93c5fd;font-family:'Fredoka One',cursive;font-size:1.15rem}
+.ph-icon{font-size:3rem}
+.K .ph-icon{font-size:4.5rem;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.ph-sub{font-size:.82rem;font-family:'Nunito',sans-serif;font-weight:800;color:#7dd3fc;display:none}
+.K .ph-sub{display:block}
 
-.scard {
-    border-radius: 18px; padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 9px;
-    border: 3px solid transparent; transition: transform 0.18s;
-}
-.scard:hover { transform: translateY(-2px); }
-.scard.s1 { background: #fff1f2; border-color: #fda4af; }
-.scard.s2 { background: #fefce8; border-color: #fde047; }
-.scard.s3 { background: #f0fdf4; border-color: #86efac; }
-.scard.s4 { background: #f5f3ff; border-color: #c4b5fd; }
+/* Canvas wrapper — fills frame, hides until image loaded */
+.cwrap{position:absolute;inset:0;display:none;align-items:center;justify-content:center;overflow:hidden}
+.cwrap.on{display:flex}
 
-.scard-hdr { display: flex; align-items: center; gap: 9px; }
-.snum {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 50%;
-    font-family: 'Fredoka One', cursive; font-size: 1rem; color: white; flex-shrink: 0;
-}
-.s1 .snum { background: #f43f5e; }
-.s2 .snum { background: #eab308; }
-.s3 .snum { background: #22c55e; }
-.s4 .snum { background: #8b5cf6; }
-.stitle { font-family: 'Fredoka One', cursive; font-size: 1.05rem; }
-.s1 .stitle { color: #be123c; }
-.s2 .stitle { color: #a16207; }
-.s3 .stitle { color: #15803d; }
-.s4 .stitle { color: #6d28d9; }
-.shint { font-size: 0.78rem; color: #6b7280; font-weight: 700; line-height: 1.45; }
+/* Inner box: provides positioning context, constrained to frame */
+.cinner{position:relative;display:inline-flex;line-height:0;max-width:100%;max-height:100%}
 
-/* Kid buttons */
-.k-upload {
-    width: 100%; padding: 14px; border: none; border-radius: 14px;
-    background: linear-gradient(135deg, #f43f5e, #fb923c);
-    color: white; font-family: 'Fredoka One', cursive; font-size: 1.1rem;
-    cursor: pointer; box-shadow: 0 4px 0 #be123c;
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-.k-upload:active { transform: translateY(3px); box-shadow: 0 1px 0 #be123c; }
+/* Main canvas — scales to fit frame */
+#cv{display:block;max-width:100%;max-height:100%;background:#fff;image-rendering:pixelated;transition:box-shadow .3s,border-radius .3s}
+.T #cv{box-shadow:0 2px 12px rgba(0,0,0,.2);border-radius:2px}
+.K #cv{box-shadow:0 4px 24px rgba(0,0,0,.15),0 0 0 5px #fde68a;border-radius:10px}
 
-.k-crop-btn {
-    width: 100%; padding: 10px; background: white;
-    border: 3px dashed #fde047; border-radius: 12px;
-    font-family: 'Fredoka One', cursive; font-size: 0.95rem;
-    color: #a16207; cursor: pointer; transition: background 0.15s;
-}
-.k-crop-btn:hover { background: #fefce8; }
-.k-crop-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* Crop overlay — screen-space, drawn in CSS px, floats over cinner */
+#cropOverlay{position:absolute;top:0;left:0;width:100%;height:100%;
+  display:none;cursor:crosshair;pointer-events:none}
+#cropOverlay.on{display:block;pointer-events:auto}
 
-.k-crop-on {
-    display: none; align-items: center; justify-content: space-between;
-    background: #fefce8; border: 2px solid #fde047; border-radius: 12px;
-    padding: 8px 12px; font-size: 0.78rem; font-weight: 800; color: #a16207;
-}
-.k-crop-on.on { display: flex; }
+.sbar{font-size:.78rem;color:var(--sub);text-align:center;height:20px;font-weight:600}
+.K .sbar{font-family:'Nunito',sans-serif;font-size:.85rem}
 
-/* Kid slider */
-.k-slider-wrap { display: flex; flex-direction: column; gap: 6px; }
-.k-slider-labels { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; }
-.k-range {
-    width: 100%; height: 12px; border-radius: 6px;
-    outline: none; -webkit-appearance: none; cursor: pointer;
-    background: linear-gradient(to right, #f43f5e 0%, #f43f5e var(--pct,46%), #fecdd3 var(--pct,46%), #fecdd3 100%);
-}
-.k-range::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 26px; height: 26px;
-    border-radius: 50%; background: white; border: 3px solid #f43f5e;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: grab;
-}
-.k-ink-emoji { font-size: 1.6rem; text-align: center; }
-.k-invert-row {
-    display: flex; align-items: center; gap: 10px;
-    background: white; border-radius: 12px; padding: 10px 12px;
-    border: 2px solid #d1fae5; cursor: pointer;
-    font-weight: 800; font-size: 0.8rem; color: #065f46;
-}
-.k-invert-row input { width: 18px; height: 18px; cursor: pointer; accent-color: #f43f5e; }
+/* ── Processing overlay ──────────────────────────────── */
+.proc{display:none;position:fixed;inset:0;background:rgba(255,255,255,.88);
+  z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:600}
+.proc.on{display:flex}
+.spin{border-radius:50%;animation:spin .7s linear infinite}
+.T .spin{width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#2563eb}
+.K .spin{width:56px;height:56px;border:5px solid #fde68a;border-top-color:#f43f5e}
+@keyframes spin{to{transform:rotate(360deg)}}
+.K #pmsg{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#f43f5e}
 
-/* Kid download buttons */
-.k-dl {
-    width: 100%; padding: 16px; border: none; border-radius: 16px;
-    font-family: 'Fredoka One', cursive; font-size: 1.15rem;
-    cursor: pointer; color: white; letter-spacing: 0.3px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-.k-dl:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-.k-dl-svg { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 5px 0 #15803d; }
-.k-dl-svg:not(:disabled):active { transform: translateY(4px); box-shadow: 0 1px 0 #15803d; }
-.k-dl-png { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 4px 0 #4c1d95; font-size: 0.96rem; }
-.k-dl-png:not(:disabled):active { transform: translateY(3px); box-shadow: 0 1px 0 #4c1d95; }
-
-/* ═══════════════════════════════════════
-   CANVAS AREA (shared)
-═══════════════════════════════════════ */
-.crop-toolbar {
-    display: none; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 8px 14px; font-size: 0.82rem; font-weight: 600;
-    flex-shrink: 0; border-radius: 10px; transition: all 0.3s;
-}
-.mode-teacher .crop-toolbar { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
-.mode-kid     .crop-toolbar { background: #fefce8; border: 2px solid #fde047; color: #713f12; border-radius: 14px; }
-.crop-toolbar.on { display: flex; }
-.ct-btns { display: flex; gap: 8px; }
-
-.canvas-frame {
-    flex: 1; min-height: 0; border-radius: 10px;
-    position: relative; overflow: hidden;
-    transition: background 0.4s, box-shadow 0.4s;
-}
-.mode-teacher .canvas-frame { background: #94a3b8; }
-.mode-kid     .canvas-frame {
-    background: repeating-linear-gradient(0deg, #f0f9ff 0px, #f0f9ff 29px, #e0f2fe 29px, #e0f2fe 31px);
-    box-shadow: inset 0 0 0 3px #bae6fd;
-}
-
-.placeholder {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; font-size: 0.9rem; transition: all 0.3s;
-    background: transparent; pointer-events: none;
-}
-.mode-teacher .placeholder { color: #94a3b8; }
-.mode-kid     .placeholder { color: #93c5fd; font-family: 'Fredoka One', cursive; font-size: 1.15rem; }
-.ph-icon { font-size: 3rem; pointer-events: auto; }
-.mode-kid .ph-icon { font-size: 4.5rem; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-.ph-sub { font-size: 0.82rem; font-family: 'Nunito', sans-serif; font-weight: 800; color: #7dd3fc; display: none; }
-.mode-kid .ph-sub { display: block; }
-
-/* Canvas wrapper: fills frame, canvas centered inside */
-.canvas-wrapper {
-    position: absolute; inset: 0;
-    display: none;
-    align-items: center; justify-content: center;
-    overflow: hidden;
-}
-.canvas-wrapper.visible { display: flex; }
-
-/* Inner box provides the positioning context for cropCanvas */
-.canvas-inner {
-    position: relative;
-    max-width: 100%; max-height: 100%;
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    line-height: 0;
-    flex-shrink: 1;
-    overflow: hidden;
-}
-#canvas {
-    max-width: 100%; max-height: 100%;
-    width: auto; height: auto;
-    display: block; background: white; image-rendering: pixelated;
-    transition: box-shadow 0.3s, border-radius 0.3s;
-}
-.mode-teacher #canvas { box-shadow: 0 2px 12px rgba(0,0,0,0.2); border-radius: 2px; }
-.mode-kid     #canvas { box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 0 0 5px #fde68a; border-radius: 10px; }
-
-/* cropCanvas sits exactly over #canvas via the inner positioning context */
-#cropCanvas { position: absolute; top:0; left:0; width:100%; height:100%; display:none; cursor:crosshair; }
-#cropCanvas.active { display: block; }
-
-.status-bar { font-size: 0.78rem; color: var(--sub); text-align: center; height: 20px; font-weight: 600; }
-.mode-kid .status-bar { font-family: 'Nunito', sans-serif; font-size: 0.85rem; }
-
-/* ═══════════════════════════════════════
-   PROCESSING OVERLAY
-═══════════════════════════════════════ */
-.proc-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(255,255,255,0.88);
-    z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-weight: 600;
-}
-.proc-overlay.on { display: flex; }
-.spinner { border-radius: 50%; animation: spin 0.7s linear infinite; }
-.mode-teacher .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #2563eb; }
-.mode-kid     .spinner { width: 56px; height: 56px; border: 5px solid #fde68a; border-top-color: #f43f5e; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.mode-kid #procMsg { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #f43f5e; }
-.mode-kid #procSub { font-family: 'Nunito', sans-serif; font-size: 0.85rem; color: #9ca3af; }
-
-/* ═══════════════════════════════════════
-   STAR BURST
-═══════════════════════════════════════ */
-.star-burst { position: fixed; inset: 0; pointer-events: none; z-index: 500; }
-.star { position: absolute; font-size: 2rem; animation: starPop 1.3s ease-out forwards; }
-@keyframes starPop {
-    0%   { transform: scale(0) rotate(0deg); opacity: 1; }
-    55%  { transform: scale(1.5) rotate(200deg); opacity: 1; }
-    100% { transform: scale(0.5) rotate(390deg) translateY(-90px); opacity: 0; }
-}
-    </style>
+/* ── Stars ───────────────────────────────────────────── */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:500}
+.star{position:absolute;font-size:2rem;animation:starPop 1.3s ease-out forwards}
+@keyframes starPop{0%{transform:scale(0) rotate(0);opacity:1}55%{transform:scale(1.5) rotate(200deg);opacity:1}100%{transform:scale(.5) rotate(390deg) translateY(-90px);opacity:0}}
+</style>
 </head>
-<body class="mode-teacher">
+<body class="T">
 
-<!-- Processing -->
-<div class="proc-overlay" id="procOverlay">
-    <div class="spinner"></div>
-    <span id="procMsg">Tracing Contours…</span>
-    <span id="procSub"></span>
-</div>
+<div class="proc" id="proc"><div class="spin"></div><span id="pmsg">Tracing…</span></div>
+<div class="stars" id="stars"></div>
+<input type="file" id="fi" accept="image/*" style="display:none">
 
-<!-- Star burst -->
-<div class="star-burst" id="starBurst"></div>
-
-<!-- Shared file input -->
-<input type="file" id="fileInput" accept="image/*" style="display:none">
-
-<!-- ══ HEADER ═════════════════════════════════════════════════════ -->
-<header class="app-header">
-    <div class="hdr-title">
-        <h1 id="hdrTitle">✏️ Student Ink Drawing → SVG</h1>
-        <span class="hdr-sub">100% Offline · TinkerCAD Compatible</span>
-    </div>
-    <span class="badge" id="hdrBadge">TinkerCAD Ready</span>
-    <div class="hdr-space"></div>
-    <div class="mode-pill" onclick="toggleMode()" title="Switch modes">
-        <div class="pill-track"><div class="pill-thumb" id="pillThumb">🎓</div></div>
-        <span class="pill-lbl" id="pillLbl">Kid Mode</span>
-    </div>
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-title">
+    <h1 id="htitle">✏️ Student Ink Drawing → SVG</h1>
+    <span class="hdr-sub">100% Offline · TinkerCAD Compatible</span>
+  </div>
+  <span class="badge" id="hbadge">TinkerCAD Ready</span>
+  <div class="hdr-space"></div>
+  <div class="pill" onclick="toggleMode()">
+    <div class="pill-track"><div class="pill-thumb" id="pthumb">🎓</div></div>
+    <span class="pill-lbl" id="plbl">Kid Mode</span>
+  </div>
 </header>
 
-<!-- ══ BODY ═══════════════════════════════════════════════════════ -->
-<div class="app-body">
+<div class="body">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
 
-    <!-- ── TEACHER UI ───────────────────────────────────── -->
-    <div class="teacher-ui">
-        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">📸 Upload Drawing Photo</div>
+    <!-- TEACHER -->
+    <div class="t-scroll">
+      <div class="uzone" onclick="fi.click()">📸 Upload Drawing Photo</div>
 
-        <div class="sec-lbl">Crop</div>
-        <button class="btn-crop-t" id="tBtnCrop" onclick="enterCropMode()" disabled>✂️ Draw Crop Area</button>
-        <div class="crop-badge" id="tCropBadge">
-            <span>✂️ Crop active</span>
-            <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#166534;font-weight:bold">Reset</button>
-        </div>
+      <div class="slbl">Crop</div>
+      <button class="cropbtn" id="tCropBtn" onclick="startCrop()" disabled>✂️ Draw Crop Area</button>
+      <div class="cropbadge" id="tCropBadge">
+        <span>✂️ Crop active</span>
+        <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#166534;font-weight:bold">Reset</button>
+      </div>
 
-        <hr class="divider">
-        <div class="sec-lbl">Ink Detection</div>
-        <div class="t-tabs">
-            <button class="t-tab" id="btnSimple" onclick="setThreshMode('simple')">Simple</button>
-            <button class="t-tab active" id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
+      <hr class="div">
+      <div class="slbl">Ink Detection</div>
+      <div class="ttabs">
+        <button class="ttab" id="tSimple" onclick="setMode('S')">Simple</button>
+        <button class="ttab on" id="tAdapt" onclick="setMode('A')">Adaptive ✨</button>
+      </div>
+      <div id="SC" style="display:none;margin-top:9px">
+        <div class="cr">
+          <div class="lr"><span>Threshold</span><span class="vb" id="thrV">160</span></div>
+          <input type="range" id="thr" min="0" max="255" value="160">
         </div>
-        <div id="simpleControls" style="display:none;margin-top:9px;">
-            <div class="cr">
-                <div class="lr"><span>Threshold</span><span class="vb" id="threshVal">160</span></div>
-                <input type="range" id="threshold" min="0" max="255" value="160">
-            </div>
+      </div>
+      <div id="AC" style="margin-top:9px">
+        <div class="cr">
+          <div class="lr"><span>Ink Sensitivity (C offset)</span><span class="vb" id="senV">20</span></div>
+          <input type="range" id="sen" min="5" max="60" value="20">
+          <div class="ht">Higher = stricter. For bold marker, 15–25 works best.</div>
         </div>
-        <div id="adaptiveControls" style="margin-top:9px;">
-            <div class="cr">
-                <div class="lr"><span>Ink Sensitivity</span><span class="vb" id="sensitivityVal">18%</span></div>
-                <input type="range" id="sensitivity" min="1" max="35" value="18">
-            </div>
-        </div>
-        <label style="display:flex;gap:8px;font-size:0.8rem;cursor:pointer;font-weight:600;margin-top:8px;">
-            <input type="checkbox" id="invert"> Ink is lighter than paper
-        </label>
+      </div>
+      <label style="display:flex;gap:8px;font-size:.8rem;cursor:pointer;font-weight:600;margin-top:8px">
+        <input type="checkbox" id="inv"> Ink is lighter than paper
+      </label>
 
-        <hr class="divider">
-        <div class="sec-lbl">Vector Quality</div>
-        <div class="cr">
-            <div class="lr"><span>Noise Cleanup (min px)</span><span class="vb" id="cleanVal">120</span></div>
-            <input type="range" id="cleanup" min="0" max="500" value="120">
-            <div class="hint">Removes tiny speckles smaller than this area (px²).</div>
-        </div>
-        <div class="cr">
-            <div class="lr"><span>Gap Close (dilate)</span><span class="vb" id="dilateVal">3</span></div>
-            <input type="range" id="dilate" min="0" max="8" value="3">
-            <div class="hint">Grows ink to close small gaps before tracing.</div>
-        </div>
-        <div class="cr">
-            <div class="lr"><span>Path Smoothing</span><span class="vb" id="smoothVal">3</span></div>
-            <input type="range" id="smooth" min="0" max="6" value="3">
-            <div class="hint">Reduces jagged staircase edges on curves.</div>
-        </div>
-        <div class="cr">
-            <div class="lr"><span>Scale (px → mm)</span><span class="vb" id="scaleVal">0.10 mm/px</span></div>
-            <input type="range" id="scale" min="1" max="20" value="2">
-            <div class="hint">Output size in TinkerCAD (mm). Phone photos are high-res — keep this low.</div>
-        </div>
-        <div class="tc-note">
-            <strong>🔷 TinkerCAD Tips:</strong> Import via <em>Import → SVG</em>. All paths are closed with <code>Z</code> — shapes will extrude correctly.
-        </div>
+      <hr class="div">
+      <div class="slbl">Vector Quality</div>
+      <div class="cr">
+        <div class="lr"><span>Noise Cleanup (min px²)</span><span class="vb" id="clnV">500</span></div>
+        <input type="range" id="cln" min="0" max="3000" value="500">
+        <div class="ht">Removes speckles. Raise for phone photos.</div>
+      </div>
+      <div class="cr">
+        <div class="lr"><span>Gap Close (dilate px)</span><span class="vb" id="dilV">3</span></div>
+        <input type="range" id="dil" min="0" max="8" value="3">
+        <div class="ht">Bridges near-touching strokes. Critical for TinkerCAD.</div>
+      </div>
+      <div class="cr">
+        <div class="lr"><span>Path Smoothing</span><span class="vb" id="smV">3</span></div>
+        <input type="range" id="sm" min="0" max="8" value="3">
+        <div class="ht">Douglas-Peucker epsilon. Reduces jagged pixel edges.</div>
+      </div>
+      <div class="cr">
+        <div class="lr"><span>Scale (mm per px)</span><span class="vb" id="scV">0.10</span></div>
+        <input type="range" id="sc" min="1" max="20" value="2">
+        <div class="ht">Phone photos are high-res. Keep low (0.05–0.15 for phones).</div>
+      </div>
+      <div class="tcnote">
+        <strong>🔷 TinkerCAD:</strong> Import → SVG. All paths closed with <code>Z</code>, fill-rule evenodd for holes.
+      </div>
     </div>
-    <div class="teacher-footer">
-        <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG (TinkerCAD Ready)</button>
-        <button id="dlPng" class="btn btn-png" disabled>⬇ PNG (Thresholded Preview)</button>
+    <div class="t-foot">
+      <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG (TinkerCAD Ready)</button>
+      <button id="dlPng" class="btn btn-png" disabled>⬇ PNG Preview</button>
     </div>
 
-    <!-- ── KID UI ─────────────────────────────────────────── -->
-    <div class="kid-ui">
-
-        <!-- Step 1 -->
-        <div class="scard s1">
-            <div class="scard-hdr"><div class="snum">1</div><span class="stitle">Take a Photo! 📸</span></div>
-            <div class="shint">Snap a picture of your drawing or artwork.</div>
-            <button class="k-upload" onclick="document.getElementById('fileInput').click()">📷 Choose My Drawing</button>
+    <!-- KID -->
+    <div class="k-scroll">
+      <div class="scard s1">
+        <div class="sc-hdr"><div class="snum">1</div><span class="stitle">Take a Photo! 📸</span></div>
+        <div class="shint">Snap a picture of your drawing.</div>
+        <button class="k-up" onclick="fi.click()">📷 Choose My Drawing</button>
+      </div>
+      <div class="scard s2">
+        <div class="sc-hdr"><div class="snum">2</div><span class="stitle">Trim It ✂️</span></div>
+        <div class="shint">Optional — cut out just your drawing!</div>
+        <button class="k-cropbtn" id="kCropBtn" onclick="startCrop()" disabled>✂️ Trim My Drawing</button>
+        <div class="k-cropbadge" id="kCropBadge">
+          <span>✂️ Crop ready!</span>
+          <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#a16207;font-weight:800">Undo</button>
         </div>
-
-        <!-- Step 2 -->
-        <div class="scard s2">
-            <div class="scard-hdr"><div class="snum">2</div><span class="stitle">Trim It ✂️ <span style="font-family:Nunito;font-size:0.72rem;color:#a16207;font-weight:700">(optional)</span></span></div>
-            <div class="shint">Cut out just the part you want!</div>
-            <button class="k-crop-btn" id="kBtnCrop" onclick="enterCropMode()" disabled>✂️ Trim My Drawing</button>
-            <div class="k-crop-on" id="kCropBadge">
-                <span>✂️ Crop ready!</span>
-                <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#a16207;font-weight:800">Undo</button>
-            </div>
+      </div>
+      <div class="scard s3">
+        <div class="sc-hdr"><div class="snum">3</div><span class="stitle">Fix the Ink 🖊️</span></div>
+        <div class="shint">Slide until your drawing looks clean and black.</div>
+        <div class="k-sw">
+          <div class="k-slbls"><span>Light ☀️</span><span>Dark 🌙</span></div>
+          <input type="range" class="k-range" id="ksl" min="5" max="55" value="20" oninput="syncKid(this)">
         </div>
-
-        <!-- Step 3 -->
-        <div class="scard s3">
-            <div class="scard-hdr"><div class="snum">3</div><span class="stitle">Fix the Ink 🖊️</span></div>
-            <div class="shint">Move the slider until your drawing looks clean and black.</div>
-            <div class="k-slider-wrap">
-                <div class="k-slider-labels"><span>Light ☀️</span><span>Dark 🌙</span></div>
-                <input type="range" class="k-range" id="kThresh" min="50" max="220" value="160" oninput="syncKidSlider(this)">
-            </div>
-            <div class="k-ink-emoji" id="kEmoji">🖊️</div>
-            <label class="k-invert-row">
-                <input type="checkbox" id="kInvert" onchange="syncKidInvert(this)">
-                <span>My ink is white or light colored</span>
-            </label>
-        </div>
-
-        <!-- Step 4 label -->
-        <div class="scard s4">
-            <div class="scard-hdr"><div class="snum">4</div><span class="stitle">Save It! 🎉</span></div>
-            <div class="shint">Download your drawing to use in TinkerCAD or share it!</div>
-        </div>
-
+        <div class="k-emoji" id="kEmoji">🖊️</div>
+        <label class="k-inv"><input type="checkbox" id="kInv" onchange="syncKidInv(this)"> My ink is white or light colored</label>
+      </div>
+      <div class="scard s4">
+        <div class="sc-hdr"><div class="snum">4</div><span class="stitle">Save It! 🎉</span></div>
+        <div class="shint">Download for TinkerCAD or as a picture!</div>
+      </div>
     </div>
-    <div class="kid-footer">
-        <button class="k-dl k-dl-svg" id="kDlSvg" disabled onclick="doSvgDownload()">🚀 Save for TinkerCAD!</button>
-        <button class="k-dl k-dl-png" id="kDlPng" disabled onclick="doPngDownload()">🖼️ Save as Picture</button>
+    <div class="k-foot">
+      <button class="k-dl k-dl-svg" id="kDlSvg" disabled onclick="doSVG()">🚀 Save for TinkerCAD!</button>
+      <button class="k-dl k-dl-png" id="kDlPng" disabled onclick="doPNG()">🖼️ Save as Picture</button>
     </div>
 
   </aside>
 
   <!-- PREVIEW -->
-  <main class="preview-area">
-    <div class="crop-toolbar" id="cropToolbar">
-        <span>🖱 Drag on the image to select the area to keep</span>
-        <div class="ct-btns">
-            <button class="btn" style="padding:5px 12px;background:#166534;font-size:0.76rem;border-radius:8px" id="btnApplyCrop" onclick="applyCrop()" disabled>✓ Apply</button>
-            <button class="btn" style="padding:5px 12px;background:#6b7280;font-size:0.76rem;border-radius:8px" onclick="cancelCropMode()">✕ Cancel</button>
-        </div>
+  <main class="preview">
+    <!-- Crop toolbar -->
+    <div class="ctbar" id="ctbar">
+      <span id="ctmsg">🖱 Drag on image to select crop area</span>
+      <div class="ctbtns">
+        <button class="btn" id="applyBtn" style="padding:5px 12px;background:#166534;font-size:.76rem;border-radius:8px" onclick="applyCrop()" disabled>✓ Apply</button>
+        <button class="btn" style="padding:5px 12px;background:#6b7280;font-size:.76rem;border-radius:8px" onclick="cancelCrop()">✕ Cancel</button>
+      </div>
     </div>
-    <div class="canvas-frame">
-        <div class="placeholder" id="placeholder">
-            <span class="ph-icon">🖊️</span>
-            <span id="phText">Upload a photo to start</span>
-            <span class="ph-sub">Take a photo of your drawing!</span>
+
+    <!-- Canvas frame -->
+    <div class="frame" id="frame">
+      <!-- Placeholder -->
+      <div class="ph" id="ph">
+        <span class="ph-icon">🖊️</span>
+        <span id="phText">Upload a photo to start</span>
+        <span class="ph-sub">Take a photo of your drawing!</span>
+      </div>
+      <!-- Canvas wrapper -->
+      <div class="cwrap" id="cwrap">
+        <div class="cinner" id="cinner">
+          <canvas id="cv"></canvas>
+          <!-- Crop overlay: screen-space SVG drawn over the rendered canvas -->
+          <canvas id="cropOverlay"></canvas>
         </div>
-        <div class="canvas-wrapper" id="canvasWrapper">
-            <div class="canvas-inner">
-                <canvas id="canvas"></canvas>
-                <canvas id="cropCanvas"></canvas>
-            </div>
-        </div>
+      </div>
     </div>
-    <div class="status-bar" id="statusBar"></div>
+
+    <div class="sbar" id="sbar"></div>
   </main>
 
 </div>
 
 <script>
-// ─── Mode ─────────────────────────────────────────────────────────────────────
-let isKid = false;
-function toggleMode() {
-    isKid = !isKid;
-    document.body.className = isKid ? 'mode-kid' : 'mode-teacher';
-    document.getElementById('pillThumb').textContent = isKid ? '🎨' : '🎓';
-    document.getElementById('pillLbl').textContent   = isKid ? 'Teacher Mode' : 'Kid Mode';
-    document.getElementById('hdrTitle').innerHTML    = isKid
-        ? '🖍️ Drawing Magic → <span>TinkerCAD!</span>'
-        : '✏️ Student Ink Drawing → SVG';
-    document.getElementById('hdrBadge').textContent  = isKid ? '🔷 TinkerCAD' : 'TinkerCAD Ready';
-    document.getElementById('phText').textContent    = isKid ? '' : 'Upload a photo to start';
-    if (isLoaded) statusBar.innerText = isKid
-        ? `✅ ${canvas.width}×${canvas.height}px — looks good!`
-        : `Preview: ${canvas.width}×${canvas.height}px`;
+'use strict';
+
+/* ── State ───────────────────────────────────────────── */
+const fi        = document.getElementById('fi');
+const cv        = document.getElementById('cv');
+const ctx       = cv.getContext('2d', {willReadFrequently:true});
+const cropOvl   = document.getElementById('cropOverlay');
+const cropCtx   = cropOvl.getContext('2d');
+const proc      = document.getElementById('proc');
+const sbar      = document.getElementById('sbar');
+const scaleSteps= [.05,.10,.15,.20,.25,.30,.35,.40,.50,.60,.70,.80,.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
+
+let srcImg     = new Image();
+let loaded     = false;
+let thMode     = 'A';           // 'S' simple | 'A' adaptive
+let cropRect   = null;          // {x,y,w,h} in source image pixels
+let inCrop     = false;
+let cropStart  = null;          // screen px
+let cropEnd    = null;          // screen px
+let isKid      = false;
+
+/* ── Mode toggle ─────────────────────────────────────── */
+function toggleMode(){
+  isKid = !isKid;
+  document.body.className = isKid ? 'K' : 'T';
+  document.getElementById('pthumb').textContent = isKid ? '🎨' : '🎓';
+  document.getElementById('plbl').textContent   = isKid ? 'Teacher Mode' : 'Kid Mode';
+  document.getElementById('htitle').innerHTML   = isKid
+    ? '🖍️ Drawing Magic → <span>TinkerCAD!</span>'
+    : '✏️ Student Ink Drawing → SVG';
+  document.getElementById('hbadge').textContent = isKid ? '🔷 TinkerCAD' : 'TinkerCAD Ready';
+  document.getElementById('phText').textContent = isKid ? '' : 'Upload a photo to start';
+  if(loaded) updateStatus();
 }
 
-// ─── State ────────────────────────────────────────────────────────────────────
-let currentImg = new Image(), isLoaded = false;
-let threshMode = 'adaptive';
-let cropRect = null, isCropMode = false, isDragging = false;
-let dragStart = null, dragEnd = null;
-
-const canvas     = document.getElementById('canvas');
-const ctx        = canvas.getContext('2d', { willReadFrequently: true });
-const cropCanvas = document.getElementById('cropCanvas');
-const cropCtx    = cropCanvas.getContext('2d');
-const overlay    = document.getElementById('procOverlay');
-const statusBar  = document.getElementById('statusBar');
-const scaleSteps = [0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
-
-// ─── Upload ───────────────────────────────────────────────────────────────────
-document.getElementById('fileInput').addEventListener('change', e => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        currentImg.onload = () => {
-            isLoaded = true; cropRect = null;
-            document.getElementById('placeholder').style.display = 'none';
-            document.getElementById('canvasWrapper').classList.add('visible');
-            ['dlSvg','dlPng','tBtnCrop','kDlSvg','kDlPng','kBtnCrop'].forEach(id => {
-                const el = document.getElementById(id); if (el) el.disabled = false;
-            });
-            processImage();
-        };
-        currentImg.src = ev.target.result;
+/* ── File upload ─────────────────────────────────────── */
+fi.addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    srcImg.onload = () => {
+      loaded = true; cropRect = null;
+      document.getElementById('ph').style.display = 'none';
+      document.getElementById('cwrap').classList.add('on');
+      enableBtns(true);
+      processImage();
     };
-    reader.readAsDataURL(file);
+    srcImg.src = ev.target.result;
+  };
+  r.readAsDataURL(f);
+  fi.value = '';   // allow re-selecting same file
 });
 
-// ─── Kid slider sync ──────────────────────────────────────────────────────────
-function syncKidSlider(el) {
-    document.getElementById('threshold').value = el.value;
-    const pct = ((el.value - 50) / 170 * 100).toFixed(1);
-    el.style.setProperty('--pct', pct + '%');
-    const v = parseInt(el.value);
-    document.getElementById('kEmoji').textContent = v < 90 ? '⬜' : v < 125 ? '🌫️' : v < 165 ? '🖊️' : '⬛';
-    updateBadges(); processImage();
-}
-function syncKidInvert(el) {
-    document.getElementById('invert').checked = el.checked; processImage();
+function enableBtns(on){
+  ['dlSvg','dlPng','tCropBtn','kDlSvg','kDlPng','kCropBtn'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.disabled=!on;
+  });
 }
 
-// ─── Teacher controls ─────────────────────────────────────────────────────────
-function setThreshMode(m) {
-    threshMode = m;
-    document.getElementById('btnSimple').className   = m==='simple'   ? 't-tab active' : 't-tab';
-    document.getElementById('btnAdaptive').className = m==='adaptive' ? 't-tab active' : 't-tab';
-    document.getElementById('simpleControls').style.display   = m==='simple'   ? 'block' : 'none';
-    document.getElementById('adaptiveControls').style.display = m==='adaptive' ? 'block' : 'none';
-    processImage();
+/* ── Controls ────────────────────────────────────────── */
+function setMode(m){
+  thMode = m;
+  document.getElementById('tSimple').className = m==='S'?'ttab on':'ttab';
+  document.getElementById('tAdapt').className  = m==='A'?'ttab on':'ttab';
+  document.getElementById('SC').style.display  = m==='S'?'block':'none';
+  document.getElementById('AC').style.display  = m==='A'?'block':'none';
+  processImage();
 }
-['threshold','sensitivity','cleanup','dilate','smooth','scale','invert'].forEach(id =>
-    document.getElementById(id).addEventListener('input', () => { updateBadges(); processImage(); })
-);
-function updateBadges() {
-    document.getElementById('threshVal').innerText      = document.getElementById('threshold').value;
-    document.getElementById('sensitivityVal').innerText = document.getElementById('sensitivity').value + '%';
-    document.getElementById('cleanVal').innerText       = document.getElementById('cleanup').value;
-    document.getElementById('dilateVal').innerText      = document.getElementById('dilate').value;
-    document.getElementById('smoothVal').innerText      = document.getElementById('smooth').value;
-    const idx = Math.min(parseInt(document.getElementById('scale').value)-1, scaleSteps.length-1);
-    document.getElementById('scaleVal').innerText = scaleSteps[idx] + ' mm/px';
+
+['thr','sen','cln','dil','sm','sc','inv'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{ updateBadges(); processImage(); });
+});
+
+function updateBadges(){
+  document.getElementById('thrV').textContent = document.getElementById('thr').value;
+  document.getElementById('senV').textContent = document.getElementById('sen').value;
+  document.getElementById('clnV').textContent = document.getElementById('cln').value;
+  document.getElementById('dilV').textContent = document.getElementById('dil').value;
+  document.getElementById('smV').textContent  = document.getElementById('sm').value;
+  const idx = Math.min(parseInt(document.getElementById('sc').value)-1, scaleSteps.length-1);
+  document.getElementById('scV').textContent  = scaleSteps[idx].toFixed(2);
 }
 updateBadges();
-// Sync kid slider gradient on load
-(function(){
-    const el = document.getElementById('kThresh');
-    const pct = ((el.value - 50) / 170 * 100).toFixed(1);
-    el.style.setProperty('--pct', pct + '%');
-})();
 
-// ─── Image Processing ─────────────────────────────────────────────────────────
-function processImage() {
-    if (!isLoaded) return;
-    let sx=0,sy=0,sw=currentImg.width,sh=currentImg.height;
-    if (cropRect) { sx=cropRect.x;sy=cropRect.y;sw=cropRect.w;sh=cropRect.h; }
-    canvas.width=sw; canvas.height=sh;
-    ctx.drawImage(currentImg,sx,sy,sw,sh,0,0,sw,sh);
-    const frame=ctx.getImageData(0,0,sw,sh), d=frame.data;
-    const inv=document.getElementById('invert').checked;
+function syncKid(el){
+  // Kid slider maps 5–55 → sen range, mirrors to hidden sen slider
+  document.getElementById('sen').value = el.value;
+  const pct = ((el.value - 5) / 50 * 100).toFixed(1);
+  el.style.setProperty('--pct', pct + '%');
+  const v = parseInt(el.value);
+  document.getElementById('kEmoji').textContent = v < 12 ? '⬜' : v < 20 ? '🌫️' : v < 35 ? '🖊️' : '⬛';
+  updateBadges(); processImage();
+}
+function syncKidInv(el){
+  document.getElementById('inv').checked = el.checked; processImage();
+}
+// Init kid slider gradient
+(()=>{ const el=document.getElementById('ksl'); const pct=((el.value-5)/50*100).toFixed(1); el.style.setProperty('--pct',pct+'%'); })();
 
-    // Build grayscale array
-    const g=new Float32Array(sw*sh);
-    for(let i=0;i<d.length;i+=4){
-        let v=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        g[i/4]=inv?255-v:v;
+/* ── Image processing ────────────────────────────────── */
+function processImage(){
+  if(!loaded) return;
+
+  let sx=0, sy=0, sw=srcImg.naturalWidth, sh=srcImg.naturalHeight;
+  if(cropRect){ sx=cropRect.x; sy=cropRect.y; sw=cropRect.w; sh=cropRect.h; }
+
+  cv.width=sw; cv.height=sh;
+  ctx.drawImage(srcImg, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  const frame = ctx.getImageData(0,0,sw,sh);
+  const d     = frame.data;
+  const inv   = document.getElementById('inv').checked;
+
+  // Grayscale
+  const g = new Float32Array(sw*sh);
+  for(let i=0; i<d.length; i+=4){
+    let v = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+    g[i>>2] = inv ? 255-v : v;
+  }
+
+  if(thMode === 'S'){
+    const t = parseInt(document.getElementById('thr').value);
+    for(let i=0; i<g.length; i++){
+      d[i*4]=d[i*4+1]=d[i*4+2]=0; d[i*4+3] = g[i]<t ? 255 : 0;
+    }
+  } else {
+    // Real adaptive threshold using integral image (handles uneven paper lighting)
+    const C = parseInt(document.getElementById('sen').value);
+    const blockR = Math.max(20, Math.round(Math.min(sw,sh) * 0.06));
+
+    // Build summed area table
+    const sat = new Float64Array((sw+1)*(sh+1));
+    for(let y=0; y<sh; y++){
+      for(let x=0; x<sw; x++){
+        sat[(y+1)*(sw+1)+(x+1)] = g[y*sw+x]
+          + sat[y*(sw+1)+(x+1)]
+          + sat[(y+1)*(sw+1)+x]
+          - sat[y*(sw+1)+x];
+      }
     }
 
-    if (threshMode==='simple') {
-        const t=parseInt(document.getElementById('threshold').value);
-        for(let i=0;i<g.length;i++){
-            d[i*4]=d[i*4+1]=d[i*4+2]=0; d[i*4+3]=g[i]<t?255:0;
-        }
-    } else {
-        // Real adaptive threshold via integral image (Sauvola-style local mean)
-        // Block radius scales with image size so it works for any phone resolution
-        const sense = parseInt(document.getElementById('sensitivity').value)/100;
-        const blockR = Math.max(20, Math.round(Math.min(sw,sh) * 0.06)); // ~6% of shorter dimension
-
-        // Build integral image (summed area table) for fast box-blur mean
-        const sat = new Float64Array((sw+1)*(sh+1));
-        for(let y=0;y<sh;y++){
-            for(let x=0;x<sw;x++){
-                sat[(y+1)*(sw+1)+(x+1)] = g[y*sw+x]
-                    + sat[y*(sw+1)+(x+1)]
-                    + sat[(y+1)*(sw+1)+x]
-                    - sat[y*(sw+1)+x];
-            }
-        }
-        // For each pixel compare to local mean minus sensitivity offset
-        for(let y=0;y<sh;y++){
-            const y0=Math.max(0,y-blockR), y1=Math.min(sh-1,y+blockR);
-            for(let x=0;x<sw;x++){
-                const x0=Math.max(0,x-blockR), x1=Math.min(sw-1,x+blockR);
-                const count=(y1-y0+1)*(x1-x0+1);
-                const sum=sat[(y1+1)*(sw+1)+(x1+1)]
-                         -sat[y0*(sw+1)+(x1+1)]
-                         -sat[(y1+1)*(sw+1)+x0]
-                         +sat[y0*(sw+1)+x0];
-                const mean=sum/count;
-                const ink = g[y*sw+x] < mean*(1-sense);
-                const ii=(y*sw+x)*4;
-                d[ii]=d[ii+1]=d[ii+2]=0; d[ii+3]=ink?255:0;
-            }
-        }
+    for(let y=0; y<sh; y++){
+      const y0=Math.max(0,y-blockR), y1=Math.min(sh-1,y+blockR);
+      for(let x=0; x<sw; x++){
+        const x0=Math.max(0,x-blockR), x1=Math.min(sw-1,x+blockR);
+        const cnt = (y1-y0+1)*(x1-x0+1);
+        const sum = sat[(y1+1)*(sw+1)+(x1+1)]
+                  - sat[y0*(sw+1)+(x1+1)]
+                  - sat[(y1+1)*(sw+1)+x0]
+                  + sat[y0*(sw+1)+x0];
+        const ink = g[y*sw+x] < (sum/cnt) - C;
+        const ii  = (y*sw+x)*4;
+        d[ii]=d[ii+1]=d[ii+2]=0; d[ii+3] = ink ? 255 : 0;
+      }
     }
-    ctx.putImageData(frame,0,0);
-    statusBar.innerText = isKid
-        ? `✅ ${sw}×${sh}px — looks great!`
-        : `Preview: ${sw}×${sh}px`;
+  }
+
+  ctx.putImageData(frame, 0, 0);
+  updateStatus();
 }
 
-// ─── Bitmap helpers ───────────────────────────────────────────────────────────
-function getBitmap(w,h){ const d=ctx.getImageData(0,0,w,h).data,b=new Uint8Array(w*h); for(let i=0;i<b.length;i++)b[i]=d[i*4+3]>128?1:0; return b; }
-function dilate(bm,w,h,r){ if(r<=0)return bm; const o=new Uint8Array(w*h); for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(bm[y*w+x]===1)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<h&&nx>=0&&nx<w)o[ny*w+nx]=1;} return o; }
-function labelComponents(bm,w,h){ const L=new Int32Array(w*h);let n=1;const s=[]; for(let i=0;i<bm.length;i++){if(bm[i]===1&&L[i]===0){const lbl=n++;s.push(i);while(s.length){const j=s.pop();if(L[j])continue;L[j]=lbl;const jy=(j/w)|0,jx=j%w;if(jx>0&&bm[j-1]===1&&!L[j-1])s.push(j-1);if(jx<w-1&&bm[j+1]===1&&!L[j+1])s.push(j+1);if(jy>0&&bm[j-w]===1&&!L[j-w])s.push(j-w);if(jy<h-1&&bm[j+w]===1&&!L[j+w])s.push(j+w);}}} return{labels:L,count:n-1}; }
-function compAreas(L,n){ const a=new Int32Array(n+1); for(let i=0;i<L.length;i++)if(L[i])a[L[i]]++; return a; }
+function updateStatus(){
+  const w=cv.width, h=cv.height;
+  sbar.textContent = isKid
+    ? `✅ ${w}×${h}px — looks great!`
+    : `Preview: ${w}×${h}px | Adaptive block: ${Math.max(20,Math.round(Math.min(w,h)*.06))}px radius`;
+}
 
-// ─── Contour tracer (Moore neighborhood) ──────────────────────────────────────
+/* ── Crop — KEY FIX ──────────────────────────────────────
+   All crop interaction happens in SCREEN SPACE (CSS pixels).
+   The cropOverlay canvas is sized to match the rendered #cv
+   dimensions (getBoundingClientRect), not the source image pixels.
+   We store crop selection as screen fractions, then convert to
+   source-image pixels only when applying.
+─────────────────────────────────────────────────────────── */
+function startCrop(){
+  if(!loaded) return;
+  inCrop = true; cropStart = null; cropEnd = null;
+
+  // Size cropOverlay to exactly match the rendered canvas on screen
+  const r = cv.getBoundingClientRect();
+  cropOvl.width  = Math.round(r.width);
+  cropOvl.height = Math.round(r.height);
+  cropOvl.style.width  = r.width  + 'px';
+  cropOvl.style.height = r.height + 'px';
+  // Position overlay exactly over the rendered canvas
+  cropOvl.style.position = 'absolute';
+  cropOvl.style.left = cv.offsetLeft + 'px';
+  cropOvl.style.top  = cv.offsetTop  + 'px';
+
+  cropOvl.classList.add('on');
+  document.getElementById('ctbar').classList.add('on');
+  document.getElementById('applyBtn').disabled = true;
+  const msg = isKid ? '🖱 Drag to select what to keep' : '🖱 Drag on image to select crop area';
+  document.getElementById('ctmsg').textContent = msg;
+}
+
+function cancelCrop(){
+  inCrop = false;
+  cropOvl.classList.remove('on');
+  cropCtx.clearRect(0,0,cropOvl.width,cropOvl.height);
+  document.getElementById('ctbar').classList.remove('on');
+}
+
+function applyCrop(){
+  if(!cropStart || !cropEnd) return;
+
+  // Convert from overlay-screen-px to source-image-px
+  const scaleX = cv.width  / cropOvl.width;
+  const scaleY = cv.height / cropOvl.height;
+
+  const rx = Math.min(cropStart.x, cropEnd.x);
+  const ry = Math.min(cropStart.y, cropEnd.y);
+  const rw = Math.abs(cropEnd.x - cropStart.x);
+  const rh = Math.abs(cropEnd.y - cropStart.y);
+
+  // Clamp to canvas bounds
+  const srcX = cropRect ? cropRect.x : 0;
+  const srcY = cropRect ? cropRect.y : 0;
+
+  cropRect = {
+    x: srcX + Math.round(rx * scaleX),
+    y: srcY + Math.round(ry * scaleY),
+    w: Math.round(rw * scaleX),
+    h: Math.round(rh * scaleY)
+  };
+
+  // Guard: minimum 10px crop
+  if(cropRect.w < 10 || cropRect.h < 10){ cropRect = null; cancelCrop(); return; }
+
+  cancelCrop();
+  document.getElementById('tCropBadge').classList.add('on');
+  document.getElementById('kCropBadge').classList.add('on');
+  processImage();
+}
+
+function resetCrop(){
+  cropRect = null;
+  document.getElementById('tCropBadge').classList.remove('on');
+  document.getElementById('kCropBadge').classList.remove('on');
+  processImage();
+}
+
+// Crop mouse events — fire on the overlay canvas (screen space)
+cropOvl.addEventListener('mousedown', e => {
+  if(!inCrop) return;
+  const r = cropOvl.getBoundingClientRect();
+  cropStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+  cropEnd   = null;
+});
+
+window.addEventListener('mousemove', e => {
+  if(!inCrop || !cropStart) return;
+  const r = cropOvl.getBoundingClientRect();
+  cropEnd = { x: e.clientX - r.left, y: e.clientY - r.top };
+
+  // Draw selection rect in screen pixels on the overlay
+  cropCtx.clearRect(0, 0, cropOvl.width, cropOvl.height);
+  // Dim everything outside selection
+  cropCtx.fillStyle = 'rgba(0,0,0,0.35)';
+  cropCtx.fillRect(0, 0, cropOvl.width, cropOvl.height);
+  // Cut out the selection
+  const rx = Math.min(cropStart.x, cropEnd.x);
+  const ry = Math.min(cropStart.y, cropEnd.y);
+  const rw = Math.abs(cropEnd.x - cropStart.x);
+  const rh = Math.abs(cropEnd.y - cropStart.y);
+  cropCtx.clearRect(rx, ry, rw, rh);
+  // Draw bright border
+  cropCtx.strokeStyle = isKid ? '#f43f5e' : '#f97316';
+  cropCtx.lineWidth = isKid ? 4 : 2;
+  cropCtx.setLineDash([8,4]);
+  cropCtx.strokeRect(rx+.5, ry+.5, rw-1, rh-1);
+
+  document.getElementById('applyBtn').disabled = (rw < 5 || rh < 5);
+});
+
+window.addEventListener('mouseup', () => {
+  if(!inCrop || !cropStart || !cropEnd) return;
+  // just stop drag; user presses Apply
+});
+
+// Touch support for crop
+cropOvl.addEventListener('touchstart', e => {
+  if(!inCrop) return;
+  e.preventDefault();
+  const t = e.touches[0], r = cropOvl.getBoundingClientRect();
+  cropStart = { x: t.clientX - r.left, y: t.clientY - r.top };
+}, {passive:false});
+
+cropOvl.addEventListener('touchmove', e => {
+  if(!inCrop || !cropStart) return;
+  e.preventDefault();
+  const t = e.touches[0], r = cropOvl.getBoundingClientRect();
+  cropEnd = { x: t.clientX - r.left, y: t.clientY - r.top };
+  // reuse mousemove drawing
+  const evt = new MouseEvent('mousemove', {clientX: t.clientX, clientY: t.clientY});
+  window.dispatchEvent(evt);
+}, {passive:false});
+
+/* ── Bitmap helpers ──────────────────────────────────── */
+function getBitmap(w,h){
+  const d=ctx.getImageData(0,0,w,h).data, b=new Uint8Array(w*h);
+  for(let i=0;i<b.length;i++) b[i]=d[i*4+3]>128?1:0;
+  return b;
+}
+
+function dilate(bm,w,h,r){
+  if(r<=0) return bm;
+  const out = new Uint8Array(w*h);
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    if(!bm[y*w+x]) continue;
+    const y0=Math.max(0,y-r), y1=Math.min(h-1,y+r);
+    const x0=Math.max(0,x-r), x1=Math.min(w-1,x+r);
+    for(let dy=y0;dy<=y1;dy++) for(let dx=x0;dx<=x1;dx++) out[dy*w+dx]=1;
+  }
+  return out;
+}
+
+function labelCC(bm,w,h){
+  const L=new Int32Array(w*h); let n=1;
+  const stk=[];
+  for(let i=0;i<bm.length;i++){
+    if(bm[i]!==1||L[i]) continue;
+    const lbl=n++; stk.push(i);
+    while(stk.length){
+      const j=stk.pop(); if(L[j]) continue; L[j]=lbl;
+      const jy=j/w|0, jx=j%w;
+      if(jx>0   &&bm[j-1]&&!L[j-1]) stk.push(j-1);
+      if(jx<w-1 &&bm[j+1]&&!L[j+1]) stk.push(j+1);
+      if(jy>0   &&bm[j-w]&&!L[j-w]) stk.push(j-w);
+      if(jy<h-1 &&bm[j+w]&&!L[j+w]) stk.push(j+w);
+    }
+  }
+  return {L, n:n-1};
+}
+
+/* ── Contour tracer (Moore neighborhood) ─────────────── */
 function traceContours(bm,w,h){
-    const vis=new Uint8Array(bm.length),out=[];
-    const MX=[-1,0,1,1,1,0,-1,-1],MY=[-1,-1,-1,0,1,1,1,0];
-    for(let sy=0;sy<h;sy++) for(let sx=0;sx<w;sx++){
-        const si=sy*w+sx; if(bm[si]!==1||vis[si])continue;
-        const con=[];let cx=sx,cy=sy,bd=7,steps=0;
-        do{
-            vis[cy*w+cx]=1; con.push({x:cx,y:cy});
-            let found=false;
-            for(let k=1;k<=8;k++){const dir=(bd+k)%8,nx=cx+MX[dir],ny=cy+MY[dir];if(nx>=0&&nx<w&&ny>=0&&ny<h&&bm[ny*w+nx]===1){bd=(dir+4)%8;cx=nx;cy=ny;found=true;break;}}
-            if(!found)break; if(++steps>w*h*2)break;
-        }while(cx!==sx||cy!==sy);
-        if(con.length>=3){con.push({x:con[0].x,y:con[0].y});out.push(con);}
-    }
-    return out;
-}
-function dpSimplify(pts,eps){
-    if(pts.length<=2)return pts;
-    let md=0,mi=0;const e=pts.length-1;
-    const ax=pts[0].x,ay=pts[0].y,bx=pts[e].x,by=pts[e].y,dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
-    for(let i=1;i<e;i++){const px=pts[i].x-ax,py=pts[i].y-ay;let d2=l2===0?px*px+py*py:(t=>{const r=px-t*dx,s=py-t*dy;return r*r+s*s;})(Math.max(0,Math.min(1,(px*dx+py*dy)/l2)));if(d2>md){md=d2;mi=i;}}
-    if(md>eps*eps){const l=dpSimplify(pts.slice(0,mi+1),eps),r=dpSimplify(pts.slice(mi),eps);return[...l.slice(0,-1),...r];}
-    return[pts[0],pts[e]];
-}
-function poly2path(pts,mpp,sm){
-    if(pts.length<3)return'';
-    const s=sm>0?dpSimplify(pts,sm*0.5):pts; if(s.length<3)return'';
-    const f=v=>(v*mpp).toFixed(3);
-    let d=`M${f(s[0].x)},${f(s[0].y)}`;
-    for(let i=1;i<s.length-1;i++)d+=`L${f(s[i].x)},${f(s[i].y)}`;
-    return d+'Z';
+  const vis=new Uint8Array(w*h), out=[];
+  const MX=[-1,0,1,1,1,0,-1,-1], MY=[-1,-1,-1,0,1,1,1,0];
+  for(let sy=0;sy<h;sy++) for(let sx=0;sx<w;sx++){
+    const si=sy*w+sx;
+    if(!bm[si]||vis[si]) continue;
+    const con=[]; let cx=sx,cy=sy,bd=7,steps=0;
+    do{
+      vis[cy*w+cx]=1; con.push({x:cx,y:cy});
+      let found=false;
+      for(let k=1;k<=8;k++){
+        const dir=(bd+k)%8, nx=cx+MX[dir], ny=cy+MY[dir];
+        if(nx>=0&&nx<w&&ny>=0&&ny<h&&bm[ny*w+nx]){
+          bd=(dir+4)%8; cx=nx; cy=ny; found=true; break;
+        }
+      }
+      if(!found) break;
+      if(++steps>w*h) break;
+    } while(cx!==sx||cy!==sy);
+    if(con.length>=3){ con.push({x:con[0].x,y:con[0].y}); out.push(con); }
+  }
+  return out;
 }
 
-// ─── SVG Builder ──────────────────────────────────────────────────────────────
+function dpReduce(pts,eps){
+  if(pts.length<=2) return pts;
+  const end=pts.length-1;
+  const ax=pts[0].x,ay=pts[0].y,bx=pts[end].x,by=pts[end].y;
+  const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+  let md=0,mi=0;
+  for(let i=1;i<end;i++){
+    const px=pts[i].x-ax,py=pts[i].y-ay;
+    const d2=l2===0?px*px+py*py:(()=>{const t=Math.max(0,Math.min(1,(px*dx+py*dy)/l2));return(px-t*dx)**2+(py-t*dy)**2;})();
+    if(d2>md){md=d2;mi=i;}
+  }
+  if(md>eps*eps){
+    const l=dpReduce(pts.slice(0,mi+1),eps), r=dpReduce(pts.slice(mi),eps);
+    return [...l.slice(0,-1),...r];
+  }
+  return [pts[0],pts[end]];
+}
+
+function contourToPath(pts,mpp,eps){
+  if(pts.length<4) return '';
+  const s = eps>0 ? dpReduce(pts,eps) : pts;
+  if(s.length<3) return '';
+  const f=v=>(v*mpp).toFixed(3);
+  let d=`M${f(s[0].x)},${f(s[0].y)}`;
+  for(let i=1;i<s.length-1;i++) d+=`L${f(s[i].x)},${f(s[i].y)}`;
+  return d+'Z';
+}
+
+/* ── SVG builder ─────────────────────────────────────── */
 async function buildSVG(){
-    const w=canvas.width,h=canvas.height;
-    const dr=parseInt(document.getElementById('dilate').value);
-    const ma=parseInt(document.getElementById('cleanup').value);
-    const sm=parseInt(document.getElementById('smooth').value);
-    const idx=Math.min(parseInt(document.getElementById('scale').value)-1,scaleSteps.length-1);
-    const mpp=scaleSteps[idx];
+  const w=cv.width, h=cv.height;
+  const dilR = parseInt(document.getElementById('dil').value);
+  const minA = parseInt(document.getElementById('cln').value);
+  const smEps= parseInt(document.getElementById('sm').value);
+  const idx  = Math.min(parseInt(document.getElementById('sc').value)-1, scaleSteps.length-1);
+  const mpp  = scaleSteps[idx];
 
-    setMsg(isKid?'✨ Reading your drawing…':'Reading pixels…'); await tick();
-    let bm=getBitmap(w,h);
-    setMsg(isKid?'🔧 Closing gaps…':'Closing gaps (dilation)…'); await tick();
-    bm=dilate(bm,w,h,dr);
-    setMsg(isKid?'🔍 Finding shapes…':'Finding components…'); await tick();
-    const{labels:L,count}=labelComponents(bm,w,h);
-    const areas=compAreas(L,count);
-    if(ma>0)for(let i=0;i<L.length;i++)if(L[i]&&areas[L[i]]<ma)bm[i]=0;
-    setMsg(isKid?'✏️ Tracing outlines…':'Tracing contours…'); await tick();
-    const cons=traceContours(bm,w,h);
-    setMsg(isKid?`🎨 Almost done! (${cons.length} shapes)`:`Building SVG (${cons.length} shapes)…`); await tick();
-    const sw2=(w*mpp).toFixed(3),sh2=(h*mpp).toFixed(3);
-    let pd=''; for(const c of cons)pd+=poly2path(c,mpp,sm)+' ';
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${sw2}mm" height="${sh2}mm" viewBox="0 0 ${sw2} ${sh2}" shape-rendering="geometricPrecision">
-  <!-- ${cons.length} closed paths — TinkerCAD SVG ready -->
-  <path fill="black" fill-rule="evenodd" d="${pd.trim()}"/>
+  setP(isKid?'✨ Reading pixels…':'Reading pixels…'); await tick();
+  let bm = getBitmap(w,h);
+
+  setP(isKid?'🔧 Closing gaps…':'Closing gaps…'); await tick();
+  bm = dilate(bm,w,h,dilR);
+
+  setP(isKid?'🔍 Finding shapes…':'Labelling components…'); await tick();
+  const {L,n} = labelCC(bm,w,h);
+
+  // Area filter — remove noise blobs
+  if(minA>0){
+    const areas=new Int32Array(n+1);
+    for(let i=0;i<L.length;i++) if(L[i]) areas[L[i]]++;
+    for(let i=0;i<L.length;i++) if(L[i]&&areas[L[i]]<minA) bm[i]=0;
+  }
+
+  setP(isKid?'✏️ Tracing outlines…':'Tracing contours…'); await tick();
+  const contours = traceContours(bm,w,h);
+
+  setP(isKid?`🎨 Building ${contours.length} shapes…`:`Building SVG (${contours.length} contours)…`); await tick();
+
+  const svgW=(w*mpp).toFixed(3), svgH=(h*mpp).toFixed(3);
+  let pd='';
+  for(const c of contours) pd += contourToPath(c, mpp, smEps) + ' ';
+  pd = pd.trim();
+
+  // TinkerCAD requirements:
+  // 1. xmlns declared  2. explicit mm dimensions  3. fill-rule:evenodd for holes
+  // 4. All subpaths end with Z  5. No stroke  6. shape-rendering:geometricPrecision
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="${svgW}mm" height="${svgH}mm"
+     viewBox="0 0 ${svgW} ${svgH}"
+     shape-rendering="geometricPrecision">
+  <!--
+    Generated by Drawing → TinkerCAD SVG
+    Contours: ${contours.length} | Size: ${w}×${h}px @ ${mpp}mm/px
+    All paths closed with Z — safe for TinkerCAD SVG import + extrude
+  -->
+  <path fill="#000000" fill-rule="evenodd" stroke="none" d="${pd}"/>
 </svg>`;
 }
-function setMsg(m){document.getElementById('procMsg').innerText=m;}
-function tick(){return new Promise(r=>setTimeout(r,10));}
 
-// ─── Stars ────────────────────────────────────────────────────────────────────
+function setP(m){ document.getElementById('pmsg').textContent=m; }
+function tick(){ return new Promise(r=>setTimeout(r,10)); }
+
+/* ── Downloads ───────────────────────────────────────── */
+async function doSVG(){
+  proc.classList.add('on');
+  try{
+    const svg = await buildSVG();
+    const url = URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+    const a = Object.assign(document.createElement('a'),{href:url,download:'drawing-tinkercad.svg'});
+    a.click(); URL.revokeObjectURL(url);
+    const zCount = (svg.match(/Z/g)||[]).length;
+    sbar.textContent = isKid
+      ? `🎉 Saved! ${zCount} closed shapes — ready for TinkerCAD!`
+      : `✅ Exported ${zCount} closed paths (${cv.width}×${cv.height}px)`;
+    burst();
+  }finally{ proc.classList.remove('on'); }
+}
+
+function doPNG(){
+  cv.toBlob(b=>{
+    const url=URL.createObjectURL(b);
+    const a=Object.assign(document.createElement('a'),{href:url,download:'drawing.png'});
+    a.click(); URL.revokeObjectURL(url); burst();
+  });
+}
+
+document.getElementById('dlSvg').addEventListener('click', doSVG);
+document.getElementById('dlPng').addEventListener('click', doPNG);
+
+/* ── Star burst ──────────────────────────────────────── */
 function burst(){
-    if(!isKid)return;
-    const b=document.getElementById('starBurst'); b.innerHTML='';
-    const em=['⭐','🌟','✨','🎉','🎊','💫','🔷','🌈'];
-    for(let i=0;i<14;i++){
-        const s=document.createElement('span'); s.className='star';
-        s.textContent=em[Math.floor(Math.random()*em.length)];
-        s.style.left=(15+Math.random()*70)+'%'; s.style.top=(15+Math.random()*70)+'%';
-        s.style.animationDelay=(Math.random()*0.5)+'s'; b.appendChild(s);
-    }
-    setTimeout(()=>b.innerHTML='',2200);
+  if(!isKid) return;
+  const b=document.getElementById('stars'); b.innerHTML='';
+  const em=['⭐','🌟','✨','🎉','🎊','💫','🔷','🌈'];
+  for(let i=0;i<14;i++){
+    const s=document.createElement('span'); s.className='star';
+    s.textContent=em[Math.random()*em.length|0];
+    s.style.left=(15+Math.random()*70)+'%';
+    s.style.top=(15+Math.random()*70)+'%';
+    s.style.animationDelay=(Math.random()*.5)+'s';
+    b.appendChild(s);
+  }
+  setTimeout(()=>b.innerHTML='',2200);
 }
-
-// ─── Downloads ────────────────────────────────────────────────────────────────
-async function doSvgDownload(){
-    overlay.classList.add('on');
-    try{
-        const svg=await buildSVG();
-        const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
-        const a=document.createElement('a'); a.href=url; a.download='drawing-tinkercad.svg'; a.click();
-        URL.revokeObjectURL(url);
-        const n=(svg.match(/Z/g)||[]).length;
-        statusBar.innerText=isKid?`🎉 Saved! ${n} shapes ready for TinkerCAD!`:`✅ SVG exported with ${n} closed paths`;
-        burst();
-    }finally{overlay.classList.remove('on');}
-}
-function doPngDownload(){
-    canvas.toBlob(b=>{const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download='drawing.png';a.click();URL.revokeObjectURL(url);burst();});
-}
-document.getElementById('dlSvg').addEventListener('click',doSvgDownload);
-document.getElementById('dlPng').addEventListener('click',doPngDownload);
-
-// ─── Crop ─────────────────────────────────────────────────────────────────────
-function enterCropMode(){
-    isCropMode=true; cropCanvas.width=canvas.width; cropCanvas.height=canvas.height;
-    cropCanvas.classList.add('active'); document.getElementById('cropToolbar').classList.add('on');
-}
-function cancelCropMode(){
-    isCropMode=false; cropCanvas.classList.remove('active'); document.getElementById('cropToolbar').classList.remove('on');
-}
-function applyCrop(){
-    if(!dragStart||!dragEnd)return;
-    cropRect={x:Math.min(dragStart.x,dragEnd.x),y:Math.min(dragStart.y,dragEnd.y),w:Math.abs(dragEnd.x-dragStart.x),h:Math.abs(dragEnd.y-dragStart.y)};
-    cancelCropMode();
-    document.getElementById('tCropBadge').classList.add('on');
-    document.getElementById('kCropBadge').classList.add('on');
-    processImage();
-}
-function resetCrop(){
-    cropRect=null;
-    document.getElementById('tCropBadge').classList.remove('on');
-    document.getElementById('kCropBadge').classList.remove('on');
-    processImage();
-}
-cropCanvas.addEventListener('mousedown',e=>{
-    if(!isCropMode)return;
-    const r=canvas.getBoundingClientRect(),sc=canvas.width/r.width;
-    dragStart={x:(e.clientX-r.left)*sc,y:(e.clientY-r.top)*sc}; isDragging=true;
-});
-window.addEventListener('mousemove',e=>{
-    if(!isDragging)return;
-    const r=canvas.getBoundingClientRect(),sc=canvas.width/r.width;
-    dragEnd={x:(e.clientX-r.left)*sc,y:(e.clientY-r.top)*sc};
-    cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
-    cropCtx.strokeStyle=isKid?'#f43f5e':'orange';
-    cropCtx.lineWidth=isKid?5:2; cropCtx.setLineDash([8,4]);
-    cropCtx.strokeRect(dragStart.x,dragStart.y,dragEnd.x-dragStart.x,dragEnd.y-dragStart.y);
-    document.getElementById('btnApplyCrop').disabled=false;
-});
-window.addEventListener('mouseup',()=>isDragging=false);
 </script>
 </body>
 </html>
