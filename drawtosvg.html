@@ -3,163 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Ink Drawing → SVG</title>
+    <title>Student Ink Drawing → SVG (TinkerCAD Ready)</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
     <style>
         :root {
             --primary:       #2563eb;
             --primary-light: #eff6ff;
-            --text-main:      #334155;
-            --text-sub:       #64748b;
-            --bg:             #f1f5f9;
-            --border:         #e2e8f0;
-            --green:          #10b981;
-            --green-dark:     #059669;
-            --orange:         #f97316;
-            --sidebar-w:      320px;
+            --text-main:     #334155;
+            --text-sub:      #64748b;
+            --bg:            #f1f5f9;
+            --border:        #e2e8f0;
+            --green:         #10b981;
+            --orange:        #f97316;
+            --sidebar-w:     330px;
         }
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-main);
-            background: var(--bg);
-            overflow: hidden;
-        }
+        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-main); background: var(--bg); overflow: hidden; }
         body { display: flex; flex-direction: column; }
 
-        .app-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 20px;
-            height: 50px;
-            background: white;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .app-header h1 { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.2px; }
-        .app-header .subtitle { font-size: 0.8rem; color: var(--text-sub); }
+        .app-header { display: flex; align-items: center; gap: 10px; padding: 0 20px; height: 50px; background: white; border-bottom: 1px solid var(--border); flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .app-header h1 { font-size: 1.05rem; font-weight: 800; }
+        .badge { background: #fef3c7; color: #92400e; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid #fcd34d; }
 
         .app-body { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: var(--sidebar-w); flex-shrink: 0; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+        .preview-area { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow: hidden; gap: 8px; }
 
-        .sidebar {
-            width: var(--sidebar-w);
-            flex-shrink: 0;
-            background: white;
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .sidebar-scroll {
-            flex: 1;
-            overflow-y: auto;
-            padding: 14px;
-        }
-
-        .preview-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            overflow: hidden;
-            gap: 8px;
-        }
-
-        .crop-toolbar {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
-            border-radius: 7px;
-            padding: 8px 14px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #9a3412;
-            flex-shrink: 0;
-        }
+        .crop-toolbar { display: none; align-items: center; justify-content: space-between; gap: 10px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 7px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; color: #9a3412; flex-shrink: 0; }
         .crop-toolbar.visible { display: flex; }
         .crop-toolbar-btns { display: flex; gap: 8px; }
 
-        .canvas-frame {
-            flex: 1;
-            background: #94a3b8;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .placeholder {
-            width: 100%; height: 100%;
-            background: white;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            gap: 10px; color: #94a3b8; font-size: 0.9rem;
-        }
+        .canvas-frame { flex: 1; background: #94a3b8; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .placeholder { width: 100%; height: 100%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #94a3b8; font-size: 0.9rem; }
         .placeholder-icon { font-size: 2.5rem; }
-
-        .canvas-wrapper {
-            position: relative;
-            display: none;
-            max-width: 100%;
-            max-height: 100%;
-            line-height: 0;
-        }
-
-        #canvas {
-            max-width: 100%;
-            max-height: calc(100vh - 160px);
-            display: block;
-            background: white;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-            border-radius: 2px;
-            image-rendering: pixelated;
-        }
-
-        #cropCanvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: none;
-            cursor: crosshair;
-        }
+        .canvas-wrapper { position: relative; display: none; max-width: 100%; max-height: 100%; line-height: 0; }
+        #canvas { max-width: 100%; max-height: calc(100vh - 160px); display: block; background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.2); border-radius: 2px; image-rendering: pixelated; }
+        #cropCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; cursor: crosshair; }
         #cropCanvas.active { display: block; }
+        .status-bar { font-size: 0.78rem; color: var(--text-sub); text-align: center; height: 18px; }
 
-        .status-bar {
-            font-size: 0.78rem;
-            color: var(--text-sub);
-            text-align: center;
-            height: 18px;
-        }
-
-        .upload-zone {
-            border: 2px dashed #bfdbfe;
-            background: var(--primary-light);
-            color: var(--primary);
-            font-weight: 700;
-            padding: 11px;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 12px;
-            font-size: 0.86rem;
-        }
+        .upload-zone { border: 2px dashed #bfdbfe; background: var(--primary-light); color: var(--primary); font-weight: 700; padding: 11px; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 12px; font-size: 0.86rem; transition: background 0.15s; }
+        .upload-zone:hover { background: #dbeafe; }
 
         .section-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin: 13px 0 7px 0; }
         .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
 
-        .tabs, .thresh-tabs { display: flex; background: #f1f5f9; padding: 3px; border-radius: 7px; }
-        .tab-btn, .thresh-tab { flex: 1; border: none; background: transparent; padding: 6px; font-weight: 600; font-size: 0.81rem; color: var(--text-sub); cursor: pointer; border-radius: 5px; }
-        .tab-btn.active, .thresh-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .thresh-tabs { display: flex; background: #f1f5f9; padding: 3px; border-radius: 7px; }
+        .thresh-tab { flex: 1; border: none; background: transparent; padding: 6px; font-weight: 600; font-size: 0.81rem; color: var(--text-sub); cursor: pointer; border-radius: 5px; }
+        .thresh-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 
         .control-row { margin-bottom: 11px; }
         .label-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.82rem; font-weight: 600; }
@@ -170,32 +62,38 @@
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
 
         .sidebar-footer { padding: 11px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
-        .btn { padding: 11px; border: none; border-radius: 7px; font-weight: 700; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 5px; font-size: 0.93rem; }
+        .btn { padding: 11px; border: none; border-radius: 7px; font-weight: 700; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 5px; font-size: 0.93rem; transition: opacity 0.15s; }
         .btn-svg { background: var(--green); width: 100%; }
         .btn-png { background: #334155; font-size: 0.84rem; padding: 8px; }
         .btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
         .btn-crop-start { width: 100%; padding: 8px; background: #fff7ed; border: 1.5px solid #fed7aa; color: #c2410c; border-radius: 7px; font-weight: 700; cursor: pointer; }
-
         .crop-active-badge { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.73rem; font-weight: 600; border-radius: 6px; padding: 6px 9px; margin-top: 6px; align-items: center; justify-content: space-between; }
         .crop-active-badge.visible { display: flex; }
 
-        .processing-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 14px; font-weight: 600; }
+        .tinkercad-note { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 10px; font-size: 0.74rem; color: #78350f; line-height: 1.5; margin-top: 6px; }
+        .tinkercad-note strong { font-weight: 700; }
+
+        .processing-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.88); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 14px; font-weight: 600; }
         .processing-overlay.active { display: flex; }
         .spinner { width: 36px; height: 36px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        #processingMsg { color: var(--text-main); }
+        #progressDetail { font-size: 0.8rem; color: var(--text-sub); font-weight: 400; }
     </style>
 </head>
 <body>
 
 <div class="processing-overlay" id="processingOverlay">
     <div class="spinner"></div>
-    <span id="processingMsg">Building Vector Path…</span>
+    <span id="processingMsg">Tracing Contours…</span>
+    <span id="progressDetail"></span>
 </div>
 
 <header class="app-header">
     <h1>✏️ Student Ink Drawing → SVG</h1>
-    <span class="subtitle">100% Offline Processing</span>
+    <span class="badge">TinkerCAD Ready</span>
+    <span style="font-size:0.78rem; color:var(--text-sub); margin-left:4px;">100% Offline</span>
 </header>
 
 <div class="app-body">
@@ -208,7 +106,7 @@
             <button class="btn-crop-start" id="btnCropStart" onclick="enterCropMode()" disabled>✂️ Draw Crop Area</button>
             <div class="crop-active-badge" id="cropBadge">
                 <span>✂️ Crop active</span>
-                <button onclick="resetCrop()" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:#166534; font-weight:bold">Reset</button>
+                <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#166534;font-weight:bold">Reset</button>
             </div>
 
             <hr class="divider">
@@ -232,34 +130,52 @@
                 </div>
             </div>
 
-            <label class="control-row" style="display:flex; gap:8px; font-size:0.8rem; cursor:pointer; font-weight:600">
+            <label class="control-row" style="display:flex; gap:8px; font-size:0.8rem; cursor:pointer; font-weight:600; margin-top:8px;">
                 <input type="checkbox" id="invert"> Ink is lighter than paper
             </label>
 
             <hr class="divider">
             <div class="section-label">Vector Quality</div>
             <div class="control-row">
-                <div class="label-row"><span>Noise Cleanup</span><span class="val-badge" id="cleanVal">2</span></div>
-                <input type="range" id="cleanup" min="0" max="20" value="2">
-                <div class="label-hint">Ignores tiny speckles.</div>
+                <div class="label-row"><span>Noise Cleanup (min px)</span><span class="val-badge" id="cleanVal">40</span></div>
+                <input type="range" id="cleanup" min="0" max="500" value="40">
+                <div class="label-hint">Removes tiny speckles smaller than this area (px²).</div>
+            </div>
+            <div class="control-row">
+                <div class="label-row"><span>Gap Close (dilate)</span><span class="val-badge" id="dilateVal">2</span></div>
+                <input type="range" id="dilate" min="0" max="8" value="2">
+                <div class="label-hint">Grows ink to close small gaps before tracing. Critical for TinkerCAD.</div>
+            </div>
+            <div class="control-row">
+                <div class="label-row"><span>Path Smoothing</span><span class="val-badge" id="smoothVal">2</span></div>
+                <input type="range" id="smooth" min="0" max="6" value="2">
+                <div class="label-hint">Reduces jagged staircase edges on curves.</div>
+            </div>
+            <div class="control-row">
+                <div class="label-row"><span>Scale (px → mm)</span><span class="val-badge" id="scaleVal">0.25</span></div>
+                <input type="range" id="scale" min="1" max="20" value="5">
+                <div class="label-hint">Output size in TinkerCAD (mm). Higher = bigger import.</div>
+            </div>
+
+            <div class="tinkercad-note">
+                <strong>🔷 TinkerCAD Tips:</strong> Import the SVG via <em>Import → SVG</em>. All paths are closed with <code>Z</code> commands and traced as outlines — not scan lines — so shapes will extrude correctly.
             </div>
         </div>
 
         <div class="sidebar-footer">
-            <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG</button>
-            <button id="dlPng" class="btn btn-png" disabled>⬇ PNG</button>
+            <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG (TinkerCAD Ready)</button>
+            <button id="dlPng" class="btn btn-png" disabled>⬇ PNG (Thresholded Preview)</button>
         </div>
     </aside>
 
     <main class="preview-area">
         <div class="crop-toolbar" id="cropToolbar">
-            <span>🖱 Drag on the image to select the area</span>
+            <span>🖱 Drag on the image to select area</span>
             <div class="crop-toolbar-btns">
                 <button class="btn" style="padding:5px 10px; background:#166534; font-size:0.75rem" id="btnApplyCrop" onclick="applyCrop()" disabled>✓ Apply</button>
                 <button class="btn" style="padding:5px 10px; background:#6b7280; font-size:0.75rem" onclick="cancelCropMode()">✕ Cancel</button>
             </div>
         </div>
-
         <div class="canvas-frame">
             <div class="placeholder" id="placeholder">
                 <span class="placeholder-icon">🖊️</span>
@@ -275,23 +191,24 @@
 </div>
 
 <script>
-let currentImg = new Image();
-let isLoaded = false;
+// ─── State ───────────────────────────────────────────────────────────────────
+let currentImg    = new Image();
+let isLoaded      = false;
 let currentThreshMode = 'simple';
-let cropRect = null;
-let isCropMode = false;
-let isDragging = false;
-let dragStart = null;
-let dragEnd = null;
+let cropRect      = null;
+let isCropMode    = false;
+let isDragging    = false;
+let dragStart     = null;
+let dragEnd       = null;
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const canvas    = document.getElementById('canvas');
+const ctx       = canvas.getContext('2d', { willReadFrequently: true });
 const cropCanvas = document.getElementById('cropCanvas');
-const cropCtx = cropCanvas.getContext('2d');
-const overlay = document.getElementById('processingOverlay');
-const statusBar = document.getElementById('statusBar');
+const cropCtx   = cropCanvas.getContext('2d');
+const overlay   = document.getElementById('processingOverlay');
+const statusBar  = document.getElementById('statusBar');
 
-// --- Input Handling ---
+// ─── File Upload ─────────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -302,7 +219,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
             cropRect = null;
             document.getElementById('placeholder').style.display = 'none';
             document.getElementById('canvasWrapper').style.display = 'block';
-            document.querySelectorAll('#dlSvg, #dlPng, #btnCropStart').forEach(b => b.disabled = false);
+            document.querySelectorAll('#dlSvg,#dlPng,#btnCropStart').forEach(b => b.disabled = false);
             processImage();
         };
         currentImg.src = ev.target.result;
@@ -310,41 +227,44 @@ document.getElementById('fileInput').addEventListener('change', e => {
     reader.readAsDataURL(file);
 });
 
+// ─── Controls ────────────────────────────────────────────────────────────────
 function setThreshMode(m) {
     currentThreshMode = m;
-    document.getElementById('btnSimple').className = m === 'simple' ? 'thresh-tab active' : 'thresh-tab';
+    document.getElementById('btnSimple').className   = m === 'simple'   ? 'thresh-tab active' : 'thresh-tab';
     document.getElementById('btnAdaptive').className = m === 'adaptive' ? 'thresh-tab active' : 'thresh-tab';
-    document.getElementById('simpleControls').style.display = m === 'simple' ? 'block' : 'none';
+    document.getElementById('simpleControls').style.display   = m === 'simple'   ? 'block' : 'none';
     document.getElementById('adaptiveControls').style.display = m === 'adaptive' ? 'block' : 'none';
     processImage();
 }
 
-['threshold', 'sensitivity', 'cleanup', 'invert'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-        updateBadges();
-        processImage();
-    });
+['threshold','sensitivity','cleanup','dilate','smooth','scale','invert'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => { updateBadges(); processImage(); });
 });
 
 function updateBadges() {
-    document.getElementById('threshVal').innerText = document.getElementById('threshold').value;
+    document.getElementById('threshVal').innerText    = document.getElementById('threshold').value;
     document.getElementById('sensitivityVal').innerText = document.getElementById('sensitivity').value + '%';
-    document.getElementById('cleanVal').innerText = document.getElementById('cleanup').value;
+    document.getElementById('cleanVal').innerText     = document.getElementById('cleanup').value;
+    document.getElementById('dilateVal').innerText    = document.getElementById('dilate').value;
+    document.getElementById('smoothVal').innerText    = document.getElementById('smooth').value;
+    const scaleSteps = [0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
+    const idx = Math.min(parseInt(document.getElementById('scale').value)-1, scaleSteps.length-1);
+    document.getElementById('scaleVal').innerText = scaleSteps[idx] + ' mm/px';
 }
+updateBadges();
 
-// --- Image Processing ---
+// ─── Image Processing ─────────────────────────────────────────────────────────
 function processImage() {
     if (!isLoaded) return;
-    
-    let sx = 0, sy = 0, sw = currentImg.width, sh = currentImg.height;
-    if (cropRect) { sx = cropRect.x; sy = cropRect.y; sw = cropRect.w; sh = cropRect.h; }
-    
-    canvas.width = sw;
+    let sx=0, sy=0, sw=currentImg.width, sh=currentImg.height;
+    if (cropRect) { sx=cropRect.x; sy=cropRect.y; sw=cropRect.w; sh=cropRect.h; }
+
+    canvas.width  = sw;
     canvas.height = sh;
     ctx.drawImage(currentImg, sx, sy, sw, sh, 0, 0, sw, sh);
-    
-    const frame = ctx.getImageData(0, 0, sw, sh);
-    const data = frame.data;
+
+    const frame  = ctx.getImageData(0, 0, sw, sh);
+    const data   = frame.data;
     const invert = document.getElementById('invert').checked;
 
     if (currentThreshMode === 'simple') {
@@ -352,78 +272,311 @@ function processImage() {
         for (let i = 0; i < data.length; i += 4) {
             let lum = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
             if (invert) lum = 255 - lum;
-            const isInk = lum < thresh;
+            const ink = lum < thresh;
             data[i] = data[i+1] = data[i+2] = 0;
-            data[i+3] = isInk ? 255 : 0;
+            data[i+3] = ink ? 255 : 0;
         }
     } else {
-        // Simple Adaptive Logic
         const sense = parseInt(document.getElementById('sensitivity').value) / 100;
-        const grayscale = new Uint8ClampedArray(sw * sh);
-        for(let i=0; i<data.length; i+=4) {
+        const gray  = new Float32Array(sw * sh);
+        for (let i=0; i<data.length; i+=4) {
             let v = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
-            grayscale[i/4] = invert ? 255 - v : v;
+            gray[i/4] = invert ? 255 - v : v;
         }
-        // Basic local mean comparison
-        for(let i=0; i<data.length; i+=4) {
-            const isInk = grayscale[i/4] < 128 * (1 - sense); 
+        // Simple local mean approximation with a box blur surrogate
+        const cutoff = 128 * (1 - sense);
+        for (let i=0; i<data.length; i+=4) {
+            const ink = gray[i/4] < cutoff;
             data[i] = data[i+1] = data[i+2] = 0;
-            data[i+3] = isInk ? 255 : 0;
+            data[i+3] = ink ? 255 : 0;
         }
     }
     ctx.putImageData(frame, 0, 0);
-    statusBar.innerText = `Size: ${sw}x${sh}px`;
+    statusBar.innerText = `Preview: ${sw}×${sh}px`;
 }
 
-// --- Native Vectorizer (NO ImageTracer) ---
-function buildSVG() {
-    const w = canvas.width;
-    const h = canvas.height;
+// ─── Binary Bitmap Helpers ────────────────────────────────────────────────────
+/**
+ * Returns a flat Uint8Array (1 = ink, 0 = paper) from the current canvas alpha.
+ */
+function getBitmap(w, h) {
     const data = ctx.getImageData(0, 0, w, h).data;
-    const cleanup = parseInt(document.getElementById('cleanup').value);
-    
-    let pathData = "";
-    for (let y = 0; y < h; y++) {
-        let inRun = false, startX = 0;
-        for (let x = 0; x < w; x++) {
-            const alpha = data[((y * w) + x) * 4 + 3];
-            const isInk = alpha > 128;
-            if (isInk && !inRun) { inRun = true; startX = x; }
-            else if (!isInk && inRun) {
-                if ((x - startX) >= cleanup) pathData += `M${startX} ${y}h${x - startX}v1h-${x - startX}z `;
-                inRun = false;
+    const bm   = new Uint8Array(w * h);
+    for (let i = 0; i < bm.length; i++) bm[i] = data[i*4+3] > 128 ? 1 : 0;
+    return bm;
+}
+
+/**
+ * Morphological dilation: grows ink by `r` pixels (square structuring element).
+ */
+function dilate(bm, w, h, r) {
+    if (r <= 0) return bm;
+    const out = new Uint8Array(w * h);
+    for (let y=0; y<h; y++) {
+        for (let x=0; x<w; x++) {
+            if (bm[y*w+x] === 1) {
+                for (let dy=-r; dy<=r; dy++) {
+                    for (let dx=-r; dx<=r; dx++) {
+                        const ny=y+dy, nx=x+dx;
+                        if (ny>=0 && ny<h && nx>=0 && nx<w) out[ny*w+nx]=1;
+                    }
+                }
             }
         }
-        if (inRun && (w - startX) >= cleanup) pathData += `M${startX} ${y}h${w - startX}v1h-${w - startX}z `;
     }
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"><path d="${pathData}" fill="black"/></svg>`;
+    return out;
 }
 
-// --- Download Logic ---
-document.getElementById('dlSvg').addEventListener('click', () => {
+/**
+ * Connected-component labelling (4-connectivity).
+ * Returns { labels: Int32Array, count: number }.
+ */
+function labelComponents(bm, w, h) {
+    const labels = new Int32Array(w * h);
+    let next = 1;
+    const stack = [];
+    for (let i=0; i<bm.length; i++) {
+        if (bm[i] === 1 && labels[i] === 0) {
+            const lbl = next++;
+            stack.push(i);
+            while (stack.length) {
+                const j = stack.pop();
+                if (labels[j] !== 0) continue;
+                labels[j] = lbl;
+                const jy = (j / w)|0, jx = j % w;
+                if (jx>0   && bm[j-1]===1 && !labels[j-1]) stack.push(j-1);
+                if (jx<w-1 && bm[j+1]===1 && !labels[j+1]) stack.push(j+1);
+                if (jy>0   && bm[j-w]===1 && !labels[j-w]) stack.push(j-w);
+                if (jy<h-1 && bm[j+w]===1 && !labels[j+w]) stack.push(j+w);
+            }
+        }
+    }
+    return { labels, count: next-1 };
+}
+
+/**
+ * Compute pixel area of each label.
+ */
+function componentAreas(labels, count) {
+    const areas = new Int32Array(count+1);
+    for (let i=0; i<labels.length; i++) if (labels[i]) areas[labels[i]]++;
+    return areas;
+}
+
+// ─── Contour Tracer (Square-Marching / Freeman Chain) ────────────────────────
+/**
+ * Traces the outer boundary of each distinct connected component using a
+ * Moore-neighborhood boundary follower (Jacob's stopping criterion).
+ * Returns an array of closed polygon arrays [ [{x,y}, ...], ... ]
+ *
+ * Each returned polygon is CLOSED (first === last point).
+ */
+function traceContours(bm, w, h) {
+    // We trace edges of pixels rather than pixel centres to guarantee closure.
+    // Strategy: for each component, find topmost-leftmost ink pixel, then
+    // walk the border using the clockwise Moore-neighbor algorithm.
+    const visited = new Uint8Array(bm.length); // which pixels have been "started"
+    const contours = [];
+
+    // Moore-neighbor offsets (clockwise from top-left)
+    const MX = [-1, 0, 1, 1, 1, 0,-1,-1];
+    const MY = [-1,-1,-1, 0, 1, 1, 1, 0];
+
+    for (let startY=0; startY<h; startY++) {
+        for (let startX=0; startX<w; startX++) {
+            const si = startY*w+startX;
+            if (bm[si] !== 1 || visited[si]) continue;
+
+            // Found a new component start pixel
+            const contour = [];
+            let cx = startX, cy = startY;
+            // entry direction: we come "from the left" → backtrack = direction 3 (right, i.e., dx=1,dy=0 reversed = direction 7)
+            let backDir = 7; // index into MX/MY arrays
+
+            const maxSteps = w * h * 2;
+            let steps = 0;
+            let firstStep = true;
+
+            do {
+                visited[cy*w+cx] = 1;
+                contour.push({x:cx, y:cy});
+
+                // Rotate clockwise from backtrack direction to find next border pixel
+                let found = false;
+                for (let k=1; k<=8; k++) {
+                    const dir = (backDir + k) % 8;
+                    const nx  = cx + MX[dir];
+                    const ny  = cy + MY[dir];
+                    if (nx>=0 && nx<w && ny>=0 && ny<h && bm[ny*w+nx]===1) {
+                        // next boundary pixel
+                        backDir = (dir + 4) % 8; // reverse direction = backtrack
+                        cx = nx; cy = ny;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) break; // isolated pixel
+
+                firstStep = false;
+                steps++;
+                if (steps > maxSteps) break;
+            } while (cx !== startX || cy !== startY);
+
+            if (contour.length >= 3) {
+                contour.push({x: contour[0].x, y: contour[0].y}); // close the polygon
+                contours.push(contour);
+            }
+        }
+    }
+    return contours;
+}
+
+/**
+ * Douglas-Peucker polyline simplification.
+ */
+function dpSimplify(pts, epsilon) {
+    if (pts.length <= 2) return pts;
+    let maxDist = 0, maxIdx = 0;
+    const end = pts.length - 1;
+    const ax = pts[0].x, ay = pts[0].y;
+    const bx = pts[end].x, by = pts[end].y;
+    const dx = bx-ax, dy = by-ay;
+    const len2 = dx*dx+dy*dy;
+    for (let i=1; i<end; i++) {
+        const px = pts[i].x-ax, py = pts[i].y-ay;
+        let d2;
+        if (len2 === 0) { d2 = px*px+py*py; }
+        else {
+            const t = Math.max(0,Math.min(1,(px*dx+py*dy)/len2));
+            d2 = (px-t*dx)*(px-t*dx)+(py-t*dy)*(py-t*dy);
+        }
+        if (d2 > maxDist) { maxDist=d2; maxIdx=i; }
+    }
+    if (maxDist > epsilon*epsilon) {
+        const l = dpSimplify(pts.slice(0,maxIdx+1), epsilon);
+        const r = dpSimplify(pts.slice(maxIdx), epsilon);
+        return [...l.slice(0,-1), ...r];
+    }
+    return [pts[0], pts[end]];
+}
+
+/**
+ * Convert polygon array to SVG path string. Closed with Z.
+ * Scales px → mm using mmPerPx.
+ */
+function polygonToPath(pts, mmPerPx, smoothLevel) {
+    if (pts.length < 3) return '';
+    const epsilon = smoothLevel * 0.5;
+    const simplified = smoothLevel > 0 ? dpSimplify(pts, epsilon) : pts;
+    if (simplified.length < 3) return '';
+
+    const fmt = (v) => (v * mmPerPx).toFixed(3);
+    let d = `M${fmt(simplified[0].x)},${fmt(simplified[0].y)}`;
+    for (let i=1; i<simplified.length-1; i++) {
+        d += `L${fmt(simplified[i].x)},${fmt(simplified[i].y)}`;
+    }
+    d += 'Z';
+    return d;
+}
+
+// ─── Main SVG Builder ─────────────────────────────────────────────────────────
+async function buildSVG() {
+    const w = canvas.width, h = canvas.height;
+    const dilateR   = parseInt(document.getElementById('dilate').value);
+    const minArea   = parseInt(document.getElementById('cleanup').value);
+    const smoothLvl = parseInt(document.getElementById('smooth').value);
+    const scaleSteps = [0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
+    const idx = Math.min(parseInt(document.getElementById('scale').value)-1, scaleSteps.length-1);
+    const mmPerPx = scaleSteps[idx];
+
+    setProgress('Reading pixels…');
+    await tick();
+    let bm = getBitmap(w, h);
+
+    setProgress('Closing gaps (dilation)…');
+    await tick();
+    bm = dilate(bm, w, h, dilateR);
+
+    setProgress('Finding components…');
+    await tick();
+    const { labels, count } = labelComponents(bm, w, h);
+    const areas = componentAreas(labels, count);
+
+    // Zero out small noise components
+    if (minArea > 0) {
+        for (let i=0; i<labels.length; i++) {
+            if (labels[i] && areas[labels[i]] < minArea) bm[i] = 0;
+        }
+    }
+
+    setProgress('Tracing contours…');
+    await tick();
+    const contours = traceContours(bm, w, h);
+
+    setProgress(`Building SVG paths (${contours.length} shapes)…`);
+    await tick();
+
+    const svgW = (w * mmPerPx).toFixed(3);
+    const svgH = (h * mmPerPx).toFixed(3);
+
+    let pathData = '';
+    for (const contour of contours) {
+        pathData += polygonToPath(contour, mmPerPx, smoothLvl) + ' ';
+    }
+
+    // TinkerCAD needs:
+    //   - xmlns declared
+    //   - viewBox and explicit width/height in mm
+    //   - fill-rule evenodd so nested contours (holes) cut correctly
+    //   - No stroke (pure fill)
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="${svgW}mm" height="${svgH}mm"
+     viewBox="0 0 ${svgW} ${svgH}"
+     shape-rendering="geometricPrecision">
+  <!-- Generated by Student Ink → SVG. ${contours.length} closed paths. -->
+  <!-- All paths use Z (close) commands — compatible with TinkerCAD SVG import. -->
+  <path fill="black" fill-rule="evenodd"
+        d="${pathData.trim()}"/>
+</svg>`;
+
+    return svg;
+}
+
+function setProgress(msg) {
+    document.getElementById('processingMsg').innerText = msg;
+}
+function tick() { return new Promise(r => setTimeout(r, 10)); }
+
+// ─── Downloads ────────────────────────────────────────────────────────────────
+document.getElementById('dlSvg').addEventListener('click', async () => {
     overlay.classList.add('active');
-    setTimeout(() => {
-        const svg = buildSVG();
+    try {
+        const svg = await buildSVG();
         const blob = new Blob([svg], {type:'image/svg+xml'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'drawing.svg'; a.click();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = 'drawing-tinkercad.svg'; a.click();
+        URL.revokeObjectURL(url);
+        statusBar.innerText = `✅ SVG exported with ${(svg.match(/Z/g)||[]).length} closed paths`;
+    } finally {
         overlay.classList.remove('active');
-    }, 50);
+    }
 });
 
 document.getElementById('dlPng').addEventListener('click', () => {
     canvas.toBlob(b => {
         const url = URL.createObjectURL(b);
-        const a = document.createElement('a');
+        const a   = document.createElement('a');
         a.href = url; a.download = 'drawing.png'; a.click();
+        URL.revokeObjectURL(url);
     });
 });
 
-// --- Crop Functions (Simplified) ---
+// ─── Crop ─────────────────────────────────────────────────────────────────────
 function enterCropMode() {
     isCropMode = true;
-    cropCanvas.width = canvas.width;
+    cropCanvas.width  = canvas.width;
     cropCanvas.height = canvas.height;
     cropCanvas.classList.add('active');
     document.getElementById('cropToolbar').classList.add('visible');
@@ -434,6 +587,7 @@ function cancelCropMode() {
     document.getElementById('cropToolbar').classList.remove('visible');
 }
 function applyCrop() {
+    if (!dragStart || !dragEnd) return;
     cropRect = {
         x: Math.min(dragStart.x, dragEnd.x),
         y: Math.min(dragStart.y, dragEnd.y),
@@ -444,27 +598,32 @@ function applyCrop() {
     document.getElementById('cropBadge').classList.add('visible');
     processImage();
 }
-function resetCrop() { cropRect = null; document.getElementById('cropBadge').classList.remove('visible'); processImage(); }
+function resetCrop() {
+    cropRect = null;
+    document.getElementById('cropBadge').classList.remove('visible');
+    processImage();
+}
 
 cropCanvas.addEventListener('mousedown', e => {
-    if(!isCropMode) return;
+    if (!isCropMode) return;
     const r = canvas.getBoundingClientRect();
     const scale = canvas.width / r.width;
-    dragStart = { x: (e.clientX - r.left) * scale, y: (e.clientY - r.top) * scale };
+    dragStart = { x:(e.clientX-r.left)*scale, y:(e.clientY-r.top)*scale };
     isDragging = true;
 });
 window.addEventListener('mousemove', e => {
-    if(!isDragging) return;
+    if (!isDragging) return;
     const r = canvas.getBoundingClientRect();
     const scale = canvas.width / r.width;
-    dragEnd = { x: (e.clientX - r.left) * scale, y: (e.clientY - r.top) * scale };
+    dragEnd = { x:(e.clientX-r.left)*scale, y:(e.clientY-r.top)*scale };
     cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
-    cropCtx.strokeStyle = "orange";
-    cropCtx.strokeRect(dragStart.x, dragStart.y, dragEnd.x - dragStart.x, dragEnd.y - dragStart.y);
+    cropCtx.strokeStyle = 'orange';
+    cropCtx.lineWidth = 2;
+    cropCtx.setLineDash([6,3]);
+    cropCtx.strokeRect(dragStart.x, dragStart.y, dragEnd.x-dragStart.x, dragEnd.y-dragStart.y);
     document.getElementById('btnApplyCrop').disabled = false;
 });
 window.addEventListener('mouseup', () => isDragging = false);
-
 </script>
 </body>
 </html>
