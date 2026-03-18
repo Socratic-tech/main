@@ -668,106 +668,145 @@ document.getElementById('dlsvg').addEventListener('click',doSVG);
 document.getElementById('dlpng').addEventListener('click',doPNG);
 
 // ─── STL ENGINE ───────────────────────────────────────────────────────────────
-// Extrudes the traced 2D contours into a solid binary STL.
-// Pipeline: get contours → classify outer/hole → ear-clip triangulate top/bottom
-//           → stitch quad side walls → write binary STL buffer.
+// The contour tracer returns BOTH outer boundaries (CCW, positive signed area)
+// AND inner hole boundaries (CW, negative signed area).
+// The old engine extruded every contour as a separate solid, filling holes.
+// The fix:
+//   1. Classify each contour as outer or hole by signed area
+//   2. Match holes to their parent outer contour (point-in-polygon test)
+//   3. Merge holes into the outer polygon via bridge edges
+//   4. Ear-clip the merged polygon → correct top/bottom faces with holes
+//   5. Extrude outer walls outward, hole walls inward
 
-// ── Ear-clipping triangulation (handles simple polygons, no self-intersections) ──
-function triangulate(ring){
-  // ring = [{x,y},...] closed polygon (last pt != first pt)
-  const n=ring.length;
-  if(n<3)return[];
-  if(n===3)return[[0,1,2]];
+function stlSignedArea(pts){
+  let a=0;
+  for(let i=0;i<pts.length;i++){
+    const j=(i+1)%pts.length;
+    a+=pts[i].x*pts[j].y - pts[j].x*pts[i].y;
+  }
+  return a/2;
+}
 
-  // Determine winding (positive = CCW in screen coords where Y grows down)
-  let area=0;
-  for(let i=0;i<n;i++){const j=(i+1)%n;area+=ring[i].x*ring[j].y-ring[j].x*ring[i].y;}
-  // For STL top face we want CCW when viewed from above (+Z); screen Y is flipped
-  // so we reverse if area > 0 (CW in math coords)
-  const pts = area>0 ? [...ring].reverse() : [...ring];
+function ptInPoly(px,py,poly){
+  let inside=false, j=poly.length-1;
+  for(let i=0;i<poly.length;i++){
+    const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
+    if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi)) inside=!inside;
+    j=i;
+  }
+  return inside;
+}
 
-  const idx=Array.from({length:pts.length},(_,i)=>i);
+// Bridge a hole into an outer polygon so ear-clip can handle both as one ring.
+// Finds the rightmost hole vertex and connects it to the nearest outer vertex.
+function bridgeHole(outer, hole){
+  // Find rightmost point of hole
+  let hi=0;
+  for(let i=1;i<hole.length;i++) if(hole[i].x>hole[hi].x) hi=i;
+  const hx=hole[hi].x, hy=hole[hi].y;
+  // Find best outer vertex: closest with x >= hx, or just closest
+  let best=-1, bestD=Infinity;
+  for(let i=0;i<outer.length;i++){
+    if(outer[i].x>=hx){
+      const d=(outer[i].x-hx)**2+(outer[i].y-hy)**2;
+      if(d<bestD){bestD=d;best=i;}
+    }
+  }
+  if(best<0){
+    for(let i=0;i<outer.length;i++){
+      const d=(outer[i].x-hx)**2+(outer[i].y-hy)**2;
+      if(d<bestD){bestD=d;best=i;}
+    }
+  }
+  // Splice: outer[0..best] → hole starting at hi → hole back to hi → outer[best..]
+  return [
+    ...outer.slice(0,best+1),
+    ...hole.slice(hi),
+    ...hole.slice(0,hi+1),
+    ...outer.slice(best)
+  ];
+}
+
+// Ear-clipping triangulation of a simple polygon (no holes, merged already).
+// Works in screen-space Y-down coordinates.
+function earClip(pts){
+  const n=pts.length;
+  if(n<3) return [];
+  if(n===3) return [[0,1,2]];
+  // Ensure CW winding (positive area in Y-down = CW for ear-clip)
+  let a=0;
+  for(let i=0;i<n;i++){const j=(i+1)%n;a+=pts[i].x*pts[j].y-pts[j].x*pts[i].y;}
+  const p = a>0 ? pts.map((_,i)=>pts[n-1-i]) : [...pts]; // reverse if CCW→make CW
+  const origIdx = a>0
+    ? pts.map((_,i)=>n-1-i)   // reverse mapping back to original indices
+    : pts.map((_,i)=>i);
+
+  const idx=Array.from({length:p.length},(_,i)=>i);
   const tris=[];
-  let guard=pts.length*3;
+  let guard=p.length*4;
   while(idx.length>3 && guard-->0){
     let ear=-1;
     for(let i=0;i<idx.length;i++){
-      const a=idx[(i-1+idx.length)%idx.length];
-      const b=idx[i];
-      const c=idx[(i+1)%idx.length];
-      if(isEar(pts,idx,a,b,c)){ear=i;break;}
+      const ai=idx[(i-1+idx.length)%idx.length];
+      const bi=idx[i];
+      const ci=idx[(i+1)%idx.length];
+      const ax=p[ai].x,ay=p[ai].y,bx=p[bi].x,by=p[bi].y,cx=p[ci].x,cy=p[ci].y;
+      // Convex? (cross product < 0 for CW winding)
+      if((bx-ax)*(cy-ay)-(by-ay)*(cx-ax)>0) continue;
+      // No other vertex inside this triangle
+      let ok=true;
+      for(let k=0;k<idx.length;k++){
+        const v=idx[k]; if(v===ai||v===bi||v===ci) continue;
+        const px=p[v].x,py=p[v].y;
+        const d1=(bx-ax)*(py-ay)-(by-ay)*(px-ax);
+        const d2=(cx-bx)*(py-by)-(cy-by)*(px-bx);
+        const d3=(ax-cx)*(py-cy)-(ay-cy)*(px-cx);
+        const neg=(d1<0)||(d2<0)||(d3<0), pos=(d1>0)||(d2>0)||(d3>0);
+        if(!(neg&&pos)){ok=false;break;}
+      }
+      if(ok){ear=i;break;}
     }
-    if(ear<0)break; // degenerate polygon fallback
-    const a=idx[(ear-1+idx.length)%idx.length];
-    const b=idx[ear];
-    const c=idx[(ear+1)%idx.length];
-    tris.push([a,b,c]);
+    if(ear<0) break;
+    const ai=idx[(ear-1+idx.length)%idx.length];
+    const bi=idx[ear];
+    const ci=idx[(ear+1)%idx.length];
+    tris.push([origIdx[ai],origIdx[bi],origIdx[ci]]);
     idx.splice(ear,1);
   }
-  if(idx.length===3)tris.push([idx[0],idx[1],idx[2]]);
+  if(idx.length===3) tris.push([origIdx[idx[0]],origIdx[idx[1]],origIdx[idx[2]]]);
   return tris;
 }
-function isEar(pts,idx,a,b,c){
-  const ax=pts[a].x,ay=pts[a].y,bx=pts[b].x,by=pts[b].y,cx=pts[c].x,cy=pts[c].y;
-  // Must be convex (cross product > 0 for CCW)
-  if((bx-ax)*(cy-ay)-(by-ay)*(cx-ax)<0)return false;
-  // No other vertex inside this triangle
-  for(let i=0;i<idx.length;i++){
-    const v=idx[i];if(v===a||v===b||v===c)continue;
-    if(ptInTri(pts[v].x,pts[v].y,ax,ay,bx,by,cx,cy))return false;
-  }
-  return true;
-}
-function ptInTri(px,py,ax,ay,bx,by,cx,cy){
-  const d1=sign(px,py,ax,ay,bx,by),d2=sign(px,py,bx,by,cx,cy),d3=sign(px,py,cx,cy,ax,ay);
-  const hasNeg=(d1<0)||(d2<0)||(d3<0),hasPos=(d1>0)||(d2>0)||(d3>0);
-  return!(hasNeg&&hasPos);
-}
-function sign(p1x,p1y,p2x,p2y,p3x,p3y){return(p1x-p3x)*(p2y-p3y)-(p2x-p3x)*(p1y-p3y);}
 
-// ── Binary STL writer ──────────────────────────────────────────────────────────
-// Binary STL: 80-byte header + uint32 triangle count + per-tri: 12-byte normal + 3×12-byte verts + 2-byte attrib
-function writeBinarySTL(triangles){
-  // triangles = [{n:[nx,ny,nz], v:[[x,y,z],[x,y,z],[x,y,z]]}, ...]
-  const buf=new ArrayBuffer(80+4+triangles.length*50);
+function writeBinarySTL(tris){
+  // Binary STL: 80B header + 4B count + N×50B triangles
+  const buf=new ArrayBuffer(84+tris.length*50);
   const dv=new DataView(buf);
-  // Header
-  const enc=new TextEncoder();
-  const hdr=enc.encode('STL generated by Drawing → TinkerCAD SVG tool');
-  for(let i=0;i<Math.min(hdr.length,80);i++)dv.setUint8(i,hdr[i]);
-  dv.setUint32(80,triangles.length,true);
+  const hdr=new TextEncoder().encode('Drawing STL - correct hole handling');
+  for(let i=0;i<Math.min(hdr.length,80);i++) dv.setUint8(i,hdr[i]);
+  dv.setUint32(80,tris.length,true);
   let off=84;
-  for(const t of triangles){
-    dv.setFloat32(off,   t.n[0],true);off+=4;
-    dv.setFloat32(off,   t.n[1],true);off+=4;
-    dv.setFloat32(off,   t.n[2],true);off+=4;
-    for(const v of t.v){
-      dv.setFloat32(off,v[0],true);off+=4;
-      dv.setFloat32(off,v[1],true);off+=4;
-      dv.setFloat32(off,v[2],true);off+=4;
+  for(const {n,v} of tris){
+    dv.setFloat32(off,n[0],true);off+=4;
+    dv.setFloat32(off,n[1],true);off+=4;
+    dv.setFloat32(off,n[2],true);off+=4;
+    for(const p of v){
+      dv.setFloat32(off,p[0],true);off+=4;
+      dv.setFloat32(off,p[1],true);off+=4;
+      dv.setFloat32(off,p[2],true);off+=4;
     }
     dv.setUint16(off,0,true);off+=2;
   }
   return buf;
 }
 
-function vecNorm(ax,ay,az,bx,by,bz,cx,cy,cz){
-  // Normal via cross product of (B-A)×(C-A)
-  const ux=bx-ax,uy=by-ay,uz=bz-az;
-  const vx=cx-ax,vy=cy-ay,vz=cz-az;
-  const nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
-  const len=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
-  return[nx/len,ny/len,nz/len];
-}
-
 async function buildSTL(){
-  // Run same pipeline as SVG but return polygon arrays instead of SVG paths
   const w=canvas.width,h=canvas.height;
   const dilR=parseInt(document.getElementById('dilate').value);
   const minPx=parseInt(document.getElementById('cleanup').value);
   const sm=parseInt(document.getElementById('smooth').value)*0.5+0.5;
   const mpp=SMAP[parseInt(document.getElementById('scale').value)]||.10;
   const thk=parseFloat(document.getElementById('thk').value);
+  const Z0=0, Z1=thk;
 
   setMsg(isKid?'✨ Reading pixels…':'Reading pixels…');await tick();
   let bm=getBM(w,h);
@@ -777,13 +816,12 @@ async function buildSTL(){
   if(minPx>0){
     const{L,n}=labelBM(bm,w,h);
     const areas=new Int32Array(n+1);
-    for(let i=0;i<L.length;i++)if(L[i])areas[L[i]]++;
-    for(let i=0;i<L.length;i++)if(L[i]&&areas[L[i]]<minPx)bm[i]=0;
+    for(let i=0;i<L.length;i++) if(L[i]) areas[L[i]]++;
+    for(let i=0;i<L.length;i++) if(L[i]&&areas[L[i]]<minPx) bm[i]=0;
   }
+
   setMsg(isKid?'✏️ Tracing outlines…':'Tracing contours…');await tick();
   let cons=traceContours(bm,w,h);
-
-  // Edge filter (same as SVG)
   const EDGE=8;
   cons=cons.filter(c=>{
     let xmn=w,xmx=0,ymn=h,ymx=0;
@@ -791,51 +829,86 @@ async function buildSTL(){
     return xmn>=EDGE&&xmx<=w-EDGE&&ymn>=EDGE&&ymx<=h-EDGE&&(xmx-xmn)*(ymx-ymn)>=200;
   });
 
-  // Simplify and convert to mm rings (drop closing duplicate point)
+  // Simplify to mm-space rings (no closing duplicate)
   const rings=cons.map(c=>{
     const s=sm>0?dpSimp(c,sm):c;
-    // remove closing duplicate
-    const r=s[s.length-1].x===s[0].x&&s[s.length-1].y===s[0].y?s.slice(0,-1):s;
-    return r.map(p=>({x:p.x*mpp, y:p.y*mpp}));
+    const r=(s[s.length-1].x===s[0].x&&s[s.length-1].y===s[0].y)?s.slice(0,-1):s;
+    return r.map(p=>({x:p.x*mpp,y:p.y*mpp}));
   }).filter(r=>r.length>=3);
 
-  setMsg(isKid?`🖨️ Building ${rings.length} shapes…`:`Building STL (${rings.length} rings)…`);await tick();
+  // ── Classify outer vs hole by signed area ─────────────────────────────────
+  const outers=rings.filter(r=>stlSignedArea(r)>0);
+  const holes =rings.filter(r=>stlSignedArea(r)<0);
+
+  // ── Match holes to parent outer ───────────────────────────────────────────
+  const groups=outers.map(outer=>({outer, holes:[]}));
+  const usedHoles=new Set();
+  for(let hi=0;hi<holes.length;hi++){
+    for(const g of groups){
+      if(!usedHoles.has(hi)&&ptInPoly(holes[hi][0].x,holes[hi][0].y,g.outer)){
+        g.holes.push(holes[hi]); usedHoles.add(hi); break;
+      }
+    }
+  }
+
+  setMsg(isKid?`🖨️ Building 3D shapes…`:`Building STL geometry…`);await tick();
 
   const tris=[];
-  const Z0=0, Z1=thk;
 
-  for(const ring of rings){
-    const n=ring.length;
-    if(n<3)continue;
-
-    // ── Top face (z = Z1, normal = +Z) ──────────────────────────────────────
-    const topTris=triangulate(ring);
-    for(const [a,b,c] of topTris){
-      const ax=ring[a].x,ay=ring[a].y;
-      const bx=ring[b].x,by=ring[b].y;
-      const cx=ring[c].x,cy=ring[c].y;
-      tris.push({n:[0,0,1],v:[[ax,ay,Z1],[bx,by,Z1],[cx,cy,Z1]]});
+  for(const {outer,holes:groupHoles} of groups){
+    // ── Merge holes into outer via bridge edges ──────────────────────────────
+    // Holes from Moore tracer are CW (negative area); bridge expects CCW holes
+    // Reverse them so they're CCW before merging
+    let merged=outer;
+    const holesSorted=[...groupHoles].sort((a,b)=>
+      Math.max(...b.map(p=>p.x))-Math.max(...a.map(p=>p.x))
+    );
+    for(const hole of holesSorted){
+      const holeCCW=[...hole].reverse(); // CW → CCW for bridge
+      merged=bridgeHole(merged,holeCCW);
     }
 
-    // ── Bottom face (z = Z0, normal = −Z, winding reversed) ──────────────────
-    for(const [a,b,c] of topTris){
-      const ax=ring[a].x,ay=ring[a].y;
-      const bx=ring[b].x,by=ring[b].y;
-      const cx=ring[c].x,cy=ring[c].y;
-      tris.push({n:[0,0,-1],v:[[ax,ay,Z0],[cx,cy,Z0],[bx,by,Z0]]});
+    // ── Triangulate merged polygon ───────────────────────────────────────────
+    const faceTris=earClip(merged);
+
+    // Top face (Z1, normal +Z)
+    for(const [a,b,c] of faceTris){
+      tris.push({n:[0,0,1],v:[
+        [merged[a].x,merged[a].y,Z1],
+        [merged[b].x,merged[b].y,Z1],
+        [merged[c].x,merged[c].y,Z1]
+      ]});
+    }
+    // Bottom face (Z0, normal -Z, reversed winding)
+    for(const [a,b,c] of faceTris){
+      tris.push({n:[0,0,-1],v:[
+        [merged[a].x,merged[a].y,Z0],
+        [merged[c].x,merged[c].y,Z0],
+        [merged[b].x,merged[b].y,Z0]
+      ]});
     }
 
-    // ── Side walls: quad strip around perimeter ───────────────────────────────
-    for(let i=0;i<n;i++){
-      const j=(i+1)%n;
-      const x0=ring[i].x,y0=ring[i].y;
-      const x1=ring[j].x,y1=ring[j].y;
-      // Two triangles per edge quad
-      const nx=y1-y0, ny=-(x1-x0); // outward normal (unscaled, will normalise in writer)
-      const len=Math.sqrt(nx*nx+ny*ny)||1;
-      const norm=[nx/len,ny/len,0];
-      tris.push({n:norm, v:[[x0,y0,Z0],[x1,y1,Z0],[x1,y1,Z1]]});
-      tris.push({n:norm, v:[[x0,y0,Z0],[x1,y1,Z1],[x0,y0,Z1]]});
+    // ── Outer side walls ─────────────────────────────────────────────────────
+    const on=outer.length;
+    for(let i=0;i<on;i++){
+      const j=(i+1)%on;
+      const x0=outer[i].x,y0=outer[i].y,x1=outer[j].x,y1=outer[j].y;
+      const nx=y1-y0,ny=-(x1-x0),nl=Math.sqrt(nx*nx+ny*ny)||1;
+      const nrm=[nx/nl,ny/nl,0];
+      tris.push({n:nrm,v:[[x0,y0,Z0],[x1,y1,Z0],[x1,y1,Z1]]});
+      tris.push({n:nrm,v:[[x0,y0,Z0],[x1,y1,Z1],[x0,y0,Z1]]});
+    }
+
+    // ── Hole side walls (inward-facing) ───────────────────────────────────────
+    for(const hole of groupHoles){
+      const hn=hole.length;
+      for(let i=0;i<hn;i++){
+        const j=(i+1)%hn;
+        const x0=hole[i].x,y0=hole[i].y,x1=hole[j].x,y1=hole[j].y;
+        // Reversed winding: hole walls face inward (into the solid)
+        tris.push({n:[0,0,0],v:[[x0,y0,Z1],[x1,y1,Z0],[x0,y0,Z0]]});
+        tris.push({n:[0,0,0],v:[[x0,y0,Z1],[x1,y1,Z1],[x1,y1,Z0]]});
+      }
     }
   }
 
@@ -848,10 +921,10 @@ async function doSTL(){
   try{
     const buf=await buildSTL();
     dlBlob(new Blob([buf],{type:'model/stl'}),'drawing.stl');
-    const mb=(buf.byteLength/1024/1024).toFixed(2);
+    const kb=(buf.byteLength/1024).toFixed(0);
     sbar.textContent=isKid
-      ?`🖨️ STL saved! Open in Cura or PrusaSlicer to print!`
-      :`✅ STL exported (${mb} MB) — open in your slicer, slice and print!`;
+      ?`🖨️ STL ready! Open in Cura, PrusaSlicer, or Bambu Studio to print!`
+      :`✅ STL exported (${kb} KB) — open in your slicer and print!`;
     burst();
   }finally{proc.classList.remove('on');}
 }
