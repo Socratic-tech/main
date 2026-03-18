@@ -3,223 +3,562 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Ink Drawing → SVG (TinkerCAD Ready)</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+    <title>Drawing Magic → SVG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖍️</text></svg>">
     <style>
-        :root {
-            --primary:       #2563eb;
-            --primary-light: #eff6ff;
-            --text-main:     #334155;
-            --text-sub:      #64748b;
-            --bg:            #f1f5f9;
-            --border:        #e2e8f0;
-            --green:         #10b981;
-            --orange:        #f97316;
-            --sidebar-w:     330px;
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-main); background: var(--bg); overflow: hidden; }
-        body { display: flex; flex-direction: column; }
+/* ═══════════════════════════════════════
+   RESET
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { display: flex; flex-direction: column; transition: background 0.45s; }
 
-        .app-header { display: flex; align-items: center; gap: 10px; padding: 0 20px; height: 50px; background: white; border-bottom: 1px solid var(--border); flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-        .app-header h1 { font-size: 1.05rem; font-weight: 800; }
-        .badge { background: #fef3c7; color: #92400e; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid #fcd34d; }
+/* ═══════════════════════════════════════
+   TEACHER MODE (default)
+═══════════════════════════════════════ */
+body.mode-teacher {
+    font-family: 'DM Sans', sans-serif;
+    color: #334155;
+    background: #f1f5f9;
+    --primary: #2563eb;
+    --primary-light: #eff6ff;
+    --green: #10b981;
+    --border: #e2e8f0;
+    --sub: #64748b;
+    --sidebar-w: 330px;
+    --header-h: 50px;
+    --r: 7px;
+}
 
-        .app-body { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: var(--sidebar-w); flex-shrink: 0; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 14px; }
-        .preview-area { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow: hidden; gap: 8px; }
+/* ═══════════════════════════════════════
+   KID MODE
+═══════════════════════════════════════ */
+body.mode-kid {
+    font-family: 'Nunito', sans-serif;
+    color: #1e1b4b;
+    background: #fef9f0;
+    --primary: #f43f5e;
+    --primary-light: #fff1f2;
+    --green: #22c55e;
+    --border: #fde68a;
+    --sub: #78716c;
+    --sidebar-w: 300px;
+    --header-h: 64px;
+    --r: 16px;
+}
+body.mode-kid::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+        radial-gradient(circle at 10% 15%, #fde68a44 0%, transparent 38%),
+        radial-gradient(circle at 88% 80%, #a5f3fc44 0%, transparent 38%),
+        radial-gradient(circle at 50% 50%, #fbcfe844 0%, transparent 55%);
+}
 
-        .crop-toolbar { display: none; align-items: center; justify-content: space-between; gap: 10px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 7px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; color: #9a3412; flex-shrink: 0; }
-        .crop-toolbar.visible { display: flex; }
-        .crop-toolbar-btns { display: flex; gap: 8px; }
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.app-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 20px; height: var(--header-h);
+    background: white; flex-shrink: 0;
+    position: relative; z-index: 10;
+    transition: all 0.4s;
+}
+.mode-teacher .app-header { border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.mode-kid     .app-header { border-bottom: none; box-shadow: 0 5px 0 #fde68a; }
 
-        .canvas-frame { flex: 1; background: #94a3b8; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .placeholder { width: 100%; height: 100%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #94a3b8; font-size: 0.9rem; }
-        .placeholder-icon { font-size: 2.5rem; }
-        .canvas-wrapper { position: relative; display: none; max-width: 100%; max-height: 100%; line-height: 0; }
-        #canvas { max-width: 100%; max-height: calc(100vh - 160px); display: block; background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.2); border-radius: 2px; image-rendering: pixelated; }
-        #cropCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; cursor: crosshair; }
-        #cropCanvas.active { display: block; }
-        .status-bar { font-size: 0.78rem; color: var(--text-sub); text-align: center; height: 18px; }
+.hdr-title { display: flex; flex-direction: column; }
+.mode-teacher .hdr-title h1 { font-size: 1.05rem; font-weight: 800; }
+.mode-kid     .hdr-title h1 { font-family: 'Fredoka One', cursive; font-size: 1.55rem; color: #f43f5e; }
+.mode-kid     .hdr-title h1 span { color: #8b5cf6; }
+.hdr-sub { font-size: 0.73rem; color: var(--sub); font-weight: 600; }
+.mode-kid .hdr-sub { display: none; }
 
-        .upload-zone { border: 2px dashed #bfdbfe; background: var(--primary-light); color: var(--primary); font-weight: 700; padding: 11px; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 12px; font-size: 0.86rem; transition: background 0.15s; }
-        .upload-zone:hover { background: #dbeafe; }
+.hdr-space { flex: 1; }
 
-        .section-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin: 13px 0 7px 0; }
-        .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+.badge {
+    font-size: 0.72rem; font-weight: 700; padding: 3px 9px;
+    border-radius: 20px; white-space: nowrap; transition: all 0.3s;
+}
+.mode-teacher .badge { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.mode-kid     .badge { background: #ede9fe; color: #6d28d9; border: 2px solid #c4b5fd; font-family: 'Fredoka One', cursive; font-size: 0.88rem; }
 
-        .thresh-tabs { display: flex; background: #f1f5f9; padding: 3px; border-radius: 7px; }
-        .thresh-tab { flex: 1; border: none; background: transparent; padding: 6px; font-weight: 600; font-size: 0.81rem; color: var(--text-sub); cursor: pointer; border-radius: 5px; }
-        .thresh-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+/* Toggle pill */
+.mode-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: #f8fafc; border: 2px solid #e2e8f0;
+    border-radius: 50px; padding: 4px 12px 4px 6px;
+    cursor: pointer; user-select: none; transition: all 0.3s;
+}
+.mode-kid .mode-pill { background: #fdf4ff; border-color: #e9d5ff; }
+.pill-track {
+    width: 44px; height: 24px; background: #e2e8f0;
+    border-radius: 12px; position: relative; transition: background 0.3s;
+    flex-shrink: 0;
+}
+.mode-kid .pill-track { background: #c4b5fd; }
+.pill-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; background: white;
+    border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+}
+.mode-kid .pill-thumb { transform: translateX(20px); }
+.pill-lbl { font-size: 0.82rem; font-weight: 700; color: #64748b; }
+.mode-kid .pill-lbl { color: #7c3aed; font-family: 'Nunito', sans-serif; }
 
-        .control-row { margin-bottom: 11px; }
-        .label-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.82rem; font-weight: 600; }
-        .val-badge { background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-size: 0.74rem; color: var(--text-sub); }
-        .label-hint { font-size: 0.71rem; color: var(--text-sub); margin-top: 3px; line-height: 1.35; }
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.app-body { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
 
-        input[type="range"] { width: 100%; height: 5px; background: #e2e8f0; border-radius: 3px; outline: none; -webkit-appearance: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+.sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    background: white; display: flex; flex-direction: column;
+    overflow: hidden; transition: width 0.4s;
+}
+.mode-teacher .sidebar { border-right: 1px solid #e2e8f0; }
+.mode-kid     .sidebar { border-right: 3px solid #fde68a; }
 
-        .sidebar-footer { padding: 11px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
-        .btn { padding: 11px; border: none; border-radius: 7px; font-weight: 700; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 5px; font-size: 0.93rem; transition: opacity 0.15s; }
-        .btn-svg { background: var(--green); width: 100%; }
-        .btn-png { background: #334155; font-size: 0.84rem; padding: 8px; }
-        .btn:disabled { opacity: 0.38; cursor: not-allowed; }
+.sb-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+.preview-area { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow: hidden; gap: 8px; }
 
-        .btn-crop-start { width: 100%; padding: 8px; background: #fff7ed; border: 1.5px solid #fed7aa; color: #c2410c; border-radius: 7px; font-weight: 700; cursor: pointer; }
-        .crop-active-badge { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.73rem; font-weight: 600; border-radius: 6px; padding: 6px 9px; margin-top: 6px; align-items: center; justify-content: space-between; }
-        .crop-active-badge.visible { display: flex; }
+/* ═══════════════════════════════════════
+   TEACHER SIDEBAR
+═══════════════════════════════════════ */
+.teacher-ui { display: block; }
+.mode-kid .teacher-ui { display: none; }
+.mode-kid .teacher-footer { display: none; }
 
-        .tinkercad-note { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 10px; font-size: 0.74rem; color: #78350f; line-height: 1.5; margin-top: 6px; }
-        .tinkercad-note strong { font-weight: 700; }
+.upload-zone {
+    border: 2px dashed #bfdbfe; background: var(--primary-light);
+    color: var(--primary); font-weight: 700; padding: 11px;
+    text-align: center; border-radius: 8px; cursor: pointer;
+    margin-bottom: 12px; font-size: 0.86rem; transition: background 0.15s;
+}
+.upload-zone:hover { background: #dbeafe; }
+.sec-lbl { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin: 13px 0 7px 0; }
+.divider { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+.t-tabs { display: flex; background: #f1f5f9; padding: 3px; border-radius: 7px; }
+.t-tab { flex: 1; border: none; background: transparent; padding: 6px; font-weight: 600; font-size: 0.81rem; color: #64748b; cursor: pointer; border-radius: 5px; }
+.t-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.cr { margin-bottom: 11px; }
+.lr { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.82rem; font-weight: 600; }
+.vb { background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-size: 0.74rem; color: #64748b; }
+.hint { font-size: 0.71rem; color: #64748b; margin-top: 3px; line-height: 1.35; }
+input[type="range"] { width: 100%; height: 5px; background: #e2e8f0; border-radius: 3px; outline: none; -webkit-appearance: none; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+.teacher-footer { padding: 11px 14px; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 7px; }
+.btn { padding: 11px; border: none; border-radius: 7px; font-weight: 700; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 5px; font-size: 0.93rem; }
+.btn-svg { background: var(--green); width: 100%; }
+.btn-png { background: #334155; font-size: 0.84rem; padding: 8px; }
+.btn:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn-crop-t { width: 100%; padding: 8px; background: #fff7ed; border: 1.5px solid #fed7aa; color: #c2410c; border-radius: 7px; font-weight: 700; cursor: pointer; }
+.crop-badge { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.73rem; font-weight: 600; border-radius: 6px; padding: 6px 9px; margin-top: 6px; align-items: center; justify-content: space-between; }
+.crop-badge.on { display: flex; }
+.tc-note { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 10px; font-size: 0.74rem; color: #78350f; line-height: 1.5; margin-top: 6px; }
 
-        .processing-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.88); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 14px; font-weight: 600; }
-        .processing-overlay.active { display: flex; }
-        .spinner { width: 36px; height: 36px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #processingMsg { color: var(--text-main); }
-        #progressDetail { font-size: 0.8rem; color: var(--text-sub); font-weight: 400; }
+/* ═══════════════════════════════════════
+   KID SIDEBAR — STEP CARDS
+═══════════════════════════════════════ */
+.kid-ui { display: none; flex-direction: column; gap: 12px; padding: 14px; flex: 1; overflow-y: auto; }
+.mode-kid .kid-ui { display: flex; }
+.kid-footer { display: none; padding: 14px; border-top: 3px dashed #fde68a; flex-direction: column; gap: 10px; }
+.mode-kid .kid-footer { display: flex; }
+
+.scard {
+    border-radius: 18px; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 9px;
+    border: 3px solid transparent; transition: transform 0.18s;
+}
+.scard:hover { transform: translateY(-2px); }
+.scard.s1 { background: #fff1f2; border-color: #fda4af; }
+.scard.s2 { background: #fefce8; border-color: #fde047; }
+.scard.s3 { background: #f0fdf4; border-color: #86efac; }
+.scard.s4 { background: #f5f3ff; border-color: #c4b5fd; }
+
+.scard-hdr { display: flex; align-items: center; gap: 9px; }
+.snum {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    font-family: 'Fredoka One', cursive; font-size: 1rem; color: white; flex-shrink: 0;
+}
+.s1 .snum { background: #f43f5e; }
+.s2 .snum { background: #eab308; }
+.s3 .snum { background: #22c55e; }
+.s4 .snum { background: #8b5cf6; }
+.stitle { font-family: 'Fredoka One', cursive; font-size: 1.05rem; }
+.s1 .stitle { color: #be123c; }
+.s2 .stitle { color: #a16207; }
+.s3 .stitle { color: #15803d; }
+.s4 .stitle { color: #6d28d9; }
+.shint { font-size: 0.78rem; color: #6b7280; font-weight: 700; line-height: 1.45; }
+
+/* Kid buttons */
+.k-upload {
+    width: 100%; padding: 14px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, #f43f5e, #fb923c);
+    color: white; font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+    cursor: pointer; box-shadow: 0 4px 0 #be123c;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.k-upload:active { transform: translateY(3px); box-shadow: 0 1px 0 #be123c; }
+
+.k-crop-btn {
+    width: 100%; padding: 10px; background: white;
+    border: 3px dashed #fde047; border-radius: 12px;
+    font-family: 'Fredoka One', cursive; font-size: 0.95rem;
+    color: #a16207; cursor: pointer; transition: background 0.15s;
+}
+.k-crop-btn:hover { background: #fefce8; }
+.k-crop-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.k-crop-on {
+    display: none; align-items: center; justify-content: space-between;
+    background: #fefce8; border: 2px solid #fde047; border-radius: 12px;
+    padding: 8px 12px; font-size: 0.78rem; font-weight: 800; color: #a16207;
+}
+.k-crop-on.on { display: flex; }
+
+/* Kid slider */
+.k-slider-wrap { display: flex; flex-direction: column; gap: 6px; }
+.k-slider-labels { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; }
+.k-range {
+    width: 100%; height: 12px; border-radius: 6px;
+    outline: none; -webkit-appearance: none; cursor: pointer;
+    background: linear-gradient(to right, #f43f5e 0%, #f43f5e var(--pct,46%), #fecdd3 var(--pct,46%), #fecdd3 100%);
+}
+.k-range::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 26px; height: 26px;
+    border-radius: 50%; background: white; border: 3px solid #f43f5e;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: grab;
+}
+.k-ink-emoji { font-size: 1.6rem; text-align: center; }
+.k-invert-row {
+    display: flex; align-items: center; gap: 10px;
+    background: white; border-radius: 12px; padding: 10px 12px;
+    border: 2px solid #d1fae5; cursor: pointer;
+    font-weight: 800; font-size: 0.8rem; color: #065f46;
+}
+.k-invert-row input { width: 18px; height: 18px; cursor: pointer; accent-color: #f43f5e; }
+
+/* Kid download buttons */
+.k-dl {
+    width: 100%; padding: 16px; border: none; border-radius: 16px;
+    font-family: 'Fredoka One', cursive; font-size: 1.15rem;
+    cursor: pointer; color: white; letter-spacing: 0.3px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.k-dl:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.k-dl-svg { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 5px 0 #15803d; }
+.k-dl-svg:not(:disabled):active { transform: translateY(4px); box-shadow: 0 1px 0 #15803d; }
+.k-dl-png { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 4px 0 #4c1d95; font-size: 0.96rem; }
+.k-dl-png:not(:disabled):active { transform: translateY(3px); box-shadow: 0 1px 0 #4c1d95; }
+
+/* ═══════════════════════════════════════
+   CANVAS AREA (shared)
+═══════════════════════════════════════ */
+.crop-toolbar {
+    display: none; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 14px; font-size: 0.82rem; font-weight: 600;
+    flex-shrink: 0; border-radius: 10px; transition: all 0.3s;
+}
+.mode-teacher .crop-toolbar { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+.mode-kid     .crop-toolbar { background: #fefce8; border: 2px solid #fde047; color: #713f12; border-radius: 14px; }
+.crop-toolbar.on { display: flex; }
+.ct-btns { display: flex; gap: 8px; }
+
+.canvas-frame {
+    flex: 1; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative; transition: all 0.4s;
+}
+.mode-teacher .canvas-frame { background: #94a3b8; }
+.mode-kid     .canvas-frame {
+    background: repeating-linear-gradient(0deg, #f0f9ff 0px, #f0f9ff 29px, #e0f2fe 29px, #e0f2fe 31px);
+    box-shadow: inset 0 0 0 3px #bae6fd;
+}
+
+.placeholder {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; font-size: 0.9rem; transition: all 0.3s;
+    background: transparent;
+}
+.mode-teacher .placeholder { color: #94a3b8; }
+.mode-kid     .placeholder { color: #93c5fd; font-family: 'Fredoka One', cursive; font-size: 1.15rem; }
+.ph-icon { font-size: 3rem; }
+.mode-kid .ph-icon { font-size: 4.5rem; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.ph-sub { font-size: 0.82rem; font-family: 'Nunito', sans-serif; font-weight: 800; color: #7dd3fc; display: none; }
+.mode-kid .ph-sub { display: block; }
+
+.canvas-wrapper { position: relative; display: none; max-width: 100%; max-height: 100%; line-height: 0; }
+#canvas {
+    max-width: 100%; max-height: calc(100vh - 180px);
+    display: block; background: white; image-rendering: pixelated;
+    transition: box-shadow 0.3s, border-radius 0.3s;
+}
+.mode-teacher #canvas { box-shadow: 0 2px 12px rgba(0,0,0,0.2); border-radius: 2px; }
+.mode-kid     #canvas { box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 0 0 5px #fde68a; border-radius: 10px; }
+
+#cropCanvas { position: absolute; top:0; left:0; width:100%; height:100%; display:none; cursor:crosshair; }
+#cropCanvas.active { display: block; }
+
+.status-bar { font-size: 0.78rem; color: var(--sub); text-align: center; height: 20px; font-weight: 600; }
+.mode-kid .status-bar { font-family: 'Nunito', sans-serif; font-size: 0.85rem; }
+
+/* ═══════════════════════════════════════
+   PROCESSING OVERLAY
+═══════════════════════════════════════ */
+.proc-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(255,255,255,0.88);
+    z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-weight: 600;
+}
+.proc-overlay.on { display: flex; }
+.spinner { border-radius: 50%; animation: spin 0.7s linear infinite; }
+.mode-teacher .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #2563eb; }
+.mode-kid     .spinner { width: 56px; height: 56px; border: 5px solid #fde68a; border-top-color: #f43f5e; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.mode-kid #procMsg { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #f43f5e; }
+.mode-kid #procSub { font-family: 'Nunito', sans-serif; font-size: 0.85rem; color: #9ca3af; }
+
+/* ═══════════════════════════════════════
+   STAR BURST
+═══════════════════════════════════════ */
+.star-burst { position: fixed; inset: 0; pointer-events: none; z-index: 500; }
+.star { position: absolute; font-size: 2rem; animation: starPop 1.3s ease-out forwards; }
+@keyframes starPop {
+    0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+    55%  { transform: scale(1.5) rotate(200deg); opacity: 1; }
+    100% { transform: scale(0.5) rotate(390deg) translateY(-90px); opacity: 0; }
+}
     </style>
 </head>
-<body>
+<body class="mode-teacher">
 
-<div class="processing-overlay" id="processingOverlay">
+<!-- Processing -->
+<div class="proc-overlay" id="procOverlay">
     <div class="spinner"></div>
-    <span id="processingMsg">Tracing Contours…</span>
-    <span id="progressDetail"></span>
+    <span id="procMsg">Tracing Contours…</span>
+    <span id="procSub"></span>
 </div>
 
+<!-- Star burst -->
+<div class="star-burst" id="starBurst"></div>
+
+<!-- Shared file input -->
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+
+<!-- ══ HEADER ═════════════════════════════════════════════════════ -->
 <header class="app-header">
-    <h1>✏️ Student Ink Drawing → SVG</h1>
-    <span class="badge">TinkerCAD Ready</span>
-    <span style="font-size:0.78rem; color:var(--text-sub); margin-left:4px;">100% Offline</span>
+    <div class="hdr-title">
+        <h1 id="hdrTitle">✏️ Student Ink Drawing → SVG</h1>
+        <span class="hdr-sub">100% Offline · TinkerCAD Compatible</span>
+    </div>
+    <span class="badge" id="hdrBadge">TinkerCAD Ready</span>
+    <div class="hdr-space"></div>
+    <div class="mode-pill" onclick="toggleMode()" title="Switch modes">
+        <div class="pill-track"><div class="pill-thumb" id="pillThumb">🎓</div></div>
+        <span class="pill-lbl" id="pillLbl">Kid Mode</span>
+    </div>
 </header>
 
+<!-- ══ BODY ═══════════════════════════════════════════════════════ -->
 <div class="app-body">
-    <aside class="sidebar">
-        <div class="sidebar-scroll">
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">📸 Upload Drawing Photo</div>
-            <input type="file" id="fileInput" accept="image/*" style="display:none">
 
-            <div class="section-label">Crop</div>
-            <button class="btn-crop-start" id="btnCropStart" onclick="enterCropMode()" disabled>✂️ Draw Crop Area</button>
-            <div class="crop-active-badge" id="cropBadge">
-                <span>✂️ Crop active</span>
-                <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#166534;font-weight:bold">Reset</button>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- ── TEACHER UI ───────────────────────────────────── -->
+    <div class="teacher-ui sb-scroll">
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">📸 Upload Drawing Photo</div>
+
+        <div class="sec-lbl">Crop</div>
+        <button class="btn-crop-t" id="tBtnCrop" onclick="enterCropMode()" disabled>✂️ Draw Crop Area</button>
+        <div class="crop-badge" id="tCropBadge">
+            <span>✂️ Crop active</span>
+            <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#166534;font-weight:bold">Reset</button>
+        </div>
+
+        <hr class="divider">
+        <div class="sec-lbl">Ink Detection</div>
+        <div class="t-tabs">
+            <button class="t-tab active" id="btnSimple" onclick="setThreshMode('simple')">Simple</button>
+            <button class="t-tab" id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
+        </div>
+        <div id="simpleControls" style="margin-top:9px;">
+            <div class="cr">
+                <div class="lr"><span>Threshold</span><span class="vb" id="threshVal">140</span></div>
+                <input type="range" id="threshold" min="0" max="255" value="140">
             </div>
-
-            <hr class="divider">
-            <div class="section-label">Ink Detection</div>
-            <div class="thresh-tabs">
-                <button class="thresh-tab active" id="btnSimple" onclick="setThreshMode('simple')">Simple</button>
-                <button class="thresh-tab" id="btnAdaptive" onclick="setThreshMode('adaptive')">Adaptive ✨</button>
+        </div>
+        <div id="adaptiveControls" style="display:none;margin-top:9px;">
+            <div class="cr">
+                <div class="lr"><span>Ink Sensitivity</span><span class="vb" id="sensitivityVal">12%</span></div>
+                <input type="range" id="sensitivity" min="1" max="35" value="12">
             </div>
+        </div>
+        <label style="display:flex;gap:8px;font-size:0.8rem;cursor:pointer;font-weight:600;margin-top:8px;">
+            <input type="checkbox" id="invert"> Ink is lighter than paper
+        </label>
 
-            <div id="simpleControls" style="margin-top:9px;">
-                <div class="control-row">
-                    <div class="label-row"><span>Threshold</span><span class="val-badge" id="threshVal">140</span></div>
-                    <input type="range" id="threshold" min="0" max="255" value="140">
-                </div>
+        <hr class="divider">
+        <div class="sec-lbl">Vector Quality</div>
+        <div class="cr">
+            <div class="lr"><span>Noise Cleanup (min px)</span><span class="vb" id="cleanVal">40</span></div>
+            <input type="range" id="cleanup" min="0" max="500" value="40">
+            <div class="hint">Removes tiny speckles smaller than this area (px²).</div>
+        </div>
+        <div class="cr">
+            <div class="lr"><span>Gap Close (dilate)</span><span class="vb" id="dilateVal">2</span></div>
+            <input type="range" id="dilate" min="0" max="8" value="2">
+            <div class="hint">Grows ink to close small gaps before tracing.</div>
+        </div>
+        <div class="cr">
+            <div class="lr"><span>Path Smoothing</span><span class="vb" id="smoothVal">2</span></div>
+            <input type="range" id="smooth" min="0" max="6" value="2">
+            <div class="hint">Reduces jagged staircase edges on curves.</div>
+        </div>
+        <div class="cr">
+            <div class="lr"><span>Scale (px → mm)</span><span class="vb" id="scaleVal">0.25 mm/px</span></div>
+            <input type="range" id="scale" min="1" max="20" value="5">
+            <div class="hint">Output size in TinkerCAD (mm).</div>
+        </div>
+        <div class="tc-note">
+            <strong>🔷 TinkerCAD Tips:</strong> Import via <em>Import → SVG</em>. All paths are closed with <code>Z</code> — shapes will extrude correctly.
+        </div>
+    </div>
+    <div class="teacher-footer">
+        <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG (TinkerCAD Ready)</button>
+        <button id="dlPng" class="btn btn-png" disabled>⬇ PNG (Thresholded Preview)</button>
+    </div>
+
+    <!-- ── KID UI ─────────────────────────────────────────── -->
+    <div class="kid-ui">
+
+        <!-- Step 1 -->
+        <div class="scard s1">
+            <div class="scard-hdr"><div class="snum">1</div><span class="stitle">Take a Photo! 📸</span></div>
+            <div class="shint">Snap a picture of your drawing or artwork.</div>
+            <button class="k-upload" onclick="document.getElementById('fileInput').click()">📷 Choose My Drawing</button>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="scard s2">
+            <div class="scard-hdr"><div class="snum">2</div><span class="stitle">Trim It ✂️ <span style="font-family:Nunito;font-size:0.72rem;color:#a16207;font-weight:700">(optional)</span></span></div>
+            <div class="shint">Cut out just the part you want!</div>
+            <button class="k-crop-btn" id="kBtnCrop" onclick="enterCropMode()" disabled>✂️ Trim My Drawing</button>
+            <div class="k-crop-on" id="kCropBadge">
+                <span>✂️ Crop ready!</span>
+                <button onclick="resetCrop()" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:#a16207;font-weight:800">Undo</button>
             </div>
+        </div>
 
-            <div id="adaptiveControls" style="display:none; margin-top:9px;">
-                <div class="control-row">
-                    <div class="label-row"><span>Ink Sensitivity</span><span class="val-badge" id="sensitivityVal">12%</span></div>
-                    <input type="range" id="sensitivity" min="1" max="35" value="12">
-                </div>
+        <!-- Step 3 -->
+        <div class="scard s3">
+            <div class="scard-hdr"><div class="snum">3</div><span class="stitle">Fix the Ink 🖊️</span></div>
+            <div class="shint">Move the slider until your drawing looks clean and black.</div>
+            <div class="k-slider-wrap">
+                <div class="k-slider-labels"><span>Light ☀️</span><span>Dark 🌙</span></div>
+                <input type="range" class="k-range" id="kThresh" min="50" max="220" value="140" oninput="syncKidSlider(this)">
             </div>
-
-            <label class="control-row" style="display:flex; gap:8px; font-size:0.8rem; cursor:pointer; font-weight:600; margin-top:8px;">
-                <input type="checkbox" id="invert"> Ink is lighter than paper
+            <div class="k-ink-emoji" id="kEmoji">🖊️</div>
+            <label class="k-invert-row">
+                <input type="checkbox" id="kInvert" onchange="syncKidInvert(this)">
+                <span>My ink is white or light colored</span>
             </label>
-
-            <hr class="divider">
-            <div class="section-label">Vector Quality</div>
-            <div class="control-row">
-                <div class="label-row"><span>Noise Cleanup (min px)</span><span class="val-badge" id="cleanVal">40</span></div>
-                <input type="range" id="cleanup" min="0" max="500" value="40">
-                <div class="label-hint">Removes tiny speckles smaller than this area (px²).</div>
-            </div>
-            <div class="control-row">
-                <div class="label-row"><span>Gap Close (dilate)</span><span class="val-badge" id="dilateVal">2</span></div>
-                <input type="range" id="dilate" min="0" max="8" value="2">
-                <div class="label-hint">Grows ink to close small gaps before tracing. Critical for TinkerCAD.</div>
-            </div>
-            <div class="control-row">
-                <div class="label-row"><span>Path Smoothing</span><span class="val-badge" id="smoothVal">2</span></div>
-                <input type="range" id="smooth" min="0" max="6" value="2">
-                <div class="label-hint">Reduces jagged staircase edges on curves.</div>
-            </div>
-            <div class="control-row">
-                <div class="label-row"><span>Scale (px → mm)</span><span class="val-badge" id="scaleVal">0.25</span></div>
-                <input type="range" id="scale" min="1" max="20" value="5">
-                <div class="label-hint">Output size in TinkerCAD (mm). Higher = bigger import.</div>
-            </div>
-
-            <div class="tinkercad-note">
-                <strong>🔷 TinkerCAD Tips:</strong> Import the SVG via <em>Import → SVG</em>. All paths are closed with <code>Z</code> commands and traced as outlines — not scan lines — so shapes will extrude correctly.
-            </div>
         </div>
 
-        <div class="sidebar-footer">
-            <button id="dlSvg" class="btn btn-svg" disabled>⬇ Download SVG (TinkerCAD Ready)</button>
-            <button id="dlPng" class="btn btn-png" disabled>⬇ PNG (Thresholded Preview)</button>
+        <!-- Step 4 label -->
+        <div class="scard s4">
+            <div class="scard-hdr"><div class="snum">4</div><span class="stitle">Save It! 🎉</span></div>
+            <div class="shint">Download your drawing to use in TinkerCAD or share it!</div>
         </div>
-    </aside>
 
-    <main class="preview-area">
-        <div class="crop-toolbar" id="cropToolbar">
-            <span>🖱 Drag on the image to select area</span>
-            <div class="crop-toolbar-btns">
-                <button class="btn" style="padding:5px 10px; background:#166534; font-size:0.75rem" id="btnApplyCrop" onclick="applyCrop()" disabled>✓ Apply</button>
-                <button class="btn" style="padding:5px 10px; background:#6b7280; font-size:0.75rem" onclick="cancelCropMode()">✕ Cancel</button>
-            </div>
+    </div>
+    <div class="kid-footer">
+        <button class="k-dl k-dl-svg" id="kDlSvg" disabled onclick="doSvgDownload()">🚀 Save for TinkerCAD!</button>
+        <button class="k-dl k-dl-png" id="kDlPng" disabled onclick="doPngDownload()">🖼️ Save as Picture</button>
+    </div>
+
+  </aside>
+
+  <!-- PREVIEW -->
+  <main class="preview-area">
+    <div class="crop-toolbar" id="cropToolbar">
+        <span>🖱 Drag on the image to select the area to keep</span>
+        <div class="ct-btns">
+            <button class="btn" style="padding:5px 12px;background:#166534;font-size:0.76rem;border-radius:8px" id="btnApplyCrop" onclick="applyCrop()" disabled>✓ Apply</button>
+            <button class="btn" style="padding:5px 12px;background:#6b7280;font-size:0.76rem;border-radius:8px" onclick="cancelCropMode()">✕ Cancel</button>
         </div>
-        <div class="canvas-frame">
-            <div class="placeholder" id="placeholder">
-                <span class="placeholder-icon">🖊️</span>
-                <span>Upload a photo to start</span>
-            </div>
-            <div class="canvas-wrapper" id="canvasWrapper">
-                <canvas id="canvas"></canvas>
-                <canvas id="cropCanvas"></canvas>
-            </div>
+    </div>
+    <div class="canvas-frame">
+        <div class="placeholder" id="placeholder">
+            <span class="ph-icon">🖊️</span>
+            <span id="phText">Upload a photo to start</span>
+            <span class="ph-sub">Take a photo of your drawing!</span>
         </div>
-        <div class="status-bar" id="statusBar"></div>
-    </main>
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="canvas"></canvas>
+            <canvas id="cropCanvas"></canvas>
+        </div>
+    </div>
+    <div class="status-bar" id="statusBar"></div>
+  </main>
+
 </div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let currentImg    = new Image();
-let isLoaded      = false;
-let currentThreshMode = 'simple';
-let cropRect      = null;
-let isCropMode    = false;
-let isDragging    = false;
-let dragStart     = null;
-let dragEnd       = null;
+// ─── Mode ─────────────────────────────────────────────────────────────────────
+let isKid = false;
+function toggleMode() {
+    isKid = !isKid;
+    document.body.className = isKid ? 'mode-kid' : 'mode-teacher';
+    document.getElementById('pillThumb').textContent = isKid ? '🎨' : '🎓';
+    document.getElementById('pillLbl').textContent   = isKid ? 'Teacher Mode' : 'Kid Mode';
+    document.getElementById('hdrTitle').innerHTML    = isKid
+        ? '🖍️ Drawing Magic → <span>TinkerCAD!</span>'
+        : '✏️ Student Ink Drawing → SVG';
+    document.getElementById('hdrBadge').textContent  = isKid ? '🔷 TinkerCAD' : 'TinkerCAD Ready';
+    document.getElementById('phText').textContent    = isKid ? '' : 'Upload a photo to start';
+    if (isLoaded) statusBar.innerText = isKid
+        ? `✅ ${canvas.width}×${canvas.height}px — looks good!`
+        : `Preview: ${canvas.width}×${canvas.height}px`;
+}
 
-const canvas    = document.getElementById('canvas');
-const ctx       = canvas.getContext('2d', { willReadFrequently: true });
+// ─── State ────────────────────────────────────────────────────────────────────
+let currentImg = new Image(), isLoaded = false;
+let threshMode = 'simple';
+let cropRect = null, isCropMode = false, isDragging = false;
+let dragStart = null, dragEnd = null;
+
+const canvas     = document.getElementById('canvas');
+const ctx        = canvas.getContext('2d', { willReadFrequently: true });
 const cropCanvas = document.getElementById('cropCanvas');
-const cropCtx   = cropCanvas.getContext('2d');
-const overlay   = document.getElementById('processingOverlay');
+const cropCtx    = cropCanvas.getContext('2d');
+const overlay    = document.getElementById('procOverlay');
 const statusBar  = document.getElementById('statusBar');
+const scaleSteps = [0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
 
-// ─── File Upload ─────────────────────────────────────────────────────────────
+// ─── Upload ───────────────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
         currentImg.onload = () => {
-            isLoaded = true;
-            cropRect = null;
+            isLoaded = true; cropRect = null;
             document.getElementById('placeholder').style.display = 'none';
             document.getElementById('canvasWrapper').style.display = 'block';
-            document.querySelectorAll('#dlSvg,#dlPng,#btnCropStart').forEach(b => b.disabled = false);
+            ['dlSvg','dlPng','tBtnCrop','kDlSvg','kDlPng','kBtnCrop'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.disabled = false;
+            });
             processImage();
         };
         currentImg.src = ev.target.result;
@@ -227,27 +566,37 @@ document.getElementById('fileInput').addEventListener('change', e => {
     reader.readAsDataURL(file);
 });
 
-// ─── Controls ────────────────────────────────────────────────────────────────
-function setThreshMode(m) {
-    currentThreshMode = m;
-    document.getElementById('btnSimple').className   = m === 'simple'   ? 'thresh-tab active' : 'thresh-tab';
-    document.getElementById('btnAdaptive').className = m === 'adaptive' ? 'thresh-tab active' : 'thresh-tab';
-    document.getElementById('simpleControls').style.display   = m === 'simple'   ? 'block' : 'none';
-    document.getElementById('adaptiveControls').style.display = m === 'adaptive' ? 'block' : 'none';
-    processImage();
+// ─── Kid slider sync ──────────────────────────────────────────────────────────
+function syncKidSlider(el) {
+    document.getElementById('threshold').value = el.value;
+    const pct = ((el.value - 50) / 170 * 100).toFixed(1);
+    el.style.setProperty('--pct', pct + '%');
+    const v = parseInt(el.value);
+    document.getElementById('kEmoji').textContent = v < 90 ? '⬜' : v < 125 ? '🌫️' : v < 165 ? '🖊️' : '⬛';
+    updateBadges(); processImage();
+}
+function syncKidInvert(el) {
+    document.getElementById('invert').checked = el.checked; processImage();
 }
 
-['threshold','sensitivity','cleanup','dilate','smooth','scale','invert'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => { updateBadges(); processImage(); });
-});
-
+// ─── Teacher controls ─────────────────────────────────────────────────────────
+function setThreshMode(m) {
+    threshMode = m;
+    document.getElementById('btnSimple').className   = m==='simple'   ? 't-tab active' : 't-tab';
+    document.getElementById('btnAdaptive').className = m==='adaptive' ? 't-tab active' : 't-tab';
+    document.getElementById('simpleControls').style.display   = m==='simple'   ? 'block' : 'none';
+    document.getElementById('adaptiveControls').style.display = m==='adaptive' ? 'block' : 'none';
+    processImage();
+}
+['threshold','sensitivity','cleanup','dilate','smooth','scale','invert'].forEach(id =>
+    document.getElementById(id).addEventListener('input', () => { updateBadges(); processImage(); })
+);
 function updateBadges() {
-    document.getElementById('threshVal').innerText    = document.getElementById('threshold').value;
+    document.getElementById('threshVal').innerText      = document.getElementById('threshold').value;
     document.getElementById('sensitivityVal').innerText = document.getElementById('sensitivity').value + '%';
-    document.getElementById('cleanVal').innerText     = document.getElementById('cleanup').value;
-    document.getElementById('dilateVal').innerText    = document.getElementById('dilate').value;
-    document.getElementById('smoothVal').innerText    = document.getElementById('smooth').value;
-    const scaleSteps = [0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
+    document.getElementById('cleanVal').innerText       = document.getElementById('cleanup').value;
+    document.getElementById('dilateVal').innerText      = document.getElementById('dilate').value;
+    document.getElementById('smoothVal').innerText      = document.getElementById('smooth').value;
     const idx = Math.min(parseInt(document.getElementById('scale').value)-1, scaleSteps.length-1);
     document.getElementById('scaleVal').innerText = scaleSteps[idx] + ' mm/px';
 }
@@ -256,374 +605,174 @@ updateBadges();
 // ─── Image Processing ─────────────────────────────────────────────────────────
 function processImage() {
     if (!isLoaded) return;
-    let sx=0, sy=0, sw=currentImg.width, sh=currentImg.height;
-    if (cropRect) { sx=cropRect.x; sy=cropRect.y; sw=cropRect.w; sh=cropRect.h; }
-
-    canvas.width  = sw;
-    canvas.height = sh;
-    ctx.drawImage(currentImg, sx, sy, sw, sh, 0, 0, sw, sh);
-
-    const frame  = ctx.getImageData(0, 0, sw, sh);
-    const data   = frame.data;
-    const invert = document.getElementById('invert').checked;
-
-    if (currentThreshMode === 'simple') {
-        const thresh = parseInt(document.getElementById('threshold').value);
-        for (let i = 0; i < data.length; i += 4) {
-            let lum = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
-            if (invert) lum = 255 - lum;
-            const ink = lum < thresh;
-            data[i] = data[i+1] = data[i+2] = 0;
-            data[i+3] = ink ? 255 : 0;
+    let sx=0,sy=0,sw=currentImg.width,sh=currentImg.height;
+    if (cropRect) { sx=cropRect.x;sy=cropRect.y;sw=cropRect.w;sh=cropRect.h; }
+    canvas.width=sw; canvas.height=sh;
+    ctx.drawImage(currentImg,sx,sy,sw,sh,0,0,sw,sh);
+    const frame=ctx.getImageData(0,0,sw,sh), d=frame.data;
+    const inv=document.getElementById('invert').checked;
+    if (threshMode==='simple') {
+        const t=parseInt(document.getElementById('threshold').value);
+        for (let i=0;i<d.length;i+=4) {
+            let l=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+            if(inv)l=255-l;
+            d[i]=d[i+1]=d[i+2]=0; d[i+3]=l<t?255:0;
         }
     } else {
-        const sense = parseInt(document.getElementById('sensitivity').value) / 100;
-        const gray  = new Float32Array(sw * sh);
-        for (let i=0; i<data.length; i+=4) {
-            let v = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
-            gray[i/4] = invert ? 255 - v : v;
-        }
-        // Simple local mean approximation with a box blur surrogate
-        const cutoff = 128 * (1 - sense);
-        for (let i=0; i<data.length; i+=4) {
-            const ink = gray[i/4] < cutoff;
-            data[i] = data[i+1] = data[i+2] = 0;
-            data[i+3] = ink ? 255 : 0;
-        }
+        const sense=parseInt(document.getElementById('sensitivity').value)/100;
+        const g=new Float32Array(sw*sh);
+        for(let i=0;i<d.length;i+=4){ let v=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]; g[i/4]=inv?255-v:v; }
+        const cut=128*(1-sense);
+        for(let i=0;i<d.length;i+=4){ d[i]=d[i+1]=d[i+2]=0; d[i+3]=g[i/4]<cut?255:0; }
     }
-    ctx.putImageData(frame, 0, 0);
-    statusBar.innerText = `Preview: ${sw}×${sh}px`;
+    ctx.putImageData(frame,0,0);
+    statusBar.innerText = isKid
+        ? `✅ ${sw}×${sh}px — looks great!`
+        : `Preview: ${sw}×${sh}px`;
 }
 
-// ─── Binary Bitmap Helpers ────────────────────────────────────────────────────
-/**
- * Returns a flat Uint8Array (1 = ink, 0 = paper) from the current canvas alpha.
- */
-function getBitmap(w, h) {
-    const data = ctx.getImageData(0, 0, w, h).data;
-    const bm   = new Uint8Array(w * h);
-    for (let i = 0; i < bm.length; i++) bm[i] = data[i*4+3] > 128 ? 1 : 0;
-    return bm;
-}
+// ─── Bitmap helpers ───────────────────────────────────────────────────────────
+function getBitmap(w,h){ const d=ctx.getImageData(0,0,w,h).data,b=new Uint8Array(w*h); for(let i=0;i<b.length;i++)b[i]=d[i*4+3]>128?1:0; return b; }
+function dilate(bm,w,h,r){ if(r<=0)return bm; const o=new Uint8Array(w*h); for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(bm[y*w+x]===1)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<h&&nx>=0&&nx<w)o[ny*w+nx]=1;} return o; }
+function labelComponents(bm,w,h){ const L=new Int32Array(w*h);let n=1;const s=[]; for(let i=0;i<bm.length;i++){if(bm[i]===1&&L[i]===0){const lbl=n++;s.push(i);while(s.length){const j=s.pop();if(L[j])continue;L[j]=lbl;const jy=(j/w)|0,jx=j%w;if(jx>0&&bm[j-1]===1&&!L[j-1])s.push(j-1);if(jx<w-1&&bm[j+1]===1&&!L[j+1])s.push(j+1);if(jy>0&&bm[j-w]===1&&!L[j-w])s.push(j-w);if(jy<h-1&&bm[j+w]===1&&!L[j+w])s.push(j+w);}}} return{labels:L,count:n-1}; }
+function compAreas(L,n){ const a=new Int32Array(n+1); for(let i=0;i<L.length;i++)if(L[i])a[L[i]]++; return a; }
 
-/**
- * Morphological dilation: grows ink by `r` pixels (square structuring element).
- */
-function dilate(bm, w, h, r) {
-    if (r <= 0) return bm;
-    const out = new Uint8Array(w * h);
-    for (let y=0; y<h; y++) {
-        for (let x=0; x<w; x++) {
-            if (bm[y*w+x] === 1) {
-                for (let dy=-r; dy<=r; dy++) {
-                    for (let dx=-r; dx<=r; dx++) {
-                        const ny=y+dy, nx=x+dx;
-                        if (ny>=0 && ny<h && nx>=0 && nx<w) out[ny*w+nx]=1;
-                    }
-                }
-            }
-        }
+// ─── Contour tracer (Moore neighborhood) ──────────────────────────────────────
+function traceContours(bm,w,h){
+    const vis=new Uint8Array(bm.length),out=[];
+    const MX=[-1,0,1,1,1,0,-1,-1],MY=[-1,-1,-1,0,1,1,1,0];
+    for(let sy=0;sy<h;sy++) for(let sx=0;sx<w;sx++){
+        const si=sy*w+sx; if(bm[si]!==1||vis[si])continue;
+        const con=[];let cx=sx,cy=sy,bd=7,steps=0;
+        do{
+            vis[cy*w+cx]=1; con.push({x:cx,y:cy});
+            let found=false;
+            for(let k=1;k<=8;k++){const dir=(bd+k)%8,nx=cx+MX[dir],ny=cy+MY[dir];if(nx>=0&&nx<w&&ny>=0&&ny<h&&bm[ny*w+nx]===1){bd=(dir+4)%8;cx=nx;cy=ny;found=true;break;}}
+            if(!found)break; if(++steps>w*h*2)break;
+        }while(cx!==sx||cy!==sy);
+        if(con.length>=3){con.push({x:con[0].x,y:con[0].y});out.push(con);}
     }
     return out;
 }
-
-/**
- * Connected-component labelling (4-connectivity).
- * Returns { labels: Int32Array, count: number }.
- */
-function labelComponents(bm, w, h) {
-    const labels = new Int32Array(w * h);
-    let next = 1;
-    const stack = [];
-    for (let i=0; i<bm.length; i++) {
-        if (bm[i] === 1 && labels[i] === 0) {
-            const lbl = next++;
-            stack.push(i);
-            while (stack.length) {
-                const j = stack.pop();
-                if (labels[j] !== 0) continue;
-                labels[j] = lbl;
-                const jy = (j / w)|0, jx = j % w;
-                if (jx>0   && bm[j-1]===1 && !labels[j-1]) stack.push(j-1);
-                if (jx<w-1 && bm[j+1]===1 && !labels[j+1]) stack.push(j+1);
-                if (jy>0   && bm[j-w]===1 && !labels[j-w]) stack.push(j-w);
-                if (jy<h-1 && bm[j+w]===1 && !labels[j+w]) stack.push(j+w);
-            }
-        }
-    }
-    return { labels, count: next-1 };
+function dpSimplify(pts,eps){
+    if(pts.length<=2)return pts;
+    let md=0,mi=0;const e=pts.length-1;
+    const ax=pts[0].x,ay=pts[0].y,bx=pts[e].x,by=pts[e].y,dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+    for(let i=1;i<e;i++){const px=pts[i].x-ax,py=pts[i].y-ay;let d2=l2===0?px*px+py*py:(t=>{const r=px-t*dx,s=py-t*dy;return r*r+s*s;})(Math.max(0,Math.min(1,(px*dx+py*dy)/l2)));if(d2>md){md=d2;mi=i;}}
+    if(md>eps*eps){const l=dpSimplify(pts.slice(0,mi+1),eps),r=dpSimplify(pts.slice(mi),eps);return[...l.slice(0,-1),...r];}
+    return[pts[0],pts[e]];
+}
+function poly2path(pts,mpp,sm){
+    if(pts.length<3)return'';
+    const s=sm>0?dpSimplify(pts,sm*0.5):pts; if(s.length<3)return'';
+    const f=v=>(v*mpp).toFixed(3);
+    let d=`M${f(s[0].x)},${f(s[0].y)}`;
+    for(let i=1;i<s.length-1;i++)d+=`L${f(s[i].x)},${f(s[i].y)}`;
+    return d+'Z';
 }
 
-/**
- * Compute pixel area of each label.
- */
-function componentAreas(labels, count) {
-    const areas = new Int32Array(count+1);
-    for (let i=0; i<labels.length; i++) if (labels[i]) areas[labels[i]]++;
-    return areas;
-}
+// ─── SVG Builder ──────────────────────────────────────────────────────────────
+async function buildSVG(){
+    const w=canvas.width,h=canvas.height;
+    const dr=parseInt(document.getElementById('dilate').value);
+    const ma=parseInt(document.getElementById('cleanup').value);
+    const sm=parseInt(document.getElementById('smooth').value);
+    const idx=Math.min(parseInt(document.getElementById('scale').value)-1,scaleSteps.length-1);
+    const mpp=scaleSteps[idx];
 
-// ─── Contour Tracer (Square-Marching / Freeman Chain) ────────────────────────
-/**
- * Traces the outer boundary of each distinct connected component using a
- * Moore-neighborhood boundary follower (Jacob's stopping criterion).
- * Returns an array of closed polygon arrays [ [{x,y}, ...], ... ]
- *
- * Each returned polygon is CLOSED (first === last point).
- */
-function traceContours(bm, w, h) {
-    // We trace edges of pixels rather than pixel centres to guarantee closure.
-    // Strategy: for each component, find topmost-leftmost ink pixel, then
-    // walk the border using the clockwise Moore-neighbor algorithm.
-    const visited = new Uint8Array(bm.length); // which pixels have been "started"
-    const contours = [];
-
-    // Moore-neighbor offsets (clockwise from top-left)
-    const MX = [-1, 0, 1, 1, 1, 0,-1,-1];
-    const MY = [-1,-1,-1, 0, 1, 1, 1, 0];
-
-    for (let startY=0; startY<h; startY++) {
-        for (let startX=0; startX<w; startX++) {
-            const si = startY*w+startX;
-            if (bm[si] !== 1 || visited[si]) continue;
-
-            // Found a new component start pixel
-            const contour = [];
-            let cx = startX, cy = startY;
-            // entry direction: we come "from the left" → backtrack = direction 3 (right, i.e., dx=1,dy=0 reversed = direction 7)
-            let backDir = 7; // index into MX/MY arrays
-
-            const maxSteps = w * h * 2;
-            let steps = 0;
-            let firstStep = true;
-
-            do {
-                visited[cy*w+cx] = 1;
-                contour.push({x:cx, y:cy});
-
-                // Rotate clockwise from backtrack direction to find next border pixel
-                let found = false;
-                for (let k=1; k<=8; k++) {
-                    const dir = (backDir + k) % 8;
-                    const nx  = cx + MX[dir];
-                    const ny  = cy + MY[dir];
-                    if (nx>=0 && nx<w && ny>=0 && ny<h && bm[ny*w+nx]===1) {
-                        // next boundary pixel
-                        backDir = (dir + 4) % 8; // reverse direction = backtrack
-                        cx = nx; cy = ny;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) break; // isolated pixel
-
-                firstStep = false;
-                steps++;
-                if (steps > maxSteps) break;
-            } while (cx !== startX || cy !== startY);
-
-            if (contour.length >= 3) {
-                contour.push({x: contour[0].x, y: contour[0].y}); // close the polygon
-                contours.push(contour);
-            }
-        }
-    }
-    return contours;
-}
-
-/**
- * Douglas-Peucker polyline simplification.
- */
-function dpSimplify(pts, epsilon) {
-    if (pts.length <= 2) return pts;
-    let maxDist = 0, maxIdx = 0;
-    const end = pts.length - 1;
-    const ax = pts[0].x, ay = pts[0].y;
-    const bx = pts[end].x, by = pts[end].y;
-    const dx = bx-ax, dy = by-ay;
-    const len2 = dx*dx+dy*dy;
-    for (let i=1; i<end; i++) {
-        const px = pts[i].x-ax, py = pts[i].y-ay;
-        let d2;
-        if (len2 === 0) { d2 = px*px+py*py; }
-        else {
-            const t = Math.max(0,Math.min(1,(px*dx+py*dy)/len2));
-            d2 = (px-t*dx)*(px-t*dx)+(py-t*dy)*(py-t*dy);
-        }
-        if (d2 > maxDist) { maxDist=d2; maxIdx=i; }
-    }
-    if (maxDist > epsilon*epsilon) {
-        const l = dpSimplify(pts.slice(0,maxIdx+1), epsilon);
-        const r = dpSimplify(pts.slice(maxIdx), epsilon);
-        return [...l.slice(0,-1), ...r];
-    }
-    return [pts[0], pts[end]];
-}
-
-/**
- * Convert polygon array to SVG path string. Closed with Z.
- * Scales px → mm using mmPerPx.
- */
-function polygonToPath(pts, mmPerPx, smoothLevel) {
-    if (pts.length < 3) return '';
-    const epsilon = smoothLevel * 0.5;
-    const simplified = smoothLevel > 0 ? dpSimplify(pts, epsilon) : pts;
-    if (simplified.length < 3) return '';
-
-    const fmt = (v) => (v * mmPerPx).toFixed(3);
-    let d = `M${fmt(simplified[0].x)},${fmt(simplified[0].y)}`;
-    for (let i=1; i<simplified.length-1; i++) {
-        d += `L${fmt(simplified[i].x)},${fmt(simplified[i].y)}`;
-    }
-    d += 'Z';
-    return d;
-}
-
-// ─── Main SVG Builder ─────────────────────────────────────────────────────────
-async function buildSVG() {
-    const w = canvas.width, h = canvas.height;
-    const dilateR   = parseInt(document.getElementById('dilate').value);
-    const minArea   = parseInt(document.getElementById('cleanup').value);
-    const smoothLvl = parseInt(document.getElementById('smooth').value);
-    const scaleSteps = [0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.0,1.25,1.5,2.0,2.5,3.0,4.0];
-    const idx = Math.min(parseInt(document.getElementById('scale').value)-1, scaleSteps.length-1);
-    const mmPerPx = scaleSteps[idx];
-
-    setProgress('Reading pixels…');
-    await tick();
-    let bm = getBitmap(w, h);
-
-    setProgress('Closing gaps (dilation)…');
-    await tick();
-    bm = dilate(bm, w, h, dilateR);
-
-    setProgress('Finding components…');
-    await tick();
-    const { labels, count } = labelComponents(bm, w, h);
-    const areas = componentAreas(labels, count);
-
-    // Zero out small noise components
-    if (minArea > 0) {
-        for (let i=0; i<labels.length; i++) {
-            if (labels[i] && areas[labels[i]] < minArea) bm[i] = 0;
-        }
-    }
-
-    setProgress('Tracing contours…');
-    await tick();
-    const contours = traceContours(bm, w, h);
-
-    setProgress(`Building SVG paths (${contours.length} shapes)…`);
-    await tick();
-
-    const svgW = (w * mmPerPx).toFixed(3);
-    const svgH = (h * mmPerPx).toFixed(3);
-
-    let pathData = '';
-    for (const contour of contours) {
-        pathData += polygonToPath(contour, mmPerPx, smoothLvl) + ' ';
-    }
-
-    // TinkerCAD needs:
-    //   - xmlns declared
-    //   - viewBox and explicit width/height in mm
-    //   - fill-rule evenodd so nested contours (holes) cut correctly
-    //   - No stroke (pure fill)
-    const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     width="${svgW}mm" height="${svgH}mm"
-     viewBox="0 0 ${svgW} ${svgH}"
-     shape-rendering="geometricPrecision">
-  <!-- Generated by Student Ink → SVG. ${contours.length} closed paths. -->
-  <!-- All paths use Z (close) commands — compatible with TinkerCAD SVG import. -->
-  <path fill="black" fill-rule="evenodd"
-        d="${pathData.trim()}"/>
+    setMsg(isKid?'✨ Reading your drawing…':'Reading pixels…'); await tick();
+    let bm=getBitmap(w,h);
+    setMsg(isKid?'🔧 Closing gaps…':'Closing gaps (dilation)…'); await tick();
+    bm=dilate(bm,w,h,dr);
+    setMsg(isKid?'🔍 Finding shapes…':'Finding components…'); await tick();
+    const{labels:L,count}=labelComponents(bm,w,h);
+    const areas=compAreas(L,count);
+    if(ma>0)for(let i=0;i<L.length;i++)if(L[i]&&areas[L[i]]<ma)bm[i]=0;
+    setMsg(isKid?'✏️ Tracing outlines…':'Tracing contours…'); await tick();
+    const cons=traceContours(bm,w,h);
+    setMsg(isKid?`🎨 Almost done! (${cons.length} shapes)`:`Building SVG (${cons.length} shapes)…`); await tick();
+    const sw2=(w*mpp).toFixed(3),sh2=(h*mpp).toFixed(3);
+    let pd=''; for(const c of cons)pd+=poly2path(c,mpp,sm)+' ';
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${sw2}mm" height="${sh2}mm" viewBox="0 0 ${sw2} ${sh2}" shape-rendering="geometricPrecision">
+  <!-- ${cons.length} closed paths — TinkerCAD SVG ready -->
+  <path fill="black" fill-rule="evenodd" d="${pd.trim()}"/>
 </svg>`;
-
-    return svg;
 }
+function setMsg(m){document.getElementById('procMsg').innerText=m;}
+function tick(){return new Promise(r=>setTimeout(r,10));}
 
-function setProgress(msg) {
-    document.getElementById('processingMsg').innerText = msg;
+// ─── Stars ────────────────────────────────────────────────────────────────────
+function burst(){
+    if(!isKid)return;
+    const b=document.getElementById('starBurst'); b.innerHTML='';
+    const em=['⭐','🌟','✨','🎉','🎊','💫','🔷','🌈'];
+    for(let i=0;i<14;i++){
+        const s=document.createElement('span'); s.className='star';
+        s.textContent=em[Math.floor(Math.random()*em.length)];
+        s.style.left=(15+Math.random()*70)+'%'; s.style.top=(15+Math.random()*70)+'%';
+        s.style.animationDelay=(Math.random()*0.5)+'s'; b.appendChild(s);
+    }
+    setTimeout(()=>b.innerHTML='',2200);
 }
-function tick() { return new Promise(r => setTimeout(r, 10)); }
 
 // ─── Downloads ────────────────────────────────────────────────────────────────
-document.getElementById('dlSvg').addEventListener('click', async () => {
-    overlay.classList.add('active');
-    try {
-        const svg = await buildSVG();
-        const blob = new Blob([svg], {type:'image/svg+xml'});
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href = url; a.download = 'drawing-tinkercad.svg'; a.click();
+async function doSvgDownload(){
+    overlay.classList.add('on');
+    try{
+        const svg=await buildSVG();
+        const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+        const a=document.createElement('a'); a.href=url; a.download='drawing-tinkercad.svg'; a.click();
         URL.revokeObjectURL(url);
-        statusBar.innerText = `✅ SVG exported with ${(svg.match(/Z/g)||[]).length} closed paths`;
-    } finally {
-        overlay.classList.remove('active');
-    }
-});
-
-document.getElementById('dlPng').addEventListener('click', () => {
-    canvas.toBlob(b => {
-        const url = URL.createObjectURL(b);
-        const a   = document.createElement('a');
-        a.href = url; a.download = 'drawing.png'; a.click();
-        URL.revokeObjectURL(url);
-    });
-});
+        const n=(svg.match(/Z/g)||[]).length;
+        statusBar.innerText=isKid?`🎉 Saved! ${n} shapes ready for TinkerCAD!`:`✅ SVG exported with ${n} closed paths`;
+        burst();
+    }finally{overlay.classList.remove('on');}
+}
+function doPngDownload(){
+    canvas.toBlob(b=>{const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download='drawing.png';a.click();URL.revokeObjectURL(url);burst();});
+}
+document.getElementById('dlSvg').addEventListener('click',doSvgDownload);
+document.getElementById('dlPng').addEventListener('click',doPngDownload);
 
 // ─── Crop ─────────────────────────────────────────────────────────────────────
-function enterCropMode() {
-    isCropMode = true;
-    cropCanvas.width  = canvas.width;
-    cropCanvas.height = canvas.height;
-    cropCanvas.classList.add('active');
-    document.getElementById('cropToolbar').classList.add('visible');
+function enterCropMode(){
+    isCropMode=true; cropCanvas.width=canvas.width; cropCanvas.height=canvas.height;
+    cropCanvas.classList.add('active'); document.getElementById('cropToolbar').classList.add('on');
 }
-function cancelCropMode() {
-    isCropMode = false;
-    cropCanvas.classList.remove('active');
-    document.getElementById('cropToolbar').classList.remove('visible');
+function cancelCropMode(){
+    isCropMode=false; cropCanvas.classList.remove('active'); document.getElementById('cropToolbar').classList.remove('on');
 }
-function applyCrop() {
-    if (!dragStart || !dragEnd) return;
-    cropRect = {
-        x: Math.min(dragStart.x, dragEnd.x),
-        y: Math.min(dragStart.y, dragEnd.y),
-        w: Math.abs(dragEnd.x - dragStart.x),
-        h: Math.abs(dragEnd.y - dragStart.y)
-    };
+function applyCrop(){
+    if(!dragStart||!dragEnd)return;
+    cropRect={x:Math.min(dragStart.x,dragEnd.x),y:Math.min(dragStart.y,dragEnd.y),w:Math.abs(dragEnd.x-dragStart.x),h:Math.abs(dragEnd.y-dragStart.y)};
     cancelCropMode();
-    document.getElementById('cropBadge').classList.add('visible');
+    document.getElementById('tCropBadge').classList.add('on');
+    document.getElementById('kCropBadge').classList.add('on');
     processImage();
 }
-function resetCrop() {
-    cropRect = null;
-    document.getElementById('cropBadge').classList.remove('visible');
+function resetCrop(){
+    cropRect=null;
+    document.getElementById('tCropBadge').classList.remove('on');
+    document.getElementById('kCropBadge').classList.remove('on');
     processImage();
 }
-
-cropCanvas.addEventListener('mousedown', e => {
-    if (!isCropMode) return;
-    const r = canvas.getBoundingClientRect();
-    const scale = canvas.width / r.width;
-    dragStart = { x:(e.clientX-r.left)*scale, y:(e.clientY-r.top)*scale };
-    isDragging = true;
+cropCanvas.addEventListener('mousedown',e=>{
+    if(!isCropMode)return;
+    const r=canvas.getBoundingClientRect(),sc=canvas.width/r.width;
+    dragStart={x:(e.clientX-r.left)*sc,y:(e.clientY-r.top)*sc}; isDragging=true;
 });
-window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const r = canvas.getBoundingClientRect();
-    const scale = canvas.width / r.width;
-    dragEnd = { x:(e.clientX-r.left)*scale, y:(e.clientY-r.top)*scale };
+window.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    const r=canvas.getBoundingClientRect(),sc=canvas.width/r.width;
+    dragEnd={x:(e.clientX-r.left)*sc,y:(e.clientY-r.top)*sc};
     cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
-    cropCtx.strokeStyle = 'orange';
-    cropCtx.lineWidth = 2;
-    cropCtx.setLineDash([6,3]);
-    cropCtx.strokeRect(dragStart.x, dragStart.y, dragEnd.x-dragStart.x, dragEnd.y-dragStart.y);
-    document.getElementById('btnApplyCrop').disabled = false;
+    cropCtx.strokeStyle=isKid?'#f43f5e':'orange';
+    cropCtx.lineWidth=isKid?5:2; cropCtx.setLineDash([8,4]);
+    cropCtx.strokeRect(dragStart.x,dragStart.y,dragEnd.x-dragStart.x,dragEnd.y-dragStart.y);
+    document.getElementById('btnApplyCrop').disabled=false;
 });
-window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mouseup',()=>isDragging=false);
 </script>
 </body>
 </html>
