@@ -137,12 +137,12 @@
 
         <div class="grid sm:grid-cols-2 gap-3 pt-1">
           <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Min</label>
-            <input id="rminInput" type="number" value="-1000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In — steps at full inside</label>
+            <input id="rhoInSteps" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Max</label>
-            <input id="rmaxInput" type="number" value="9900" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Out — steps at full outside</label>
+            <input id="rhoOutSteps" type="number" value="9900" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div>
             <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Theta Min</label>
@@ -154,8 +154,12 @@
           </div>
         </div>
         <div class="grid sm:grid-cols-2 gap-3">
-          <button id="setRLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET R LIMITS</button>
+          <button id="setRLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET RHO RANGE</button>
           <button id="setTLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET T LIMITS</button>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <button id="goRhoInBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
+          <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
         </div>
       </div>
     </section>
@@ -188,15 +192,15 @@
           <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         </div>
         <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center</label>
-          <input id="patternRhoCenter" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center <span class="normal-case text-slate-500">(steps, between In &amp; Out)</span></label>
+          <input id="patternRhoCenter" type="number" value="4950" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         </div>
         <div class="space-y-2">
           <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
           <input id="patternThetaRadius" type="number" value="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         </div>
         <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius</label>
+          <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius <span class="normal-case text-slate-500">(steps)</span></label>
           <input id="patternRhoRadius" type="number" value="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         </div>
       </div>
@@ -374,11 +378,19 @@
       }
     }
 
-    // ── Rho direction convention ──────────────────────────────────────────────
-    // Firmware: reversed pin order cancels the -dir in stepRhoDir.
-    // Result: positive rho = outward, 0 = home. UI matches exactly.
-    // No translation needed — pass values straight through.
-    function rhoToFirmware(uiRho) { return Number(uiRho); }
+    // ── Rho position mapping ──────────────────────────────────────────────────
+    // rhoInSteps  = firmware step value when carriage is fully inside/home
+    // rhoOutSteps = firmware step value when carriage is fully outside
+    // All UI rho values are already in firmware step units — just clamp to range.
+    // rhoToFirmware passes straight through; the named fields define the travel limits
+    // that get sent to the firmware via SET RMIN / SET RMAX.
+    function getRhoIn()  { return Number(document.getElementById('rhoInSteps').value)  || 0; }
+    function getRhoOut() { return Number(document.getElementById('rhoOutSteps').value) || 9900; }
+    function rhoToFirmware(steps) {
+      const lo = Math.min(getRhoIn(), getRhoOut());
+      const hi = Math.max(getRhoIn(), getRhoOut());
+      return Math.round(Math.max(lo, Math.min(hi, Number(steps))));
+    }
 
     // ── Send command ──────────────────────────────────────────────────────────
     async function sendCommand(cmd, waitForAck = false) {
@@ -450,8 +462,17 @@
     });
 
     document.getElementById('setRLimitsBtn').addEventListener('click', async () => {
-      await sendCommand('SET RMIN ' + document.getElementById('rminInput').value);
-      await sendCommand('SET RMAX ' + document.getElementById('rmaxInput').value);
+      const lo = Math.min(getRhoIn(), getRhoOut());
+      const hi = Math.max(getRhoIn(), getRhoOut());
+      await sendCommand('SET RMIN ' + lo);
+      await sendCommand('SET RMAX ' + hi);
+    });
+
+    document.getElementById('goRhoInBtn').addEventListener('click', () => {
+      sendCommand('GOTO T 0 R ' + getRhoIn(), true);
+    });
+    document.getElementById('goRhoOutBtn').addEventListener('click', () => {
+      sendCommand('GOTO T 0 R ' + getRhoOut(), true);
     });
 
     document.getElementById('setTLimitsBtn').addEventListener('click', async () => {
