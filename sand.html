@@ -42,10 +42,10 @@
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
-  <div class="max-w-5xl mx-auto p-6 space-y-6">
+  <div class="max-w-7xl mx-auto p-6">
 
     <!-- Header -->
-    <header class="space-y-1 border-b border-slate-800 pb-4">
+    <header class="space-y-1 border-b border-slate-800 pb-4 mb-6">
       <div class="flex items-center gap-3">
         <span class="text-3xl">🌀</span>
         <h1 class="text-3xl font-bold tracking-tight" style="font-family:'Exo 2',sans-serif">Dune Weaver Mini</h1>
@@ -53,179 +53,194 @@
       <p class="text-slate-400 text-sm">Direct browser control over Web Serial &mdash; Chrome or Edge on desktop only &mdash; <strong class="text-slate-200">rho 0 = inside/home</strong>, positive rho moves outward.</p>
     </header>
 
-    <!-- Connection bar -->
-    <section class="grid md:grid-cols-3 gap-4">
-      <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3 md:col-span-2 glow-violet">
-        <div class="flex flex-wrap gap-3 items-center">
-          <button id="connectBtn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-semibold">Connect ESP32</button>
-          <button id="disconnectBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl font-semibold" disabled>Disconnect</button>
-          <button id="statusBtn" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-xl font-semibold" disabled>STATUS</button>
-          <button id="homeRhoBtn" class="bg-violet-700 hover:bg-violet-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN RHO</button>
-          <button id="homeThetaBtn" class="bg-fuchsia-700 hover:bg-fuchsia-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN THETA</button>
-        </div>
-        <div class="text-sm text-slate-400 flex gap-6 flex-wrap">
-          <div><span class="status-dot" id="statusDot"></span>Port: <span id="portStatus" class="text-slate-200">Not connected</span></div>
-          <div>Browser: <span id="browserStatus" class="text-slate-200"></span></div>
-        </div>
-      </div>
+    <!-- Two-column layout: controls left, console right -->
+    <div class="flex gap-6 items-start">
 
-      <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-2">
-        <h2 class="text-base font-semibold text-amber-400">Quick notes</h2>
-        <ul class="text-xs text-slate-300 space-y-1 list-disc pl-4">
-          <li>Chrome or Edge desktop only</li>
-          <li>ESP32 must be plugged in before connecting</li>
-          <li>Use <code>localhost</code> or HTTPS</li>
-          <li>Newline is appended automatically</li>
-        </ul>
-      </div>
-    </section>
+      <!-- LEFT: all controls -->
+      <div class="flex-1 min-w-0 space-y-6">
 
-    <!-- Jog + Absolute -->
-    <section class="grid lg:grid-cols-2 gap-6">
-
-      <!-- Jog -->
-      <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <h2 class="text-xl font-semibold">Jog Controls</h2>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Jog step size</label>
-            <input id="jogInput" type="number" value="100" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500" />
-            <button id="setJogBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>SET JOG</button>
+        <!-- Connection bar -->
+        <section class="grid md:grid-cols-3 gap-4">
+          <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3 md:col-span-2 glow-violet">
+            <div class="flex flex-wrap gap-3 items-center">
+              <button id="connectBtn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-semibold">Connect ESP32</button>
+              <button id="disconnectBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl font-semibold" disabled>Disconnect</button>
+              <button id="statusBtn" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-xl font-semibold" disabled>STATUS</button>
+              <button id="homeRhoBtn" class="bg-violet-700 hover:bg-violet-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN RHO</button>
+              <button id="homeThetaBtn" class="bg-fuchsia-700 hover:bg-fuchsia-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN THETA</button>
+            </div>
+            <div class="text-sm text-slate-400 flex gap-6 flex-wrap">
+              <div><span class="status-dot" id="statusDot"></span>Port: <span id="portStatus" class="text-slate-200">Not connected</span></div>
+              <div>Browser: <span id="browserStatus" class="text-slate-200"></span></div>
+            </div>
           </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Step delay ms</label>
-            <input id="delayInput" type="number" value="4" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500" />
-            <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>SET DELAY</button>
+
+          <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-2">
+            <h2 class="text-base font-semibold text-amber-400">Quick notes</h2>
+            <ul class="text-xs text-slate-300 space-y-1 list-disc pl-4">
+              <li>Chrome or Edge desktop only</li>
+              <li>ESP32 must be plugged in before connecting</li>
+              <li>Use <code>localhost</code> or HTTPS</li>
+              <li>Newline is appended automatically</li>
+            </ul>
           </div>
-        </div>
+        </section>
 
-        <!-- D-pad -->
-        <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto pt-2">
-          <div></div>
-          <button data-axis="R" data-dir="1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho Out +</button>
-          <div></div>
+        <!-- Jog + Absolute -->
+        <section class="grid lg:grid-cols-2 gap-6">
 
-          <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta −</button>
-          <button id="printBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-4 text-xs" disabled>STATUS</button>
-          <button data-axis="T" data-dir="1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta +</button>
+          <!-- Jog -->
+          <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+            <h2 class="text-xl font-semibold">Jog Controls</h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="block text-xs text-slate-400 uppercase tracking-widest">Jog step size</label>
+                <input id="jogInput" type="number" value="100" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500" />
+                <button id="setJogBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>SET JOG</button>
+              </div>
+              <div class="space-y-2">
+                <label class="block text-xs text-slate-400 uppercase tracking-widest">Step delay ms</label>
+                <input id="delayInput" type="number" value="4" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500" />
+                <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>SET DELAY</button>
+              </div>
+            </div>
 
-          <div></div>
-          <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho In −</button>
-          <div></div>
-        </div>
+            <!-- D-pad -->
+            <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto pt-2">
+              <div></div>
+              <button data-axis="R" data-dir="1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho Out +</button>
+              <div></div>
 
-        <div class="grid sm:grid-cols-2 gap-3 pt-2">
-          <button id="zeroThetaBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm glow-amber" disabled>ZERO THETA</button>
-          <button id="zeroRhoBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm glow-amber" disabled>ZERO RHO (set inside/home)</button>
+              <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta −</button>
+              <button id="printBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-4 text-xs" disabled>STATUS</button>
+              <button data-axis="T" data-dir="1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta +</button>
+
+              <div></div>
+              <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho In −</button>
+              <div></div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-3 pt-2">
+              <button id="zeroThetaBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm glow-amber" disabled>ZERO THETA</button>
+              <button id="zeroRhoBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm glow-amber" disabled>ZERO RHO (set inside/home)</button>
+            </div>
+          </div>
+
+          <!-- Absolute moves + limits -->
+          <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+            <h2 class="text-xl font-semibold">Absolute Moves &amp; Limits</h2>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Theta</label>
+                <input id="targetTheta" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-violet-500" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Rho</label>
+                <input id="targetRho" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-violet-500" />
+              </div>
+            </div>
+            <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl font-semibold" disabled>GOTO</button>
+
+            <div class="grid sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In — steps at full inside</label>
+                <input id="rhoInSteps" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Out — steps at full outside</label>
+                <input id="rhoOutSteps" type="number" value="9900" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Theta Min</label>
+                <input id="tminInput" type="number" value="-25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Theta Max</label>
+                <input id="tmaxInput" type="number" value="25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              </div>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <button id="setRLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET RHO RANGE</button>
+              <button id="setTLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET T LIMITS</button>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <button id="goRhoInBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
+              <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pattern generator -->
+        <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+          <h2 class="text-xl font-semibold">Pattern Generator</h2>
+          <div class="grid lg:grid-cols-3 gap-4">
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Pattern</label>
+              <select id="patternType" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500">
+                <option value="spiral">Spiral</option>
+                <option value="circle">Circle</option>
+                <option value="radial">Radial Sweep</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Points / segments</label>
+              <input id="patternPoints" type="number" value="180" min="10" max="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Pause between moves (ms)</label>
+              <input id="patternPause" type="number" value="0" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-4 gap-4">
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta center</label>
+              <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center <span class="normal-case text-slate-500">(steps, between In &amp; Out)</span></label>
+              <input id="patternRhoCenter" type="number" value="4950" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
+              <input id="patternThetaRadius" type="number" value="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius <span class="normal-case text-slate-500">(steps)</span></label>
+              <input id="patternRhoRadius" type="number" value="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview Commands</button>
+            <button id="runPatternBtn" class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>▶ Run Pattern</button>
+            <button id="stopPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>■ Stop</button>
+          </div>
+
+          <textarea id="patternPreview" class="mono w-full h-36 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Click 'Preview Commands' to see the move list…"></textarea>
+        </section>
+
+      </div>
+      <!-- END LEFT -->
+
+      <!-- RIGHT: sticky console -->
+      <div class="w-80 shrink-0 sticky top-6 self-start">
+        <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Console</h2>
+            <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-300 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700">Clear</button>
+          </div>
+          <div class="flex gap-2">
+            <input id="commandInput" type="text" placeholder="TYPE COMMAND…" class="mono flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500 text-xs" />
+            <button id="sendBtn" class="bg-cyan-700 hover:bg-cyan-600 px-3 py-2 rounded-xl font-semibold text-sm" disabled>Send</button>
+          </div>
+          <pre id="log" class="mono bg-black/40 rounded-2xl p-4 overflow-auto text-xs whitespace-pre-wrap leading-relaxed" style="height: calc(100vh - 220px); min-height: 400px;"></pre>
         </div>
       </div>
+      <!-- END RIGHT -->
 
-      <!-- Absolute moves + limits -->
-      <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <h2 class="text-xl font-semibold">Absolute Moves &amp; Limits</h2>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Theta</label>
-            <input id="targetTheta" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-violet-500" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Rho</label>
-            <input id="targetRho" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-violet-500" />
-          </div>
-        </div>
-        <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl font-semibold" disabled>GOTO</button>
-
-        <div class="grid sm:grid-cols-2 gap-3 pt-1">
-          <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In — steps at full inside</label>
-            <input id="rhoInSteps" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Out — steps at full outside</label>
-            <input id="rhoOutSteps" type="number" value="9900" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Theta Min</label>
-            <input id="tminInput" type="number" value="-25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Theta Max</label>
-            <input id="tmaxInput" type="number" value="25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <button id="setRLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET RHO RANGE</button>
-          <button id="setTLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET T LIMITS</button>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <button id="goRhoInBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
-          <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Pattern generator -->
-    <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-      <h2 class="text-xl font-semibold">Pattern Generator</h2>
-      <div class="grid lg:grid-cols-3 gap-4">
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Pattern</label>
-          <select id="patternType" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500">
-            <option value="spiral">Spiral</option>
-            <option value="circle">Circle</option>
-            <option value="radial">Radial Sweep</option>
-          </select>
-        </div>
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Points / segments</label>
-          <input id="patternPoints" type="number" value="180" min="10" max="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-        </div>
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Pause between moves (ms)</label>
-          <input id="patternPause" type="number" value="0" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-        </div>
-      </div>
-
-      <div class="grid lg:grid-cols-4 gap-4">
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta center</label>
-          <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-        </div>
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center <span class="normal-case text-slate-500">(steps, between In &amp; Out)</span></label>
-          <input id="patternRhoCenter" type="number" value="4950" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-        </div>
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
-          <input id="patternThetaRadius" type="number" value="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-        </div>
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius <span class="normal-case text-slate-500">(steps)</span></label>
-          <input id="patternRhoRadius" type="number" value="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-        </div>
-      </div>
-
-      <div class="flex flex-wrap gap-3">
-        <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview Commands</button>
-        <button id="runPatternBtn" class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>▶ Run Pattern</button>
-        <button id="stopPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>■ Stop</button>
-      </div>
-
-      <textarea id="patternPreview" class="mono w-full h-36 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Click 'Preview Commands' to see the move list…"></textarea>
-    </section>
-
-    <!-- Console -->
-    <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold">Console</h2>
-        <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-300 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700">Clear</button>
-      </div>
-      <div class="flex gap-3">
-        <input id="commandInput" type="text" placeholder="e.g. STATUS  |  MOVE R 500  |  GOTO T 0 R 0" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500 text-sm" />
-        <button id="sendBtn" class="bg-cyan-700 hover:bg-cyan-600 px-4 py-2 rounded-xl font-semibold" disabled>Send</button>
-      </div>
-      <pre id="log" class="mono bg-black/40 rounded-2xl p-4 h-72 overflow-auto text-xs whitespace-pre-wrap leading-relaxed"></pre>
-    </section>
+    </div>
+    <!-- END two-column -->
 
   </div>
 
@@ -469,10 +484,10 @@
     });
 
     document.getElementById('goRhoInBtn').addEventListener('click', () => {
-      sendCommand('GOTO T 0 R ' + getRhoIn(), true);
+      sendCommand('GOTO T ' + document.getElementById('targetTheta').value + ' R ' + getRhoIn(), true);
     });
     document.getElementById('goRhoOutBtn').addEventListener('click', () => {
-      sendCommand('GOTO T 0 R ' + getRhoOut(), true);
+      sendCommand('GOTO T ' + document.getElementById('targetTheta').value + ' R ' + getRhoOut(), true);
     });
 
     document.getElementById('setTLimitsBtn').addEventListener('click', async () => {
