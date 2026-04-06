@@ -375,10 +375,10 @@
     }
 
     // ── Rho direction convention ──────────────────────────────────────────────
-    // Firmware stepRhoDir() already negates direction internally, so
-    // rho 0 = inside/home and positive rho = outward in firmware space.
-    // The UI convention matches exactly — no inversion needed.
-    function rhoFlip(n) { return Number(n); }
+    // Firmware stepRhoDir negates dir internally, so positive MOVE R moves
+    // the carriage inward. UI convention is positive = outward, so we negate
+    // all rho values before sending.
+    function rhoFlip(n) { return -Number(n); }
 
     // ── Send command ──────────────────────────────────────────────────────────
     async function sendCommand(cmd, waitForAck = false) {
