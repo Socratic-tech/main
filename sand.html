@@ -10,7 +10,7 @@
   <div class="max-w-5xl mx-auto p-6 space-y-6">
     <header class="space-y-2">
       <h1 class="text-3xl font-bold">Dune Weaver Mini Web Controller</h1>
-      <p class="text-slate-300">Direct browser control for your ESP32 over Web Serial. Use Chrome or Edge on your Mac.</p>
+      <p class="text-slate-300">Direct browser control for your ESP32 over Web Serial. Use Chrome or Edge on your Mac. Current convention: <strong>rho = 0 is inside/home</strong>, and <strong>positive rho moves outward</strong>.</p>
     </header>
 
     <section class="grid md:grid-cols-3 gap-4">
@@ -33,7 +33,7 @@
         <ul class="text-sm text-slate-300 space-y-1 list-disc pl-5">
           <li>Works best in Chrome or Edge.</li>
           <li>ESP32 must be flashed with your serial-command firmware.</li>
-          <li>Use local serving on <code class="text-slate-100">localhost</code>.</li>
+          <li>Use a secure context: <code class="text-slate-100">localhost</code> or HTTPS.</li>
           <li>Line ending: newline is sent automatically.</li>
         </ul>
       </div>
@@ -57,7 +57,7 @@
 
         <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto pt-2">
           <div></div>
-          <button data-cmd="MOVE R 100" class="jogBtn bg-emerald-700 hover:bg-emerald-600 rounded-2xl py-4" disabled>Rho +</button>
+          <button data-cmd="MOVE R 100" class="jogBtn bg-emerald-700 hover:bg-emerald-600 rounded-2xl py-4" disabled>Rho Out +</button>
           <div></div>
 
           <button data-cmd="MOVE T -100" class="jogBtn bg-blue-700 hover:bg-blue-600 rounded-2xl py-4" disabled>Theta -</button>
@@ -65,13 +65,13 @@
           <button data-cmd="MOVE T 100" class="jogBtn bg-blue-700 hover:bg-blue-600 rounded-2xl py-4" disabled>Theta +</button>
 
           <div></div>
-          <button data-cmd="MOVE R -100" class="jogBtn bg-emerald-700 hover:bg-emerald-600 rounded-2xl py-4" disabled>Rho -</button>
+          <button data-cmd="MOVE R -100" class="jogBtn bg-emerald-700 hover:bg-emerald-600 rounded-2xl py-4" disabled>Rho In -</button>
           <div></div>
         </div>
 
         <div class="grid sm:grid-cols-2 gap-3 pt-2">
           <button id="zeroThetaBtn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl" disabled>ZERO THETA</button>
-          <button id="zeroRhoBtn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl" disabled>ZERO RHO</button>
+          <button id="zeroRhoBtn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl" disabled>ZERO RHO (set inside/home)</button>
         </div>
       </div>
 
@@ -130,7 +130,7 @@
           <input id="patternPoints" type="number" value="180" min="10" max="2000" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         </div>
         <div class="space-y-3">
-          <label class="block text-sm text-slate-300">Delay between moves (ms)</label>
+          <label class="block text-sm text-slate-300">Extra pause between pattern moves (ms)</label>
           <input id="patternPause" type="number" value="0" min="0" max="1000" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         </div>
       </div>
@@ -165,7 +165,7 @@
     <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
       <h2 class="text-xl font-semibold">Console</h2>
       <div class="flex gap-3">
-        <input id="commandInput" type="text" placeholder="Type command, e.g. STATUS or MOVE R 500" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+        <input id="commandInput" type="text" placeholder="Type command, e.g. STATUS, MOVE R 500, GOTO T 0 R 0" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
         <button id="sendBtn" class="bg-cyan-700 hover:bg-cyan-600 px-4 py-2 rounded-xl" disabled>Send</button>
       </div>
       <pre id="log" class="bg-black/40 rounded-2xl p-4 h-80 overflow-auto text-sm whitespace-pre-wrap"></pre>
@@ -187,23 +187,30 @@
     let outputDone = null;
     let outputStream = null;
     let writer = null;
+    let lineBuffer = '';
+    let pendingCommand = null;
 
     const supported = 'serial' in navigator;
     browserStatus.textContent = supported ? 'Web Serial available' : 'Web Serial not available';
 
     function appendLog(text) {
-      logEl.textContent += text + '\n';
+      logEl.textContent += text + '
+';
       logEl.scrollTop = logEl.scrollHeight;
     }
 
+    function settlePending(line) {
+      if (!pendingCommand) return;
+      if (line.startsWith('OK') || line.startsWith('ERR')) {
+        pendingCommand.resolve(line);
+        pendingCommand = null;
+      }
+    }
+
     function setConnectedState(connected) {
-      document.querySelectorAll('button').forEach(btn => {
+      document.querySelectorAll('button').forEach((btn) => {
         if (btn.id === 'connectBtn') return;
-        if (btn.id === 'disconnectBtn') {
-          btn.disabled = !connected;
-        } else {
-          btn.disabled = !connected;
-        }
+        btn.disabled = !connected;
       });
       connectBtn.disabled = connected || !supported;
       portStatus.textContent = connected ? 'Connected' : 'Not connected';
@@ -271,6 +278,16 @@
           if (value) {
             logEl.textContent += value;
             logEl.scrollTop = logEl.scrollHeight;
+
+            lineBuffer += value;
+            const parts = lineBuffer.split(/
+?
+/);
+            lineBuffer = parts.pop() || '';
+            for (const rawLine of parts) {
+              const line = rawLine.trim();
+              if (line) settlePending(line);
+            }
           }
         }
       } catch (err) {
@@ -278,12 +295,28 @@
       }
     }
 
-    async function sendCommand(cmd) {
-      if (!writer) return;
+    async function sendCommand(cmd, waitForAck = false) {
+      if (!writer) return null;
       const line = cmd.trim();
-      if (!line) return;
+      if (!line) return null;
+
+      if (waitForAck) {
+        if (pendingCommand) {
+          throw new Error('Another command is still running.');
+        }
+        const ackPromise = new Promise((resolve) => {
+          pendingCommand = { resolve };
+        });
+        appendLog('> ' + line);
+        await writer.write(line + '
+');
+        return await ackPromise;
+      }
+
       appendLog('> ' + line);
-      await writer.write(line + '\n');
+      await writer.write(line + '
+');
+      return null;
     }
 
     connectBtn.addEventListener('click', connectSerial);
@@ -294,8 +327,8 @@
     });
 
     document.getElementById('statusBtn').addEventListener('click', () => sendCommand('STATUS'));
-    document.getElementById('homeRhoBtn').addEventListener('click', () => sendCommand('RETURN RHO'));
-    document.getElementById('homeThetaBtn').addEventListener('click', () => sendCommand('RETURN THETA'));
+    document.getElementById('homeRhoBtn').addEventListener('click', () => sendCommand('RETURN RHO', true));
+    document.getElementById('homeThetaBtn').addEventListener('click', () => sendCommand('RETURN THETA', true));
     document.getElementById('zeroThetaBtn').addEventListener('click', () => sendCommand('ZERO THETA'));
     document.getElementById('zeroRhoBtn').addEventListener('click', () => sendCommand('ZERO RHO'));
     document.getElementById('printBtn').addEventListener('click', () => sendCommand('STATUS'));
@@ -307,21 +340,21 @@
       sendCommand(`SET DELAY ${document.getElementById('delayInput').value}`);
     });
 
-    document.querySelectorAll('.jogBtn').forEach(btn => {
+    document.querySelectorAll('.jogBtn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const base = btn.dataset.cmd;
         const jog = Number(document.getElementById('jogInput').value || 100);
-        if (base.startsWith('MOVE T -')) sendCommand(`MOVE T ${-jog}`);
-        else if (base.startsWith('MOVE T ')) sendCommand(`MOVE T ${jog}`);
-        else if (base.startsWith('MOVE R -')) sendCommand(`MOVE R ${-jog}`);
-        else if (base.startsWith('MOVE R ')) sendCommand(`MOVE R ${jog}`);
+        if (base.startsWith('MOVE T -')) sendCommand(`MOVE T ${-jog}`, true);
+        else if (base.startsWith('MOVE T ')) sendCommand(`MOVE T ${jog}`, true);
+        else if (base.startsWith('MOVE R -')) sendCommand(`MOVE R ${-jog}`, true);
+        else if (base.startsWith('MOVE R ')) sendCommand(`MOVE R ${jog}`, true);
       });
     });
 
     document.getElementById('gotoBtn').addEventListener('click', () => {
       const t = document.getElementById('targetTheta').value;
       const r = document.getElementById('targetRho').value;
-      sendCommand(`GOTO T ${t} R ${r}`);
+      sendCommand(`GOTO T ${t} R ${r}`, true);
     });
 
     document.getElementById('setRLimitsBtn').addEventListener('click', async () => {
@@ -374,21 +407,23 @@
       const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
       const commands = buildPatternCommands();
       for (const cmd of commands) {
-        await sendCommand(cmd);
+        await sendCommand(cmd, true);
         if (pause > 0) {
-          await new Promise(resolve => setTimeout(resolve, pause));
+          await new Promise((resolve) => setTimeout(resolve, pause));
         }
       }
       await sendCommand('STATUS');
     }
 
     document.getElementById('previewPatternBtn').addEventListener('click', () => {
-      document.getElementById('patternPreview').value = buildPatternCommands().join('\n');
+      document.getElementById('patternPreview').value = buildPatternCommands().join('
+');
     });
 
     document.getElementById('runPatternBtn').addEventListener('click', runPattern);
 
     setConnectedState(false);
+    appendLog('UI convention: rho zero is inside/home. Positive rho moves outward. Pattern streaming waits for OK/ERR before sending the next move.');
   </script>
 </body>
 </html>
