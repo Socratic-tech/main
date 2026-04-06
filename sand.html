@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dune Weaver Mini Controller</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div class="max-w-5xl mx-auto p-6 space-y-6">
+    <header class="space-y-2">
+      <h1 class="text-3xl font-bold">Dune Weaver Mini Web Controller</h1>
+      <p class="text-slate-300">Direct browser control for your ESP32 over Web Serial. Use Chrome or Edge on your Mac.</p>
+    </header>
+
+    <section class="grid md:grid-cols-3 gap-4">
+      <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3 md:col-span-2">
+        <div class="flex flex-wrap gap-3 items-center">
+          <button id="connectBtn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-medium">Connect ESP32</button>
+          <button id="disconnectBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl font-medium" disabled>Disconnect</button>
+          <button id="statusBtn" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl font-medium" disabled>STATUS</button>
+          <button id="homeRhoBtn" class="bg-violet-600 hover:bg-violet-500 px-4 py-2 rounded-xl font-medium" disabled>RETURN RHO</button>
+          <button id="homeThetaBtn" class="bg-fuchsia-600 hover:bg-fuchsia-500 px-4 py-2 rounded-xl font-medium" disabled>RETURN THETA</button>
+        </div>
+        <div class="text-sm text-slate-400">
+          <div>Port: <span id="portStatus">Not connected</span></div>
+          <div>Browser support: <span id="browserStatus"></span></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-2">
+        <h2 class="text-lg font-semibold">Quick notes</h2>
+        <ul class="text-sm text-slate-300 space-y-1 list-disc pl-5">
+          <li>Works best in Chrome or Edge.</li>
+          <li>ESP32 must be flashed with your serial-command firmware.</li>
+          <li>Use local serving on <code class="text-slate-100">localhost</code>.</li>
+          <li>Line ending: newline is sent automatically.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="grid lg:grid-cols-2 gap-6">
+      <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+        <h2 class="text-xl font-semibold">Jog Controls</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <label class="block text-sm text-slate-300">Jog step size</label>
+            <input id="jogInput" type="number" value="100" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            <button id="setJogBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl" disabled>SET JOG</button>
+          </div>
+          <div class="space-y-3">
+            <label class="block text-sm text-slate-300">Step delay ms</label>
+            <input id="delayInput" type="number" value="4" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl" disabled>SET DELAY</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto pt-2">
+          <div></div>
+          <button data-cmd="MOVE R 100" class="jogBtn bg-emerald-700 hover:bg-emerald-600 rounded-2xl py-4" disabled>Rho +</button>
+          <div></div>
+
+          <button data-cmd="MOVE T -100" class="jogBtn bg-blue-700 hover:bg-blue-600 rounded-2xl py-4" disabled>Theta -</button>
+          <button id="printBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-4" disabled>STATUS</button>
+          <button data-cmd="MOVE T 100" class="jogBtn bg-blue-700 hover:bg-blue-600 rounded-2xl py-4" disabled>Theta +</button>
+
+          <div></div>
+          <button data-cmd="MOVE R -100" class="jogBtn bg-emerald-700 hover:bg-emerald-600 rounded-2xl py-4" disabled>Rho -</button>
+          <div></div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3 pt-2">
+          <button id="zeroThetaBtn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl" disabled>ZERO THETA</button>
+          <button id="zeroRhoBtn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl" disabled>ZERO RHO</button>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+        <h2 class="text-xl font-semibold">Absolute Moves & Limits</h2>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Target Theta</label>
+            <input id="targetTheta" type="number" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Target Rho</label>
+            <input id="targetRho" type="number" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+        <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl" disabled>GOTO</button>
+
+        <div class="grid sm:grid-cols-2 gap-3 pt-2">
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Rho Min</label>
+            <input id="rminInput" type="number" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Rho Max</label>
+            <input id="rmaxInput" type="number" value="9900" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Theta Min</label>
+            <input id="tminInput" type="number" value="-25800" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Theta Max</label>
+            <input id="tmaxInput" type="number" value="25800" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <button id="setRLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl" disabled>SET R LIMITS</button>
+          <button id="setTLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl" disabled>SET T LIMITS</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+      <h2 class="text-xl font-semibold">Console</h2>
+      <div class="flex gap-3">
+        <input id="commandInput" type="text" placeholder="Type command, e.g. STATUS or MOVE R 500" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+        <button id="sendBtn" class="bg-cyan-700 hover:bg-cyan-600 px-4 py-2 rounded-xl" disabled>Send</button>
+      </div>
+      <pre id="log" class="bg-black/40 rounded-2xl p-4 h-80 overflow-auto text-sm whitespace-pre-wrap"></pre>
+    </section>
+  </div>
+
+  <script>
+    const browserStatus = document.getElementById('browserStatus');
+    const portStatus = document.getElementById('portStatus');
+    const logEl = document.getElementById('log');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const commandInput = document.getElementById('commandInput');
+
+    let port = null;
+    let reader = null;
+    let inputDone = null;
+    let outputDone = null;
+    let outputStream = null;
+    let writer = null;
+
+    const supported = 'serial' in navigator;
+    browserStatus.textContent = supported ? 'Web Serial available' : 'Web Serial not available';
+
+    function appendLog(text) {
+      logEl.textContent += text + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setConnectedState(connected) {
+      document.querySelectorAll('button').forEach(btn => {
+        if (btn.id === 'connectBtn') return;
+        if (btn.id === 'disconnectBtn') {
+          btn.disabled = !connected;
+        } else {
+          btn.disabled = !connected;
+        }
+      });
+      connectBtn.disabled = connected || !supported;
+      portStatus.textContent = connected ? 'Connected' : 'Not connected';
+    }
+
+    async function connectSerial() {
+      if (!supported) {
+        appendLog('Web Serial is not supported in this browser. Use Chrome or Edge.');
+        return;
+      }
+
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+
+        const textDecoder = new TextDecoderStream();
+        inputDone = port.readable.pipeTo(textDecoder.writable);
+        reader = textDecoder.readable.getReader();
+
+        const textEncoder = new TextEncoderStream();
+        outputDone = textEncoder.readable.pipeTo(port.writable);
+        outputStream = textEncoder.writable;
+        writer = outputStream.getWriter();
+
+        setConnectedState(true);
+        appendLog('Connected to ESP32 at 115200 baud.');
+        readLoop();
+      } catch (err) {
+        appendLog('Connect failed: ' + err.message);
+      }
+    }
+
+    async function disconnectSerial() {
+      try {
+        if (reader) {
+          await reader.cancel();
+          await inputDone.catch(() => {});
+          reader = null;
+          inputDone = null;
+        }
+        if (writer) {
+          await writer.close();
+          writer = null;
+        }
+        if (outputDone) {
+          await outputDone.catch(() => {});
+          outputDone = null;
+        }
+        if (port) {
+          await port.close();
+          port = null;
+        }
+      } catch (err) {
+        appendLog('Disconnect warning: ' + err.message);
+      }
+      setConnectedState(false);
+      appendLog('Disconnected.');
+    }
+
+    async function readLoop() {
+      try {
+        while (port && reader) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            logEl.textContent += value;
+            logEl.scrollTop = logEl.scrollHeight;
+          }
+        }
+      } catch (err) {
+        appendLog('Read error: ' + err.message);
+      }
+    }
+
+    async function sendCommand(cmd) {
+      if (!writer) return;
+      const line = cmd.trim();
+      if (!line) return;
+      appendLog('> ' + line);
+      await writer.write(line + '\n');
+    }
+
+    connectBtn.addEventListener('click', connectSerial);
+    disconnectBtn.addEventListener('click', disconnectSerial);
+    sendBtn.addEventListener('click', () => sendCommand(commandInput.value));
+    commandInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendCommand(commandInput.value);
+    });
+
+    document.getElementById('statusBtn').addEventListener('click', () => sendCommand('STATUS'));
+    document.getElementById('homeRhoBtn').addEventListener('click', () => sendCommand('RETURN RHO'));
+    document.getElementById('homeThetaBtn').addEventListener('click', () => sendCommand('RETURN THETA'));
+    document.getElementById('zeroThetaBtn').addEventListener('click', () => sendCommand('ZERO THETA'));
+    document.getElementById('zeroRhoBtn').addEventListener('click', () => sendCommand('ZERO RHO'));
+    document.getElementById('printBtn').addEventListener('click', () => sendCommand('STATUS'));
+
+    document.getElementById('setJogBtn').addEventListener('click', () => {
+      sendCommand(`SET JOG ${document.getElementById('jogInput').value}`);
+    });
+    document.getElementById('setDelayBtn').addEventListener('click', () => {
+      sendCommand(`SET DELAY ${document.getElementById('delayInput').value}`);
+    });
+
+    document.querySelectorAll('.jogBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const base = btn.dataset.cmd;
+        const jog = Number(document.getElementById('jogInput').value || 100);
+        if (base.startsWith('MOVE T -')) sendCommand(`MOVE T ${-jog}`);
+        else if (base.startsWith('MOVE T ')) sendCommand(`MOVE T ${jog}`);
+        else if (base.startsWith('MOVE R -')) sendCommand(`MOVE R ${-jog}`);
+        else if (base.startsWith('MOVE R ')) sendCommand(`MOVE R ${jog}`);
+      });
+    });
+
+    document.getElementById('gotoBtn').addEventListener('click', () => {
+      const t = document.getElementById('targetTheta').value;
+      const r = document.getElementById('targetRho').value;
+      sendCommand(`GOTO T ${t} R ${r}`);
+    });
+
+    document.getElementById('setRLimitsBtn').addEventListener('click', async () => {
+      await sendCommand(`SET RMIN ${document.getElementById('rminInput').value}`);
+      await sendCommand(`SET RMAX ${document.getElementById('rmaxInput').value}`);
+    });
+
+    document.getElementById('setTLimitsBtn').addEventListener('click', async () => {
+      await sendCommand(`SET TMIN ${document.getElementById('tminInput').value}`);
+      await sendCommand(`SET TMAX ${document.getElementById('tmaxInput').value}`);
+    });
+
+    setConnectedState(false);
+  </script>
+</body>
+</html>
