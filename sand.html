@@ -375,11 +375,10 @@
     }
 
     // ── Rho direction convention ──────────────────────────────────────────────
-    // Firmware rho 0 = physically outside, RMAX = inside.
-    // UI rho 0 = inside/home, positive = outward.
-    // Remap by subtracting from RMAX so the UI stays intuitive.
-    function getRhoMax() { return Number(document.getElementById('rmaxInput').value) || 9900; }
-    function rhoFlip(n) { return getRhoMax() - Number(n); }
+    // Firmware stepRhoDir() already negates direction internally, so
+    // rho 0 = inside/home and positive rho = outward in firmware space.
+    // The UI convention matches exactly — no inversion needed.
+    function rhoFlip(n) { return Number(n); }
 
     // ── Send command ──────────────────────────────────────────────────────────
     async function sendCommand(cmd, waitForAck = false) {
@@ -451,8 +450,8 @@
     });
 
     document.getElementById('setRLimitsBtn').addEventListener('click', async () => {
-      await sendCommand('SET RMIN 0');
-      await sendCommand('SET RMAX ' + getRhoMax());
+      await sendCommand('SET RMIN ' + document.getElementById('rminInput').value);
+      await sendCommand('SET RMAX ' + document.getElementById('rmaxInput').value);
     });
 
     document.getElementById('setTLimitsBtn').addEventListener('click', async () => {
