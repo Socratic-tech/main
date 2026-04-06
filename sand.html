@@ -138,7 +138,7 @@
         <div class="grid sm:grid-cols-2 gap-3 pt-1">
           <div>
             <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Min</label>
-            <input id="rminInput" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            <input id="rminInput" type="number" value="-1000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div>
             <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Max</label>
@@ -375,10 +375,10 @@
     }
 
     // ── Rho direction convention ──────────────────────────────────────────────
-    // Firmware stepRhoDir negates dir internally, so positive MOVE R moves
-    // the carriage inward. UI convention is positive = outward, so we negate
-    // all rho values before sending.
-    function rhoFlip(n) { return -Number(n); }
+    // Firmware: reversed pin order cancels the -dir in stepRhoDir.
+    // Result: positive rho = outward, 0 = home. UI matches exactly.
+    // No translation needed — pass values straight through.
+    function rhoToFirmware(uiRho) { return Number(uiRho); }
 
     // ── Send command ──────────────────────────────────────────────────────────
     async function sendCommand(cmd, waitForAck = false) {
@@ -438,14 +438,14 @@
         const axis = btn.dataset.axis;
         const dir  = Number(btn.dataset.dir);
         const jog  = Number(document.getElementById('jogInput').value || 100);
-        const val  = axis === 'R' ? rhoFlip(dir * jog) : (dir * jog);
+        const val  = axis === 'R' ? rhoToFirmware(dir * jog) : (dir * jog);
         sendCommand('MOVE ' + axis + ' ' + val, true);
       });
     });
 
     document.getElementById('gotoBtn').addEventListener('click', () => {
       const t = document.getElementById('targetTheta').value;
-      const r = rhoFlip(document.getElementById('targetRho').value);
+      const r = rhoToFirmware(document.getElementById('targetRho').value);
       sendCommand('GOTO T ' + t + ' R ' + r, true);
     });
 
@@ -475,21 +475,21 @@
           const angle = Math.PI * 6 * t;
           const theta = Math.round(thetaCenter + thetaRadius * t * Math.cos(angle));
           const rho   = Math.round(rhoCenter   + rhoRadius   * t * Math.sin(angle));
-          commands.push('GOTO T ' + theta + ' R ' + rhoFlip(rho));
+          commands.push('GOTO T ' + theta + ' R ' + rhoToFirmware(rho));
         }
       } else if (type === 'circle') {
         for (let i = 0; i <= points; i++) {
           const angle = (Math.PI * 2 * i) / points;
           const theta = Math.round(thetaCenter + thetaRadius * Math.cos(angle));
           const rho   = Math.round(rhoCenter   + rhoRadius   * Math.sin(angle));
-          commands.push('GOTO T ' + theta + ' R ' + rhoFlip(rho));
+          commands.push('GOTO T ' + theta + ' R ' + rhoToFirmware(rho));
         }
       } else if (type === 'radial') {
         for (let i = 0; i <= points; i++) {
           const t     = i / points;
           const theta = Math.round(thetaCenter + thetaRadius * Math.sin(Math.PI * 4 * t));
           const rho   = Math.round(rhoCenter   + rhoRadius   * (2 * t - 1));
-          commands.push('GOTO T ' + theta + ' R ' + rhoFlip(rho));
+          commands.push('GOTO T ' + theta + ' R ' + rhoToFirmware(rho));
         }
       }
 
