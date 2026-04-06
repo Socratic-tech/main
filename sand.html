@@ -151,13 +151,19 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In (steps)</label>
-              <input id="rhoInSteps" type="number" value="-9800"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              <div class="flex gap-2">
+                <input id="rhoInSteps" type="number" value="400"
+                  class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+                <button id="captureRhoInBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>&#9679; CAP</button>
+              </div>
             </div>
             <div>
               <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Out (steps)</label>
-              <input id="rhoOutSteps" type="number" value="400"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              <div class="flex gap-2">
+                <input id="rhoOutSteps" type="number" value="-9500"
+                  class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+                <button id="captureRhoOutBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>&#9679; CAP</button>
+              </div>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
@@ -538,6 +544,22 @@ document.getElementById('goRhoInBtn').addEventListener('click', () => {
 document.getElementById('goRhoOutBtn').addEventListener('click', () => {
   const r = document.getElementById('rhoOutSteps').value;
   sendCommand('GOTO T ' + trackedTheta() + ' R ' + r, true);
+});
+
+// CAPTURE RHO IN / OUT — stores current tracked rho into the field AND pushes firmware limit
+document.getElementById('captureRhoInBtn').addEventListener('click', () => {
+  if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
+  document.getElementById('rhoInSteps').value = currentRho;
+  document.getElementById('fwRmax').value = currentRho;
+  sendCommand('SET RMAX ' + currentRho);
+  appendLog('Captured Rho In = ' + currentRho + ' → SET RMAX ' + currentRho);
+});
+document.getElementById('captureRhoOutBtn').addEventListener('click', () => {
+  if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
+  document.getElementById('rhoOutSteps').value = currentRho;
+  document.getElementById('fwRmin').value = currentRho;
+  sendCommand('SET RMIN ' + currentRho);
+  appendLog('Captured Rho Out = ' + currentRho + ' → SET RMIN ' + currentRho);
 });
 
 // Firmware limits — each independent, sent directly, no math
