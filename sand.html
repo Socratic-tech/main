@@ -1,3 +1,6 @@
+Sand · HTML
+Copy
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,18 +10,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;500;700&display=swap');
-
+ 
     body { font-family: 'Exo 2', sans-serif; }
     code, pre, input[type="number"], .mono { font-family: 'Share Tech Mono', monospace; }
-
+ 
     .sand-grain {
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
       background-repeat: repeat;
     }
-
+ 
     .glow-amber { box-shadow: 0 0 18px rgba(251,191,36,0.15); }
     .glow-violet { box-shadow: 0 0 18px rgba(139,92,246,0.2); }
-
+ 
     .status-dot {
       width: 8px; height: 8px; border-radius: 50%;
       display: inline-block; margin-right: 6px;
@@ -35,7 +38,7 @@
       0%, 100% { box-shadow: 0 0 6px #22c55e; }
       50% { box-shadow: 0 0 14px #22c55e; }
     }
-
+ 
     button:disabled { opacity: 0.35; cursor: not-allowed; }
     button:not(:disabled) { transition: transform 0.1s; }
     button:not(:disabled):active { transform: scale(0.96); }
@@ -43,7 +46,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
   <div class="max-w-7xl mx-auto p-6">
-
+ 
     <!-- Header -->
     <header class="space-y-1 border-b border-slate-800 pb-4 mb-6">
       <div class="flex items-center gap-3">
@@ -52,13 +55,13 @@
       </div>
       <p class="text-slate-400 text-sm">Direct browser control over Web Serial &mdash; Chrome or Edge on desktop only &mdash; <strong class="text-slate-200">rho 0 = inside/home</strong>, positive rho moves outward.</p>
     </header>
-
+ 
     <!-- Two-column layout: controls left, console right -->
     <div class="flex gap-6 items-start">
-
+ 
       <!-- LEFT: all controls -->
       <div class="flex-1 min-w-0 space-y-6">
-
+ 
         <!-- Connection bar -->
         <section class="grid md:grid-cols-3 gap-4">
           <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3 md:col-span-2 glow-violet">
@@ -74,7 +77,7 @@
               <div>Browser: <span id="browserStatus" class="text-slate-200"></span></div>
             </div>
           </div>
-
+ 
           <div class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-2">
             <h2 class="text-base font-semibold text-amber-400">Quick notes</h2>
             <ul class="text-xs text-slate-300 space-y-1 list-disc pl-4">
@@ -85,10 +88,10 @@
             </ul>
           </div>
         </section>
-
+ 
         <!-- Jog + Absolute -->
         <section class="grid lg:grid-cols-2 gap-6">
-
+ 
           <!-- Jog -->
           <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
             <h2 class="text-xl font-semibold">Jog Controls</h2>
@@ -104,28 +107,28 @@
                 <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>SET DELAY</button>
               </div>
             </div>
-
+ 
             <!-- D-pad -->
             <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto pt-2">
               <div></div>
               <button data-axis="R" data-dir="1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho Out +</button>
               <div></div>
-
+ 
               <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta −</button>
               <button id="printBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-4 text-xs" disabled>STATUS</button>
               <button data-axis="T" data-dir="1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta +</button>
-
+ 
               <div></div>
               <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho In −</button>
               <div></div>
             </div>
-
+ 
             <div class="grid sm:grid-cols-2 gap-3 pt-2">
               <button id="zeroThetaBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm glow-amber" disabled>ZERO THETA</button>
               <button id="zeroRhoBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm glow-amber" disabled>ZERO RHO (set inside/home)</button>
             </div>
           </div>
-
+ 
           <!-- Absolute moves + limits -->
           <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
             <h2 class="text-xl font-semibold">Absolute Moves &amp; Limits</h2>
@@ -140,7 +143,7 @@
               </div>
             </div>
             <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl font-semibold" disabled>GOTO</button>
-
+ 
             <div class="grid sm:grid-cols-2 gap-3 pt-1">
               <div>
                 <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In — steps at full inside</label>
@@ -160,16 +163,43 @@
               </div>
             </div>
             <div class="grid sm:grid-cols-2 gap-3">
-              <button id="setRLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET RHO RANGE</button>
-              <button id="setTLimitsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>SET T LIMITS</button>
-            </div>
-            <div class="grid sm:grid-cols-2 gap-3">
               <button id="goRhoInBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
               <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
             </div>
           </div>
         </section>
-
+ 
+        <!-- Firmware Limits -->
+        <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Firmware Limits</h2>
+            <span class="text-xs text-slate-500">Values sent directly to firmware — no translation</span>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3">
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-16 shrink-0">RMIN</label>
+              <input id="fwRminInput" type="number" value="-500" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="fwSetRminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-16 shrink-0">RMAX</label>
+              <input id="fwRmaxInput" type="number" value="9900" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="fwSetRmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-16 shrink-0">TMIN</label>
+              <input id="fwTminInput" type="number" value="-25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="fwSetTminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-16 shrink-0">TMAX</label>
+              <input id="fwTmaxInput" type="number" value="25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="fwSetTmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
+            </div>
+          </div>
+          <p class="text-xs text-slate-500">These update automatically when STATUS is received. Edit any value and hit SET to push it to the firmware immediately.</p>
+        </section>
+ 
         <!-- Pattern generator -->
         <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
           <h2 class="text-xl font-semibold">Pattern Generator</h2>
@@ -191,7 +221,7 @@
               <input id="patternPause" type="number" value="0" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
             </div>
           </div>
-
+ 
           <div class="grid lg:grid-cols-4 gap-4">
             <div class="space-y-2">
               <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta center</label>
@@ -210,19 +240,19 @@
               <input id="patternRhoRadius" type="number" value="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
             </div>
           </div>
-
+ 
           <div class="flex flex-wrap gap-3">
             <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview Commands</button>
             <button id="runPatternBtn" class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>▶ Run Pattern</button>
             <button id="stopPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>■ Stop</button>
           </div>
-
+ 
           <textarea id="patternPreview" class="mono w-full h-36 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Click 'Preview Commands' to see the move list…"></textarea>
         </section>
-
+ 
       </div>
       <!-- END LEFT -->
-
+ 
       <!-- RIGHT: sticky console -->
       <div class="w-80 shrink-0 sticky top-6 self-start">
         <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
@@ -238,12 +268,12 @@
         </div>
       </div>
       <!-- END RIGHT -->
-
+ 
     </div>
     <!-- END two-column -->
-
+ 
   </div>
-
+ 
   <script>
     // ── DOM refs ──────────────────────────────────────────────────────────────
     const browserStatus  = document.getElementById('browserStatus');
@@ -254,7 +284,7 @@
     const disconnectBtn  = document.getElementById('disconnectBtn');
     const sendBtn        = document.getElementById('sendBtn');
     const commandInput   = document.getElementById('commandInput');
-
+ 
     // ── Serial state ──────────────────────────────────────────────────────────
     let port         = null;
     let reader       = null;
@@ -264,25 +294,25 @@
     let writer       = null;
     let lineBuffer   = '';
     let pendingCommand = null;
-
+ 
     // ── Pattern state ─────────────────────────────────────────────────────────
     let patternRunning  = false;
     let patternAbort    = false;
-
+ 
     // ── Browser capability ────────────────────────────────────────────────────
     const supported = 'serial' in navigator;
     browserStatus.textContent = supported ? 'Web Serial available ✓' : 'Web Serial NOT available — use Chrome or Edge';
-
+ 
     // ── Logging ───────────────────────────────────────────────────────────────
     function appendLog(text) {
       logEl.textContent += text + '\n';
       logEl.scrollTop = logEl.scrollHeight;
     }
-
+ 
     document.getElementById('clearLogBtn').addEventListener('click', () => {
       logEl.textContent = '';
     });
-
+ 
     // ── Ack resolution ────────────────────────────────────────────────────────
     function settlePending(line) {
       if (!pendingCommand) return;
@@ -291,7 +321,7 @@
         pendingCommand = null;
       }
     }
-
+ 
     // ── UI enable/disable ─────────────────────────────────────────────────────
     function setConnectedState(connected) {
       document.querySelectorAll('button').forEach((btn) => {
@@ -312,7 +342,7 @@
         document.getElementById('runPatternBtn').disabled = true;
       }
     }
-
+ 
     // ── Connect ───────────────────────────────────────────────────────────────
     async function connectSerial() {
       if (!supported) {
@@ -322,16 +352,16 @@
       try {
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
-
+ 
         const textDecoder = new TextDecoderStream();
         inputDone = port.readable.pipeTo(textDecoder.writable);
         reader = textDecoder.readable.getReader();
-
+ 
         const textEncoder = new TextEncoderStream();
         outputDone = textEncoder.readable.pipeTo(port.writable);
         outputStream = textEncoder.writable;
         writer = outputStream.getWriter();
-
+ 
         setConnectedState(true);
         appendLog('Connected to ESP32 at 115200 baud.');
         readLoop();
@@ -339,7 +369,7 @@
         appendLog('Connect failed: ' + err.message);
       }
     }
-
+ 
     // ── Disconnect ────────────────────────────────────────────────────────────
     async function disconnectSerial() {
       patternAbort = true;
@@ -368,7 +398,7 @@
       setConnectedState(false);
       appendLog('Disconnected.');
     }
-
+ 
     // ── Read loop ─────────────────────────────────────────────────────────────
     async function readLoop() {
       try {
@@ -378,13 +408,16 @@
           if (value) {
             logEl.textContent += value;
             logEl.scrollTop = logEl.scrollHeight;
-
+ 
             lineBuffer += value;
             const parts = lineBuffer.split(/\r?\n/);
             lineBuffer = parts.pop() || '';
             for (const rawLine of parts) {
               const line = rawLine.trim();
-              if (line) settlePending(line);
+              if (line) {
+                parseStatusLine(line);
+                settlePending(line);
+              }
             }
           }
         }
@@ -392,7 +425,7 @@
         appendLog('Read error: ' + err.message);
       }
     }
-
+ 
     // ── Rho position mapping ──────────────────────────────────────────────────
     // rhoInSteps  = firmware step value when carriage is fully inside/home
     // rhoOutSteps = firmware step value when carriage is fully outside
@@ -406,13 +439,13 @@
       const hi = Math.max(getRhoIn(), getRhoOut());
       return Math.round(Math.max(lo, Math.min(hi, Number(steps))));
     }
-
+ 
     // ── Send command ──────────────────────────────────────────────────────────
     async function sendCommand(cmd, waitForAck = false) {
       if (!writer) return null;
       const line = cmd.trim();
       if (!line) return null;
-
+ 
       if (waitForAck) {
         if (pendingCommand) {
           throw new Error('Another command is still pending.');
@@ -424,16 +457,16 @@
         await writer.write(line + '\n');
         return await ackPromise;
       }
-
+ 
       appendLog('> ' + line);
       await writer.write(line + '\n');
       return null;
     }
-
+ 
     // ── Button wiring ─────────────────────────────────────────────────────────
     connectBtn.addEventListener('click', connectSerial);
     disconnectBtn.addEventListener('click', disconnectSerial);
-
+ 
     sendBtn.addEventListener('click', () => {
       sendCommand(commandInput.value);
       commandInput.value = '';
@@ -444,21 +477,21 @@
         commandInput.value = '';
       }
     });
-
+ 
     document.getElementById('statusBtn').addEventListener('click', () => sendCommand('STATUS'));
     document.getElementById('homeRhoBtn').addEventListener('click', () => sendCommand('RETURN RHO', true));
     document.getElementById('homeThetaBtn').addEventListener('click', () => sendCommand('RETURN THETA', true));
     document.getElementById('zeroThetaBtn').addEventListener('click', () => sendCommand('ZERO THETA'));
     document.getElementById('zeroRhoBtn').addEventListener('click', () => sendCommand('ZERO RHO'));
     document.getElementById('printBtn').addEventListener('click', () => sendCommand('STATUS'));
-
+ 
     document.getElementById('setJogBtn').addEventListener('click', () => {
       sendCommand('SET JOG ' + document.getElementById('jogInput').value);
     });
     document.getElementById('setDelayBtn').addEventListener('click', () => {
       sendCommand('SET DELAY ' + document.getElementById('delayInput').value);
     });
-
+ 
     // Jog D-pad — reads current jog input value at click time
     document.querySelectorAll('.jogBtn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -469,32 +502,50 @@
         sendCommand('MOVE ' + axis + ' ' + val, true);
       });
     });
-
+ 
     document.getElementById('gotoBtn').addEventListener('click', () => {
       const t = document.getElementById('targetTheta').value;
       const r = rhoToFirmware(document.getElementById('targetRho').value);
       sendCommand('GOTO T ' + t + ' R ' + r, true);
     });
-
-    document.getElementById('setRLimitsBtn').addEventListener('click', async () => {
-      const lo = Math.min(getRhoIn(), getRhoOut());
-      const hi = Math.max(getRhoIn(), getRhoOut());
-      await sendCommand('SET RMIN ' + lo);
-      await sendCommand('SET RMAX ' + hi);
-    });
-
+ 
     document.getElementById('goRhoInBtn').addEventListener('click', () => {
       sendCommand('GOTO T ' + document.getElementById('targetTheta').value + ' R ' + getRhoIn(), true);
     });
     document.getElementById('goRhoOutBtn').addEventListener('click', () => {
       sendCommand('GOTO T ' + document.getElementById('targetTheta').value + ' R ' + getRhoOut(), true);
     });
-
-    document.getElementById('setTLimitsBtn').addEventListener('click', async () => {
-      await sendCommand('SET TMIN ' + document.getElementById('tminInput').value);
-      await sendCommand('SET TMAX ' + document.getElementById('tmaxInput').value);
+ 
+    // ── Firmware limits — direct SET commands, no translation ─────────────────
+    document.getElementById('fwSetRminBtn').addEventListener('click', () => {
+      sendCommand('SET RMIN ' + document.getElementById('fwRminInput').value);
     });
-
+    document.getElementById('fwSetRmaxBtn').addEventListener('click', () => {
+      sendCommand('SET RMAX ' + document.getElementById('fwRmaxInput').value);
+    });
+    document.getElementById('fwSetTminBtn').addEventListener('click', () => {
+      sendCommand('SET TMIN ' + document.getElementById('fwTminInput').value);
+    });
+    document.getElementById('fwSetTmaxBtn').addEventListener('click', () => {
+      sendCommand('SET TMAX ' + document.getElementById('fwTmaxInput').value);
+    });
+ 
+    // ── Parse STATUS replies and populate firmware limit fields ───────────────
+    function parseStatusLine(line) {
+      const map = {
+        'RMIN': 'fwRminInput',
+        'RMAX': 'fwRmaxInput',
+        'TMIN': 'fwTminInput',
+        'TMAX': 'fwTmaxInput',
+      };
+      for (const [key, id] of Object.entries(map)) {
+        if (line.startsWith(key + ' ')) {
+          const val = line.substring(key.length).trim();
+          document.getElementById(id).value = val;
+        }
+      }
+    }
+ 
     // ── Pattern builder ───────────────────────────────────────────────────────
     function buildPatternCommands() {
       const type         = document.getElementById('patternType').value;
@@ -504,7 +555,7 @@
       const thetaRadius  = Number(document.getElementById('patternThetaRadius').value || 0);
       const rhoRadius    = Number(document.getElementById('patternRhoRadius').value || 0);
       const commands     = [];
-
+ 
       if (type === 'spiral') {
         for (let i = 0; i <= points; i++) {
           const t     = i / points;
@@ -528,26 +579,26 @@
           commands.push('GOTO T ' + theta + ' R ' + rhoToFirmware(rho));
         }
       }
-
+ 
       return commands;
     }
-
+ 
     document.getElementById('previewPatternBtn').addEventListener('click', () => {
       document.getElementById('patternPreview').value = buildPatternCommands().join('\n');
     });
-
+ 
     async function runPattern() {
       if (patternRunning) return;
       patternRunning = true;
       patternAbort   = false;
-
+ 
       document.getElementById('runPatternBtn').disabled  = true;
       document.getElementById('stopPatternBtn').disabled = false;
-
+ 
       const pause    = Math.max(0, Number(document.getElementById('patternPause').value || 0));
       const commands = buildPatternCommands();
       appendLog('--- Pattern start (' + commands.length + ' moves) ---');
-
+ 
       for (const cmd of commands) {
         if (patternAbort) break;
         try {
@@ -560,22 +611,22 @@
           await new Promise((resolve) => setTimeout(resolve, pause));
         }
       }
-
+ 
       appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
       if (!patternAbort) await sendCommand('STATUS');
-
+ 
       patternRunning = false;
       patternAbort   = false;
       document.getElementById('runPatternBtn').disabled  = false;
       document.getElementById('stopPatternBtn').disabled = true;
     }
-
+ 
     document.getElementById('runPatternBtn').addEventListener('click', runPattern);
     document.getElementById('stopPatternBtn').addEventListener('click', () => {
       patternAbort = true;
       appendLog('Stop requested — will halt after current move completes.');
     });
-
+ 
     // ── Init ──────────────────────────────────────────────────────────────────
     setConnectedState(false);
     appendLog('Dune Weaver Mini ready. Connect via Chrome or Edge.');
@@ -584,3 +635,4 @@
   </script>
 </body>
 </html>
+ 
