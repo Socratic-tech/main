@@ -371,7 +371,7 @@ function setConnectedState(connected) {
 // Updates position display, firmware limit fields, and resolves acks.
 function parseIncomingLine(line) {
 
-  // Live position tracking
+  // Live position tracking — always update from STATUS
   if (line.startsWith('THETA ')) {
     currentTheta = parseInt(line.substring(6).trim(), 10);
     document.getElementById('dispTheta').textContent = currentTheta;
@@ -381,18 +381,8 @@ function parseIncomingLine(line) {
     document.getElementById('dispRho').textContent = currentRho;
   }
 
-  // Firmware limits — auto-populate fields from STATUS
-  const limitMap = {
-    'RMIN ': 'fwRmin',
-    'RMAX ': 'fwRmax',
-    'TMIN ': 'fwTmin',
-    'TMAX ': 'fwTmax',
-  };
-  for (const [prefix, id] of Object.entries(limitMap)) {
-    if (line.startsWith(prefix)) {
-      document.getElementById(id).value = line.substring(prefix.length).trim();
-    }
-  }
+  // One-time limit sync on first connect
+  syncLimitsOnce(line);
 
   // Resolve pending command ack
   if (pendingCommand && (line.startsWith('OK') || line.startsWith('ERR'))) {
@@ -463,6 +453,7 @@ async function disconnectSerial() {
     appendLog('Disconnect warning: ' + err.message);
   }
   setConnectedState(false);
+  limitsSynced = false;
   currentTheta = null;
   currentRho   = null;
   document.getElementById('dispTheta').textContent = '--';
@@ -492,6 +483,30 @@ async function sendCommand(cmd, waitForAck = false) {
 // ── Position helpers ──────────────────────────────────────────────
 function trackedTheta() { return currentTheta !== null ? currentTheta : 0; }
 function trackedRho()   { return currentRho   !== null ? currentRho   : 0; }
+
+// ── One-time limit sync from STATUS on connect ────────────────────
+// Populates firmware limit fields ONCE when first connecting.
+// After that, fields only change when the user explicitly edits them.
+let limitsSynced = false;
+function syncLimitsOnce(line) {
+  if (limitsSynced) return;
+  const limitMap = {
+    'RMIN ': 'fwRmin',
+    'RMAX ': 'fwRmax',
+    'TMIN ': 'fwTmin',
+    'TMAX ': 'fwTmax',
+  };
+  for (const [prefix, id] of Object.entries(limitMap)) {
+    if (line.startsWith(prefix)) {
+      document.getElementById(id).value = line.substring(prefix.length).trim();
+    }
+  }
+  // Mark synced once we've seen the end of the first STATUS block
+  if (line.startsWith('=====') || line.startsWith('=========')) {
+    limitsSynced = true;
+    appendLog('Limits synced from firmware.');
+  }
+}
 
 // ================================================================
 // BUTTON WIRING
