@@ -170,6 +170,10 @@
             <button id="goRhoInBtn"  class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
             <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
           </div>
+          <button id="calcCenterBtn" class="w-full bg-blue-900 hover:bg-blue-800 px-4 py-3 rounded-xl text-sm">&#8859; Calculate &amp; Apply Rho Center + Radius</button>
+          <div id="centerReadout" class="text-xs text-slate-400 text-center hidden">
+            Center: <span id="centerVal" class="text-slate-200"></span> &nbsp;|&nbsp; Max safe radius: <span id="radiusVal" class="text-slate-200"></span>
+          </div>
         </div>
       </section>
 
@@ -353,6 +357,7 @@ function setConnectedState(connected) {
     if (btn.id === 'connectBtn')       return;
     if (btn.id === 'previewPatternBtn') return;
     if (btn.id === 'clearLogBtn')       return;
+    if (btn.id === 'calcCenterBtn')     return;
     btn.disabled = !connected;
   });
   connectBtn.disabled = connected || !supported;
@@ -485,8 +490,8 @@ function trackedTheta() { return currentTheta !== null ? currentTheta : 0; }
 function trackedRho()   { return currentRho   !== null ? currentRho   : 0; }
 
 // ── One-time limit sync from STATUS on connect ────────────────────
-// Populates firmware limit fields ONCE when first connecting.
-// After that, fields only change when the user explicitly edits them.
+// Populates firmware limit fields ONCE after first connect.
+// After that, fields NEVER change regardless of STATUS responses.
 let limitsSynced = false;
 function syncLimitsOnce(line) {
   if (limitsSynced) return;
@@ -501,10 +506,10 @@ function syncLimitsOnce(line) {
       document.getElementById(id).value = line.substring(prefix.length).trim();
     }
   }
-  // Mark synced once we've seen the end of the first STATUS block
-  if (line.startsWith('=====') || line.startsWith('=========')) {
+  // Mark synced once we see the closing separator
+  if (line.startsWith('=====') || line === '=============') {
     limitsSynced = true;
-    appendLog('Limits synced from firmware.');
+    appendLog('Limits synced from firmware — fields are now locked until reconnect.');
   }
 }
 
@@ -577,7 +582,22 @@ document.getElementById('captureRhoOutBtn').addEventListener('click', () => {
   appendLog('Captured Rho Out = ' + currentRho + ' → SET RMIN ' + currentRho);
 });
 
-// Firmware limits — each independent, sent directly, no math
+// Calculate and apply rho center + radius from In/Out endpoints
+document.getElementById('calcCenterBtn').addEventListener('click', () => {
+  const rhoIn  = Number(document.getElementById('rhoInSteps').value);
+  const rhoOut = Number(document.getElementById('rhoOutSteps').value);
+  const center = Math.round((rhoIn + rhoOut) / 2);
+  const radius = Math.round(Math.abs(rhoOut - rhoIn) / 2);
+
+  document.getElementById('patternRhoCenter').value = center;
+  document.getElementById('patternRhoRadius').value = Math.round(radius * 0.85); // 85% for safety margin
+
+  document.getElementById('centerVal').textContent  = center;
+  document.getElementById('radiusVal').textContent  = radius;
+  document.getElementById('centerReadout').classList.remove('hidden');
+
+  appendLog('Rho center set to ' + center + ', radius set to ' + Math.round(radius * 0.85) + ' (85% of max ' + radius + ')');
+});
 document.getElementById('setRminBtn').addEventListener('click', () =>
   sendCommand('SET RMIN ' + document.getElementById('fwRmin').value));
 document.getElementById('setRmaxBtn').addEventListener('click', () =>
