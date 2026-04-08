@@ -436,6 +436,11 @@ let currentPlanCommands = [];
 let currentPlanStats = null;
 let currentPlanIndex = 0;
 let currentPlanAnchor = 0;
+let currentPlanExpandedPoints = [];
+const SEGMENT_LIMITS = {
+  maxThetaStep: 100,
+  maxRhoStep: 50,
+};
 
 const supported = 'serial' in navigator;
 const logEl = document.getElementById('log');
@@ -459,6 +464,13 @@ const PATTERN_DEFS = {
 };
 
 let currentPattern = 'spiral';
+const STORAGE_KEYS = {
+  rhoIn: 'dune_rho_in_steps',
+  rhoOut: 'dune_rho_out_steps',
+  patternRhoCenter: 'dune_pattern_rho_center',
+  patternRhoRadius: 'dune_pattern_rho_radius',
+  spiralTurns: 'dune_spiral_turns'
+};
 
 const CURSIVE = {
   'A': [[0,0],[0.2,1],[0.4,0.5],[0.6,0.5],[0.8,1],[1,0]],
@@ -584,14 +596,16 @@ function buildWarnings(stats) {
   if (stats.thetaBehavior.includes('flats')) out.push('Many consecutive theta values are identical. Expect visible radial streaks or stalled rotation.');
   if (stats.thetaSpan > 25800 * 12) out.push('Theta span is very large. That can be fine, but it is worth confirming the pattern really needs that much rotation.');
   if (stats.rhoMin === stats.rhoMax) out.push('Rho is constant. That means you are drawing a ring-like pattern.');
+  if (stats.maxThetaJump > 100 || stats.maxRhoJump > 50) out.push(`Some plan segments are still large (ΔT max ${stats.maxThetaJump}, ΔR max ${stats.maxRhoJump}).`);
   if (stats.patternName === 'spiral') {
+    if (Math.abs(stats.rhoOut - stats.rhoIn) < 500) out.push('Spiral endpoint window is too small. Re-capture Rho In / Rho Out.');
     if (stats.firstRho !== stats.rhoIn) out.push('Spiral does not start at captured Rho In. Check the compiled plan.');
     if (stats.lastRho !== stats.rhoOut) out.push('Spiral does not end at captured Rho Out. Check the compiled plan.');
   }
   return out;
 }
 function renderDiagnostics(stats) {
-  document.getElementById('diagPoints').textContent = stats ? stats.points : '--';
+  document.getElementById('diagPoints').textContent = stats ? (stats.sourcePoints && stats.sourcePoints !== stats.points ? `${stats.sourcePoints}→${stats.points}` : stats.points) : '--';
   document.getElementById('diagAnchor').textContent = stats ? stats.anchorTheta : '--';
   document.getElementById('diagThetaRange').textContent = stats ? `${stats.thetaMin} / ${stats.thetaMax}` : '--';
   document.getElementById('diagRhoRange').textContent = stats ? `${stats.rhoMin} / ${stats.rhoMax}` : '--';
@@ -606,10 +620,36 @@ function renderDiagnostics(stats) {
   const badge = document.getElementById('diagnosticBadge');
   badge.textContent = stats ? (warnings.length ? 'Review warnings' : 'Looks sane') : 'Awaiting preview';
 }
+
+function subdividePointsForReliableMotion(points, maxThetaStep = SEGMENT_LIMITS.maxThetaStep, maxRhoStep = SEGMENT_LIMITS.maxRhoStep) {
+  if (!points.length) return [];
+  const out = [points[0]];
+  for (let i = 1; i < points.length; i++) {
+    const a = out[out.length - 1];
+    const b = points[i];
+    const dTheta = b.t - a.t;
+    const dRho = b.r - a.r;
+    const steps = Math.max(
+      1,
+      Math.ceil(Math.abs(dTheta) / Math.max(1, maxThetaStep)),
+      Math.ceil(Math.abs(dRho) / Math.max(1, maxRhoStep))
+    );
+    for (let j = 1; j <= steps; j++) {
+      const frac = j / steps;
+      out.push({
+        t: Math.round(a.t + dTheta * frac),
+        r: Math.round(a.r + dRho * frac),
+      });
+    }
+  }
+  return out;
+}
+
 function compilePatternPlan(thetaAnchor = 0) {
   const rawPts = buildPatternPoints();
   if (!rawPts.length) {
     currentPlanCommands = [];
+    currentPlanExpandedPoints = [];
     currentPlanStats = null;
     currentPlanIndex = 0;
     currentPlanAnchor = thetaAnchor;
@@ -623,37 +663,53 @@ function compilePatternPlan(thetaAnchor = 0) {
     t: (p.t - firstTheta) + thetaAnchor,
     r: p.r
   }));
+
   const rawRmin = Number(document.getElementById('fwRmin').value || -9800);
   const rawRmax = Number(document.getElementById('fwRmax').value || 400);
   const clampCount = rebasedPts.filter(p => Math.round(p.r) < rawRmin || Math.round(p.r) > rawRmax).length;
-  const pts = enforceFirmwareFriendly(rebasedPts);
-  const cmds = pts.map(p => `GOTO T ${p.t} R ${p.r}`);
 
+  const pts = enforceFirmwareFriendly(rebasedPts);
+  const expandedPts = subdividePointsForReliableMotion(pts);
+  const cmds = expandedPts.map(p => `GOTO T ${p.t} R ${p.r}`);
+
+  currentPlanExpandedPoints = expandedPts;
   currentPlanCommands = cmds;
   const { rhoIn, rhoOut } = getRhoWindow();
+
+  let maxThetaJump = 0;
+  let maxRhoJump = 0;
+  for (let i = 1; i < expandedPts.length; i++) {
+    maxThetaJump = Math.max(maxThetaJump, Math.abs(expandedPts[i].t - expandedPts[i-1].t));
+    maxRhoJump = Math.max(maxRhoJump, Math.abs(expandedPts[i].r - expandedPts[i-1].r));
+  }
+
   currentPlanStats = {
     patternName: currentPattern,
-    points: pts.length,
+    points: expandedPts.length,
+    sourcePoints: pts.length,
     anchorTheta: thetaAnchor,
-    thetaMin: Math.min(...pts.map(p => p.t)),
-    thetaMax: Math.max(...pts.map(p => p.t)),
-    rhoMin: Math.min(...pts.map(p => p.r)),
-    rhoMax: Math.max(...pts.map(p => p.r)),
-    thetaSpan: Math.max(...pts.map(p => p.t)) - Math.min(...pts.map(p => p.t)),
+    thetaMin: Math.min(...expandedPts.map(p => p.t)),
+    thetaMax: Math.max(...expandedPts.map(p => p.t)),
+    rhoMin: Math.min(...expandedPts.map(p => p.r)),
+    rhoMax: Math.max(...expandedPts.map(p => p.r)),
+    thetaSpan: Math.max(...expandedPts.map(p => p.t)) - Math.min(...expandedPts.map(p => p.t)),
     clampCount,
-    thetaBehavior: summarizeThetaBehavior(pts),
+    thetaBehavior: summarizeThetaBehavior(expandedPts),
     firstCmd: cmds[0],
     lastCmd: cmds[cmds.length - 1],
-    firstRho: pts[0].r,
-    lastRho: pts[pts.length - 1].r,
+    firstRho: expandedPts[0].r,
+    lastRho: expandedPts[expandedPts.length - 1].r,
     rhoIn,
     rhoOut,
+    maxThetaJump,
+    maxRhoJump,
+    segmentized: expandedPts.length - pts.length,
   };
   currentPlanIndex = 0;
   currentPlanAnchor = thetaAnchor;
   planDirty = false;
   renderDiagnostics(currentPlanStats);
-  updatePlanStatus(`Compiled at theta anchor ${thetaAnchor}.`);
+  updatePlanStatus(`Compiled at theta anchor ${thetaAnchor}. Segments expanded from ${pts.length} to ${expandedPts.length}.`);
   return cmds;
 }
 async function previewCurrentPattern() {
@@ -665,6 +721,14 @@ async function previewCurrentPattern() {
   document.getElementById('patternPreview').value = cmds.join('\n');
 }
 async function ensurePlanReady(forceRecompile = false) {
+  if (currentPattern === 'spiral') {
+    const check = validateSpiralWindow();
+    if (!check.ok) {
+      appendLog('SPIRAL BLOCKED: ' + check.message);
+      updatePlanStatus(check.message);
+      return false;
+    }
+  }
   if (forceRecompile || planDirty || !currentPlanCommands.length || currentPlanIndex >= currentPlanCommands.length) {
     await moveToRhoIn();
     await requestFreshStatus();
@@ -799,7 +863,44 @@ function getRhoWindow() {
     rhoOut,
     rhoMin: Math.min(rhoIn, rhoOut),
     rhoMax: Math.max(rhoIn, rhoOut),
+    span: Math.abs(rhoOut - rhoIn),
   };
+}
+function persistEndpointState() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.rhoIn, document.getElementById('rhoInSteps').value);
+    localStorage.setItem(STORAGE_KEYS.rhoOut, document.getElementById('rhoOutSteps').value);
+    localStorage.setItem(STORAGE_KEYS.patternRhoCenter, document.getElementById('patternRhoCenter').value);
+    localStorage.setItem(STORAGE_KEYS.patternRhoRadius, document.getElementById('patternRhoRadius').value);
+    localStorage.setItem(STORAGE_KEYS.spiralTurns, document.getElementById('spiralTurns').value);
+  } catch (e) {}
+}
+function restoreEndpointState() {
+  try {
+    const rhoIn = localStorage.getItem(STORAGE_KEYS.rhoIn);
+    const rhoOut = localStorage.getItem(STORAGE_KEYS.rhoOut);
+    const rhoCenter = localStorage.getItem(STORAGE_KEYS.patternRhoCenter);
+    const rhoRadius = localStorage.getItem(STORAGE_KEYS.patternRhoRadius);
+    const spiralTurns = localStorage.getItem(STORAGE_KEYS.spiralTurns);
+    if (rhoIn !== null) document.getElementById('rhoInSteps').value = rhoIn;
+    if (rhoOut !== null) document.getElementById('rhoOutSteps').value = rhoOut;
+    if (rhoCenter !== null) document.getElementById('patternRhoCenter').value = rhoCenter;
+    if (rhoRadius !== null) document.getElementById('patternRhoRadius').value = rhoRadius;
+    if (spiralTurns !== null) document.getElementById('spiralTurns').value = spiralTurns;
+  } catch (e) {}
+}
+function validateSpiralWindow() {
+  const { rhoIn, rhoOut, span } = getRhoWindow();
+  if (!Number.isFinite(rhoIn) || !Number.isFinite(rhoOut)) {
+    return { ok: false, message: 'Spiral endpoints are not valid numbers.' };
+  }
+  if (span < 500) {
+    return { ok: false, message: 'Spiral Rho In / Rho Out window is too small. Re-capture the endpoints first.' };
+  }
+  if (rhoIn === 0 && rhoOut < -500 && currentRho === 0) {
+    return { ok: false, message: 'Spiral thinks Rho In is 0 and current rho is already 0. That usually means the inside endpoint was lost. Re-capture Rho In.' };
+  }
+  return { ok: true, message: '' };
 }
 function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius) {
   if (!xyPoints.length) return [];
@@ -1234,6 +1335,7 @@ document.getElementById('captureRhoInBtn').addEventListener('click', () => {
   if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
   document.getElementById('rhoInSteps').value = currentRho;
   document.getElementById('fwRmax').value = currentRho;
+  persistEndpointState();
   sendCommand('SET RMAX ' + currentRho, true);
   appendLog('Captured Rho In = ' + currentRho);
 });
@@ -1241,6 +1343,7 @@ document.getElementById('captureRhoOutBtn').addEventListener('click', () => {
   if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
   document.getElementById('rhoOutSteps').value = currentRho;
   document.getElementById('fwRmin').value = currentRho;
+  persistEndpointState();
   sendCommand('SET RMIN ' + currentRho, true);
   appendLog('Captured Rho Out = ' + currentRho);
 });
@@ -1254,6 +1357,7 @@ document.getElementById('calcCenterBtn').addEventListener('click', () => {
   document.getElementById('centerVal').textContent = center;
   document.getElementById('radiusVal').textContent = radius;
   document.getElementById('centerReadout').classList.remove('hidden');
+  persistEndpointState();
   appendLog(`Rho center set to ${center}, radius set to ${Math.round(radius * 0.85)}.`);
   drawVisualPreview();
 });
@@ -1332,6 +1436,7 @@ appendLog('Patterns move to Rho In before starting and stop at the pattern end.'
 appendLog('Pattern theta is rebased so the first point starts at the live theta.');
 appendLog('Spiral uses captured Rho In / Rho Out as its radial window.');
 appendLog('Theta is not clamped in the UI because firmware treats theta as unlimited.');
+appendLog('Captured Rho In / Rho Out are persisted locally and spiral refuses to run if that window looks wrong.');
 appendLog('Direct connect button preserved for reliable Web Serial requestPort().');
 </script>
 </body>
