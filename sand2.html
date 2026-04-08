@@ -446,7 +446,7 @@ document.getElementById('browserStatus').textContent =
   supported ? 'Web Serial available' : 'NOT available — use Chrome or Edge';
 
 const PATTERN_DEFS = {
-  spiral:      { desc: 'True spiral: starts at the current theta and expands outward.', params: 'standard' },
+  spiral:      { desc: 'Window-based spiral: starts at Rho In and sweeps toward Rho Out while theta advances.', params: 'standard' },
   circle:      { desc: 'True circular ring: theta rotates steadily while rho stays fixed.', params: 'standard' },
   radial:      { desc: 'Wave sweep: theta sweeps back and forth while rho drifts across the tray.', params: 'standard' },
   rose:        { desc: 'True polar rose: theta rotates steadily while rho follows a cosine petal pattern.', params: 'rose' },
@@ -584,6 +584,10 @@ function buildWarnings(stats) {
   if (stats.thetaBehavior.includes('flats')) out.push('Many consecutive theta values are identical. Expect visible radial streaks or stalled rotation.');
   if (stats.thetaSpan > 25800 * 12) out.push('Theta span is very large. That can be fine, but it is worth confirming the pattern really needs that much rotation.');
   if (stats.rhoMin === stats.rhoMax) out.push('Rho is constant. That means you are drawing a ring-like pattern.');
+  if (stats.patternName === 'spiral') {
+    if (stats.firstRho !== stats.rhoIn) out.push('Spiral does not start at captured Rho In. Check the compiled plan.');
+    if (stats.lastRho !== stats.rhoOut) out.push('Spiral does not end at captured Rho Out. Check the compiled plan.');
+  }
   return out;
 }
 function renderDiagnostics(stats) {
@@ -626,7 +630,9 @@ function compilePatternPlan(thetaAnchor = 0) {
   const cmds = pts.map(p => `GOTO T ${p.t} R ${p.r}`);
 
   currentPlanCommands = cmds;
+  const { rhoIn, rhoOut } = getRhoWindow();
   currentPlanStats = {
+    patternName: currentPattern,
     points: pts.length,
     anchorTheta: thetaAnchor,
     thetaMin: Math.min(...pts.map(p => p.t)),
@@ -638,6 +644,10 @@ function compilePatternPlan(thetaAnchor = 0) {
     thetaBehavior: summarizeThetaBehavior(pts),
     firstCmd: cmds[0],
     lastCmd: cmds[cmds.length - 1],
+    firstRho: pts[0].r,
+    lastRho: pts[pts.length - 1].r,
+    rhoIn,
+    rhoOut,
   };
   currentPlanIndex = 0;
   currentPlanAnchor = thetaAnchor;
@@ -781,6 +791,16 @@ function clampNum(n, min, max) {
 function triangleWave(frac) {
   return 1 - 4 * Math.abs((frac % 1) - 0.5);
 }
+function getRhoWindow() {
+  const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
+  const rhoOut = Number(document.getElementById('rhoOutSteps').value || 0);
+  return {
+    rhoIn,
+    rhoOut,
+    rhoMin: Math.min(rhoIn, rhoOut),
+    rhoMax: Math.max(rhoIn, rhoOut),
+  };
+}
 function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius) {
   if (!xyPoints.length) return [];
   const mags = xyPoints.map(p => Math.hypot(p.x, p.y));
@@ -862,12 +882,12 @@ function buildPatternPoints() {
   }
 
   if (currentPattern === 'spiral') {
-    const startFrac = 0.08;
+    const { rhoIn, rhoOut } = getRhoWindow();
     for (let i = 0; i <= points; i++) {
       const frac = i / points;
       out.push({
         t: Math.round(thetaCenter + turns * 25800 * frac),
-        r: Math.round(rhoCenter + rhoRadius * (startFrac + (1 - startFrac) * frac))
+        r: Math.round(rhoIn + (rhoOut - rhoIn) * frac)
       });
     }
     return out;
@@ -1310,6 +1330,7 @@ appendLog('All values are raw firmware step counts. No translation.');
 appendLog('Calibrate mode keeps tuning controls visible; Run mode compiles and diagnoses exact plans.');
 appendLog('Patterns move to Rho In before starting and stop at the pattern end.');
 appendLog('Pattern theta is rebased so the first point starts at the live theta.');
+appendLog('Spiral uses captured Rho In / Rho Out as its radial window.');
 appendLog('Theta is not clamped in the UI because firmware treats theta as unlimited.');
 appendLog('Direct connect button preserved for reliable Web Serial requestPort().');
 </script>
