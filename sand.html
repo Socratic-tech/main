@@ -392,7 +392,7 @@ document.getElementById('browserStatus').textContent =
   supported ? 'Web Serial available' : 'NOT available — use Chrome or Edge';
 
 const PATTERN_DEFS = {
-  spiral:      { desc: 'True spiral: theta rotates steadily while rho ramps smoothly.', params: 'standard' },
+  spiral:      { desc: 'True spiral: starts at the current theta and expands outward.', params: 'standard' },
   circle:      { desc: 'True circular ring: theta rotates steadily while rho stays fixed.', params: 'standard' },
   radial:      { desc: 'Wave sweep: theta sweeps back and forth while rho drifts across the tray.', params: 'standard' },
   rose:        { desc: 'True polar rose: theta rotates steadily while rho follows a cosine petal pattern.', params: 'rose' },
@@ -811,23 +811,25 @@ function buildPatternPoints() {
 }
 
 function enforceFirmwareFriendly(points) {
-  const tMin = Number(document.getElementById('fwTmin').value || -25800);
-  const tMax = Number(document.getElementById('fwTmax').value || 25800);
   const rMin = Number(document.getElementById('fwRmin').value || -9800);
   const rMax = Number(document.getElementById('fwRmax').value || 400);
   return points.map(p => ({
-    t: clampNum(Math.round(p.t), tMin, tMax),
+    t: Math.round(p.t),                 // theta is unlimited in firmware; do not clamp it here
     r: clampNum(Math.round(p.r), rMin, rMax)
   }));
 }
 
-function buildPatternCommands(thetaOffset = 0) {
-  const pts = enforceFirmwareFriendly(
-    buildPatternPoints().map(p => ({
-      t: p.t + thetaOffset,
-      r: p.r
-    }))
-  );
+function buildPatternCommands(thetaAnchor = 0) {
+  const rawPts = buildPatternPoints();
+  if (!rawPts.length) return [];
+
+  const firstTheta = rawPts[0].t;
+  const rebasedPts = rawPts.map(p => ({
+    t: (p.t - firstTheta) + thetaAnchor,
+    r: p.r
+  }));
+
+  const pts = enforceFirmwareFriendly(rebasedPts);
   return pts.map(p => `GOTO T ${p.t} R ${p.r}`);
 }
 
@@ -848,8 +850,14 @@ function drawVisualPreview() {
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  const points = enforceFirmwareFriendly(buildPatternPoints());
-  if (points.length < 2) return;
+  const previewPts = buildPatternPoints();
+  if (previewPts.length < 2) return;
+
+  const firstTheta = previewPts[0].t;
+  const points = enforceFirmwareFriendly(previewPts.map(p => ({
+    t: p.t - firstTheta,
+    r: p.r
+  })));
 
   const rhoMin = Math.min(...points.map(p => p.r));
   const rhoMax = Math.max(...points.map(p => p.r));
@@ -881,7 +889,7 @@ function drawVisualPreview() {
   ctx.fill();
 }
 
-async function moveToRhoInAtCurrentTheta() {
+async function moveToRhoIn() {
   const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
   const rhoNow = trackedRho();
   const delta = rhoIn - rhoNow;
@@ -903,7 +911,7 @@ async function runPattern() {
   document.getElementById('stopPatternBtn').disabled = false;
 
   try {
-    await moveToRhoInAtCurrentTheta();
+    await moveToRhoIn();
   } catch (e) {
     appendLog('Pre-start move error: ' + e.message);
     patternRunning = false;
@@ -917,8 +925,9 @@ async function runPattern() {
   const startTheta = trackedTheta();
   const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
   const cmds = buildPatternCommands(startTheta);
+
   appendLog('--- Pattern start (' + cmds.length + ' moves) ---');
-  appendLog('Pattern theta anchored to current theta: ' + startTheta);
+  appendLog('Pattern anchored to live theta: ' + startTheta);
   setProgress(0, cmds.length);
 
   for (let i = 0; i < cmds.length; i++) {
@@ -1054,8 +1063,7 @@ document.querySelectorAll('.patternTab').forEach(btn => {
 });
 
 document.getElementById('previewPatternBtn').addEventListener('click', () => {
-  const startTheta = trackedTheta();
-  const cmds = buildPatternCommands(startTheta);
+  const cmds = buildPatternCommands(0);
   document.getElementById('patternPreview').value = cmds.join('\n');
   drawVisualPreview();
 });
@@ -1074,8 +1082,9 @@ setProgress(0, 0);
 document.querySelector('.patternTab[data-pattern="spiral"]').click();
 appendLog('Dune Weaver Mini ready.');
 appendLog('All values are raw firmware step counts. No translation.');
-appendLog('Patterns anchor to current theta when a run starts.');
-appendLog('Each new pattern moves to Rho In first, then stops at the pattern end.');
+appendLog('Patterns move to Rho In before starting and stop at the pattern end.');
+appendLog('Pattern theta is rebased so the first point starts at the live theta.');
+appendLog('Theta is not clamped in the UI because firmware treats theta as unlimited.');
 appendLog('Direct connect button preserved for reliable Web Serial requestPort().');
 </script>
 </body>
