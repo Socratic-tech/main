@@ -37,6 +37,7 @@
     button:not(:disabled) { transition: transform 0.1s; }
     button:not(:disabled):active { transform: scale(0.97); }
     .tab-active { background: rgb(159 18 57) !important; font-weight: 700; }
+    .mode-active { background: rgb(37 99 235) !important; font-weight: 700; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
@@ -61,6 +62,14 @@
     </div>
   </header>
 
+  <section class="bg-slate-900 rounded-2xl p-4 shadow-xl mb-6 space-y-3">
+    <div class="flex flex-wrap items-center gap-3">
+      <button id="uiModeCalibrate" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-semibold">Calibrate Mode</button>
+      <button id="uiModeRun" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-semibold">Run Mode</button>
+      <span id="uiModeReadout" class="text-xs text-slate-400">Run mode shows pattern tools. Calibrate mode keeps the tuning controls front and center.</span>
+    </div>
+  </section>
+
   <div class="grid xl:grid-cols-[1fr_340px] gap-6">
     <div class="space-y-6">
       <section class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3">
@@ -79,7 +88,7 @@
         <div class="text-xs text-slate-500">No startup wizard in this build. Connect stays direct so the Web Serial port picker remains reliable.</div>
       </section>
 
-      <section class="grid lg:grid-cols-2 gap-6">
+      <section data-ui-section="calibrate" class="grid lg:grid-cols-2 gap-6">
         <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
           <h2 class="text-xl font-semibold">Jog</h2>
           <div class="grid grid-cols-2 gap-4">
@@ -160,7 +169,7 @@
         </div>
       </section>
 
-      <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+      <section data-ui-section="calibrate" class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-2">
           <h2 class="text-xl font-semibold">Firmware Limits</h2>
           <span class="text-xs text-slate-500">Syncs once from STATUS after connect. Edit fields and press SET to push to firmware.</span>
@@ -194,8 +203,14 @@
         </div>
       </section>
 
-      <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <h2 class="text-xl font-semibold">Pattern Generator</h2>
+      <section id="patternSection" data-ui-section="run" class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h2 class="text-xl font-semibold">Pattern Generator</h2>
+            <p class="text-xs text-slate-400 mt-1">This view compiles a pattern, shows the exact transformed plan, and lets you run it in small chunks.</p>
+          </div>
+          <div id="planStatus" class="text-xs text-slate-400 bg-slate-800 rounded-xl px-3 py-2">No compiled plan yet.</div>
+        </div>
 
         <div class="flex flex-wrap gap-2">
           <button data-pattern="spiral" class="patternTab bg-rose-800 hover:bg-rose-700 px-3 py-2 rounded-xl text-xs font-semibold">Spiral</button>
@@ -344,12 +359,45 @@
         </div>
 
         <div class="flex flex-wrap gap-3">
-          <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview</button>
-          <button id="runPatternBtn" class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>▶ Run Pattern</button>
+          <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview / Recompile</button>
+          <button id="resetPlanBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Reset Plan</button>
+          <button id="runPatternBtn" class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>▶ Run Full</button>
+          <button id="run1Btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl text-sm" disabled>Run 1</button>
+          <button id="run5Btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl text-sm" disabled>Run 5</button>
+          <button id="run20Btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl text-sm" disabled>Run 20</button>
           <button id="stopPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>■ Stop</button>
         </div>
 
-        <textarea id="patternPreview" class="mono w-full h-32 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Click Preview to see commands before running…"></textarea>
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div class="bg-slate-950/50 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-sm font-semibold text-slate-200">Preflight Diagnostics</h3>
+              <span id="diagnosticBadge" class="text-[11px] text-slate-400 bg-slate-800 rounded-lg px-2 py-1">Awaiting preview</span>
+            </div>
+            <div id="diagGrid" class="grid grid-cols-2 gap-2 text-xs text-slate-300">
+              <div class="bg-slate-900 rounded-xl px-3 py-2">Points <span id="diagPoints" class="float-right text-slate-100">--</span></div>
+              <div class="bg-slate-900 rounded-xl px-3 py-2">Anchor θ <span id="diagAnchor" class="float-right text-slate-100">--</span></div>
+              <div class="bg-slate-900 rounded-xl px-3 py-2">θ min/max <span id="diagThetaRange" class="float-right text-slate-100">--</span></div>
+              <div class="bg-slate-900 rounded-xl px-3 py-2">ρ min/max <span id="diagRhoRange" class="float-right text-slate-100">--</span></div>
+              <div class="bg-slate-900 rounded-xl px-3 py-2">θ behavior <span id="diagThetaMode" class="float-right text-slate-100">--</span></div>
+              <div class="bg-slate-900 rounded-xl px-3 py-2">ρ clamped <span id="diagClampCount" class="float-right text-slate-100">--</span></div>
+            </div>
+            <div class="space-y-2">
+              <div class="text-[11px] uppercase tracking-widest text-slate-500">Warnings</div>
+              <div id="diagWarnings" class="text-xs text-slate-300 bg-slate-900 rounded-xl p-3 min-h-[68px]">Compile a preview to see warnings.</div>
+            </div>
+          </div>
+
+          <div class="bg-slate-950/50 rounded-2xl p-4 space-y-3">
+            <div class="text-sm font-semibold text-slate-200">Exact Plan Preview</div>
+            <div class="grid gap-2 text-xs text-slate-300">
+              <div class="bg-slate-900 rounded-xl px-3 py-2">First command <span id="diagFirstCmd" class="block text-slate-100 mt-1 break-all">--</span></div>
+              <div class="bg-slate-900 rounded-xl px-3 py-2">Last command <span id="diagLastCmd" class="block text-slate-100 mt-1 break-all">--</span></div>
+            </div>
+          </div>
+        </div>
+
+        <textarea id="patternPreview" class="mono w-full h-40 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Click Preview to compile the exact GOTO list before running…"></textarea>
       </section>
     </div>
 
@@ -382,6 +430,12 @@ let currentRho = null;
 let patternRunning = false;
 let patternAbort = false;
 let limitsSynced = false;
+let uiMode = 'run';
+let planDirty = true;
+let currentPlanCommands = [];
+let currentPlanStats = null;
+let currentPlanIndex = 0;
+let currentPlanAnchor = 0;
 
 const supported = 'serial' in navigator;
 const logEl = document.getElementById('log');
@@ -451,6 +505,20 @@ function appendLog(text) {
   logEl.textContent += text + '\n';
   logEl.scrollTop = logEl.scrollHeight;
 }
+function setUIMode(nextMode) {
+  uiMode = nextMode;
+  document.querySelectorAll('[data-ui-section]').forEach(el => {
+    const mode = el.getAttribute('data-ui-section');
+    el.classList.toggle('hidden', mode !== nextMode);
+  });
+  document.getElementById('uiModeCalibrate').classList.toggle('mode-active', nextMode === 'calibrate');
+  document.getElementById('uiModeRun').classList.toggle('mode-active', nextMode === 'run');
+  document.getElementById('uiModeReadout').textContent =
+    nextMode === 'calibrate'
+      ? 'Calibrate mode surfaces jog, endpoints, limits, and the console so you can tune the mechanics.'
+      : 'Run mode compiles the exact transformed plan, shows diagnostics, and lets you run a few points at a time.';
+  try { localStorage.setItem('dune_ui_mode', nextMode); } catch (e) {}
+}
 function setProgress(done, total) {
   const pct = total <= 0 ? 0 : Math.round((done / total) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
@@ -477,6 +545,126 @@ function setConnectedState(connected) {
 function trackedTheta() { return currentTheta !== null ? currentTheta : 0; }
 function trackedRho() { return currentRho !== null ? currentRho : 0; }
 
+
+function markPlanDirty(reason = 'Pattern settings changed.') {
+  planDirty = true;
+  currentPlanCommands = [];
+  currentPlanStats = null;
+  currentPlanIndex = 0;
+  currentPlanAnchor = 0;
+  updatePlanStatus(reason + ' Compile again before running.');
+}
+function updatePlanStatus(extra = '') {
+  const total = currentPlanCommands.length;
+  let msg = total
+    ? `Compiled ${total} moves · next index ${Math.min(currentPlanIndex + 1, total)}`
+    : 'No compiled plan yet.';
+  if (extra) msg += ' ' + extra;
+  const el = document.getElementById('planStatus');
+  if (el) el.textContent = msg;
+}
+function summarizeThetaBehavior(points) {
+  if (points.length < 2) return 'single';
+  let nonDec = true, nonInc = true, repeated = 0;
+  for (let i = 1; i < points.length; i++) {
+    const d = points[i].t - points[i - 1].t;
+    if (d < 0) nonDec = false;
+    if (d > 0) nonInc = false;
+    if (d === 0) repeated++;
+  }
+  if (nonDec && !nonInc) return repeated > points.length * 0.25 ? 'mostly ↑ + flats' : 'increasing';
+  if (nonInc && !nonDec) return repeated > points.length * 0.25 ? 'mostly ↓ + flats' : 'decreasing';
+  return 'oscillating';
+}
+function buildWarnings(stats) {
+  const out = [];
+  if (!stats) return out;
+  if (stats.clampCount > 0) out.push(`${stats.clampCount} rho points were clamped to the current RMIN/RMAX window.`);
+  if (stats.points < 20) out.push('Very few points. This is good for debugging but usually too coarse for a smooth pattern.');
+  if (stats.thetaBehavior.includes('flats')) out.push('Many consecutive theta values are identical. Expect visible radial streaks or stalled rotation.');
+  if (stats.thetaSpan > 25800 * 12) out.push('Theta span is very large. That can be fine, but it is worth confirming the pattern really needs that much rotation.');
+  if (stats.rhoMin === stats.rhoMax) out.push('Rho is constant. That means you are drawing a ring-like pattern.');
+  return out;
+}
+function renderDiagnostics(stats) {
+  document.getElementById('diagPoints').textContent = stats ? stats.points : '--';
+  document.getElementById('diagAnchor').textContent = stats ? stats.anchorTheta : '--';
+  document.getElementById('diagThetaRange').textContent = stats ? `${stats.thetaMin} / ${stats.thetaMax}` : '--';
+  document.getElementById('diagRhoRange').textContent = stats ? `${stats.rhoMin} / ${stats.rhoMax}` : '--';
+  document.getElementById('diagThetaMode').textContent = stats ? stats.thetaBehavior : '--';
+  document.getElementById('diagClampCount').textContent = stats ? stats.clampCount : '--';
+  document.getElementById('diagFirstCmd').textContent = stats ? stats.firstCmd : '--';
+  document.getElementById('diagLastCmd').textContent = stats ? stats.lastCmd : '--';
+  const warnings = buildWarnings(stats);
+  document.getElementById('diagWarnings').innerHTML = warnings.length
+    ? warnings.map(w => `<div class="mb-2">• ${w}</div>`).join('')
+    : 'No obvious warnings. Preview and run math are aligned.';
+  const badge = document.getElementById('diagnosticBadge');
+  badge.textContent = stats ? (warnings.length ? 'Review warnings' : 'Looks sane') : 'Awaiting preview';
+}
+function compilePatternPlan(thetaAnchor = 0) {
+  const rawPts = buildPatternPoints();
+  if (!rawPts.length) {
+    currentPlanCommands = [];
+    currentPlanStats = null;
+    currentPlanIndex = 0;
+    currentPlanAnchor = thetaAnchor;
+    renderDiagnostics(null);
+    updatePlanStatus('No points generated.');
+    return [];
+  }
+
+  const firstTheta = rawPts[0].t;
+  const rebasedPts = rawPts.map(p => ({
+    t: (p.t - firstTheta) + thetaAnchor,
+    r: p.r
+  }));
+  const rawRmin = Number(document.getElementById('fwRmin').value || -9800);
+  const rawRmax = Number(document.getElementById('fwRmax').value || 400);
+  const clampCount = rebasedPts.filter(p => Math.round(p.r) < rawRmin || Math.round(p.r) > rawRmax).length;
+  const pts = enforceFirmwareFriendly(rebasedPts);
+  const cmds = pts.map(p => `GOTO T ${p.t} R ${p.r}`);
+
+  currentPlanCommands = cmds;
+  currentPlanStats = {
+    points: pts.length,
+    anchorTheta: thetaAnchor,
+    thetaMin: Math.min(...pts.map(p => p.t)),
+    thetaMax: Math.max(...pts.map(p => p.t)),
+    rhoMin: Math.min(...pts.map(p => p.r)),
+    rhoMax: Math.max(...pts.map(p => p.r)),
+    thetaSpan: Math.max(...pts.map(p => p.t)) - Math.min(...pts.map(p => p.t)),
+    clampCount,
+    thetaBehavior: summarizeThetaBehavior(pts),
+    firstCmd: cmds[0],
+    lastCmd: cmds[cmds.length - 1],
+  };
+  currentPlanIndex = 0;
+  currentPlanAnchor = thetaAnchor;
+  planDirty = false;
+  renderDiagnostics(currentPlanStats);
+  updatePlanStatus(`Compiled at theta anchor ${thetaAnchor}.`);
+  return cmds;
+}
+async function previewCurrentPattern() {
+  if (writer) {
+    try { await requestFreshStatus(); } catch (e) {}
+  }
+  const anchor = writer ? trackedTheta() : 0;
+  const cmds = compilePatternPlan(anchor);
+  document.getElementById('patternPreview').value = cmds.join('\n');
+}
+async function ensurePlanReady(forceRecompile = false) {
+  if (forceRecompile || planDirty || !currentPlanCommands.length || currentPlanIndex >= currentPlanCommands.length) {
+    await moveToRhoIn();
+    await requestFreshStatus();
+    const startTheta = trackedTheta();
+    compilePatternPlan(startTheta);
+    document.getElementById('patternPreview').value = currentPlanCommands.join('\n');
+    appendLog('Compiled new plan at live theta ' + startTheta);
+  }
+  return currentPlanCommands.length > 0;
+}
 function syncLimitsOnce(line) {
   if (limitsSynced) return;
   const limitMap = { 'RMIN ': 'fwRmin', 'RMAX ': 'fwRmax', 'TMIN ': 'fwTmin', 'TMAX ': 'fwTmax', 'COMP ': 'compInput', 'JOG ': 'jogInput', 'DELAY ': 'delayInput' };
@@ -889,6 +1077,11 @@ function drawVisualPreview() {
   ctx.fill();
 }
 
+async function requestFreshStatus() {
+  await sendCommand('STATUS');
+  await sleep(80);
+}
+
 async function moveToRhoIn() {
   const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
   const rhoNow = trackedRho();
@@ -900,62 +1093,76 @@ async function moveToRhoIn() {
   } else {
     appendLog('Already at Rho In.');
   }
-  await sendCommand('STATUS');
+  await requestFreshStatus();
 }
 
-async function runPattern() {
+async function runPatternChunk(chunkSize = null, forceRecompile = false) {
   if (patternRunning || !writer) return;
   patternRunning = true;
   patternAbort = false;
   document.getElementById('runPatternBtn').disabled = true;
+  document.getElementById('run1Btn').disabled = true;
+  document.getElementById('run5Btn').disabled = true;
+  document.getElementById('run20Btn').disabled = true;
   document.getElementById('stopPatternBtn').disabled = false;
 
   try {
-    await moveToRhoIn();
+    const ready = await ensurePlanReady(forceRecompile);
+    if (!ready) throw new Error('No compiled plan available.');
   } catch (e) {
-    appendLog('Pre-start move error: ' + e.message);
+    appendLog('Plan preparation error: ' + e.message);
     patternRunning = false;
     patternAbort = false;
     document.getElementById('runPatternBtn').disabled = false;
+    document.getElementById('run1Btn').disabled = false;
+    document.getElementById('run5Btn').disabled = false;
+    document.getElementById('run20Btn').disabled = false;
     document.getElementById('stopPatternBtn').disabled = true;
     return;
   }
 
-  await sendCommand('STATUS');
-  const startTheta = trackedTheta();
-  const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
-  const cmds = buildPatternCommands(startTheta);
+  const total = currentPlanCommands.length;
+  const startIndex = currentPlanIndex;
+  const stopIndex = chunkSize === null ? total : Math.min(total, startIndex + chunkSize);
 
-  appendLog('--- Pattern start (' + cmds.length + ' moves) ---');
-  appendLog('Pattern anchored to live theta: ' + startTheta);
-  setProgress(0, cmds.length);
+  appendLog(`--- Pattern run ${startIndex + 1} to ${stopIndex} of ${total} ---`);
+  setProgress(currentPlanIndex, total);
 
-  for (let i = 0; i < cmds.length; i++) {
+  for (; currentPlanIndex < stopIndex; currentPlanIndex++) {
     if (patternAbort) break;
-    const cmd = cmds[i];
+    const cmd = currentPlanCommands[currentPlanIndex];
     try {
       await sendCommand(cmd, true);
-      setProgress(i + 1, cmds.length);
+      setProgress(currentPlanIndex + 1, total);
+      updatePlanStatus(`Executed ${currentPlanIndex + 1} of ${total}.`);
     } catch (e) {
       appendLog('Pattern error: ' + e.message);
       break;
     }
+    const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
     if (pause > 0) await sleep(pause);
   }
 
-  appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
-
-  try {
-    if (!patternAbort) await sendCommand('STATUS');
-  } catch (e) {
-    appendLog('Final status error: ' + e.message);
+  const completed = currentPlanIndex >= total;
+  if (completed) {
+    appendLog('--- Pattern complete ---');
+    try { await sendCommand('STATUS'); } catch (e) {}
+    updatePlanStatus('Pattern complete. Preview or Reset Plan to start over.');
+  } else if (patternAbort) {
+    appendLog('--- Pattern stopped ---');
+    updatePlanStatus(`Stopped at ${currentPlanIndex + 1} of ${total}.`);
+  } else {
+    appendLog(`--- Chunk complete: next point ${Math.min(currentPlanIndex + 1, total)} of ${total} ---`);
+    updatePlanStatus(`Paused after ${currentPlanIndex} of ${total}.`);
   }
 
   patternRunning = false;
   patternAbort = false;
   document.getElementById('runPatternBtn').disabled = false;
+  document.getElementById('run1Btn').disabled = false;
+  document.getElementById('run5Btn').disabled = false;
+  document.getElementById('run20Btn').disabled = false;
   document.getElementById('stopPatternBtn').disabled = true;
-  setProgress(cmds.length, cmds.length);
 }
 
 document.getElementById('clearLogBtn').addEventListener('click', () => logEl.textContent = '');
@@ -1059,29 +1266,48 @@ document.querySelectorAll('.patternTab').forEach(btn => {
     if (def.params === 'star') document.getElementById('paramStar').classList.remove('hidden');
     if (def.params === 'text') document.getElementById('paramText').classList.remove('hidden');
     drawVisualPreview();
+    markPlanDirty('Pattern type changed.');
   });
 });
 
-document.getElementById('previewPatternBtn').addEventListener('click', () => {
-  const cmds = buildPatternCommands(0);
-  document.getElementById('patternPreview').value = cmds.join('\n');
+document.getElementById('previewPatternBtn').addEventListener('click', async () => {
+  await previewCurrentPattern();
   drawVisualPreview();
 });
-document.getElementById('runPatternBtn').addEventListener('click', runPattern);
+document.getElementById('resetPlanBtn').addEventListener('click', () => {
+  markPlanDirty('Plan reset.');
+  document.getElementById('patternPreview').value = '';
+  renderDiagnostics(null);
+  setProgress(0, 0);
+});
+document.getElementById('runPatternBtn').addEventListener('click', () => runPatternChunk(null, false));
+document.getElementById('run1Btn').addEventListener('click', () => runPatternChunk(1, false));
+document.getElementById('run5Btn').addEventListener('click', () => runPatternChunk(5, false));
+document.getElementById('run20Btn').addEventListener('click', () => runPatternChunk(20, false));
 document.getElementById('stopPatternBtn').addEventListener('click', () => {
   patternAbort = true;
   appendLog('Stop requested — halting after current move.');
 });
 
 document.querySelectorAll('input').forEach(el => el.addEventListener('input', () => {
-  if (el.id !== 'commandInput') drawVisualPreview();
+  if (el.id !== 'commandInput') {
+    drawVisualPreview();
+    markPlanDirty();
+  }
 }));
+
+document.getElementById('uiModeCalibrate').addEventListener('click', () => setUIMode('calibrate'));
+document.getElementById('uiModeRun').addEventListener('click', () => setUIMode('run'));
 
 setConnectedState(false);
 setProgress(0, 0);
 document.querySelector('.patternTab[data-pattern="spiral"]').click();
+setUIMode((() => { try { return localStorage.getItem('dune_ui_mode') || 'run'; } catch (e) { return 'run'; } })());
+updatePlanStatus();
+renderDiagnostics(null);
 appendLog('Dune Weaver Mini ready.');
 appendLog('All values are raw firmware step counts. No translation.');
+appendLog('Calibrate mode keeps tuning controls visible; Run mode compiles and diagnoses exact plans.');
 appendLog('Patterns move to Rho In before starting and stop at the pattern end.');
 appendLog('Pattern theta is rebased so the first point starts at the live theta.');
 appendLog('Theta is not clamped in the UI because firmware treats theta as unlimited.');
