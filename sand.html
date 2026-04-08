@@ -10,7 +10,7 @@
     body { font-family: 'Exo 2', sans-serif; }
     .mono { font-family: 'Share Tech Mono', monospace; }
     code, pre, input[type="number"] { font-family: 'Share Tech Mono', monospace; }
- 
+
     .sand-grain {
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
       background-repeat: repeat;
@@ -41,7 +41,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
 <div class="max-w-7xl mx-auto p-6">
- 
+
   <!-- Header -->
   <header class="border-b border-slate-800 pb-4 mb-6 flex items-center justify-between flex-wrap gap-4">
     <div>
@@ -63,13 +63,13 @@
       </div>
     </div>
   </header>
- 
+
   <!-- Two-column layout -->
   <div class="flex gap-6 items-start">
- 
+
     <!-- LEFT COLUMN -->
     <div class="flex-1 min-w-0 space-y-6">
- 
+
       <!-- Connection -->
       <section class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3">
         <div class="flex flex-wrap gap-3 items-center">
@@ -84,10 +84,10 @@
           <div>Browser: <span id="browserStatus" class="text-slate-200"></span></div>
         </div>
       </section>
- 
+
       <!-- Jog + GOTO -->
       <section class="grid lg:grid-cols-2 gap-6">
- 
+
         <!-- Jog -->
         <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
           <h2 class="text-xl font-semibold">Jog</h2>
@@ -105,7 +105,7 @@
               <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-sm" disabled>SET DELAY</button>
             </div>
           </div>
- 
+
           <!-- D-pad -->
           <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
             <div></div>
@@ -118,18 +118,18 @@
             <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho In -</button>
             <div></div>
           </div>
- 
+
           <div class="grid grid-cols-2 gap-3">
             <button id="zeroThetaBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm" disabled>ZERO THETA</button>
             <button id="zeroRhoBtn"   class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm" disabled>ZERO RHO</button>
           </div>
         </div>
- 
+
         <!-- GOTO + Rho endpoints -->
         <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
           <h2 class="text-xl font-semibold">Go To Position</h2>
           <p class="text-xs text-slate-400">Raw firmware step values. Both axes move together.</p>
- 
+
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Theta</label>
@@ -143,9 +143,9 @@
             </div>
           </div>
           <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl font-semibold" disabled>GOTO</button>
- 
+
           <hr class="border-slate-700" />
- 
+
           <h3 class="text-sm font-semibold text-slate-300">Named Rho Endpoints</h3>
           <p class="text-xs text-slate-400">GO TO buttons use live tracked theta &mdash; only rho moves.</p>
           <div class="space-y-3">
@@ -176,7 +176,7 @@
           </div>
         </div>
       </section>
- 
+
       <!-- Firmware Limits -->
       <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-2">
@@ -210,24 +210,33 @@
           </div>
         </div>
       </section>
- 
+
       <!-- Pattern Generator -->
       <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
         <h2 class="text-xl font-semibold">Pattern Generator</h2>
-        <p class="text-xs text-slate-400">All values are raw firmware steps. Keep rho center +/- radius within your RMIN/RMAX.</p>
- 
+
+        <!-- Pattern type tabs -->
+        <div class="flex flex-wrap gap-2">
+          <button data-pattern="spiral"      class="patternTab bg-rose-800 hover:bg-rose-700 px-3 py-2 rounded-xl text-xs font-semibold">Spiral</button>
+          <button data-pattern="circle"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Circle</button>
+          <button data-pattern="radial"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Wave Sweep</button>
+          <button data-pattern="rose"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Rose</button>
+          <button data-pattern="lissajous"   class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Lissajous</button>
+          <button data-pattern="epitrochoid" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Spirograph</button>
+          <button data-pattern="bouncerho"   class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Ripple Rings</button>
+          <button data-pattern="star"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Star</button>
+          <button data-pattern="fermat"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Fermat</button>
+          <button data-pattern="text"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">✏️ Text</button>
+        </div>
+
+        <!-- Pattern description -->
+        <p id="patternDesc" class="text-xs text-slate-400 italic"></p>
+
+        <!-- Common controls -->
         <div class="grid sm:grid-cols-3 gap-4">
           <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Pattern</label>
-            <select id="patternType" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
-              <option value="spiral">Spiral</option>
-              <option value="circle">Circle</option>
-              <option value="radial">Radial Sweep</option>
-            </select>
-          </div>
-          <div class="space-y-2">
             <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
-            <input id="patternPoints" type="number" value="180" min="10" max="2000"
+            <input id="patternPoints" type="number" value="360" min="10" max="2000"
               class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div class="space-y-2">
@@ -235,46 +244,156 @@
             <input id="patternPause" type="number" value="0" min="0" max="5000"
               class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center</label>
+            <input id="patternRhoCenter" type="number" value="0"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
         </div>
- 
-        <div class="grid sm:grid-cols-4 gap-4">
+
+        <!-- Pattern-specific controls (shown/hidden per pattern) -->
+        <div id="paramStandard" class="grid sm:grid-cols-3 gap-4">
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
+            <input id="patternThetaRadius" type="number" value="25800"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius</label>
+            <input id="patternRhoRadius" type="number" value="3000"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
           <div class="space-y-2">
             <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta center</label>
             <input id="patternThetaCenter" type="number" value="0"
               class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
+        </div>
+
+        <div id="paramRose" class="grid sm:grid-cols-3 gap-4 hidden">
           <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center</label>
-            <input id="patternRhoCenter" type="number" value="-4700"
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Petals (odd=N, even=2N)</label>
+            <input id="roseK" type="number" value="5" min="1" max="20"
               class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
-            <input id="patternThetaRadius" type="number" value="5000"
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho amplitude</label>
+            <input id="roseAmp" type="number" value="3000"
               class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius</label>
-            <input id="patternRhoRadius" type="number" value="2000"
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rotations</label>
+            <input id="roseRot" type="number" value="1" min="1" max="10"
               class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
         </div>
- 
+
+        <div id="paramLissajous" class="grid sm:grid-cols-4 gap-4 hidden">
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Freq A</label>
+            <input id="lissA" type="number" value="3" min="1" max="20"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Freq B</label>
+            <input id="lissB" type="number" value="2" min="1" max="20"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta scale</label>
+            <input id="lissTS" type="number" value="15000"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho scale</label>
+            <input id="lissRS" type="number" value="3000"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div id="paramEpitrochoid" class="grid sm:grid-cols-4 gap-4 hidden">
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">R (outer)</label>
+            <input id="epiR" type="number" value="3" min="1" max="20"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">r (inner)</label>
+            <input id="epir" type="number" value="1" min="1" max="20"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">d (pen dist)</label>
+            <input id="epid" type="number" value="2" min="1" max="20"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Scale</label>
+            <input id="epiScale" type="number" value="3000"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div id="paramStar" class="grid sm:grid-cols-3 gap-4 hidden">
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
+            <input id="starPoints" type="number" value="5" min="3" max="20"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Outer rho</label>
+            <input id="starOuter" type="number" value="3500"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Inner rho</label>
+            <input id="starInner" type="number" value="1500"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div id="paramText" class="space-y-3 hidden">
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Text to draw</label>
+            <input id="textInput" type="text" value="HELLO" maxlength="12" placeholder="Up to 12 characters"
+              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 uppercase" />
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Letter size (rho steps)</label>
+              <input id="textSize" type="number" value="2000"
+                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta per letter</label>
+              <input id="textSpacing" type="number" value="4000"
+                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual preview canvas -->
+        <div class="space-y-2">
+          <label class="block text-xs text-slate-400 uppercase tracking-widest">Visual Preview</label>
+          <canvas id="patternCanvas" width="300" height="300"
+            class="rounded-2xl bg-black/40 mx-auto block" style="max-width:300px;"></canvas>
+        </div>
+
         <div class="flex flex-wrap gap-3">
           <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview</button>
           <button id="runPatternBtn"     class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>&#9654; Run Pattern</button>
           <button id="stopPatternBtn"    class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>&#9632; Stop</button>
         </div>
- 
+
         <textarea id="patternPreview"
           class="mono w-full h-32 bg-black/40 rounded-2xl p-4 text-xs resize-y"
           spellcheck="false"
           placeholder="Click Preview to see commands before running…"></textarea>
       </section>
- 
+
     </div>
     <!-- END LEFT -->
- 
+
     <!-- RIGHT: sticky console -->
     <div class="w-80 shrink-0 sticky top-6 self-start">
       <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-3">
@@ -294,10 +413,10 @@
           style="height: calc(100vh - 200px); min-height: 400px;"></pre>
       </div>
     </div>
- 
+
   </div>
 </div>
- 
+
 <script>
 // ================================================================
 // GROUND RULES — read before touching anything:
@@ -314,7 +433,7 @@
 //
 //  4. GO TO RHO IN/OUT uses trackedTheta() so only rho moves.
 // ================================================================
- 
+
 // ── Serial state ─────────────────────────────────────────────────
 let port           = null;
 let reader         = null;
@@ -323,25 +442,25 @@ let outputDone     = null;
 let writer         = null;
 let lineBuffer     = '';
 let pendingCommand = null;
- 
+
 // ── Tracked position ─────────────────────────────────────────────
 let currentTheta = null;
 let currentRho   = null;
- 
+
 // ── Pattern state ─────────────────────────────────────────────────
 let patternRunning = false;
 let patternAbort   = false;
- 
+
 // ── DOM refs ──────────────────────────────────────────────────────
 const logEl        = document.getElementById('log');
 const connectBtn   = document.getElementById('connectBtn');
 const commandInput = document.getElementById('commandInput');
- 
+
 // ── Browser check ─────────────────────────────────────────────────
 const supported = 'serial' in navigator;
 document.getElementById('browserStatus').textContent =
   supported ? 'Web Serial available' : 'NOT available — use Chrome or Edge';
- 
+
 // ── Logging ───────────────────────────────────────────────────────
 function appendLog(text) {
   logEl.textContent += text + '\n';
@@ -350,7 +469,7 @@ function appendLog(text) {
 document.getElementById('clearLogBtn').addEventListener('click', () => {
   logEl.textContent = '';
 });
- 
+
 // ── Enable / disable all controls ────────────────────────────────
 function setConnectedState(connected) {
   document.querySelectorAll('button').forEach(btn => {
@@ -371,11 +490,11 @@ function setConnectedState(connected) {
     document.getElementById('runPatternBtn').disabled  = true;
   }
 }
- 
+
 // ── Parse every incoming line ─────────────────────────────────────
 // Updates position display, firmware limit fields, and resolves acks.
 function parseIncomingLine(line) {
- 
+
   // Live position tracking — always update from STATUS
   if (line.startsWith('THETA ')) {
     currentTheta = parseInt(line.substring(6).trim(), 10);
@@ -385,17 +504,17 @@ function parseIncomingLine(line) {
     currentRho = parseInt(line.substring(4).trim(), 10);
     document.getElementById('dispRho').textContent = currentRho;
   }
- 
+
   // One-time limit sync on first connect
   syncLimitsOnce(line);
- 
+
   // Resolve pending command ack
   if (pendingCommand && (line.startsWith('OK') || line.startsWith('ERR'))) {
     pendingCommand.resolve(line);
     pendingCommand = null;
   }
 }
- 
+
 // ── Read loop ─────────────────────────────────────────────────────
 async function readLoop() {
   try {
@@ -418,7 +537,7 @@ async function readLoop() {
     appendLog('Read error: ' + err.message);
   }
 }
- 
+
 // ── Connect ───────────────────────────────────────────────────────
 async function connectSerial() {
   if (!supported) {
@@ -428,15 +547,15 @@ async function connectSerial() {
   try {
     port = await navigator.serial.requestPort();
     await port.open({ baudRate: 115200 });
- 
+
     const dec = new TextDecoderStream();
     inputDone = port.readable.pipeTo(dec.writable);
     reader = dec.readable.getReader();
- 
+
     const enc = new TextEncoderStream();
     outputDone = enc.readable.pipeTo(port.writable);
     writer = enc.writable.getWriter();
- 
+
     setConnectedState(true);
     appendLog('Connected at 115200 baud.');
     readLoop();
@@ -445,7 +564,7 @@ async function connectSerial() {
     appendLog('Connect failed: ' + err.message);
   }
 }
- 
+
 // ── Disconnect ────────────────────────────────────────────────────
 async function disconnectSerial() {
   patternAbort = true;
@@ -465,13 +584,13 @@ async function disconnectSerial() {
   document.getElementById('dispRho').textContent   = '--';
   appendLog('Disconnected.');
 }
- 
+
 // ── Send command ──────────────────────────────────────────────────
 async function sendCommand(cmd, waitForAck = false) {
   if (!writer) return null;
   const line = cmd.trim();
   if (!line) return null;
- 
+
   if (waitForAck) {
     if (pendingCommand) throw new Error('A command is already pending.');
     const ackPromise = new Promise(resolve => { pendingCommand = { resolve }; });
@@ -479,16 +598,16 @@ async function sendCommand(cmd, waitForAck = false) {
     await writer.write(line + '\n');
     return await ackPromise;
   }
- 
+
   appendLog('> ' + line);
   await writer.write(line + '\n');
   return null;
 }
- 
+
 // ── Position helpers ──────────────────────────────────────────────
 function trackedTheta() { return currentTheta !== null ? currentTheta : 0; }
 function trackedRho()   { return currentRho   !== null ? currentRho   : 0; }
- 
+
 // ── One-time limit sync from STATUS on connect ────────────────────
 // Populates firmware limit fields ONCE after first connect.
 // After that, fields NEVER change regardless of STATUS responses.
@@ -512,15 +631,15 @@ function syncLimitsOnce(line) {
     appendLog('Limits synced from firmware — fields are now locked until reconnect.');
   }
 }
- 
+
 // ================================================================
 // BUTTON WIRING
 // Every button sends exactly what it says. No hidden math.
 // ================================================================
- 
+
 connectBtn.addEventListener('click', connectSerial);
 document.getElementById('disconnectBtn').addEventListener('click', disconnectSerial);
- 
+
 document.getElementById('statusBtn').addEventListener('click',
   () => sendCommand('STATUS'));
 document.getElementById('returnRhoBtn').addEventListener('click',
@@ -533,12 +652,12 @@ document.getElementById('zeroRhoBtn').addEventListener('click',
   () => sendCommand('ZERO RHO'));
 document.getElementById('statusJogBtn').addEventListener('click',
   () => sendCommand('STATUS'));
- 
+
 document.getElementById('setJogBtn').addEventListener('click', () =>
   sendCommand('SET JOG ' + document.getElementById('jogInput').value));
 document.getElementById('setDelayBtn').addEventListener('click', () =>
   sendCommand('SET DELAY ' + document.getElementById('delayInput').value));
- 
+
 // Jog D-pad
 document.querySelectorAll('.jogBtn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -548,14 +667,14 @@ document.querySelectorAll('.jogBtn').forEach(btn => {
     sendCommand('MOVE ' + axis + ' ' + (dir * jog), true);
   });
 });
- 
+
 // GOTO — sends exactly what user typed
 document.getElementById('gotoBtn').addEventListener('click', () => {
   const t = document.getElementById('targetTheta').value;
   const r = document.getElementById('targetRho').value;
   sendCommand('GOTO T ' + t + ' R ' + r, true);
 });
- 
+
 // GO TO RHO IN / OUT — uses MOVE R so theta is never touched
 document.getElementById('goRhoInBtn').addEventListener('click', () => {
   const target = Number(document.getElementById('rhoInSteps').value);
@@ -567,7 +686,7 @@ document.getElementById('goRhoOutBtn').addEventListener('click', () => {
   const delta  = target - trackedRho();
   sendCommand('MOVE R ' + delta, true);
 });
- 
+
 // CAPTURE RHO IN / OUT — stores current tracked rho into the field AND pushes firmware limit
 document.getElementById('captureRhoInBtn').addEventListener('click', () => {
   if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
@@ -583,21 +702,21 @@ document.getElementById('captureRhoOutBtn').addEventListener('click', () => {
   sendCommand('SET RMIN ' + currentRho);
   appendLog('Captured Rho Out = ' + currentRho + ' → SET RMIN ' + currentRho);
 });
- 
+
 // Calculate and apply rho center + radius from In/Out endpoints
 document.getElementById('calcCenterBtn').addEventListener('click', () => {
   const rhoIn  = Number(document.getElementById('rhoInSteps').value);
   const rhoOut = Number(document.getElementById('rhoOutSteps').value);
   const center = Math.round((rhoIn + rhoOut) / 2);
   const radius = Math.round(Math.abs(rhoOut - rhoIn) / 2);
- 
+
   document.getElementById('patternRhoCenter').value = center;
   document.getElementById('patternRhoRadius').value = Math.round(radius * 0.85); // 85% for safety margin
- 
+
   document.getElementById('centerVal').textContent  = center;
   document.getElementById('radiusVal').textContent  = radius;
   document.getElementById('centerReadout').classList.remove('hidden');
- 
+
   appendLog('Rho center set to ' + center + ', radius set to ' + Math.round(radius * 0.85) + ' (85% of max ' + radius + ')');
 });
 document.getElementById('setRminBtn').addEventListener('click', () =>
@@ -608,7 +727,7 @@ document.getElementById('setTminBtn').addEventListener('click', () =>
   sendCommand('SET TMIN ' + document.getElementById('fwTmin').value));
 document.getElementById('setTmaxBtn').addEventListener('click', () =>
   sendCommand('SET TMAX ' + document.getElementById('fwTmax').value));
- 
+
 // Console
 document.getElementById('sendBtn').addEventListener('click', () => {
   sendCommand(commandInput.value);
@@ -617,63 +736,337 @@ document.getElementById('sendBtn').addEventListener('click', () => {
 commandInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') { sendCommand(commandInput.value); commandInput.value = ''; }
 });
- 
+
 // ================================================================
 // PATTERN GENERATOR
 // Raw step values throughout. Center + radius in firmware steps.
 // Preview before running — check the numbers make sense.
 // ================================================================
- 
+
+// ================================================================
+// PATTERN SYSTEM
+// ================================================================
+
+const PATTERN_DEFS = {
+  spiral:      { label: 'Spiral',       desc: 'Expands outward from center while rotating. Classic sand table pattern.', params: 'standard' },
+  circle:      { label: 'Circle',       desc: 'Rotates while rho oscillates in and out. Creates rings and drifting circles.', params: 'standard' },
+  radial:      { label: 'Wave Sweep',   desc: 'Theta sweeps back and forth while rho moves across the tray. Creates wave patterns.', params: 'standard' },
+  rose:        { label: 'Rose',         desc: 'Classic polar rose. Odd K = K petals, even K = 2K petals.', params: 'rose' },
+  lissajous:   { label: 'Lissajous',    desc: 'Figure-8 and complex crossing curves. Change freq ratio for different shapes.', params: 'lissajous' },
+  epitrochoid: { label: 'Spirograph',   desc: 'Spirograph-style looping patterns. Vary R, r, d for different designs.', params: 'epitrochoid' },
+  bouncerho:   { label: 'Ripple Rings', desc: 'Rho pulses rapidly in and out while theta rotates slowly. Creates concentric ripple rings.', params: 'standard' },
+  star:        { label: 'Star',         desc: 'N-pointed star. Control inner and outer rho for sharp or soft points.', params: 'star' },
+  fermat:      { label: 'Fermat',       desc: 'Natural sunflower spiral. Tighter near center, wider at edges.', params: 'standard' },
+  text:        { label: 'Text',         desc: 'Draw connected cursive-style letters centered across the tray. Ball never lifts. Finishes with a decorative spiral.', params: 'text' },
+};
+
+let currentPattern = 'spiral';
+
+// ── Tab switching ─────────────────────────────────────────────────
+document.querySelectorAll('.patternTab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentPattern = btn.dataset.pattern;
+    document.querySelectorAll('.patternTab').forEach(b => {
+      b.className = 'patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs';
+    });
+    btn.className = 'patternTab bg-rose-800 hover:bg-rose-700 px-3 py-2 rounded-xl text-xs font-semibold';
+
+    const def = PATTERN_DEFS[currentPattern];
+    document.getElementById('patternDesc').textContent = def.desc;
+
+    // Show/hide param panels
+    ['paramStandard','paramRose','paramLissajous','paramEpitrochoid','paramStar','paramText'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    if (def.params === 'standard') document.getElementById('paramStandard').classList.remove('hidden');
+    if (def.params === 'rose')     document.getElementById('paramRose').classList.remove('hidden');
+    if (def.params === 'lissajous') document.getElementById('paramLissajous').classList.remove('hidden');
+    if (def.params === 'epitrochoid') document.getElementById('paramEpitrochoid').classList.remove('hidden');
+    if (def.params === 'star')     document.getElementById('paramStar').classList.remove('hidden');
+    if (def.params === 'text')     document.getElementById('paramText').classList.remove('hidden');
+
+    drawVisualPreview();
+  });
+});
+
+// Init first tab
+document.querySelector('.patternTab[data-pattern="spiral"]').click();
+
+// ── Cursive letter strokes ────────────────────────────────────────
+// Each letter is a series of [thetaFrac, rhoFrac] points (0-1 normalized)
+// thetaFrac: 0=left, 1=right of letter width
+// rhoFrac: 0=baseline, 1=top
+const CURSIVE = {
+  'A': [[0,0],[0.2,1],[0.4,0.5],[0.6,0.5],[0.8,1],[1,0]],
+  'B': [[0,0],[0,1],[0.4,1],[0.6,0.8],[0.4,0.5],[0,0.5],[0.6,0.3],[0.4,0],[0,0]],
+  'C': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2]],
+  'D': [[0,0],[0,1],[0.4,1],[0.8,0.7],[0.8,0.3],[0.4,0],[0,0]],
+  'E': [[0.8,1],[0,1],[0,0.5],[0.6,0.5],[0,0.5],[0,0],[0.8,0]],
+  'F': [[0,0],[0,1],[0.8,1],[0,1],[0,0.5],[0.6,0.5]],
+  'G': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2],[0.8,0.5],[0.5,0.5]],
+  'H': [[0,0],[0,1],[0,0.5],[0.8,0.5],[0.8,1],[0.8,0]],
+  'I': [[0,1],[0.8,1],[0.4,1],[0.4,0],[0,0],[0.8,0]],
+  'J': [[0,1],[0.8,1],[0.8,0.3],[0.6,0],[0.2,0],[0,0.2]],
+  'K': [[0,0],[0,1],[0,0.5],[0.8,1],[0,0.5],[0.8,0]],
+  'L': [[0,1],[0,0],[0.8,0]],
+  'M': [[0,0],[0,1],[0.4,0.5],[0.8,1],[0.8,0]],
+  'N': [[0,0],[0,1],[0.8,0],[0.8,1]],
+  'O': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1]],
+  'P': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5]],
+  'Q': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1],[0.6,0.2],[0.9,0]],
+  'R': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0]],
+  'S': [[0.8,0.8],[0.4,1],[0,0.8],[0.2,0.6],[0.6,0.4],[0.8,0.2],[0.4,0],[0,0.2]],
+  'T': [[0,1],[0.8,1],[0.4,1],[0.4,0]],
+  'U': [[0,1],[0,0.3],[0.2,0],[0.6,0],[0.8,0.3],[0.8,1]],
+  'V': [[0,1],[0.4,0],[0.8,1]],
+  'W': [[0,1],[0.2,0],[0.4,0.5],[0.6,0],[0.8,1]],
+  'X': [[0,1],[0.8,0],[0.4,0.5],[0,0],[0.8,1]],
+  'Y': [[0,1],[0.4,0.5],[0.8,1],[0.4,0.5],[0.4,0]],
+  'Z': [[0,1],[0.8,1],[0,0],[0.8,0]],
+  ' ': [[0.5,0.5]],
+};
+
+function buildTextCommands() {
+  const text       = (document.getElementById('textInput').value || 'HELLO').toUpperCase().substring(0, 10);
+  const size       = Number(document.getElementById('textSize').value || 2000);
+  const spacing    = Number(document.getElementById('textSpacing').value || 4000);
+  const rhoCenter  = Number(document.getElementById('patternRhoCenter').value || 0);
+  const cmds       = [];
+
+  // Center the text across theta = 0
+  // Total theta width of text
+  const totalWidth = text.length * spacing * 1.2;
+  let thetaOffset  = -Math.round(totalWidth / 2);
+
+  for (const ch of text) {
+    const strokes = CURSIVE[ch] || [[0,0.5],[1,0.5]];
+    for (const [tFrac, rFrac] of strokes) {
+      const theta = Math.round(thetaOffset + tFrac * spacing);
+      const rho   = Math.round(rhoCenter + (rFrac - 0.5) * size);
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+    thetaOffset += Math.round(spacing * 1.2);
+  }
+
+  // Decorative spiral around the text after it's drawn
+  const spiralPoints = 120;
+  const spiralRhoMin = rhoCenter - Math.round(size * 0.8);
+  const spiralRhoMax = rhoCenter + Math.round(size * 0.8);
+  const spiralThetaRange = Math.round(totalWidth * 0.7);
+  for (let i = 0; i <= spiralPoints; i++) {
+    const frac  = i / spiralPoints;
+    const angle = Math.PI * 4 * frac;
+    const theta = Math.round(spiralThetaRange * frac * Math.cos(angle));
+    const rho   = Math.round(rhoCenter + (spiralRhoMax - spiralRhoMin) * 0.4 * frac * Math.sin(angle));
+    cmds.push('GOTO T ' + theta + ' R ' + rho);
+  }
+
+  return cmds;
+}
+
+// ── Core pattern builders ─────────────────────────────────────────
 function buildPatternCommands() {
-  const type    = document.getElementById('patternType').value;
-  const points  = Math.max(10, Number(document.getElementById('patternPoints').value));
-  const tCenter = Number(document.getElementById('patternThetaCenter').value);
-  const rCenter = Number(document.getElementById('patternRhoCenter').value);
-  const tRadius = Number(document.getElementById('patternThetaRadius').value);
-  const rRadius = Number(document.getElementById('patternRhoRadius').value);
-  const cmds    = [];
- 
-  if (type === 'spiral') {
+  const points     = Math.max(10, Number(document.getElementById('patternPoints').value));
+  const rhoCenter  = Number(document.getElementById('patternRhoCenter').value || 0);
+  const pause      = Number(document.getElementById('patternPause').value || 0);
+  const cmds       = [];
+
+  if (currentPattern === 'text') return buildTextCommands();
+
+  if (currentPattern === 'spiral') {
+    const tCenter  = Number(document.getElementById('patternThetaCenter').value || 0);
+    const tRadius  = Number(document.getElementById('patternThetaRadius').value || 25800);
+    const rRadius  = Number(document.getElementById('patternRhoRadius').value || 3000);
     for (let i = 0; i <= points; i++) {
       const frac  = i / points;
       const angle = Math.PI * 6 * frac;
       const theta = Math.round(tCenter + tRadius * frac * Math.cos(angle));
-      const rho   = Math.round(rCenter + rRadius * frac * Math.sin(angle));
+      const rho   = Math.round(rhoCenter + rRadius * frac * Math.sin(angle));
       cmds.push('GOTO T ' + theta + ' R ' + rho);
     }
-  } else if (type === 'circle') {
+  } else if (currentPattern === 'circle') {
+    const tCenter  = Number(document.getElementById('patternThetaCenter').value || 0);
+    const tRadius  = Number(document.getElementById('patternThetaRadius').value || 25800);
+    const rRadius  = Number(document.getElementById('patternRhoRadius').value || 500);
     for (let i = 0; i <= points; i++) {
       const angle = (Math.PI * 2 * i) / points;
       const theta = Math.round(tCenter + tRadius * Math.cos(angle));
-      const rho   = Math.round(rCenter + rRadius * Math.sin(angle));
+      const rho   = Math.round(rhoCenter + rRadius * Math.sin(angle));
       cmds.push('GOTO T ' + theta + ' R ' + rho);
     }
-  } else if (type === 'radial') {
+  } else if (currentPattern === 'radial') {
+    const tCenter  = Number(document.getElementById('patternThetaCenter').value || 0);
+    const tRadius  = Number(document.getElementById('patternThetaRadius').value || 20000);
+    const rRadius  = Number(document.getElementById('patternRhoRadius').value || 3000);
     for (let i = 0; i <= points; i++) {
       const frac  = i / points;
       const theta = Math.round(tCenter + tRadius * Math.sin(Math.PI * 4 * frac));
-      const rho   = Math.round(rCenter + rRadius * (2 * frac - 1));
+      const rho   = Math.round(rhoCenter + rRadius * (2 * frac - 1));
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+  } else if (currentPattern === 'rose') {
+    const k     = Number(document.getElementById('roseK').value || 5);
+    const amp   = Number(document.getElementById('roseAmp').value || 3000);
+    const rots  = Number(document.getElementById('roseRot').value || 1);
+    for (let i = 0; i <= points; i++) {
+      const angle = (Math.PI * 2 * rots * i) / points;
+      const r     = amp * Math.cos(k * angle);
+      const theta = Math.round(angle * (25800 / (Math.PI * 2)));
+      const rho   = Math.round(rhoCenter + r);
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+  } else if (currentPattern === 'lissajous') {
+    const freqA = Number(document.getElementById('lissA').value || 3);
+    const freqB = Number(document.getElementById('lissB').value || 2);
+    const tScale = Number(document.getElementById('lissTS').value || 15000);
+    const rScale = Number(document.getElementById('lissRS').value || 3000);
+    for (let i = 0; i <= points; i++) {
+      const t     = (Math.PI * 2 * i) / points;
+      const theta = Math.round(tScale * Math.sin(freqA * t));
+      const rho   = Math.round(rhoCenter + rScale * Math.sin(freqB * t + Math.PI / 4));
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+  } else if (currentPattern === 'epitrochoid') {
+    const R     = Number(document.getElementById('epiR').value || 3);
+    const r     = Number(document.getElementById('epir').value || 1);
+    const d     = Number(document.getElementById('epid').value || 2);
+    const scale = Number(document.getElementById('epiScale').value || 3000);
+    const steps = Math.lcm ? Math.lcm(R, r) : R * r; // full cycle
+    for (let i = 0; i <= points; i++) {
+      const t     = (Math.PI * 2 * i) / points;
+      const x     = (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t);
+      const y     = (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t);
+      const theta = Math.round(x * scale / (R + r + d));
+      const rho   = Math.round(rhoCenter + y * scale / (R + r + d));
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+  } else if (currentPattern === 'bouncerho') {
+    const tRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
+    const rRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
+    const bounces = 8;
+    for (let i = 0; i <= points; i++) {
+      const frac  = i / points;
+      const theta = Math.round(tRadius * frac);
+      const rho   = Math.round(rhoCenter + rRadius * Math.sin(Math.PI * 2 * bounces * frac));
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+  } else if (currentPattern === 'star') {
+    const nPoints = Number(document.getElementById('starPoints').value || 5);
+    const outer   = Number(document.getElementById('starOuter').value || 3500);
+    const inner   = Number(document.getElementById('starInner').value || 1500);
+    const total   = nPoints * 2;
+    for (let i = 0; i <= total; i++) {
+      const angle = (Math.PI * 2 * i) / total;
+      const r     = (i % 2 === 0) ? outer : inner;
+      const theta = Math.round(angle * (25800 / (Math.PI * 2)));
+      const rho   = Math.round(rhoCenter + r);
+      cmds.push('GOTO T ' + theta + ' R ' + rho);
+    }
+  } else if (currentPattern === 'fermat') {
+    const tRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
+    const rRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
+    const golden  = 2.399963; // golden angle in radians
+    for (let i = 0; i <= points; i++) {
+      const frac  = i / points;
+      const angle = i * golden;
+      const r     = rRadius * Math.sqrt(frac);
+      const theta = Math.round(angle * (25800 / (Math.PI * 2)));
+      const rho   = Math.round(rhoCenter + r);
       cmds.push('GOTO T ' + theta + ' R ' + rho);
     }
   }
+
   return cmds;
 }
- 
+
+// ── Visual preview canvas ─────────────────────────────────────────
+function drawVisualPreview() {
+  const canvas = document.getElementById('patternCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const maxR = W / 2 - 8;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+  ctx.fillStyle = '#0f172a';
+  ctx.fill();
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Get preview commands
+  const cmds = buildPatternCommands();
+  if (cmds.length < 2) return;
+
+  // Parse commands to get theta/rho ranges
+  const points = cmds.map(cmd => {
+    const tm = cmd.match(/T (-?\d+)/);
+    const rm = cmd.match(/R (-?\d+)/);
+    return { t: tm ? Number(tm[1]) : 0, r: rm ? Number(rm[1]) : 0 };
+  });
+
+  const rhoMin = Math.min(...points.map(p => p.r));
+  const rhoMax = Math.max(...points.map(p => p.r));
+  const rhoRange = rhoMax - rhoMin || 1;
+
+  // Draw path
+  ctx.beginPath();
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.8;
+
+  points.forEach((pt, i) => {
+    const rNorm  = (pt.r - rhoMin) / rhoRange; // 0-1
+    const radius = rNorm * maxR;
+    const angle  = (pt.t / 25800) * Math.PI * 2 - Math.PI / 2;
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else         ctx.lineTo(x, y);
+  });
+
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Start dot
+  const first = points[0];
+  const fRNorm = (first.r - rhoMin) / rhoRange;
+  const fRadius = fRNorm * maxR;
+  const fAngle  = (first.t / 25800) * Math.PI * 2 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.arc(cx + fRadius * Math.cos(fAngle), cy + fRadius * Math.sin(fAngle), 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#22c55e';
+  ctx.fill();
+}
+
 document.getElementById('previewPatternBtn').addEventListener('click', () => {
-  document.getElementById('patternPreview').value = buildPatternCommands().join('\n');
+  const cmds = buildPatternCommands();
+  document.getElementById('patternPreview').value = cmds.join('\n');
+  drawVisualPreview();
 });
- 
+
+// Auto-redraw preview when inputs change
+document.querySelectorAll('#patternPoints, #patternRhoCenter, #patternThetaRadius, #patternRhoRadius, #patternThetaCenter, #roseK, #roseAmp, #roseRot, #lissA, #lissB, #lissTS, #lissRS, #epiR, #epir, #epid, #epiScale, #starPoints, #starOuter, #starInner, #textInput, #textSize, #textSpacing').forEach(el => {
+  el.addEventListener('input', drawVisualPreview);
+});
+
 async function runPattern() {
   if (patternRunning) return;
   patternRunning = true;
   patternAbort   = false;
   document.getElementById('runPatternBtn').disabled  = true;
   document.getElementById('stopPatternBtn').disabled = false;
- 
+
   const pause = Math.max(0, Number(document.getElementById('patternPause').value));
   const cmds  = buildPatternCommands();
   appendLog('--- Pattern start (' + cmds.length + ' moves) ---');
- 
+
   for (const cmd of cmds) {
     if (patternAbort) break;
     try {
@@ -684,7 +1077,7 @@ async function runPattern() {
     }
     if (pause > 0) await new Promise(r => setTimeout(r, pause));
   }
- 
+
   appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
   await sendCommand('MOVE T 0');
   await sendCommand('MOVE R 0');
@@ -694,13 +1087,13 @@ async function runPattern() {
   document.getElementById('runPatternBtn').disabled  = false;
   document.getElementById('stopPatternBtn').disabled = true;
 }
- 
+
 document.getElementById('runPatternBtn').addEventListener('click', runPattern);
 document.getElementById('stopPatternBtn').addEventListener('click', () => {
   patternAbort = true;
   appendLog('Stop requested — halting after current move.');
 });
- 
+
 // ── Init ──────────────────────────────────────────────────────────
 setConnectedState(false);
 appendLog('Dune Weaver Mini ready.');
