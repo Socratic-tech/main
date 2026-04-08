@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Review or Analysis Jeopardy</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --accent: #fbbf24;
+      --accent-2: #60a5fa;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --card: #1e3a8a;
+      --used: #334155;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #020617, #0f172a 45%, #111827);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.4fr .9fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .hero, .scoreboard, .controls, .board-wrap, .notes {
+      background: rgba(17, 24, 39, .88);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero {
+      padding: 22px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.9rem, 3vw, 3rem);
+      line-height: 1.05;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      max-width: 70ch;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(96,165,250,.15);
+      border: 1px solid rgba(96,165,250,.25);
+      color: #dbeafe;
+      font-size: .92rem;
+    }
+
+    .scoreboard {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .scoreboard h2, .controls h2, .notes h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .teams {
+      display: grid;
+      gap: 12px;
+    }
+
+    .team {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 12px;
+    }
+
+    .team-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .team-name {
+      width: 100%;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .score {
+      font-size: 1.7rem;
+      font-weight: 800;
+      min-width: 70px;
+      text-align: right;
+      color: var(--accent);
+    }
+
+    .score-controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease, background .12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-soft {
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+    }
+
+    .btn-pos { background: rgba(34,197,94,.18); color: #bbf7d0; }
+    .btn-neg { background: rgba(239,68,68,.18); color: #fecaca; }
+    .btn-main { background: var(--accent); color: #111827; }
+    .btn-alt { background: var(--accent-2); color: #082f49; }
+
+    .controls {
+      padding: 18px;
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px;
+    }
+
+    .control-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .95rem;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    select, input[type="number"] {
+      background: rgba(2,6,23,.65);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font: inherit;
+      width: auto;
+    }
+
+    .board-wrap {
+      padding: 14px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .category {
+      background: linear-gradient(180deg, #1d4ed8, #1e3a8a);
+      border-radius: 16px;
+      min-height: 86px;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      text-align: center;
+      font-weight: 800;
+      font-size: clamp(.95rem, 1.3vw, 1.2rem);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      color: #eff6ff;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .cell {
+      background: linear-gradient(180deg, #1e40af, #172554);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      min-height: 100px;
+      display: grid;
+      place-items: center;
+      font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow: 0 2px 0 rgba(0,0,0,.35);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cell.used {
+      background: linear-gradient(180deg, #334155, #1e293b);
+      color: #94a3b8;
+      cursor: not-allowed;
+      opacity: .75;
+    }
+
+    .notes {
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .notes p {
+      color: var(--muted);
+      line-height: 1.5;
+      margin: 8px 0 0;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, .78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 100;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(980px, 100%);
+      background: linear-gradient(180deg, #0f172a, #111827);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .modal-top {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255,255,255,.03);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .modal-meta {
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .modal-body {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .clue {
+      font-size: clamp(1.45rem, 2vw, 2rem);
+      line-height: 1.4;
+      font-weight: 800;
+    }
+
+    .answer-box {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 20px;
+      padding: 18px;
+      display: none;
+      gap: 10px;
+    }
+
+    .answer-box.open { display: grid; }
+
+    .answer-line {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .reason {
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .teacher-tip {
+      color: var(--muted);
+      font-style: italic;
+      font-size: .95rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .left-actions, .right-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tiny {
+      font-size: .9rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .topbar, .controls { grid-template-columns: 1fr; }
+      .board { grid-template-columns: repeat(2, 1fr); }
+      .category { min-height: 70px; }
+    }
+
+    @media (max-width: 620px) {
+      .board { grid-template-columns: 1fr; }
+      .score-controls { grid-template-columns: repeat(2, 1fr); }
+      .modal-actions { flex-direction: column; align-items: stretch; }
+      .left-actions, .right-actions { width: 100%; }
+      .left-actions button, .right-actions button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="topbar">
+      <div class="hero">
+        <h1>Review or Analysis Jeopardy</h1>
+        <div class="sub">
+          A whole-class game for teaching the difference between <strong>game review</strong> and <strong>academic game analysis</strong>. Click any tile, reveal the answer when ready, then award points to the team that nailed it.
+        </div>
+        <div class="pill-row">
+          <span class="pill">Clickable board</span>
+          <span class="pill">Editable team names</span>
+          <span class="pill">Fast scoring</span>
+          <span class="pill">Teacher notes built in</span>
+          <span class="pill">Works on GitHub Pages</span>
+        </div>
+      </div>
+
+      <aside class="scoreboard">
+        <h2>Scoreboard</h2>
+        <div class="teams" id="teams"></div>
+      </aside>
+    </section>
+
+    <section class="controls">
+      <div>
+        <h2>Game Controls</h2>
+        <div class="control-grid" style="margin-top:12px;">
+          <button class="btn-main" id="resetBoardBtn">Reset Board</button>
+          <button class="btn-soft" id="resetScoresBtn">Reset Scores</button>
+          <button class="btn-alt" id="randomClueBtn">Random Clue</button>
+          <label>
+            Teams
+            <select id="teamCount">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </label>
+          <label>
+            Point step
+            <select id="pointStep">
+              <option value="100" selected>100</option>
+              <option value="200">200</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div>
+        <h2>How to Play</h2>
+        <div class="tiny" style="margin-top:12px; line-height:1.6;">
+          Teams pick a tile. Students decide whether the clue is <strong>review</strong>, <strong>academic analysis</strong>, or <strong>weak / needs revision</strong>. Then they explain why. Award points for the label and the reasoning.
+        </div>
+      </div>
+    </section>
+
+    <section class="board-wrap">
+      <div class="board" id="board"></div>
+    </section>
+
+    <section class="notes">
+      <h2>Teacher Reminder</h2>
+      <p>
+        Keep pressing students on <strong>why</strong>. A review usually evaluates quality or recommends a game. Academic analysis interprets how a game creates meaning, makes an argument, and uses evidence. Some clues are deliberately weak so students can revise them into stronger claims.
+      </p>
+    </section>
+  </div>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-top">
+        <div>
+          <div id="modalCategory" style="font-weight:800; font-size:1.1rem;"></div>
+          <div class="modal-meta" id="modalValue"></div>
+        </div>
+        <button class="btn-soft" id="closeModalBtn">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="clue" id="modalClue"></div>
+
+        <div class="answer-box" id="answerBox">
+          <div class="answer-line" id="modalAnswer"></div>
+          <div class="reason" id="modalReason"></div>
+          <div class="teacher-tip" id="modalTip"></div>
+        </div>
+
+        <div class="modal-actions">
+          <div class="left-actions">
+            <button class="btn-main" id="revealBtn">Reveal Answer</button>
+            <button class="btn-soft" id="markUsedBtn">Mark Used</button>
+          </div>
+          <div class="right-actions" id="awardButtons"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const categories = [
+      {
+        title: 'Review or Analysis?',
+        clues: [
+          {
+            value: 100,
+            clue: '“This game has gorgeous visuals and a fun combat system, but the story drags in the middle.”',
+            answer: 'Review',
+            reason: 'This evaluates quality and player experience. It sounds like someone judging how well the game works for players.',
+            tip: 'Ask students what words make it sound evaluative.'
+          },
+          {
+            value: 200,
+            clue: '“The repetitive paperwork in Papers, Please is not just gameplay; it reinforces the emotional pressure of working inside an oppressive system.”',
+            answer: 'Academic Analysis',
+            reason: 'This interprets how a mechanic creates meaning. It moves beyond opinion and makes an argument about what the gameplay does.',
+            tip: 'Push them to notice the link between mechanic and theme.'
+          },
+          {
+            value: 300,
+            clue: '“I would recommend this game to people who like open-world exploration, but probably not to players who want a fast-paced story.”',
+            answer: 'Review',
+            reason: 'This is recommendation language. The goal is helping a player decide whether they would enjoy the game.',
+            tip: 'Have them identify the audience built into the statement.'
+          },
+          {
+            value: 400,
+            clue: '“The game’s treatment of survival reflects larger anxieties about scarcity, control, and social collapse.”',
+            answer: 'Academic Analysis',
+            reason: 'This makes a larger interpretive claim about theme and cultural meaning rather than just whether the game is good.',
+            tip: 'Ask what evidence a writer would need to prove this.'
+          },
+          {
+            value: 500,
+            clue: '“The soundtrack is amazing, and it makes boss fights feel more intense.”',
+            answer: 'Mostly Review',
+            reason: 'It gestures toward an effect, but it is still mostly evaluation. To become analysis, it would need a bigger claim about how sound shapes meaning or player experience in a deeper way.',
+            tip: 'Bonus: ask students to rewrite it as analysis.'
+          }
+        ]
+      },
+      {
+        title: 'What’s the Evidence?',
+        clues: [
+          {
+            value: 100,
+            clue: 'Claim: “This game is immersive.” What evidence would make that stronger?',
+            answer: 'Specific examples',
+            reason: 'Students should mention concrete evidence like sound design, world detail, interface choices, camera perspective, or player agency.',
+            tip: 'Do not let them get away with “because it feels immersive.”'
+          },
+          {
+            value: 200,
+            clue: 'Claim: “The game critiques capitalism.” What kind of evidence would a strong analysis need?',
+            answer: 'Systems + examples',
+            reason: 'Look for mechanics, reward systems, labor structures, scarcity, buying/selling, dialogue, or narrative moments that support the claim.',
+            tip: 'This is a great chance to remind them that themes need proof.'
+          },
+          {
+            value: 300,
+            clue: 'Claim: “The game is frustrating on purpose.” What evidence should a writer use?',
+            answer: 'Design choices',
+            reason: 'Strong answers mention enemy patterns, punishment systems, checkpoint placement, repetition, and what the frustration does for the player experience.',
+            tip: 'Push them beyond “because it’s hard.”'
+          },
+          {
+            value: 400,
+            clue: 'Claim: “This game challenges traditional ideas of heroism.” What evidence would help?',
+            answer: 'Character + narrative evidence',
+            reason: 'Good answers include moral ambiguity, player choices, consequences, endings, and how the protagonist fits or resists heroic expectations.',
+            tip: 'Ask them which scenes or mechanics they would quote or describe.'
+          },
+          {
+            value: 500,
+            clue: 'Claim: “The game uses mechanics to tell the story.” What would prove that?',
+            answer: 'Mechanic-to-story connection',
+            reason: 'Students should name a specific mechanic and explain exactly how it reinforces plot, theme, or emotional experience.',
+            tip: 'This is one of the biggest skills they need for the assignment.'
+          }
+        ]
+      },
+      {
+        title: 'Stronger Thesis Wins',
+        clues: [
+          {
+            value: 100,
+            clue: 'Which is stronger? A) “The Last of Us is a very emotional game.” B) “The Last of Us uses limited player control and resource scarcity to deepen its themes of fear, care, and survival.”',
+            answer: 'B',
+            reason: 'B is more precise, arguable, and based on how the game works. It gives a clear route for evidence.',
+            tip: 'Ask students what makes A too vague.'
+          },
+          {
+            value: 200,
+            clue: 'Which is stronger? A) “Dark Souls is hard.” B) “The difficulty of Dark Souls creates a shared culture of mastery in which player knowledge becomes part of the game’s meaning.”',
+            answer: 'B',
+            reason: 'B turns an obvious observation into a real argument. It explains why difficulty matters.',
+            tip: 'Ask: what could a writer do with A besides shrug?' 
+          },
+          {
+            value: 300,
+            clue: 'Which is stronger? A) “This game has a lot to say about history.” B) “By turning history into an interactive system, the game invites players to see the past as something shaped by choices, rules, and perspective.”',
+            answer: 'B',
+            reason: 'B identifies how the game creates meaning and gives the writer a frame for evidence.',
+            tip: 'Have teams explain what kind of assignment B sounds ready for.'
+          },
+          {
+            value: 400,
+            clue: 'Which is stronger? A) “The game’s setting is important.” B) “The setting matters because it frames every player action within a larger system of political control and cultural memory.”',
+            answer: 'B',
+            reason: 'B is analytical because it explains why the setting matters and connects it to interpretation.',
+            tip: 'Make them define “important” when they choose B.'
+          },
+          {
+            value: 500,
+            clue: 'Which is stronger? A) “The game is interesting.” B) “The game becomes analytically interesting when its reward systems push players to act against the values its story seems to support.”',
+            answer: 'B',
+            reason: 'B makes a specific, debatable claim about tension between mechanics and narrative.',
+            tip: 'This one is excellent for discussing contradiction in games.'
+          }
+        ]
+      },
+      {
+        title: 'Fix That Claim',
+        clues: [
+          {
+            value: 100,
+            clue: 'Weak claim: “This game is good because it has good gameplay.” Rewrite it into something more academic.',
+            answer: 'Example fix',
+            reason: 'A stronger version might be: “The game’s movement and combat systems reward experimentation, which supports its larger theme of player freedom.”',
+            tip: 'Accept any revised claim that becomes specific and arguable.'
+          },
+          {
+            value: 200,
+            clue: 'Weak claim: “This game is sad.” Rewrite it into a stronger analysis claim.',
+            answer: 'Example fix',
+            reason: 'A stronger version might be: “The game creates sadness not just through plot events, but through mechanics that make loss feel personal and unavoidable.”',
+            tip: 'Push them to explain how the sadness is created.'
+          },
+          {
+            value: 300,
+            clue: 'Weak claim: “This character is relatable.” Rewrite it.',
+            answer: 'Example fix',
+            reason: 'A stronger version might be: “The character feels relatable because the game uses dialogue, vulnerability, and choice to align the player emotionally with the protagonist.”',
+            tip: 'Any answer that names techniques gets credit.'
+          },
+          {
+            value: 400,
+            clue: 'Weak claim: “This game is about society.” Rewrite it.',
+            answer: 'Example fix',
+            reason: 'A stronger version might be: “The game critiques social hierarchy by tying progress to systems of labor, surveillance, and control.”',
+            tip: 'Vague topic words like “society” need narrowing.'
+          },
+          {
+            value: 500,
+            clue: 'Weak claim: “This game makes you think.” Rewrite it.',
+            answer: 'Example fix',
+            reason: 'A stronger version might be: “The game encourages critical reflection by forcing players to participate in systems they may find ethically uncomfortable.”',
+            tip: 'This is a good place to talk about procedural rhetoric.'
+          }
+        ]
+      },
+      {
+        title: 'Teacher Trap',
+        clues: [
+          {
+            value: 100,
+            clue: '“This article uses big words, so it must be academic.”',
+            answer: 'Trap',
+            reason: 'Fancy language does not make writing analytical. Academic work still needs a real argument, evidence, and clear reasoning.',
+            tip: 'Students often need to hear this directly.'
+          },
+          {
+            value: 200,
+            clue: '“If someone talks about symbolism, that automatically means it’s analysis.”',
+            answer: 'Trap',
+            reason: 'It only becomes analysis if the writer connects that symbol to a clear argument and supports it with evidence.',
+            tip: 'Symbol-hunting without argument is not enough.'
+          },
+          {
+            value: 300,
+            clue: '“A review can never include analysis.”',
+            answer: 'Trap',
+            reason: 'Reviews can include analytical moments, but their main goal is usually evaluation or recommendation rather than scholarly argument.',
+            tip: 'This helps students understand the overlap without confusing the genres.'
+          },
+          {
+            value: 400,
+            clue: '“If a writer says a game is important, that counts as a thesis.”',
+            answer: 'Trap',
+            reason: '“Important” is too vague by itself. A thesis needs to explain important in what way and why.',
+            tip: 'Great moment to talk about vague claim words.'
+          },
+          {
+            value: 500,
+            clue: '“The more plot summary an essay has, the stronger the analysis.”',
+            answer: 'Trap',
+            reason: 'Too much summary usually weakens analysis unless that summary is directly serving the writer’s interpretation.',
+            tip: 'Students often over-summarize when they are unsure.'
+          }
+        ]
+      }
+    ];
+
+    const state = {
+      teamCount: 3,
+      pointStep: 100,
+      teams: [
+        { name: 'Team 1', score: 0 },
+        { name: 'Team 2', score: 0 },
+        { name: 'Team 3', score: 0 },
+        { name: 'Team 4', score: 0 },
+        { name: 'Team 5', score: 0 }
+      ],
+      used: new Set(),
+      currentClue: null
+    };
+
+    const boardEl = document.getElementById('board');
+    const teamsEl = document.getElementById('teams');
+    const modal = document.getElementById('modal');
+    const answerBox = document.getElementById('answerBox');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalValue = document.getElementById('modalValue');
+    const modalClue = document.getElementById('modalClue');
+    const modalAnswer = document.getElementById('modalAnswer');
+    const modalReason = document.getElementById('modalReason');
+    const modalTip = document.getElementById('modalTip');
+    const awardButtons = document.getElementById('awardButtons');
+    const teamCountEl = document.getElementById('teamCount');
+    const pointStepEl = document.getElementById('pointStep');
+
+    function saveState() {
+      localStorage.setItem('reviewAnalysisJeopardyState', JSON.stringify({
+        teamCount: state.teamCount,
+        pointStep: state.pointStep,
+        teams: state.teams,
+        used: [...state.used]
+      }));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem('reviewAnalysisJeopardyState');
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        state.teamCount = parsed.teamCount || 3;
+        state.pointStep = parsed.pointStep || 100;
+        state.teams = parsed.teams || state.teams;
+        state.used = new Set(parsed.used || []);
+      } catch (e) {
+        console.warn('Could not load saved state.', e);
+      }
+    }
+
+    function renderTeams() {
+      teamCountEl.value = String(state.teamCount);
+      pointStepEl.value = String(state.pointStep);
+      teamsEl.innerHTML = '';
+
+      for (let i = 0; i < state.teamCount; i++) {
+        const team = state.teams[i];
+        const wrap = document.createElement('div');
+        wrap.className = 'team';
+        wrap.innerHTML = `
+          <div class="team-head">
+            <input class="team-name" value="${escapeHtml(team.name)}" aria-label="Team name ${i + 1}" />
+            <div class="score">${team.score}</div>
+          </div>
+          <div class="score-controls">
+            <button class="btn-pos">+${state.pointStep}</button>
+            <button class="btn-neg">-${state.pointStep}</button>
+            <button class="btn-pos">+${state.pointStep * 2}</button>
+            <button class="btn-soft">Reset</button>
+          </div>
+        `;
+
+        const input = wrap.querySelector('.team-name');
+        const scoreEl = wrap.querySelector('.score');
+        const [plus, minus, doublePlus, reset] = wrap.querySelectorAll('button');
+
+        input.addEventListener('input', (e) => {
+          state.teams[i].name = e.target.value || `Team ${i + 1}`;
+          saveState();
+          renderAwardButtons();
+        });
+
+        plus.addEventListener('click', () => updateScore(i, state.pointStep, scoreEl));
+        minus.addEventListener('click', () => updateScore(i, -state.pointStep, scoreEl));
+        doublePlus.addEventListener('click', () => updateScore(i, state.pointStep * 2, scoreEl));
+        reset.addEventListener('click', () => {
+          state.teams[i].score = 0;
+          scoreEl.textContent = '0';
+          saveState();
+          renderTeams();
+        });
+
+        teamsEl.appendChild(wrap);
+      }
+    }
+
+    function updateScore(teamIndex, delta, scoreEl = null) {
+      state.teams[teamIndex].score += delta;
+      if (scoreEl) scoreEl.textContent = state.teams[teamIndex].score;
+      saveState();
+      renderTeams();
+    }
+
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      categories.forEach((cat, catIndex) => {
+        const head = document.createElement('div');
+        head.className = 'category';
+        head.textContent = cat.title;
+        boardEl.appendChild(head);
+      });
+
+      for (let row = 0; row < 5; row++) {
+        categories.forEach((cat, catIndex) => {
+          const clue = cat.clues[row];
+          const key = `${catIndex}-${row}`;
+          const cell = document.createElement('button');
+          cell.className = 'cell' + (state.used.has(key) ? ' used' : '');
+          cell.textContent = `$${clue.value}`;
+          cell.disabled = state.used.has(key);
+          cell.addEventListener('click', () => openClue(catIndex, row));
+          boardEl.appendChild(cell);
+        });
+      }
+    }
+
+    function renderAwardButtons() {
+      awardButtons.innerHTML = '';
+      for (let i = 0; i < state.teamCount; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-alt';
+        btn.textContent = `+${state.currentClue ? state.currentClue.value : state.pointStep} to ${state.teams[i].name || `Team ${i+1}`}`;
+        btn.addEventListener('click', () => {
+          if (!state.currentClue) return;
+          updateScore(i, state.currentClue.value);
+        });
+        awardButtons.appendChild(btn);
+      }
+    }
+
+    function openClue(catIndex, clueIndex) {
+      const clue = categories[catIndex].clues[clueIndex];
+      state.currentClue = { ...clue, catIndex, clueIndex };
+      modalCategory.textContent = categories[catIndex].title;
+      modalValue.textContent = `Value: $${clue.value}`;
+      modalClue.textContent = clue.clue;
+      modalAnswer.textContent = `Answer: ${clue.answer}`;
+      modalReason.textContent = clue.reason;
+      modalTip.textContent = `Teacher note: ${clue.tip}`;
+      answerBox.classList.remove('open');
+      renderAwardButtons();
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      state.currentClue = null;
+    }
+
+    function markCurrentUsed() {
+      if (!state.currentClue) return;
+      const key = `${state.currentClue.catIndex}-${state.currentClue.clueIndex}`;
+      state.used.add(key);
+      saveState();
+      renderBoard();
+    }
+
+    function resetBoard() {
+      state.used = new Set();
+      saveState();
+      renderBoard();
+    }
+
+    function resetScores() {
+      state.teams.forEach(t => t.score = 0);
+      saveState();
+      renderTeams();
+    }
+
+    function randomClue() {
+      const remaining = [];
+      categories.forEach((cat, catIndex) => {
+        cat.clues.forEach((clue, clueIndex) => {
+          const key = `${catIndex}-${clueIndex}`;
+          if (!state.used.has(key)) remaining.push({ catIndex, clueIndex });
+        });
+      });
+      if (!remaining.length) {
+        alert('All clues have been used. Reset the board to play again.');
+        return;
+      }
+      const pick = remaining[Math.floor(Math.random() * remaining.length)];
+      openClue(pick.catIndex, pick.clueIndex);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('revealBtn').addEventListener('click', () => {
+      answerBox.classList.toggle('open');
+    });
+    document.getElementById('markUsedBtn').addEventListener('click', () => {
+      markCurrentUsed();
+      closeModal();
+    });
+    document.getElementById('resetBoardBtn').addEventListener('click', () => {
+      if (confirm('Reset all used tiles?')) resetBoard();
+    });
+    document.getElementById('resetScoresBtn').addEventListener('click', () => {
+      if (confirm('Reset all team scores?')) resetScores();
+    });
+    document.getElementById('randomClueBtn').addEventListener('click', randomClue);
+
+    teamCountEl.addEventListener('change', (e) => {
+      state.teamCount = Number(e.target.value);
+      saveState();
+      renderTeams();
+    });
+
+    pointStepEl.addEventListener('change', (e) => {
+      state.pointStep = Number(e.target.value);
+      saveState();
+      renderTeams();
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      if (e.key.toLowerCase() === 'r' && modal.classList.contains('open')) answerBox.classList.toggle('open');
+      if (e.key.toLowerCase() === 'u' && modal.classList.contains('open')) {
+        markCurrentUsed();
+        closeModal();
+      }
+    });
+
+    loadState();
+    renderTeams();
+    renderBoard();
+  </script>
+</body>
+</html>
