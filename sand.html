@@ -27,8 +27,8 @@
     .pos-display { font-family:'Share Tech Mono',monospace; font-size:1.4rem; color:#a78bfa; }
 
     /* Wizard overlay */
-    #wizardPanel { }
-    #wizardPanel.hidden { display:none; }
+    #wizard { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:flex; align-items:center; justify-content:center; }
+    #wizard.hidden { display:none; }
     .wizard-step { display:none; }
     .wizard-step.active { display:block; }
 
@@ -48,27 +48,18 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- SETUP WIZARD — inline, never blocks port picker               -->
+<!-- SETUP WIZARD OVERLAY                                           -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<div id="wizardPanel" class="max-w-lg mx-auto p-6">
-  <div class="bg-slate-900 rounded-3xl shadow-2xl p-8 space-y-6">
-
-    <!-- Header row -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">🌀</span>
-        <h1 class="text-2xl font-bold">Dune Weaver Mini</h1>
-      </div>
-      <button id="wizSkipBtn" class="text-xs text-slate-500 hover:text-slate-300 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700">Skip Setup →</button>
-    </div>
+<div id="wizard">
+  <div class="bg-slate-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 space-y-6">
 
     <!-- Progress dots -->
-    <div class="flex gap-2 justify-center">
-      <div class="wizard-dot w-3 h-3 rounded-full bg-amber-400" data-step="0"></div>
-      <div class="wizard-dot w-3 h-3 rounded-full bg-slate-600" data-step="1"></div>
-      <div class="wizard-dot w-3 h-3 rounded-full bg-slate-600" data-step="2"></div>
-      <div class="wizard-dot w-3 h-3 rounded-full bg-slate-600" data-step="3"></div>
-      <div class="wizard-dot w-3 h-3 rounded-full bg-slate-600" data-step="4"></div>
+    <div class="flex justify-center gap-2">
+      <div class="wizard-dot w-2 h-2 rounded-full bg-amber-400" data-step="0"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="1"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="2"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="3"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="4"></div>
     </div>
 
     <!-- Step 0: Connect -->
@@ -95,13 +86,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">OUT ↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
           <div></div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">IN ↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -127,13 +118,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">OUT ↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
           <div></div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">IN ↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -162,13 +153,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">OUT ↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
           <div></div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">IN ↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -211,8 +202,10 @@
   </div>
 </div>
 
-<!-- MAIN UI -->
-<div id="mainUI" class="max-w-7xl mx-auto p-6 hidden">
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MAIN UI                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="max-w-7xl mx-auto p-6">
 
   <!-- Header -->
   <header class="border-b border-slate-800 pb-4 mb-6 flex items-center justify-between flex-wrap gap-4">
@@ -658,7 +651,7 @@ document.getElementById('clearLogBtn').addEventListener('click', () => { logEl.t
 
 // ── Enable/disable controls ───────────────────────────────────────
 function setConnectedState(connected) {
-  const skipIds = ['connectBtn','clearLogBtn','calcCenterBtn','previewPatternBtn','advancedToggleBtn','wizConnectBtn','wizSkipBtn','wizSetHomeBtn','wizCaptureInBtn','wizCaptureOutBtn','wizFinishBtn'];
+  const skipIds = ['connectBtn','clearLogBtn','calcCenterBtn','previewPatternBtn','advancedToggleBtn'];
   document.querySelectorAll('button').forEach(btn => {
     if (skipIds.includes(btn.id)) return;
     if (btn.classList.contains('patternTab')) return;
@@ -750,8 +743,9 @@ async function connectSerial() {
     appendLog('Connected at 115200 baud.');
     readLoop();
     await sendCommand('STATUS');
+    // Show wizard if not done yet
     if (!wizSetupDone) showWizard();
-    else hideWizard();
+    else document.getElementById('wizard').classList.add('hidden');
   } catch (err) { appendLog('Connect failed: ' + err.message); }
 }
 
@@ -798,23 +792,8 @@ function trackedRho()   { return currentRho   !== null ? currentRho   : 0; }
 
 function showWizard() {
   wizardStep = 0;
-  document.getElementById('wizardPanel').classList.remove('hidden');
-  document.getElementById('mainUI').classList.add('hidden');
+  document.getElementById('wizard').classList.remove('hidden');
   updateWizardStep(0);
-}
-
-function hideWizard() {
-  document.getElementById('wizardPanel').classList.add('hidden');
-  document.getElementById('mainUI').classList.remove('hidden');
-}
-
-async function startWizardSetup() {
-  // Widen limits so nothing blocks jogging during setup
-  await sendCommand('SET RMIN -20000');
-  await sendCommand('SET RMAX 20000');
-  await sendCommand('SET TMIN -200000');
-  await sendCommand('SET TMAX 200000');
-  appendLog('Wizard: limits widened for setup.');
 }
 
 function updateWizardStep(step) {
@@ -828,37 +807,32 @@ function updateWizardStep(step) {
   });
 }
 
-// Skip wizard
-document.getElementById('wizSkipBtn').addEventListener('click', () => {
-  localStorage.setItem('dwSetupDone', 'true');
-  wizSetupDone = true;
-  hideWizard();
-});
-
-// Wizard connect button — requestPort must be first thing called on click
+// Wizard connect button
 document.getElementById('wizConnectBtn').addEventListener('click', async () => {
   const statusEl = document.getElementById('wizConnectStatus');
   statusEl.textContent = 'Connecting...';
-  // connectSerial calls requestPort() immediately — no awaits before it
   await connectSerial();
   if (writer) {
     statusEl.textContent = '✓ Connected!';
-    await startWizardSetup();
     setTimeout(() => updateWizardStep(1), 800);
   } else {
-    statusEl.textContent = '✗ Connection failed. Check USB cable and try again.';
+    statusEl.textContent = '✗ Connection failed. Check cable and try again.';
   }
 });
 
-// Wizard jog buttons
+// Wizard jog buttons (all steps)
 document.querySelectorAll('.wJogBtn').forEach(btn => {
   btn.addEventListener('click', () => {
     const axis = btn.dataset.axis;
     const dir  = Number(btn.dataset.dir);
+    // Get jog size from the active step's select
+    const sizeEl = document.getElementById('wizJogSize') ||
+                   document.getElementById('wizJogSize2') ||
+                   document.getElementById('wizJogSize3');
     let jog = 500;
-    if (wizardStep === 1) jog = Number(document.getElementById('wizJogSize').value  || 500);
-    if (wizardStep === 2) jog = Number(document.getElementById('wizJogSize2').value || 500);
-    if (wizardStep === 3) jog = Number(document.getElementById('wizJogSize3').value || 500);
+    if (wizardStep === 1 && document.getElementById('wizJogSize')) jog = Number(document.getElementById('wizJogSize').value);
+    if (wizardStep === 2 && document.getElementById('wizJogSize2')) jog = Number(document.getElementById('wizJogSize2').value);
+    if (wizardStep === 3 && document.getElementById('wizJogSize3')) jog = Number(document.getElementById('wizJogSize3').value);
     sendCommand('MOVE ' + axis + ' ' + (dir * jog), true);
   });
 });
@@ -913,7 +887,7 @@ document.getElementById('wizFinishBtn').addEventListener('click', async () => {
   await sendCommand('RETURN RHO', true);
   localStorage.setItem('dwSetupDone', 'true');
   wizSetupDone = true;
-  hideWizard();
+  document.getElementById('wizard').classList.add('hidden');
   appendLog('Setup complete! Ready to draw.');
   drawVisualPreview();
 });
@@ -932,13 +906,8 @@ document.getElementById('rerunWizardBtn').addEventListener('click', () => {
 
 connectBtn.addEventListener('click', async () => {
   await connectSerial();
-  if (writer) {
-    if (wizSetupDone) {
-      hideWizard();
-    } else {
-      await startWizardSetup();
-      updateWizardStep(1);
-    }
+  if (writer && wizSetupDone) {
+    document.getElementById('wizard').classList.add('hidden');
   }
 });
 document.getElementById('disconnectBtn').addEventListener('click', disconnectSerial);
@@ -1076,39 +1045,35 @@ document.querySelectorAll('.pattern-card').forEach(card => {
 // Set initial desc
 document.getElementById('patternDesc').textContent = PATTERN_DEFS['spiral'].desc;
 
-// Cursive letter strokes — connected, flowing, never lifting
-// Each letter: [thetaFrac 0-1, rhoFrac 0-1] normalized coordinates
-// thetaFrac: 0=left edge, 1=right edge of letter width
-// rhoFrac: 0=baseline, 1=top of letter
-// Letters are designed to connect smoothly left-to-right
+// Cursive letter strokes
 const CURSIVE = {
-  'A': [[0,0],[0.05,0.3],[0.1,0.6],[0.2,0.85],[0.3,1],[0.5,1],[0.6,0.85],[0.7,0.6],[0.8,0.3],[0.85,0],[0.9,0.3],[0.15,0.5],[0.85,0.5]],
-  'B': [[0,0],[0,1],[0.05,1],[0.4,1],[0.6,0.9],[0.7,0.75],[0.6,0.55],[0.4,0.5],[0.05,0.5],[0.4,0.5],[0.65,0.4],[0.75,0.25],[0.65,0.1],[0.4,0],[0.05,0],[1,0]],
-  'C': [[0.9,0.75],[0.7,0.95],[0.45,1],[0.2,0.9],[0.05,0.7],[0,0.5],[0.05,0.3],[0.2,0.1],[0.45,0],[0.7,0.05],[0.9,0.25],[1,0.25]],
-  'D': [[0,0],[0,1],[0.05,1],[0.35,1],[0.6,0.85],[0.8,0.65],[0.85,0.5],[0.8,0.35],[0.6,0.15],[0.35,0],[0.05,0],[0,0],[1,0]],
-  'E': [[0.85,1],[0.5,1],[0.15,1],[0.05,0.95],[0,0.85],[0,0.15],[0.05,0.05],[0.15,0],[0.5,0],[0.85,0],[0.05,0.5],[0.6,0.5],[1,0]],
-  'F': [[0,0],[0,0.5],[0,1],[0.3,1],[0.6,1],[0.85,0.95],[0,1],[0,0.55],[0.55,0.55],[1,0.55]],
-  'G': [[0.9,0.75],[0.7,0.95],[0.45,1],[0.2,0.9],[0.05,0.7],[0,0.5],[0.05,0.3],[0.2,0.1],[0.45,0],[0.7,0.05],[0.9,0.2],[1,0.4],[1,0.5],[0.6,0.5],[1,0.5]],
-  'H': [[0,0],[0,0.5],[0,1],[0,0.5],[0.85,0.5],[0.85,0],[0.85,1],[1,1]],
-  'I': [[0.1,1],[0.5,1],[0.9,1],[0.5,1],[0.5,0.5],[0.5,0],[0.1,0],[0.5,0],[0.9,0],[1,0]],
-  'J': [[0,0.35],[0.1,0.1],[0.3,0],[0.55,0.05],[0.7,0.2],[0.75,0.45],[0.75,0.7],[0.75,1],[0.3,1],[0.7,1],[1,1]],
-  'K': [[0,0],[0,0.5],[0,1],[0,0.5],[0.3,0.65],[0.6,0.85],[0.85,1],[0.3,0.5],[0.6,0.2],[0.85,0],[1,0]],
-  'L': [[0,1],[0,0.5],[0,0],[0.3,0],[0.65,0],[0.9,0],[1,0]],
-  'M': [[0,0],[0,0.5],[0,1],[0.25,0.7],[0.5,0.5],[0.75,0.7],[1,1],[1,0.5],[1,0],[1,0]],
-  'N': [[0,0],[0,0.5],[0,1],[0.15,0.85],[0.35,0.65],[0.55,0.45],[0.75,0.25],[0.9,0.1],[1,0],[1,0.5],[1,1],[1,1]],
-  'O': [[0.5,0],[0.2,0.05],[0.05,0.2],[0,0.4],[0,0.6],[0.05,0.8],[0.2,0.95],[0.5,1],[0.8,0.95],[0.95,0.8],[1,0.6],[1,0.4],[0.95,0.2],[0.8,0.05],[0.5,0],[1,0]],
-  'P': [[0,0],[0,0.5],[0,1],[0.15,1],[0.5,1],[0.75,0.9],[0.85,0.75],[0.8,0.6],[0.65,0.52],[0.4,0.5],[0.1,0.5],[1,0.5]],
-  'Q': [[0.5,0],[0.2,0.05],[0.05,0.2],[0,0.4],[0,0.6],[0.05,0.8],[0.2,0.95],[0.5,1],[0.8,0.95],[0.95,0.8],[1,0.6],[1,0.4],[0.95,0.2],[0.8,0.05],[0.5,0],[0.65,0.2],[0.85,0],[1,0]],
-  'R': [[0,0],[0,0.5],[0,1],[0.15,1],[0.5,1],[0.75,0.9],[0.85,0.75],[0.8,0.6],[0.65,0.52],[0.4,0.5],[0.1,0.5],[0.5,0.5],[0.65,0.35],[0.8,0.15],[0.95,0],[1,0]],
-  'S': [[0.85,0.85],[0.65,1],[0.4,1],[0.15,0.9],[0.05,0.75],[0.1,0.6],[0.3,0.55],[0.55,0.5],[0.75,0.45],[0.9,0.3],[0.85,0.12],[0.65,0.02],[0.4,0],[0.15,0.1],[0.05,0.25],[1,0.25]],
-  'T': [[0,1],[0.25,1],[0.5,1],[0.75,1],[1,1],[0.5,1],[0.5,0.6],[0.5,0.3],[0.5,0],[1,0]],
-  'U': [[0,1],[0,0.5],[0,0.2],[0.1,0.05],[0.3,0],[0.5,0],[0.7,0],[0.9,0.05],[1,0.2],[1,0.5],[1,1],[1,1]],
-  'V': [[0,1],[0.15,0.7],[0.3,0.4],[0.45,0.15],[0.5,0],[0.55,0.15],[0.7,0.4],[0.85,0.7],[1,1],[1,1]],
-  'W': [[0,1],[0.15,0.6],[0.25,0.25],[0.3,0],[0.4,0.25],[0.5,0.5],[0.6,0.25],[0.7,0],[0.75,0.25],[0.85,0.6],[1,1],[1,1]],
-  'X': [[0,1],[0.2,0.75],[0.4,0.5],[0.6,0.25],[0.8,0.05],[1,0],[0.8,0.05],[0.6,0.25],[0.5,0.5],[0.4,0.5],[0.2,0.75],[0,0],[1,0]],
-  'Y': [[0,1],[0.2,0.75],[0.4,0.55],[0.5,0.5],[0.6,0.55],[0.8,0.75],[1,1],[0.5,0.5],[0.5,0.25],[0.5,0],[1,0]],
-  'Z': [[0,1],[0.25,1],[0.55,1],[0.85,1],[1,1],[0.8,0.75],[0.6,0.5],[0.4,0.25],[0.15,0],[0,0],[0.3,0],[0.6,0],[0.9,0],[1,0]],
-  ' ': [[0.5,0.5],[1,0.5]],
+  'A': [[0,0],[0.2,1],[0.5,0.5],[0.8,1],[1,0]],
+  'B': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0.2],[0.5,0],[0,0]],
+  'C': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2]],
+  'D': [[0,0],[0,1],[0.5,1],[0.9,0.7],[0.9,0.3],[0.5,0],[0,0]],
+  'E': [[0.8,1],[0,1],[0,0.5],[0.6,0.5],[0,0.5],[0,0],[0.8,0]],
+  'F': [[0,0],[0,1],[0.8,1],[0,1],[0,0.5],[0.6,0.5]],
+  'G': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.5],[0.5,0.5]],
+  'H': [[0,0],[0,1],[0,0.5],[0.8,0.5],[0.8,0],[0.8,1]],
+  'I': [[0.2,1],[0.8,1],[0.5,1],[0.5,0],[0.2,0],[0.8,0]],
+  'J': [[0,1],[0.8,1],[0.8,0.2],[0.6,0],[0.2,0],[0,0.2]],
+  'K': [[0,0],[0,1],[0,0.5],[0.8,1],[0,0.5],[0.8,0]],
+  'L': [[0,1],[0,0],[0.8,0]],
+  'M': [[0,0],[0,1],[0.4,0.5],[0.8,1],[0.8,0]],
+  'N': [[0,0],[0,1],[0.8,0],[0.8,1]],
+  'O': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1]],
+  'P': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5]],
+  'Q': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1],[0.6,0.2],[0.9,0]],
+  'R': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0]],
+  'S': [[0.8,0.8],[0.4,1],[0,0.7],[0.4,0.5],[0.8,0.3],[0.4,0],[0,0.2]],
+  'T': [[0,1],[0.8,1],[0.4,1],[0.4,0]],
+  'U': [[0,1],[0,0.3],[0.2,0],[0.6,0],[0.8,0.3],[0.8,1]],
+  'V': [[0,1],[0.4,0],[0.8,1]],
+  'W': [[0,1],[0.2,0],[0.4,0.5],[0.6,0],[0.8,1]],
+  'X': [[0,1],[0.8,0],[0.4,0.5],[0,0],[0.8,1]],
+  'Y': [[0,1],[0.4,0.5],[0.8,1],[0.4,0.5],[0.4,0]],
+  'Z': [[0,1],[0.8,1],[0,0],[0.8,0]],
+  ' ': [[0.5,0.5]],
 };
 
 function buildTextCommands() {
@@ -1257,11 +1222,8 @@ function drawVisualPreview() {
   });
 
   const rMin = Math.min(...pts.map(p => p.r));
-  const rMin  = Math.min(...pts.map(p => p.r));
-  const rMax  = Math.max(...pts.map(p => p.r));
+  const rMax = Math.max(...pts.map(p => p.r));
   const rRange = rMax - rMin || 1;
-  // Normalize theta across full pattern range for accurate angular display
-  const tAbsMax = Math.max(...pts.map(p => Math.abs(p.t)), 25800);
 
   // Draw gradient path
   for (let i = 1; i < pts.length; i++) {
@@ -1273,8 +1235,8 @@ function drawVisualPreview() {
     const prev = pts[i-1], curr = pts[i];
     const pr = ((prev.r - rMin) / rRange) * maxR;
     const cr = ((curr.r - rMin) / rRange) * maxR;
-    const pa = (prev.t / tAbsMax) * Math.PI * 2 - Math.PI/2;
-    const ca = (curr.t / tAbsMax) * Math.PI * 2 - Math.PI/2;
+    const pa = (prev.t / 25800) * Math.PI * 2 - Math.PI/2;
+    const ca = (curr.t / 25800) * Math.PI * 2 - Math.PI/2;
     ctx.moveTo(cx + pr * Math.cos(pa), cy + pr * Math.sin(pa));
     ctx.lineTo(cx + cr * Math.cos(ca), cy + cr * Math.sin(ca));
     ctx.stroke();
@@ -1283,31 +1245,21 @@ function drawVisualPreview() {
   // Start dot
   const f0 = pts[0];
   const r0 = ((f0.r - rMin) / rRange) * maxR;
-  const a0 = (f0.t / tAbsMax) * Math.PI*2 - Math.PI/2;
+  const a0 = (f0.t / 25800) * Math.PI*2 - Math.PI/2;
   ctx.beginPath();
   ctx.arc(cx + r0*Math.cos(a0), cy + r0*Math.sin(a0), 5, 0, Math.PI*2);
   ctx.fillStyle = '#22c55e'; ctx.fill();
 }
 
-// Auto-redraw preview on ANY relevant input change
-function wirePreviewUpdates() {
-  const ids = [
-    'patternPoints','patternRhoCenter','patternThetaRadius','patternRhoRadius','patternThetaCenter',
-    'roseK','roseAmp','roseRot',
-    'lissA','lissB','lissTS','lissRS',
-    'epiR','epir','epid','epiScale',
-    'starPoints','starDepth',
-    'textInput','textSizeSelect','textSpacingSelect'
-  ];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('input',  drawVisualPreview);
-      el.addEventListener('change', drawVisualPreview);
-    }
-  });
-}
-wirePreviewUpdates();
+// Auto-redraw on input change
+['patternPoints','patternRhoCenter','patternThetaRadius','patternRhoRadius','patternThetaCenter',
+ 'roseK','roseAmp','roseRot','lissA','lissB','lissTS','lissRS',
+ 'epiR','epir','epid','epiScale','starPoints','starDepth',
+ 'textInput','textSizeSelect','textSpacingSelect'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', drawVisualPreview);
+  if (el) el.addEventListener('change', drawVisualPreview);
+});
 
 document.getElementById('previewPatternBtn').addEventListener('click', () => {
   const cmds = buildPatternCommands();
@@ -1348,9 +1300,8 @@ async function runPattern() {
   document.getElementById('progressLabel').textContent = patternAbort ? 'Stopped' : 'Complete!';
 
   appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
-  // Return to rho center so ball ends in middle of tray
-  const rhoCenter = Number(document.getElementById('patternRhoCenter').value || 0);
-  await sendCommand('GOTO T ' + trackedTheta() + ' R ' + rhoCenter, true);
+  await sendCommand('MOVE T 0');
+  await sendCommand('MOVE R 0');
   if (!patternAbort) sendCommand('STATUS');
 
   setTimeout(() => {
@@ -1371,11 +1322,6 @@ document.getElementById('stopPatternBtn').addEventListener('click', () => {
 
 // ── Init ──────────────────────────────────────────────────────────
 setConnectedState(false);
-if (wizSetupDone) {
-  hideWizard();
-} else {
-  showWizard();
-}
 drawVisualPreview();
 appendLog('Dune Weaver Mini ready.');
 appendLog('Click Connect to get started.');
