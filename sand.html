@@ -883,9 +883,15 @@ function drawVisualPreview() {
 
 async function moveToRhoInAtCurrentTheta() {
   const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
-  const thetaNow = trackedTheta();
+  const rhoNow = trackedRho();
+  const delta = rhoIn - rhoNow;
+
   appendLog('Moving to Rho In before pattern start...');
-  await sendCommand(`GOTO T ${thetaNow} R ${rhoIn}`, true);
+  if (delta !== 0) {
+    await sendCommand(`MOVE R ${delta}`, true);
+  } else {
+    appendLog('Already at Rho In.');
+  }
   await sendCommand('STATUS');
 }
 
@@ -907,6 +913,7 @@ async function runPattern() {
     return;
   }
 
+  await sendCommand('STATUS');
   const startTheta = trackedTheta();
   const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
   const cmds = buildPatternCommands(startTheta);
