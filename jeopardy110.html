@@ -402,6 +402,13 @@
           <button class="btn-soft" id="resetScoresBtn">Reset Scores</button>
           <button class="btn-alt" id="randomClueBtn">Random Clue</button>
           <label>
+            Round
+            <select id="roundSelect">
+              <option value="round1">Round 1: Review vs. Analysis</option>
+              <option value="round2">Round 2: Gaming History and Analysis</option>
+            </select>
+          </label>
+          <label>
             Teams
             <select id="teamCount">
               <option value="2">2</option>
@@ -423,7 +430,7 @@
       <div>
         <h2>How to Play</h2>
         <div class="tiny" style="margin-top:12px; line-height:1.6;">
-          Teams pick a tile. Students decide whether the clue is <strong>review</strong>, <strong>academic analysis</strong>, or <strong>weak / needs revision</strong>. Then they explain why. Award points for the label and the reasoning.
+          Round 1 teaches the difference between <strong>review</strong>, <strong>academic analysis</strong>, and <strong>weak / needs revision</strong>. Round 2 shifts to gaming history from the <strong>1980s through the 2020s</strong> while still reinforcing mechanics, narrative, culture, and historical context.
         </div>
       </div>
     </section>
@@ -470,210 +477,421 @@
   </div>
 
   <script>
-    const categories = [
-      {
-        title: 'Review or Analysis?',
-        clues: [
+    const rounds = {
+      round1: {
+        name: 'Round 1: Review vs. Analysis',
+        categories: [
           {
-            value: 100,
-            clue: '“This game has gorgeous visuals and a fun combat system, but the story drags in the middle.”',
-            answer: 'Review',
-            reason: 'This evaluates quality and player experience. It sounds like someone judging how well the game works for players.',
-            tip: 'Ask students what words make it sound evaluative.'
+            title: 'Review or Analysis?',
+            clues: [
+              {
+                value: 100,
+                clue: '“This game has gorgeous visuals and a fun combat system, but the story drags in the middle.”',
+                answer: 'Review',
+                reason: 'This evaluates quality and player experience. It sounds like someone judging how well the game works for players.',
+                tip: 'Ask students what words make it sound evaluative.'
+              },
+              {
+                value: 200,
+                clue: '“The repetitive paperwork in Papers, Please is not just gameplay; it reinforces the emotional pressure of working inside an oppressive system.”',
+                answer: 'Academic Analysis',
+                reason: 'This interprets how a mechanic creates meaning. It moves beyond opinion and makes an argument about what the gameplay does.',
+                tip: 'Push them to notice the link between mechanic and theme.'
+              },
+              {
+                value: 300,
+                clue: '“I would recommend this game to people who like open-world exploration, but probably not to players who want a fast-paced story.”',
+                answer: 'Review',
+                reason: 'This is recommendation language. The goal is helping a player decide whether they would enjoy the game.',
+                tip: 'Have them identify the audience built into the statement.'
+              },
+              {
+                value: 400,
+                clue: '“The game’s treatment of survival reflects larger anxieties about scarcity, control, and social collapse.”',
+                answer: 'Academic Analysis',
+                reason: 'This makes a larger interpretive claim about theme and cultural meaning rather than just whether the game is good.',
+                tip: 'Ask what evidence a writer would need to prove this.'
+              },
+              {
+                value: 500,
+                clue: '“The soundtrack is amazing, and it makes boss fights feel more intense.”',
+                answer: 'Mostly Review',
+                reason: 'It gestures toward an effect, but it is still mostly evaluation. To become analysis, it would need a bigger claim about how sound shapes meaning or player experience in a deeper way.',
+                tip: 'Bonus: ask students to rewrite it as analysis.'
+              }
+            ]
           },
           {
-            value: 200,
-            clue: '“The repetitive paperwork in Papers, Please is not just gameplay; it reinforces the emotional pressure of working inside an oppressive system.”',
-            answer: 'Academic Analysis',
-            reason: 'This interprets how a mechanic creates meaning. It moves beyond opinion and makes an argument about what the gameplay does.',
-            tip: 'Push them to notice the link between mechanic and theme.'
+            title: 'What’s the Evidence?',
+            clues: [
+              {
+                value: 100,
+                clue: 'Claim: “This game is immersive.” What evidence would make that stronger?',
+                answer: 'Specific examples',
+                reason: 'Students should mention concrete evidence like sound design, world detail, interface choices, camera perspective, or player agency.',
+                tip: 'Do not let them get away with “because it feels immersive.”'
+              },
+              {
+                value: 200,
+                clue: 'Claim: “The game critiques capitalism.” What kind of evidence would a strong analysis need?',
+                answer: 'Systems + examples',
+                reason: 'Look for mechanics, reward systems, labor structures, scarcity, buying/selling, dialogue, or narrative moments that support the claim.',
+                tip: 'This is a great chance to remind them that themes need proof.'
+              },
+              {
+                value: 300,
+                clue: 'Claim: “The game is frustrating on purpose.” What evidence should a writer use?',
+                answer: 'Design choices',
+                reason: 'Strong answers mention enemy patterns, punishment systems, checkpoint placement, repetition, and what the frustration does for the player experience.',
+                tip: 'Push them beyond “because it’s hard.”'
+              },
+              {
+                value: 400,
+                clue: 'Claim: “This game challenges traditional ideas of heroism.” What evidence would help?',
+                answer: 'Character + narrative evidence',
+                reason: 'Good answers include moral ambiguity, player choices, consequences, endings, and how the protagonist fits or resists heroic expectations.',
+                tip: 'Ask them which scenes or mechanics they would quote or describe.'
+              },
+              {
+                value: 500,
+                clue: 'Claim: “The game uses mechanics to tell the story.” What would prove that?',
+                answer: 'Mechanic-to-story connection',
+                reason: 'Students should name a specific mechanic and explain exactly how it reinforces plot, theme, or emotional experience.',
+                tip: 'This is one of the biggest skills they need for the assignment.'
+              }
+            ]
           },
           {
-            value: 300,
-            clue: '“I would recommend this game to people who like open-world exploration, but probably not to players who want a fast-paced story.”',
-            answer: 'Review',
-            reason: 'This is recommendation language. The goal is helping a player decide whether they would enjoy the game.',
-            tip: 'Have them identify the audience built into the statement.'
+            title: 'Stronger Thesis Wins',
+            clues: [
+              {
+                value: 100,
+                clue: 'Which is stronger? A) “The Last of Us is a very emotional game.” B) “The Last of Us uses limited player control and resource scarcity to deepen its themes of fear, care, and survival.”',
+                answer: 'B',
+                reason: 'B is more precise, arguable, and based on how the game works. It gives a clear route for evidence.',
+                tip: 'Ask students what makes A too vague.'
+              },
+              {
+                value: 200,
+                clue: 'Which is stronger? A) “Dark Souls is hard.” B) “The difficulty of Dark Souls creates a shared culture of mastery in which player knowledge becomes part of the game’s meaning.”',
+                answer: 'B',
+                reason: 'B turns an obvious observation into a real argument. It explains why difficulty matters.',
+                tip: 'Ask: what could a writer do with A besides shrug?'
+              },
+              {
+                value: 300,
+                clue: 'Which is stronger? A) “This game has a lot to say about history.” B) “By turning history into an interactive system, the game invites players to see the past as something shaped by choices, rules, and perspective.”',
+                answer: 'B',
+                reason: 'B identifies how the game creates meaning and gives the writer a frame for evidence.',
+                tip: 'Have teams explain what kind of assignment B sounds ready for.'
+              },
+              {
+                value: 400,
+                clue: 'Which is stronger? A) “The game’s setting is important.” B) “The setting matters because it frames every player action within a larger system of political control and cultural memory.”',
+                answer: 'B',
+                reason: 'B is analytical because it explains why the setting matters and connects it to interpretation.',
+                tip: 'Make them define “important” when they choose B.'
+              },
+              {
+                value: 500,
+                clue: 'Which is stronger? A) “The game is interesting.” B) “The game becomes analytically interesting when its reward systems push players to act against the values its story seems to support.”',
+                answer: 'B',
+                reason: 'B makes a specific, debatable claim about tension between mechanics and narrative.',
+                tip: 'This one is excellent for discussing contradiction in games.'
+              }
+            ]
           },
           {
-            value: 400,
-            clue: '“The game’s treatment of survival reflects larger anxieties about scarcity, control, and social collapse.”',
-            answer: 'Academic Analysis',
-            reason: 'This makes a larger interpretive claim about theme and cultural meaning rather than just whether the game is good.',
-            tip: 'Ask what evidence a writer would need to prove this.'
+            title: 'Fix That Claim',
+            clues: [
+              {
+                value: 100,
+                clue: 'Weak claim: “This game is good because it has good gameplay.” Rewrite it into something more academic.',
+                answer: 'Example fix',
+                reason: 'A stronger version might be: “The game’s movement and combat systems reward experimentation, which supports its larger theme of player freedom.”',
+                tip: 'Accept any revised claim that becomes specific and arguable.'
+              },
+              {
+                value: 200,
+                clue: 'Weak claim: “This game is sad.” Rewrite it into a stronger analysis claim.',
+                answer: 'Example fix',
+                reason: 'A stronger version might be: “The game creates sadness not just through plot events, but through mechanics that make loss feel personal and unavoidable.”',
+                tip: 'Push them to explain how the sadness is created.'
+              },
+              {
+                value: 300,
+                clue: 'Weak claim: “This character is relatable.” Rewrite it.',
+                answer: 'Example fix',
+                reason: 'A stronger version might be: “The character feels relatable because the game uses dialogue, vulnerability, and choice to align the player emotionally with the protagonist.”',
+                tip: 'Any answer that names techniques gets credit.'
+              },
+              {
+                value: 400,
+                clue: 'Weak claim: “This game is about society.” Rewrite it.',
+                answer: 'Example fix',
+                reason: 'A stronger version might be: “The game critiques social hierarchy by tying progress to systems of labor, surveillance, and control.”',
+                tip: 'Vague topic words like “society” need narrowing.'
+              },
+              {
+                value: 500,
+                clue: 'Weak claim: “This game makes you think.” Rewrite it.',
+                answer: 'Example fix',
+                reason: 'A stronger version might be: “The game encourages critical reflection by forcing players to participate in systems they may find ethically uncomfortable.”',
+                tip: 'This is a good place to talk about procedural rhetoric.'
+              }
+            ]
           },
           {
-            value: 500,
-            clue: '“The soundtrack is amazing, and it makes boss fights feel more intense.”',
-            answer: 'Mostly Review',
-            reason: 'It gestures toward an effect, but it is still mostly evaluation. To become analysis, it would need a bigger claim about how sound shapes meaning or player experience in a deeper way.',
-            tip: 'Bonus: ask students to rewrite it as analysis.'
+            title: 'Teacher Trap',
+            clues: [
+              {
+                value: 100,
+                clue: '“This article uses big words, so it must be academic.”',
+                answer: 'Trap',
+                reason: 'Fancy language does not make writing analytical. Academic work still needs a real argument, evidence, and clear reasoning.',
+                tip: 'Students often need to hear this directly.'
+              },
+              {
+                value: 200,
+                clue: '“If someone talks about symbolism, that automatically means it’s analysis.”',
+                answer: 'Trap',
+                reason: 'It only becomes analysis if the writer connects that symbol to a clear argument and supports it with evidence.',
+                tip: 'Symbol-hunting without argument is not enough.'
+              },
+              {
+                value: 300,
+                clue: '“A review can never include analysis.”',
+                answer: 'Trap',
+                reason: 'Reviews can include analytical moments, but their main goal is usually evaluation or recommendation rather than scholarly argument.',
+                tip: 'This helps students understand the overlap without confusing the genres.'
+              },
+              {
+                value: 400,
+                clue: '“If a writer says a game is important, that counts as a thesis.”',
+                answer: 'Trap',
+                reason: '“Important” is too vague by itself. A thesis needs to explain important in what way and why.',
+                tip: 'Great moment to talk about vague claim words.'
+              },
+              {
+                value: 500,
+                clue: '“The more plot summary an essay has, the stronger the analysis.”',
+                answer: 'Trap',
+                reason: 'Too much summary usually weakens analysis unless that summary is directly serving the writer’s interpretation.',
+                tip: 'Students often over-summarize when they are unsure.'
+              }
+            ]
           }
         ]
       },
-      {
-        title: 'What’s the Evidence?',
-        clues: [
+      round2: {
+        name: 'Round 2: Gaming History and Analysis',
+        categories: [
           {
-            value: 100,
-            clue: 'Claim: “This game is immersive.” What evidence would make that stronger?',
-            answer: 'Specific examples',
-            reason: 'Students should mention concrete evidence like sound design, world detail, interface choices, camera perspective, or player agency.',
-            tip: 'Do not let them get away with “because it feels immersive.”'
+            title: '1980s Foundations',
+            clues: [
+              {
+                value: 100,
+                clue: 'This 1980 arcade game is often discussed as a landmark in maze design, pattern play, and early character-based gaming history.',
+                answer: 'Pac-Man',
+                reason: 'Pac-Man matters analytically because its maze structure, ghost behavior, and iconic character design make it useful for discussions of mechanics and early game identity.',
+                tip: 'Follow-up: why might a scholar care about patterns and player learning here?'
+              },
+              {
+                value: 200,
+                clue: 'This 1981 platform game helped popularize jump-based movement and introduced Donkey Kong and Mario to mainstream players.',
+                answer: 'Donkey Kong',
+                reason: 'It is historically significant because it helped define platforming and gave scholars a way to talk about character, challenge, and arcade design.',
+                tip: 'Ask students how mechanics can become a genre foundation.'
+              },
+              {
+                value: 300,
+                clue: 'This 1985 NES title is often used when discussing early adventure structure, exploration, and the importance of player discovery.',
+                answer: 'The Legend of Zelda',
+                reason: 'Zelda is a strong bridge to analysis because it connects exploration, spatial design, and player agency.',
+                tip: 'Good prompt: is exploration itself a kind of storytelling?'
+              },
+              {
+                value: 400,
+                clue: 'Scholars interested in game history often mention this 1980s crash as a major reminder that the game industry has always been shaped by economics and public trust.',
+                answer: 'The 1983 video game crash',
+                reason: 'This helps students see that games can be analyzed as products inside larger cultural and economic systems, not just as entertainment.',
+                tip: 'Nice connection to articles about industry and history.'
+              },
+              {
+                value: 500,
+                clue: 'This 1989 handheld launch title is a strong example of how simple mechanics can become culturally massive through portability and repeatable play.',
+                answer: 'Tetris on Game Boy',
+                reason: 'Tetris is perfect for talking about design elegance, habit-forming play, and how platform context changes a game’s cultural impact.',
+                tip: 'Ask why portability matters to analysis, not just sales.'
+              }
+            ]
           },
           {
-            value: 200,
-            clue: 'Claim: “The game critiques capitalism.” What kind of evidence would a strong analysis need?',
-            answer: 'Systems + examples',
-            reason: 'Look for mechanics, reward systems, labor structures, scarcity, buying/selling, dialogue, or narrative moments that support the claim.',
-            tip: 'This is a great chance to remind them that themes need proof.'
+            title: '1990s Narrative + Tech',
+            clues: [
+              {
+                value: 100,
+                clue: 'This 1993 shooter is a huge moment in discussions of first-person perspective, immersion, and moral panic around video game violence.',
+                answer: 'Doom',
+                reason: 'Doom matters because it shaped both game design and public debates about violence, media, and player experience.',
+                tip: 'Great moment to connect design history to cultural reaction.'
+              },
+              {
+                value: 200,
+                clue: 'This 1996 Nintendo 64 game is a key example in discussions of camera control, 3D space, and how players learned new ways of moving in games.',
+                answer: 'Super Mario 64',
+                reason: 'It is analytically important because it helped establish how 3D platforming and camera design could guide player understanding.',
+                tip: 'Ask students whether camera design counts as a mechanic.'
+              },
+              {
+                value: 300,
+                clue: 'This late-1990s stealth series is often analyzed for cinematic storytelling, surveillance themes, and player restriction.',
+                answer: 'Metal Gear Solid',
+                reason: 'It gives writers rich material on narrative presentation, power, control, and how stealth mechanics produce tension.',
+                tip: 'Connect this to mechanics shaping emotion.'
+              },
+              {
+                value: 400,
+                clue: 'This 1997 RPG is still discussed for showing how games can create emotional investment through character arcs, worldbuilding, and spectacle.',
+                answer: 'Final Fantasy VII',
+                reason: 'It is useful for analysis because it helped push conversations about games as narrative and emotional experiences.',
+                tip: 'Good bridge to students who think older games were only about mechanics.'
+              },
+              {
+                value: 500,
+                clue: 'This 1990s shift in game design made scholars pay closer attention to spatial storytelling, player embodiment, and the move from 2D to explorable 3D worlds.',
+                answer: 'The move to 3D gaming',
+                reason: 'That shift changed how games represented space, movement, and narrative possibility, making it a major analytical turning point.',
+                tip: 'Accept strong paraphrases, not just exact wording.'
+              }
+            ]
           },
           {
-            value: 300,
-            clue: 'Claim: “The game is frustrating on purpose.” What evidence should a writer use?',
-            answer: 'Design choices',
-            reason: 'Strong answers mention enemy patterns, punishment systems, checkpoint placement, repetition, and what the frustration does for the player experience.',
-            tip: 'Push them beyond “because it’s hard.”'
+            title: '2000s Worlds + Systems',
+            clues: [
+              {
+                value: 100,
+                clue: 'This 2004 MMO is a strong example for studying online communities, virtual labor, social identity, and player culture.',
+                answer: 'World of Warcraft',
+                reason: 'WoW matters because it lets scholars study not just the game itself, but guilds, economies, roles, and social structures.',
+                tip: 'Push students to see that players are part of analysis too.'
+              },
+              {
+                value: 200,
+                clue: 'This 2007 puzzle game is often used to discuss procedural rhetoric, player instruction, and the relationship between mechanics and humor.',
+                answer: 'Portal',
+                reason: 'Portal is great for showing how rules, space, and voice work together to create meaning.',
+                tip: 'Ask how teaching a player can itself be narrative.'
+              },
+              {
+                value: 300,
+                clue: 'This 2007 military shooter is often part of larger conversations about war games, ideology, and how gameplay can normalize certain perspectives.',
+                answer: 'Call of Duty 4: Modern Warfare',
+                reason: 'It helps connect player action to questions of representation, power, and military framing.',
+                tip: 'A useful opening for talking about culture and politics in games.'
+              },
+              {
+                value: 400,
+                clue: 'This 2000 life simulation series is useful in analysis because it raises questions about everyday systems, identity, labor, and player-created stories.',
+                answer: 'The Sims',
+                reason: 'The Sims invites analysis of systems, domestic life, social roles, and the stories players generate inside rules.',
+                tip: 'Nice example that analysis is not only about dramatic plots.'
+              },
+              {
+                value: 500,
+                clue: 'This 2008 game is a classic example for discussing environmental storytelling, player choice, and critiques of ideology in game spaces.',
+                answer: 'BioShock',
+                reason: 'BioShock is frequently analyzed because its world, mechanics, and famous twist all invite questions about agency and belief.',
+                tip: 'This one is excellent for the phrase “What is the game making the player do?”'
+              }
+            ]
           },
           {
-            value: 400,
-            clue: 'Claim: “This game challenges traditional ideas of heroism.” What evidence would help?',
-            answer: 'Character + narrative evidence',
-            reason: 'Good answers include moral ambiguity, player choices, consequences, endings, and how the protagonist fits or resists heroic expectations.',
-            tip: 'Ask them which scenes or mechanics they would quote or describe.'
+            title: '2010s Meaning Machines',
+            clues: [
+              {
+                value: 100,
+                clue: 'This 2013 indie game is a go-to example for discussing bureaucracy, borders, and procedural rhetoric.',
+                answer: 'Papers, Please',
+                reason: 'It is directly tied to your assignment list because the mechanics themselves communicate pressure, ethics, and state power.',
+                tip: 'Ask students why this is more than a “passport game.”'
+              },
+              {
+                value: 200,
+                clue: 'This 2011 action RPG often appears in analysis because difficulty, repetition, and community knowledge become part of the aesthetic experience.',
+                answer: 'Dark Souls',
+                reason: 'That connection between challenge and shared player mastery is one reason scholars keep returning to it.',
+                tip: 'This directly echoes one of your sample articles.'
+              },
+              {
+                value: 300,
+                clue: 'This 2013 post-apocalyptic game is often studied for how mechanics and narrative reinforce one another in emotionally intense ways.',
+                answer: 'The Last of Us',
+                reason: 'It is useful because scarcity, violence, vulnerability, and player control all feed into its storytelling.',
+                tip: 'This directly matches one of the listed analysis examples.'
+              },
+              {
+                value: 400,
+                clue: 'This 2011 sandbox game is powerful for analysis because players do not just consume a world. They build, alter, and author experiences within it.',
+                answer: 'Minecraft',
+                reason: 'Minecraft opens up conversations about creativity, systems, labor, authorship, and emergent play.',
+                tip: 'Great chance to discuss when players become co-creators.'
+              },
+              {
+                value: 500,
+                clue: 'This 2017 game is often discussed for how it blends open-world exploration with environmental storytelling and player-directed discovery.',
+                answer: 'The Legend of Zelda: Breath of the Wild',
+                reason: 'It is analytically rich because its world design teaches through space, experimentation, and curiosity rather than constant instruction.',
+                tip: 'Ask students how freedom changes narrative structure.'
+              }
+            ]
           },
           {
-            value: 500,
-            clue: 'Claim: “The game uses mechanics to tell the story.” What would prove that?',
-            answer: 'Mechanic-to-story connection',
-            reason: 'Students should name a specific mechanic and explain exactly how it reinforces plot, theme, or emotional experience.',
-            tip: 'This is one of the biggest skills they need for the assignment.'
-          }
-        ]
-      },
-      {
-        title: 'Stronger Thesis Wins',
-        clues: [
-          {
-            value: 100,
-            clue: 'Which is stronger? A) “The Last of Us is a very emotional game.” B) “The Last of Us uses limited player control and resource scarcity to deepen its themes of fear, care, and survival.”',
-            answer: 'B',
-            reason: 'B is more precise, arguable, and based on how the game works. It gives a clear route for evidence.',
-            tip: 'Ask students what makes A too vague.'
-          },
-          {
-            value: 200,
-            clue: 'Which is stronger? A) “Dark Souls is hard.” B) “The difficulty of Dark Souls creates a shared culture of mastery in which player knowledge becomes part of the game’s meaning.”',
-            answer: 'B',
-            reason: 'B turns an obvious observation into a real argument. It explains why difficulty matters.',
-            tip: 'Ask: what could a writer do with A besides shrug?' 
-          },
-          {
-            value: 300,
-            clue: 'Which is stronger? A) “This game has a lot to say about history.” B) “By turning history into an interactive system, the game invites players to see the past as something shaped by choices, rules, and perspective.”',
-            answer: 'B',
-            reason: 'B identifies how the game creates meaning and gives the writer a frame for evidence.',
-            tip: 'Have teams explain what kind of assignment B sounds ready for.'
-          },
-          {
-            value: 400,
-            clue: 'Which is stronger? A) “The game’s setting is important.” B) “The setting matters because it frames every player action within a larger system of political control and cultural memory.”',
-            answer: 'B',
-            reason: 'B is analytical because it explains why the setting matters and connects it to interpretation.',
-            tip: 'Make them define “important” when they choose B.'
-          },
-          {
-            value: 500,
-            clue: 'Which is stronger? A) “The game is interesting.” B) “The game becomes analytically interesting when its reward systems push players to act against the values its story seems to support.”',
-            answer: 'B',
-            reason: 'B makes a specific, debatable claim about tension between mechanics and narrative.',
-            tip: 'This one is excellent for discussing contradiction in games.'
-          }
-        ]
-      },
-      {
-        title: 'Fix That Claim',
-        clues: [
-          {
-            value: 100,
-            clue: 'Weak claim: “This game is good because it has good gameplay.” Rewrite it into something more academic.',
-            answer: 'Example fix',
-            reason: 'A stronger version might be: “The game’s movement and combat systems reward experimentation, which supports its larger theme of player freedom.”',
-            tip: 'Accept any revised claim that becomes specific and arguable.'
-          },
-          {
-            value: 200,
-            clue: 'Weak claim: “This game is sad.” Rewrite it into a stronger analysis claim.',
-            answer: 'Example fix',
-            reason: 'A stronger version might be: “The game creates sadness not just through plot events, but through mechanics that make loss feel personal and unavoidable.”',
-            tip: 'Push them to explain how the sadness is created.'
-          },
-          {
-            value: 300,
-            clue: 'Weak claim: “This character is relatable.” Rewrite it.',
-            answer: 'Example fix',
-            reason: 'A stronger version might be: “The character feels relatable because the game uses dialogue, vulnerability, and choice to align the player emotionally with the protagonist.”',
-            tip: 'Any answer that names techniques gets credit.'
-          },
-          {
-            value: 400,
-            clue: 'Weak claim: “This game is about society.” Rewrite it.',
-            answer: 'Example fix',
-            reason: 'A stronger version might be: “The game critiques social hierarchy by tying progress to systems of labor, surveillance, and control.”',
-            tip: 'Vague topic words like “society” need narrowing.'
-          },
-          {
-            value: 500,
-            clue: 'Weak claim: “This game makes you think.” Rewrite it.',
-            answer: 'Example fix',
-            reason: 'A stronger version might be: “The game encourages critical reflection by forcing players to participate in systems they may find ethically uncomfortable.”',
-            tip: 'This is a good place to talk about procedural rhetoric.'
-          }
-        ]
-      },
-      {
-        title: 'Teacher Trap',
-        clues: [
-          {
-            value: 100,
-            clue: '“This article uses big words, so it must be academic.”',
-            answer: 'Trap',
-            reason: 'Fancy language does not make writing analytical. Academic work still needs a real argument, evidence, and clear reasoning.',
-            tip: 'Students often need to hear this directly.'
-          },
-          {
-            value: 200,
-            clue: '“If someone talks about symbolism, that automatically means it’s analysis.”',
-            answer: 'Trap',
-            reason: 'It only becomes analysis if the writer connects that symbol to a clear argument and supports it with evidence.',
-            tip: 'Symbol-hunting without argument is not enough.'
-          },
-          {
-            value: 300,
-            clue: '“A review can never include analysis.”',
-            answer: 'Trap',
-            reason: 'Reviews can include analytical moments, but their main goal is usually evaluation or recommendation rather than scholarly argument.',
-            tip: 'This helps students understand the overlap without confusing the genres.'
-          },
-          {
-            value: 400,
-            clue: '“If a writer says a game is important, that counts as a thesis.”',
-            answer: 'Trap',
-            reason: '“Important” is too vague by itself. A thesis needs to explain important in what way and why.',
-            tip: 'Great moment to talk about vague claim words.'
-          },
-          {
-            value: 500,
-            clue: '“The more plot summary an essay has, the stronger the analysis.”',
-            answer: 'Trap',
-            reason: 'Too much summary usually weakens analysis unless that summary is directly serving the writer’s interpretation.',
-            tip: 'Students often over-summarize when they are unsure.'
+            title: '2020s Culture + Critique',
+            clues: [
+              {
+                value: 100,
+                clue: 'This 2020 game is a strong example for discussing labor, debt, routine, and cozy aesthetics hiding larger systems.',
+                answer: 'Animal Crossing: New Horizons',
+                reason: 'Even a cheerful game can be analyzed for economics, community, repetition, and cultural timing.',
+                tip: 'Bonus question: why did its pandemic moment matter?'
+              },
+              {
+                value: 200,
+                clue: 'This 2020 remake invites analysis around memory, nostalgia, and what happens when games rewrite their own pasts for new audiences.',
+                answer: 'Final Fantasy VII Remake',
+                reason: 'It is a rich case for studying remakes, fan memory, and how meaning changes across generations.',
+                tip: 'Nice bridge to the McCall history piece.'
+              },
+              {
+                value: 300,
+                clue: 'This 2022 game is often used in current discussion because difficulty, open-world design, and player-discovered strategies reshaped a familiar formula.',
+                answer: 'Elden Ring',
+                reason: 'It gives scholars a newer example of mastery, exploration, and community knowledge sharing.',
+                tip: 'Ask how it relates back to Dark Souls without being the same thing.'
+              },
+              {
+                value: 400,
+                clue: 'In the 2020s, scholars and critics have paid growing attention to this broad topic: who is represented in games, who is imagined as the player, and how identity shapes play.',
+                answer: 'Representation and identity in games',
+                reason: 'This connects well to Adrienne Shaw and to broader game studies questions about audience, belonging, and culture.',
+                tip: 'Accept answers about identity, representation, or player subjectivity.'
+              },
+              {
+                value: 500,
+                clue: 'Across the 1980s to 2020s, this is the biggest analytical idea your assignment keeps returning to: not just what a game says, but how its rules, systems, and interactions create meaning.',
+                answer: 'Mechanics create meaning',
+                reason: 'That is the core bridge from history to analysis. The assignment wants students to notice how games argue through play, not only through story.',
+                tip: 'This is a perfect final clue before moving into the writing task.'
+              }
+            ]
           }
         ]
       }
-    ];
+    };
 
     const state = {
+      currentRound: 'round1',
       teamCount: 3,
       pointStep: 100,
       teams: [
@@ -688,6 +906,7 @@
     };
 
     const boardEl = document.getElementById('board');
+    const roundSelectEl = document.getElementById('roundSelect');
     const teamsEl = document.getElementById('teams');
     const modal = document.getElementById('modal');
     const answerBox = document.getElementById('answerBox');
@@ -703,6 +922,7 @@
 
     function saveState() {
       localStorage.setItem('reviewAnalysisJeopardyState', JSON.stringify({
+        currentRound: state.currentRound,
         teamCount: state.teamCount,
         pointStep: state.pointStep,
         teams: state.teams,
@@ -715,6 +935,7 @@
       if (!raw) return;
       try {
         const parsed = JSON.parse(raw);
+        state.currentRound = parsed.currentRound || 'round1';
         state.teamCount = parsed.teamCount || 3;
         state.pointStep = parsed.pointStep || 100;
         state.teams = parsed.teams || state.teams;
@@ -722,6 +943,14 @@
       } catch (e) {
         console.warn('Could not load saved state.', e);
       }
+    }
+
+    function getCurrentCategories() {
+      return rounds[state.currentRound].categories;
+    }
+
+    function clueKey(roundKey, catIndex, clueIndex) {
+      return `${roundKey}:${catIndex}-${clueIndex}`;
     }
 
     function renderTeams() {
@@ -779,7 +1008,9 @@
 
     function renderBoard() {
       boardEl.innerHTML = '';
-      categories.forEach((cat, catIndex) => {
+      const activeCategories = getCurrentCategories();
+
+      activeCategories.forEach((cat) => {
         const head = document.createElement('div');
         head.className = 'category';
         head.textContent = cat.title;
@@ -787,9 +1018,9 @@
       });
 
       for (let row = 0; row < 5; row++) {
-        categories.forEach((cat, catIndex) => {
+        activeCategories.forEach((cat, catIndex) => {
           const clue = cat.clues[row];
-          const key = `${catIndex}-${row}`;
+          const key = clueKey(state.currentRound, catIndex, row);
           const cell = document.createElement('button');
           cell.className = 'cell' + (state.used.has(key) ? ' used' : '');
           cell.textContent = `$${clue.value}`;
@@ -815,9 +1046,10 @@
     }
 
     function openClue(catIndex, clueIndex) {
-      const clue = categories[catIndex].clues[clueIndex];
-      state.currentClue = { ...clue, catIndex, clueIndex };
-      modalCategory.textContent = categories[catIndex].title;
+      const activeCategories = getCurrentCategories();
+      const clue = activeCategories[catIndex].clues[clueIndex];
+      state.currentClue = { ...clue, catIndex, clueIndex, roundKey: state.currentRound };
+      modalCategory.textContent = `${rounds[state.currentRound].name} • ${activeCategories[catIndex].title}`;
       modalValue.textContent = `Value: $${clue.value}`;
       modalClue.textContent = clue.clue;
       modalAnswer.textContent = `Answer: ${clue.answer}`;
@@ -837,7 +1069,7 @@
 
     function markCurrentUsed() {
       if (!state.currentClue) return;
-      const key = `${state.currentClue.catIndex}-${state.currentClue.clueIndex}`;
+      const key = clueKey(state.currentClue.roundKey, state.currentClue.catIndex, state.currentClue.clueIndex);
       state.used.add(key);
       saveState();
       renderBoard();
@@ -857,14 +1089,15 @@
 
     function randomClue() {
       const remaining = [];
-      categories.forEach((cat, catIndex) => {
+      const activeCategories = getCurrentCategories();
+      activeCategories.forEach((cat, catIndex) => {
         cat.clues.forEach((clue, clueIndex) => {
-          const key = `${catIndex}-${clueIndex}`;
+          const key = clueKey(state.currentRound, catIndex, clueIndex);
           if (!state.used.has(key)) remaining.push({ catIndex, clueIndex });
         });
       });
       if (!remaining.length) {
-        alert('All clues have been used. Reset the board to play again.');
+        alert('All clues in this round have been used. Reset the board or switch rounds to keep playing.');
         return;
       }
       const pick = remaining[Math.floor(Math.random() * remaining.length)];
@@ -896,6 +1129,12 @@
     });
     document.getElementById('randomClueBtn').addEventListener('click', randomClue);
 
+    roundSelectEl.addEventListener('change', (e) => {
+      state.currentRound = e.target.value;
+      saveState();
+      renderBoard();
+    });
+
     teamCountEl.addEventListener('change', (e) => {
       state.teamCount = Number(e.target.value);
       saveState();
@@ -922,6 +1161,7 @@
     });
 
     loadState();
+    roundSelectEl.value = state.currentRound;
     renderTeams();
     renderBoard();
   </script>
