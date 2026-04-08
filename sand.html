@@ -241,7 +241,7 @@
             <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
           <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Spiral turns</label>
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Turns / cycles</label>
             <input id="spiralTurns" type="number" value="4" min="1" max="30" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
         </div>
@@ -393,14 +393,14 @@ document.getElementById('browserStatus').textContent =
 
 const PATTERN_DEFS = {
   spiral:      { desc: 'True spiral: theta rotates steadily while rho ramps smoothly.', params: 'standard' },
-  circle:      { desc: 'Closed loop using theta as angle and rho as radius offset.', params: 'standard' },
-  radial:      { desc: 'Theta sweeps while rho moves across the tray.', params: 'standard' },
-  rose:        { desc: 'Classic rose curve using raw theta and rho values.', params: 'rose' },
-  lissajous:   { desc: 'Crossing curves with adjustable frequency ratios.', params: 'lissajous' },
-  epitrochoid: { desc: 'Spirograph-style looping pattern.', params: 'epitrochoid' },
-  bouncerho:   { desc: 'Ripple-like rings with fast rho pulsing.', params: 'standard' },
-  star:        { desc: 'Star burst with alternating inner and outer rho.', params: 'star' },
-  fermat:      { desc: 'Sunflower/Fermat spiral.', params: 'standard' },
+  circle:      { desc: 'True circular ring: theta rotates steadily while rho stays fixed.', params: 'standard' },
+  radial:      { desc: 'Wave sweep: theta sweeps back and forth while rho drifts across the tray.', params: 'standard' },
+  rose:        { desc: 'True polar rose: theta rotates steadily while rho follows a cosine petal pattern.', params: 'rose' },
+  lissajous:   { desc: 'Cartesian Lissajous converted into continuous polar motion.', params: 'lissajous' },
+  epitrochoid: { desc: 'Spirograph loop converted into continuous polar motion.', params: 'epitrochoid' },
+  bouncerho:   { desc: 'Ripple rings: theta rotates while rho pulses in and out repeatedly.', params: 'standard' },
+  star:        { desc: 'Connected star path converted into continuous polar motion.', params: 'star' },
+  fermat:      { desc: 'Fermat spiral converted into continuous polar motion.', params: 'standard' },
   text:        { desc: 'Connected single-stroke letters followed by a small flourish.', params: 'text' },
 };
 
@@ -590,6 +590,39 @@ async function sendCommand(cmd, waitForAck = false) {
 function clampNum(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
+function triangleWave(frac) {
+  return 1 - 4 * Math.abs((frac % 1) - 0.5);
+}
+function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius) {
+  if (!xyPoints.length) return [];
+  const mags = xyPoints.map(p => Math.hypot(p.x, p.y));
+  const maxMag = Math.max(...mags, 1e-9);
+  const out = [];
+  let prevRaw = null;
+  let prevUnwrapped = null;
+  let baseAngle = 0;
+
+  xyPoints.forEach((p, idx) => {
+    const raw = Math.atan2(p.y, p.x);
+    let unwrapped = raw;
+    if (idx === 0) {
+      baseAngle = raw;
+    } else {
+      let delta = raw - prevRaw;
+      while (delta > Math.PI) delta -= Math.PI * 2;
+      while (delta < -Math.PI) delta += Math.PI * 2;
+      unwrapped = prevUnwrapped + delta;
+    }
+    prevRaw = raw;
+    prevUnwrapped = unwrapped;
+
+    out.push({
+      t: Math.round(thetaCenter + ((unwrapped - baseAngle) * 25800 / (Math.PI * 2))),
+      r: Math.round(rhoCenter + (Math.hypot(p.x, p.y) / maxMag) * rhoRadius)
+    });
+  });
+  return out;
+}
 
 function buildTextCommands() {
   const text = (document.getElementById('textInput').value || 'HELLO').toUpperCase().substring(0, 12);
@@ -629,6 +662,7 @@ function buildPatternPoints() {
   const thetaCenter = Number(document.getElementById('patternThetaCenter').value || 0);
   const thetaRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
   const rhoRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
+  const turns = Math.max(1, Number(document.getElementById('spiralTurns').value || 4));
   const out = [];
 
   if (currentPattern === 'text') {
@@ -639,86 +673,140 @@ function buildPatternPoints() {
     });
   }
 
-  for (let i = 0; i <= points; i++) {
-    const frac = i / points;
-
-    if (currentPattern === 'spiral') {
-      const turns = Math.max(1, Number(document.getElementById('spiralTurns').value || 4));
-      const startFrac = 0.08;
+  if (currentPattern === 'spiral') {
+    const startFrac = 0.08;
+    for (let i = 0; i <= points; i++) {
+      const frac = i / points;
       out.push({
         t: Math.round(thetaCenter + turns * 25800 * frac),
         r: Math.round(rhoCenter + rhoRadius * (startFrac + (1 - startFrac) * frac))
       });
-    } else if (currentPattern === 'circle') {
-      const angle = Math.PI * 2 * frac;
+    }
+    return out;
+  }
+
+  if (currentPattern === 'circle') {
+    for (let i = 0; i <= points; i++) {
+      const frac = i / points;
       out.push({
-        t: Math.round(thetaCenter + thetaRadius * Math.cos(angle)),
-        r: Math.round(rhoCenter + rhoRadius * Math.sin(angle))
-      });
-    } else if (currentPattern === 'radial') {
-      out.push({
-        t: Math.round(thetaCenter + thetaRadius * Math.sin(Math.PI * 4 * frac)),
-        r: Math.round(rhoCenter + rhoRadius * (2 * frac - 1))
-      });
-    } else if (currentPattern === 'rose') {
-      const k = Number(document.getElementById('roseK').value || 5);
-      const amp = Number(document.getElementById('roseAmp').value || 3000);
-      const rots = Number(document.getElementById('roseRot').value || 1);
-      const angle = Math.PI * 2 * rots * frac;
-      out.push({
-        t: Math.round(thetaCenter + angle * (25800 / (Math.PI * 2))),
-        r: Math.round(rhoCenter + amp * Math.cos(k * angle))
-      });
-    } else if (currentPattern === 'lissajous') {
-      const a = Number(document.getElementById('lissA').value || 3);
-      const b = Number(document.getElementById('lissB').value || 2);
-      const t = Math.PI * 2 * frac;
-      const tScale = Number(document.getElementById('lissTS').value || 15000);
-      const rScale = Number(document.getElementById('lissRS').value || 3000);
-      out.push({
-        t: Math.round(thetaCenter + tScale * Math.sin(a * t)),
-        r: Math.round(rhoCenter + rScale * Math.sin(b * t + Math.PI / 4))
-      });
-    } else if (currentPattern === 'epitrochoid') {
-      const R = Number(document.getElementById('epiR').value || 3);
-      const r = Number(document.getElementById('epir').value || 1);
-      const d = Number(document.getElementById('epid').value || 2);
-      const scale = Number(document.getElementById('epiScale').value || 3000);
-      const loops = lcm(R, r) / Math.max(1, r);
-      const t = Math.PI * 2 * loops * frac;
-      const x = (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t);
-      const y = (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t);
-      out.push({
-        t: Math.round(thetaCenter + x * (thetaRadius / Math.max(1, (R + r + d)))),
-        r: Math.round(rhoCenter + y * (scale / Math.max(1, (R + r + d))))
-      });
-    } else if (currentPattern === 'bouncerho') {
-      const angle = Math.PI * 10 * frac;
-      out.push({
-        t: Math.round(thetaCenter + thetaRadius * frac),
-        r: Math.round(rhoCenter + rhoRadius * Math.sin(angle))
-      });
-    } else if (currentPattern === 'star') {
-      const starPts = Math.max(3, Number(document.getElementById('starPoints').value || 5));
-      const outer = Number(document.getElementById('starOuter').value || 3500);
-      const inner = Number(document.getElementById('starInner').value || 1500);
-      const totalVertices = starPts * 2;
-      const vertexIndex = Math.round(frac * totalVertices);
-      const angle = (-Math.PI / 2) + (Math.PI * 2 * vertexIndex / totalVertices);
-      const radius = vertexIndex % 2 === 0 ? outer : inner;
-      out.push({
-        t: Math.round(thetaCenter + thetaRadius * Math.cos(angle)),
-        r: Math.round(rhoCenter + radius)
-      });
-    } else if (currentPattern === 'fermat') {
-      const angle = Math.PI * 8 * frac;
-      const radiusFrac = Math.sqrt(frac);
-      out.push({
-        t: Math.round(thetaCenter + thetaRadius * radiusFrac * Math.cos(angle)),
-        r: Math.round(rhoCenter + rhoRadius * radiusFrac * Math.sin(angle))
+        t: Math.round(thetaCenter + turns * 25800 * frac),
+        r: Math.round(rhoCenter + rhoRadius)
       });
     }
+    return out;
   }
+
+  if (currentPattern === 'radial') {
+    for (let i = 0; i <= points; i++) {
+      const frac = i / points;
+      const sweep = triangleWave(turns * frac);
+      out.push({
+        t: Math.round(thetaCenter + thetaRadius * sweep),
+        r: Math.round(rhoCenter + rhoRadius * (2 * frac - 1))
+      });
+    }
+    return out;
+  }
+
+  if (currentPattern === 'rose') {
+    const k = Number(document.getElementById('roseK').value || 5);
+    const amp = Number(document.getElementById('roseAmp').value || 3000);
+    const rots = Number(document.getElementById('roseRot').value || 1);
+    for (let i = 0; i <= points; i++) {
+      const frac = i / points;
+      const angle = Math.PI * 2 * rots * frac;
+      out.push({
+        t: Math.round(thetaCenter + (angle * 25800 / (Math.PI * 2))),
+        r: Math.round(rhoCenter + amp * Math.cos(k * angle))
+      });
+    }
+    return out;
+  }
+
+  if (currentPattern === 'lissajous') {
+    const a = Number(document.getElementById('lissA').value || 3);
+    const b = Number(document.getElementById('lissB').value || 2);
+    const xy = [];
+    for (let i = 0; i <= points; i++) {
+      const t = Math.PI * 2 * turns * (i / points);
+      xy.push({
+        x: Math.sin(a * t + Math.PI / 2),
+        y: Math.sin(b * t)
+      });
+    }
+    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
+  }
+
+  if (currentPattern === 'epitrochoid') {
+    const R = Number(document.getElementById('epiR').value || 3);
+    const r = Math.max(1, Number(document.getElementById('epir').value || 1));
+    const d = Number(document.getElementById('epid').value || 2);
+    const xy = [];
+    const loops = lcm(R, r) / r;
+    for (let i = 0; i <= points; i++) {
+      const t = Math.PI * 2 * loops * (i / points);
+      xy.push({
+        x: (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t),
+        y: (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t)
+      });
+    }
+    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
+  }
+
+  if (currentPattern === 'bouncerho') {
+    const waves = Math.max(3, turns * 3);
+    for (let i = 0; i <= points; i++) {
+      const frac = i / points;
+      out.push({
+        t: Math.round(thetaCenter + turns * 25800 * frac),
+        r: Math.round(rhoCenter + rhoRadius * Math.sin(Math.PI * 2 * waves * frac))
+      });
+    }
+    return out;
+  }
+
+  if (currentPattern === 'star') {
+    const starPts = Math.max(3, Number(document.getElementById('starPoints').value || 5));
+    const outer = Math.max(1, Number(document.getElementById('starOuter').value || 3500));
+    const inner = Math.max(1, Number(document.getElementById('starInner').value || 1500));
+    const vertices = [];
+    for (let i = 0; i < starPts * 2; i++) {
+      const angle = -Math.PI / 2 + (Math.PI * i / starPts);
+      const radius = i % 2 === 0 ? outer : inner;
+      vertices.push({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+    }
+    vertices.push(vertices[0]);
+    const xy = [];
+    const segments = vertices.length - 1;
+    for (let i = 0; i < segments; i++) {
+      const a = vertices[i], b = vertices[i + 1];
+      const perSeg = Math.max(2, Math.floor(points / segments));
+      for (let j = 0; j < perSeg; j++) {
+        const frac = j / perSeg;
+        xy.push({
+          x: a.x + (b.x - a.x) * frac,
+          y: a.y + (b.y - a.y) * frac
+        });
+      }
+    }
+    xy.push(vertices[0]);
+    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
+  }
+
+  if (currentPattern === 'fermat') {
+    const xy = [];
+    for (let i = 0; i <= points; i++) {
+      const frac = i / points;
+      const angle = Math.PI * 2 * turns * frac * 2.5;
+      const radius = Math.sqrt(frac);
+      xy.push({
+        x: radius * Math.cos(angle),
+        y: radius * Math.sin(angle)
+      });
+    }
+    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
+  }
+
   return out;
 }
 
