@@ -881,12 +881,31 @@ function drawVisualPreview() {
   ctx.fill();
 }
 
+async function moveToRhoInAtCurrentTheta() {
+  const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
+  const thetaNow = trackedTheta();
+  appendLog('Moving to Rho In before pattern start...');
+  await sendCommand(`GOTO T ${thetaNow} R ${rhoIn}`, true);
+  await sendCommand('STATUS');
+}
+
 async function runPattern() {
   if (patternRunning || !writer) return;
   patternRunning = true;
   patternAbort = false;
   document.getElementById('runPatternBtn').disabled = true;
   document.getElementById('stopPatternBtn').disabled = false;
+
+  try {
+    await moveToRhoInAtCurrentTheta();
+  } catch (e) {
+    appendLog('Pre-start move error: ' + e.message);
+    patternRunning = false;
+    patternAbort = false;
+    document.getElementById('runPatternBtn').disabled = false;
+    document.getElementById('stopPatternBtn').disabled = true;
+    return;
+  }
 
   const startTheta = trackedTheta();
   const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
@@ -910,13 +929,10 @@ async function runPattern() {
 
   appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
 
-  const centerTheta = Number(document.getElementById('patternThetaCenter').value || 0);
-  const centerRho = Number(document.getElementById('patternRhoCenter').value || 0);
   try {
-    await sendCommand(`GOTO T ${centerTheta} R ${centerRho}`, true);
     if (!patternAbort) await sendCommand('STATUS');
   } catch (e) {
-    appendLog('Center return error: ' + e.message);
+    appendLog('Final status error: ' + e.message);
   }
 
   patternRunning = false;
@@ -1052,6 +1068,7 @@ document.querySelector('.patternTab[data-pattern="spiral"]').click();
 appendLog('Dune Weaver Mini ready.');
 appendLog('All values are raw firmware step counts. No translation.');
 appendLog('Patterns anchor to current theta when a run starts.');
+appendLog('Each new pattern moves to Rho In first, then stops at the pattern end.');
 appendLog('Direct connect button preserved for reliable Web Serial requestPort().');
 </script>
 </body>
