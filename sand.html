@@ -89,13 +89,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">OUT ↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">OUT ↑</button>
           <div></div>
           <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
           <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">IN ↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">IN ↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -121,13 +121,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">OUT ↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">OUT ↑</button>
           <div></div>
           <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
           <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">IN ↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">IN ↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -156,13 +156,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">OUT ↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">OUT ↑</button>
           <div></div>
           <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
           <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">IN ↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">IN ↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -1247,8 +1247,11 @@ function drawVisualPreview() {
   });
 
   const rMin = Math.min(...pts.map(p => p.r));
-  const rMax = Math.max(...pts.map(p => p.r));
+  const rMin  = Math.min(...pts.map(p => p.r));
+  const rMax  = Math.max(...pts.map(p => p.r));
   const rRange = rMax - rMin || 1;
+  // Normalize theta across full pattern range for accurate angular display
+  const tAbsMax = Math.max(...pts.map(p => Math.abs(p.t)), 25800);
 
   // Draw gradient path
   for (let i = 1; i < pts.length; i++) {
@@ -1260,8 +1263,8 @@ function drawVisualPreview() {
     const prev = pts[i-1], curr = pts[i];
     const pr = ((prev.r - rMin) / rRange) * maxR;
     const cr = ((curr.r - rMin) / rRange) * maxR;
-    const pa = (prev.t / 25800) * Math.PI * 2 - Math.PI/2;
-    const ca = (curr.t / 25800) * Math.PI * 2 - Math.PI/2;
+    const pa = (prev.t / tAbsMax) * Math.PI * 2 - Math.PI/2;
+    const ca = (curr.t / tAbsMax) * Math.PI * 2 - Math.PI/2;
     ctx.moveTo(cx + pr * Math.cos(pa), cy + pr * Math.sin(pa));
     ctx.lineTo(cx + cr * Math.cos(ca), cy + cr * Math.sin(ca));
     ctx.stroke();
@@ -1270,7 +1273,7 @@ function drawVisualPreview() {
   // Start dot
   const f0 = pts[0];
   const r0 = ((f0.r - rMin) / rRange) * maxR;
-  const a0 = (f0.t / 25800) * Math.PI*2 - Math.PI/2;
+  const a0 = (f0.t / tAbsMax) * Math.PI*2 - Math.PI/2;
   ctx.beginPath();
   ctx.arc(cx + r0*Math.cos(a0), cy + r0*Math.sin(a0), 5, 0, Math.PI*2);
   ctx.fillStyle = '#22c55e'; ctx.fill();
@@ -1335,8 +1338,9 @@ async function runPattern() {
   document.getElementById('progressLabel').textContent = patternAbort ? 'Stopped' : 'Complete!';
 
   appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
-  await sendCommand('MOVE T 0');
-  await sendCommand('MOVE R 0');
+  // Return to rho center so ball ends in middle of tray
+  const rhoCenter = Number(document.getElementById('patternRhoCenter').value || 0);
+  await sendCommand('GOTO T ' + trackedTheta() + ' R ' + rhoCenter, true);
   if (!patternAbort) sendCommand('STATUS');
 
   setTimeout(() => {
