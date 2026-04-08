@@ -89,13 +89,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">OUT ↑</button>
           <div></div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">IN ↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -121,13 +121,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">OUT ↑</button>
           <div></div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">IN ↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -156,13 +156,13 @@
         </div>
         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="1">OUT ↑</button>
           <div></div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="-1">← Turn</button>
           <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
-          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-bold" data-axis="T" data-dir="1">Turn →</button>
           <div></div>
-          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-bold" data-axis="R" data-dir="-1">IN ↓</button>
           <div></div>
         </div>
         <div class="flex gap-3">
@@ -799,6 +799,15 @@ function showWizard() {
   updateWizardStep(0);
 }
 
+async function startWizardSetup() {
+  // Widen limits so nothing blocks jogging during setup
+  await sendCommand('SET RMIN -20000');
+  await sendCommand('SET RMAX 20000');
+  await sendCommand('SET TMIN -200000');
+  await sendCommand('SET TMAX 200000');
+  appendLog('Wizard: limits widened for setup.');
+}
+
 function updateWizardStep(step) {
   wizardStep = step;
   document.querySelectorAll('.wizard-step').forEach((el, i) => {
@@ -824,25 +833,22 @@ document.getElementById('wizConnectBtn').addEventListener('click', async () => {
   await connectSerial();
   if (writer) {
     statusEl.textContent = '✓ Connected!';
+    await startWizardSetup();
     setTimeout(() => updateWizardStep(1), 800);
   } else {
     statusEl.textContent = '✗ Connection failed. Check cable and try again.';
   }
 });
 
-// Wizard jog buttons (all steps)
+// Wizard jog buttons
 document.querySelectorAll('.wJogBtn').forEach(btn => {
   btn.addEventListener('click', () => {
     const axis = btn.dataset.axis;
     const dir  = Number(btn.dataset.dir);
-    // Get jog size from the active step's select
-    const sizeEl = document.getElementById('wizJogSize') ||
-                   document.getElementById('wizJogSize2') ||
-                   document.getElementById('wizJogSize3');
     let jog = 500;
-    if (wizardStep === 1 && document.getElementById('wizJogSize')) jog = Number(document.getElementById('wizJogSize').value);
-    if (wizardStep === 2 && document.getElementById('wizJogSize2')) jog = Number(document.getElementById('wizJogSize2').value);
-    if (wizardStep === 3 && document.getElementById('wizJogSize3')) jog = Number(document.getElementById('wizJogSize3').value);
+    if (wizardStep === 1) jog = Number(document.getElementById('wizJogSize').value  || 500);
+    if (wizardStep === 2) jog = Number(document.getElementById('wizJogSize2').value || 500);
+    if (wizardStep === 3) jog = Number(document.getElementById('wizJogSize3').value || 500);
     sendCommand('MOVE ' + axis + ' ' + (dir * jog), true);
   });
 });
@@ -920,7 +926,7 @@ connectBtn.addEventListener('click', async () => {
     if (wizSetupDone) {
       document.getElementById('wizard').classList.add('hidden');
     } else {
-      // Already connected via main button — skip to wizard step 1
+      await startWizardSetup();
       updateWizardStep(1);
     }
   }
