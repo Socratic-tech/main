@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dune Weaver Mini Controller</title>
+  <title>Dune Weaver Mini</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;500;700&display=swap');
@@ -16,50 +16,227 @@
       background-repeat: repeat;
     }
     .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      display: inline-block; margin-right: 6px;
-      background: #ef4444; box-shadow: 0 0 6px #ef4444;
-      transition: background 0.3s, box-shadow 0.3s;
+      width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px;
+      background:#ef4444; box-shadow:0 0 6px #ef4444; transition:background 0.3s,box-shadow 0.3s;
     }
-    .status-dot.connected {
-      background: #22c55e; box-shadow: 0 0 8px #22c55e;
-      animation: pulse-green 2s infinite;
-    }
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 0 6px #22c55e; }
-      50%       { box-shadow: 0 0 14px #22c55e; }
-    }
-    button:disabled { opacity: 0.35; cursor: not-allowed; }
-    button:not(:disabled) { transition: transform 0.1s; }
-    button:not(:disabled):active { transform: scale(0.96); }
-    .pos-display {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 1.4rem;
-      color: #a78bfa;
-    }
+    .status-dot.connected { background:#22c55e; box-shadow:0 0 8px #22c55e; animation:pulse-green 2s infinite; }
+    @keyframes pulse-green { 0%,100%{box-shadow:0 0 6px #22c55e} 50%{box-shadow:0 0 14px #22c55e} }
+    button:disabled { opacity:0.35; cursor:not-allowed; }
+    button:not(:disabled) { transition:transform 0.1s; }
+    button:not(:disabled):active { transform:scale(0.96); }
+    .pos-display { font-family:'Share Tech Mono',monospace; font-size:1.4rem; color:#a78bfa; }
+
+    /* Wizard overlay */
+    #wizard { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:flex; align-items:center; justify-content:center; }
+    #wizard.hidden { display:none; }
+    .wizard-step { display:none; }
+    .wizard-step.active { display:block; }
+
+    /* Pattern cards */
+    .pattern-card { cursor:pointer; transition:all 0.15s; border:2px solid transparent; }
+    .pattern-card:hover { border-color:#f59e0b; transform:translateY(-2px); }
+    .pattern-card.selected { border-color:#f59e0b; background:#1e293b; }
+
+    /* Speed slider */
+    input[type=range] { accent-color:#f59e0b; }
+
+    /* Advanced panel */
+    #advancedPanel { display:none; }
+    #advancedPanel.visible { display:block; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SETUP WIZARD OVERLAY                                           -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="wizard">
+  <div class="bg-slate-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 space-y-6">
+
+    <!-- Progress dots -->
+    <div class="flex justify-center gap-2">
+      <div class="wizard-dot w-2 h-2 rounded-full bg-amber-400" data-step="0"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="1"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="2"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="3"></div>
+      <div class="wizard-dot w-2 h-2 rounded-full bg-slate-600" data-step="4"></div>
+    </div>
+
+    <!-- Step 0: Connect -->
+    <div class="wizard-step active" id="wStep0">
+      <div class="text-center space-y-4">
+        <div class="text-6xl">🌀</div>
+        <h2 class="text-2xl font-bold">Welcome to Dune Weaver Mini</h2>
+        <p class="text-slate-300">Let's get your table set up. This takes about 2 minutes.</p>
+        <p class="text-slate-400 text-sm">Make sure your ESP32 is plugged into your Mac via USB and you're using Chrome or Edge.</p>
+        <button id="wizConnectBtn" class="w-full bg-blue-600 hover:bg-blue-500 px-6 py-4 rounded-2xl font-bold text-lg mt-4">
+          Connect My Table
+        </button>
+        <div id="wizConnectStatus" class="text-sm text-slate-400"></div>
+      </div>
+    </div>
+
+    <!-- Step 1: Find Home -->
+    <div class="wizard-step" id="wStep1">
+      <div class="space-y-4">
+        <div class="text-center">
+          <div class="text-5xl mb-3">🎯</div>
+          <h2 class="text-2xl font-bold">Step 1 of 4: Find Center</h2>
+          <p class="text-slate-300 mt-2">Move the ball to the <strong>center</strong> of the tray — the very middle point.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+          <div></div>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
+          <div></div>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
+          <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
+          <div></div>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
+          <div></div>
+        </div>
+        <div class="flex gap-3">
+          <select id="wizJogSize" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+            <option value="100">Small steps</option>
+            <option value="500" selected>Medium steps</option>
+            <option value="2000">Large steps</option>
+          </select>
+        </div>
+        <button id="wizSetHomeBtn" class="w-full bg-amber-600 hover:bg-amber-500 px-6 py-4 rounded-2xl font-bold text-lg">
+          ✓ Ball is at Center — Set Home
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Find Inside limit -->
+    <div class="wizard-step" id="wStep2">
+      <div class="space-y-4">
+        <div class="text-center">
+          <div class="text-5xl mb-3">⬇️</div>
+          <h2 class="text-2xl font-bold">Step 2 of 4: Inside Limit</h2>
+          <p class="text-slate-300 mt-2">Jog the ball <strong>all the way IN</strong> toward the center until it won't go further.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+          <div></div>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
+          <div></div>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
+          <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
+          <div></div>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
+          <div></div>
+        </div>
+        <div class="flex gap-3">
+          <select id="wizJogSize2" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+            <option value="100">Small steps</option>
+            <option value="500" selected>Medium steps</option>
+            <option value="2000">Large steps</option>
+          </select>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-3 text-sm text-slate-400 text-center">
+          Current position: Rho <span id="wizRhoDisplay2" class="text-amber-400 font-bold mono">--</span>
+        </div>
+        <button id="wizCaptureInBtn" class="w-full bg-amber-600 hover:bg-amber-500 px-6 py-4 rounded-2xl font-bold text-lg">
+          ✓ Ball is All the Way In — Capture
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Find Outside limit -->
+    <div class="wizard-step" id="wStep3">
+      <div class="space-y-4">
+        <div class="text-center">
+          <div class="text-5xl mb-3">⬆️</div>
+          <h2 class="text-2xl font-bold">Step 3 of 4: Outside Limit</h2>
+          <p class="text-slate-300 mt-2">Jog the ball <strong>all the way OUT</strong> toward the edge until it won't go further.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+          <div></div>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="1">↑</button>
+          <div></div>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="-1">←</button>
+          <div class="bg-slate-800 rounded-2xl flex items-center justify-center text-xs text-slate-400">JOG</div>
+          <button class="wJogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-2xl" data-axis="T" data-dir="1">→</button>
+          <div></div>
+          <button class="wJogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-2xl" data-axis="R" data-dir="-1">↓</button>
+          <div></div>
+        </div>
+        <div class="flex gap-3">
+          <select id="wizJogSize3" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+            <option value="100">Small steps</option>
+            <option value="500" selected>Medium steps</option>
+            <option value="2000">Large steps</option>
+          </select>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-3 text-sm text-slate-400 text-center">
+          Current position: Rho <span id="wizRhoDisplay3" class="text-amber-400 font-bold mono">--</span>
+        </div>
+        <button id="wizCaptureOutBtn" class="w-full bg-amber-600 hover:bg-amber-500 px-6 py-4 rounded-2xl font-bold text-lg">
+          ✓ Ball is All the Way Out — Capture
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Speed -->
+    <div class="wizard-step" id="wStep4">
+      <div class="space-y-6 text-center">
+        <div class="text-5xl">⚡</div>
+        <h2 class="text-2xl font-bold">Step 4 of 4: Set Speed</h2>
+        <p class="text-slate-300">How fast should patterns run?</p>
+        <div class="space-y-3 px-4">
+          <input type="range" id="wizSpeedSlider" min="1" max="3" value="2" step="1" class="w-full" />
+          <div class="flex justify-between text-xs text-slate-400">
+            <span>🐢 Slow<br>Smoother lines</span>
+            <span>⚡ Medium<br>Balanced</span>
+            <span>🚀 Fast<br>Quick patterns</span>
+          </div>
+          <div id="wizSpeedLabel" class="text-amber-400 font-semibold mt-2">Medium speed selected</div>
+        </div>
+        <button id="wizFinishBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 px-6 py-4 rounded-2xl font-bold text-lg mt-4">
+          🎉 Let's Draw!
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MAIN UI                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="max-w-7xl mx-auto p-6">
 
   <!-- Header -->
   <header class="border-b border-slate-800 pb-4 mb-6 flex items-center justify-between flex-wrap gap-4">
-    <div>
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">🌀</span>
-        <h1 class="text-3xl font-bold tracking-tight">Dune Weaver Mini</h1>
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">🌀</span>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Dune Weaver Mini</h1>
+        <div class="flex items-center gap-3 text-sm text-slate-400">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="portStatus">Not connected</span>
+        </div>
       </div>
-      <p class="text-slate-400 text-sm mt-1">Chrome / Edge desktop only &mdash; all values are raw firmware step counts</p>
     </div>
-    <!-- Live position display -->
-    <div class="bg-slate-900 rounded-2xl px-6 py-3 flex gap-8 items-center shadow-xl">
-      <div class="text-center">
-        <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Theta</div>
-        <div class="pos-display" id="dispTheta">--</div>
+    <div class="flex items-center gap-4 flex-wrap">
+      <!-- Live position -->
+      <div class="bg-slate-900 rounded-2xl px-5 py-2 flex gap-6 items-center shadow-xl">
+        <div class="text-center">
+          <div class="text-xs text-slate-400 uppercase tracking-widest">Theta</div>
+          <div class="pos-display" id="dispTheta">--</div>
+        </div>
+        <div class="text-center">
+          <div class="text-xs text-slate-400 uppercase tracking-widest">Rho</div>
+          <div class="pos-display" id="dispRho">--</div>
+        </div>
       </div>
-      <div class="text-center">
-        <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Rho</div>
-        <div class="pos-display" id="dispRho">--</div>
+      <!-- Top buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <button id="connectBtn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-semibold text-sm">Connect</button>
+        <button id="disconnectBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>Disconnect</button>
+        <button id="rerunWizardBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>⚙ Setup</button>
+        <button id="advancedToggleBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm">Advanced ▾</button>
       </div>
     </div>
   </header>
@@ -67,329 +244,346 @@
   <!-- Two-column layout -->
   <div class="flex gap-6 items-start">
 
-    <!-- LEFT COLUMN -->
+    <!-- LEFT: main controls -->
     <div class="flex-1 min-w-0 space-y-6">
 
-      <!-- Connection -->
-      <section class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3">
-        <div class="flex flex-wrap gap-3 items-center">
-          <button id="connectBtn"     class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-semibold">Connect ESP32</button>
-          <button id="disconnectBtn"  class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl font-semibold" disabled>Disconnect</button>
-          <button id="statusBtn"      class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-xl font-semibold" disabled>STATUS</button>
-          <button id="returnRhoBtn"   class="bg-violet-700 hover:bg-violet-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN RHO</button>
-          <button id="returnThetaBtn" class="bg-fuchsia-700 hover:bg-fuchsia-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN THETA</button>
+      <!-- Simple controls -->
+      <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">Controls</h2>
+          <div class="flex gap-2">
+            <button id="returnRhoBtn"   class="bg-violet-700 hover:bg-violet-600 px-3 py-2 rounded-xl text-sm" disabled>Return to Center</button>
+            <button id="returnThetaBtn" class="bg-fuchsia-700 hover:bg-fuchsia-600 px-3 py-2 rounded-xl text-sm" disabled>Reset Rotation</button>
+            <button id="statusBtn"      class="bg-emerald-700 hover:bg-emerald-600 px-3 py-2 rounded-xl text-sm" disabled>Status</button>
+          </div>
         </div>
-        <div class="text-sm text-slate-400 flex gap-6 flex-wrap">
-          <div><span class="status-dot" id="statusDot"></span>Port: <span id="portStatus" class="text-slate-200">Not connected</span></div>
-          <div>Browser: <span id="browserStatus" class="text-slate-200"></span></div>
+
+        <!-- Simple jog d-pad -->
+        <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+          <div></div>
+          <button data-axis="R" data-dir="1"  class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-lg font-bold" disabled>↑ Out</button>
+          <div></div>
+          <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-lg font-bold" disabled>← Turn</button>
+          <button id="statusJogBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-5 text-xs" disabled>STATUS</button>
+          <button data-axis="T" data-dir="1"  class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-5 text-lg font-bold" disabled>Turn →</button>
+          <div></div>
+          <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-5 text-lg font-bold" disabled>↓ In</button>
+          <div></div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <label class="text-sm text-slate-400 shrink-0">Step size</label>
+          <select id="jogSizeSelect" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+            <option value="50">Tiny (50)</option>
+            <option value="100" selected>Small (100)</option>
+            <option value="500">Medium (500)</option>
+            <option value="2000">Large (2000)</option>
+          </select>
+          <label class="text-sm text-slate-400 shrink-0">Speed</label>
+          <select id="speedSelect" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" disabled>
+            <option value="6">🐢 Slow</option>
+            <option value="3" selected>⚡ Medium</option>
+            <option value="1">🚀 Fast</option>
+          </select>
         </div>
       </section>
 
-      <!-- Jog + GOTO -->
-      <section class="grid lg:grid-cols-2 gap-6">
+      <!-- Pattern picker -->
+      <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
+        <h2 class="text-xl font-semibold">Patterns</h2>
 
-        <!-- Jog -->
-        <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xl font-semibold">Jog</h2>
+        <!-- Pattern cards grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="patternCards">
+          <div class="pattern-card selected bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="spiral">
+            <div class="text-3xl">🌀</div>
+            <div class="text-xs font-semibold">Spiral</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="circle">
+            <div class="text-3xl">⭕</div>
+            <div class="text-xs font-semibold">Circle</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="radial">
+            <div class="text-3xl">🌊</div>
+            <div class="text-xs font-semibold">Waves</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="rose">
+            <div class="text-3xl">🌸</div>
+            <div class="text-xs font-semibold">Rose</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="lissajous">
+            <div class="text-3xl">∞</div>
+            <div class="text-xs font-semibold">Lissajous</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="epitrochoid">
+            <div class="text-3xl">🎡</div>
+            <div class="text-xs font-semibold">Spirograph</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="bouncerho">
+            <div class="text-3xl">〰️</div>
+            <div class="text-xs font-semibold">Ripple</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="star">
+            <div class="text-3xl">⭐</div>
+            <div class="text-xs font-semibold">Star</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="fermat">
+            <div class="text-3xl">🌻</div>
+            <div class="text-xs font-semibold">Sunflower</div>
+          </div>
+          <div class="pattern-card bg-slate-800 rounded-2xl p-4 text-center space-y-2" data-pattern="text">
+            <div class="text-3xl">✏️</div>
+            <div class="text-xs font-semibold">Text</div>
+          </div>
+        </div>
+
+        <!-- Pattern description -->
+        <p id="patternDesc" class="text-sm text-slate-400 italic text-center"></p>
+
+        <!-- Visual preview canvas -->
+        <canvas id="patternCanvas" width="280" height="280"
+          class="rounded-2xl bg-black/40 mx-auto block border border-slate-800" style="max-width:280px;"></canvas>
+
+        <!-- Pattern-specific params (simple versions) -->
+        <div id="simpleParams" class="space-y-3">
+          <!-- Rose -->
+          <div id="spRose" class="hidden grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Petals</label>
+              <input id="roseK" type="number" value="5" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Rotations</label>
+              <input id="roseRot" type="number" value="1" min="1" max="10" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <!-- Lissajous -->
+          <div id="spLissajous" class="hidden grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Frequency A</label>
+              <input id="lissA" type="number" value="3" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Frequency B</label>
+              <input id="lissB" type="number" value="2" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <!-- Spirograph -->
+          <div id="spEpitrochoid" class="hidden grid grid-cols-3 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Outer (R)</label>
+              <input id="epiR" type="number" value="3" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Inner (r)</label>
+              <input id="epir" type="number" value="1" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Pen (d)</label>
+              <input id="epid" type="number" value="2" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <!-- Star -->
+          <div id="spStar" class="hidden grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Points</label>
+              <input id="starPoints" type="number" value="5" min="3" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Depth (0-100%)</label>
+              <input id="starDepth" type="number" value="40" min="10" max="90" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <!-- Text -->
+          <div id="spText" class="hidden space-y-3">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Text to draw (up to 10 characters)</label>
+              <input id="textInput" type="text" value="HELLO" maxlength="10" placeholder="Type your text…"
+                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="text-xs text-slate-400">Letter size</label>
+                <select id="textSizeSelect" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                  <option value="1000">Small</option>
+                  <option value="2000" selected>Medium</option>
+                  <option value="3500">Large</option>
+                </select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs text-slate-400">Letter spacing</label>
+                <select id="textSpacingSelect" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                  <option value="3000">Tight</option>
+                  <option value="4500" selected>Normal</option>
+                  <option value="6000">Wide</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Run controls -->
+        <div class="flex gap-3">
+          <button id="runPatternBtn" class="flex-1 bg-rose-700 hover:bg-rose-600 px-4 py-4 rounded-2xl font-bold text-lg" disabled>▶ Draw This Pattern</button>
+          <button id="stopPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-4 rounded-2xl text-sm" disabled>■ Stop</button>
+        </div>
+
+        <!-- Progress bar -->
+        <div id="progressBar" class="hidden space-y-1">
+          <div class="flex justify-between text-xs text-slate-400">
+            <span id="progressLabel">Drawing...</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-2">
+            <div id="progressFill" class="bg-amber-400 h-2 rounded-full transition-all" style="width:0%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADVANCED PANEL (hidden by default) -->
+      <div id="advancedPanel">
+        <div class="bg-amber-900/30 border border-amber-700 rounded-2xl p-3 mb-4 text-sm text-amber-300">
+          ⚙ Advanced Mode — raw firmware controls. Handle with care.
+        </div>
+
+        <!-- Jog advanced -->
+        <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4 mb-6">
+          <h2 class="text-lg font-semibold">Advanced Jog</h2>
           <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Step size</label>
-              <input id="jogInput" type="number" value="100" min="1"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-              <button id="setJogBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-sm" disabled>SET JOG</button>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Step size (raw)</label>
+              <input id="jogInput" type="number" value="100" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              <button id="setJogBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET JOG</button>
             </div>
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Delay ms</label>
-              <input id="delayInput" type="number" value="4" min="1"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-              <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-sm" disabled>SET DELAY</button>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Delay ms</label>
+              <input id="delayInput" type="number" value="4" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET DELAY</button>
             </div>
           </div>
-
-          <!-- D-pad -->
-          <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
-            <div></div>
-            <button data-axis="R" data-dir="1"  class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho Out +</button>
-            <div></div>
-            <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta -</button>
-            <button id="statusJogBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-4 text-xs" disabled>STATUS</button>
-            <button data-axis="T" data-dir="1"  class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta +</button>
-            <div></div>
-            <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho In -</button>
-            <div></div>
-          </div>
-
           <div class="grid grid-cols-2 gap-3">
             <button id="zeroThetaBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm" disabled>ZERO THETA</button>
             <button id="zeroRhoBtn"   class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm" disabled>ZERO RHO</button>
           </div>
-        </div>
+        </section>
 
-        <!-- GOTO + Rho endpoints -->
-        <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xl font-semibold">Go To Position</h2>
-          <p class="text-xs text-slate-400">Raw firmware step values. Both axes move together.</p>
-
+        <!-- GOTO -->
+        <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4 mb-6">
+          <h2 class="text-lg font-semibold">Go To Position</h2>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Theta</label>
-              <input id="targetTheta" type="number" value="0"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              <label class="text-xs text-slate-400">Target Theta</label>
+              <input id="targetTheta" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
             </div>
             <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Rho</label>
-              <input id="targetRho" type="number" value="0"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+              <label class="text-xs text-slate-400">Target Rho</label>
+              <input id="targetRho" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
             </div>
           </div>
           <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl font-semibold" disabled>GOTO</button>
 
           <hr class="border-slate-700" />
-
-          <h3 class="text-sm font-semibold text-slate-300">Named Rho Endpoints</h3>
-          <p class="text-xs text-slate-400">GO TO buttons use live tracked theta &mdash; only rho moves.</p>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In (steps)</label>
-              <div class="flex gap-2 items-center">
-                <input id="rhoInSteps" type="number" value="400"
-                  class="mono w-28 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-                <button id="captureRhoInBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap" disabled>&#9679; Capture Here</button>
-              </div>
+          <h3 class="text-sm font-semibold text-slate-300">Rho Endpoints</h3>
+          <div class="space-y-2">
+            <div class="flex gap-2 items-center">
+              <label class="text-xs text-slate-400 w-16">Rho In</label>
+              <input id="rhoInSteps" type="number" value="0" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="captureRhoInBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap" disabled>● Capture</button>
             </div>
-            <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Out (steps)</label>
-              <div class="flex gap-2 items-center">
-                <input id="rhoOutSteps" type="number" value="-9500"
-                  class="mono w-28 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-                <button id="captureRhoOutBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap" disabled>&#9679; Capture Here</button>
-              </div>
+            <div class="flex gap-2 items-center">
+              <label class="text-xs text-slate-400 w-16">Rho Out</label>
+              <input id="rhoOutSteps" type="number" value="6000" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="captureRhoOutBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap" disabled>● Capture</button>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <button id="goRhoInBtn"  class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
             <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
           </div>
-          <button id="calcCenterBtn" class="w-full bg-blue-900 hover:bg-blue-800 px-4 py-3 rounded-xl text-sm">&#8859; Calculate &amp; Apply Rho Center + Radius</button>
+          <button id="calcCenterBtn" class="w-full bg-blue-900 hover:bg-blue-800 px-4 py-3 rounded-xl text-sm">⊙ Calculate &amp; Apply Rho Center</button>
           <div id="centerReadout" class="text-xs text-slate-400 text-center hidden">
-            Center: <span id="centerVal" class="text-slate-200"></span> &nbsp;|&nbsp; Max safe radius: <span id="radiusVal" class="text-slate-200"></span>
+            Center: <span id="centerVal" class="text-slate-200"></span> | Max radius: <span id="radiusVal" class="text-slate-200"></span>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Firmware Limits -->
-      <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <h2 class="text-xl font-semibold">Firmware Limits</h2>
-          <span class="text-xs text-slate-500">Auto-updates from STATUS &mdash; edit and SET to push directly to firmware</span>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">RMIN</label>
-            <input id="fwRmin" type="number" value="-9900"
-              class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setRminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
+        <!-- Firmware limits -->
+        <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4 mb-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Firmware Limits</h2>
+            <span class="text-xs text-slate-500">Auto-syncs on connect</span>
           </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">RMAX</label>
-            <input id="fwRmax" type="number" value="400"
-              class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setRmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">TMIN</label>
-            <input id="fwTmin" type="number" value="-25800"
-              class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setTminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">TMAX</label>
-            <input id="fwTmax" type="number" value="25800"
-              class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setTmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Pattern Generator -->
-      <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <h2 class="text-xl font-semibold">Pattern Generator</h2>
-
-        <!-- Pattern type tabs -->
-        <div class="flex flex-wrap gap-2">
-          <button data-pattern="spiral"      class="patternTab bg-rose-800 hover:bg-rose-700 px-3 py-2 rounded-xl text-xs font-semibold">Spiral</button>
-          <button data-pattern="circle"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Circle</button>
-          <button data-pattern="radial"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Wave Sweep</button>
-          <button data-pattern="rose"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Rose</button>
-          <button data-pattern="lissajous"   class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Lissajous</button>
-          <button data-pattern="epitrochoid" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Spirograph</button>
-          <button data-pattern="bouncerho"   class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Ripple Rings</button>
-          <button data-pattern="star"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Star</button>
-          <button data-pattern="fermat"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Fermat</button>
-          <button data-pattern="text"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">✏️ Text</button>
-        </div>
-
-        <!-- Pattern description -->
-        <p id="patternDesc" class="text-xs text-slate-400 italic"></p>
-
-        <!-- Common controls -->
-        <div class="grid sm:grid-cols-3 gap-4">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
-            <input id="patternPoints" type="number" value="360" min="10" max="2000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Pause ms</label>
-            <input id="patternPause" type="number" value="0" min="0" max="5000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center</label>
-            <input id="patternRhoCenter" type="number" value="0"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <!-- Pattern-specific controls (shown/hidden per pattern) -->
-        <div id="paramStandard" class="grid sm:grid-cols-3 gap-4">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
-            <input id="patternThetaRadius" type="number" value="25800"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius</label>
-            <input id="patternRhoRadius" type="number" value="3000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta center</label>
-            <input id="patternThetaCenter" type="number" value="0"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramRose" class="grid sm:grid-cols-3 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Petals (odd=N, even=2N)</label>
-            <input id="roseK" type="number" value="5" min="1" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho amplitude</label>
-            <input id="roseAmp" type="number" value="3000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rotations</label>
-            <input id="roseRot" type="number" value="1" min="1" max="10"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramLissajous" class="grid sm:grid-cols-4 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Freq A</label>
-            <input id="lissA" type="number" value="3" min="1" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Freq B</label>
-            <input id="lissB" type="number" value="2" min="1" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta scale</label>
-            <input id="lissTS" type="number" value="15000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho scale</label>
-            <input id="lissRS" type="number" value="3000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramEpitrochoid" class="grid sm:grid-cols-4 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">R (outer)</label>
-            <input id="epiR" type="number" value="3" min="1" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">r (inner)</label>
-            <input id="epir" type="number" value="1" min="1" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">d (pen dist)</label>
-            <input id="epid" type="number" value="2" min="1" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Scale</label>
-            <input id="epiScale" type="number" value="3000"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramStar" class="grid sm:grid-cols-3 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
-            <input id="starPoints" type="number" value="5" min="3" max="20"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Outer rho</label>
-            <input id="starOuter" type="number" value="3500"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Inner rho</label>
-            <input id="starInner" type="number" value="1500"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramText" class="space-y-3 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Text to draw</label>
-            <input id="textInput" type="text" value="HELLO" maxlength="12" placeholder="Up to 12 characters"
-              class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 uppercase" />
-          </div>
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Letter size (rho steps)</label>
-              <input id="textSize" type="number" value="2000"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-14">RMIN</label>
+              <input id="fwRmin" type="number" value="-9900" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="setRminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
             </div>
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta per letter</label>
-              <input id="textSpacing" type="number" value="4000"
-                class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-14">RMAX</label>
+              <input id="fwRmax" type="number" value="400" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="setRmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-14">TMIN</label>
+              <input id="fwTmin" type="number" value="-25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="setTminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-400 w-14">TMAX</label>
+              <input id="fwTmax" type="number" value="25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+              <button id="setTmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Visual preview canvas -->
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Visual Preview</label>
-          <canvas id="patternCanvas" width="300" height="300"
-            class="rounded-2xl bg-black/40 mx-auto block" style="max-width:300px;"></canvas>
-        </div>
-
-        <div class="flex flex-wrap gap-3">
-          <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview</button>
-          <button id="runPatternBtn"     class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>&#9654; Run Pattern</button>
-          <button id="stopPatternBtn"    class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>&#9632; Stop</button>
-        </div>
-
-        <textarea id="patternPreview"
-          class="mono w-full h-32 bg-black/40 rounded-2xl p-4 text-xs resize-y"
-          spellcheck="false"
-          placeholder="Click Preview to see commands before running…"></textarea>
-      </section>
+        <!-- Advanced pattern controls -->
+        <section class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4 mb-6">
+          <h2 class="text-lg font-semibold">Advanced Pattern Controls</h2>
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Points</label>
+              <input id="patternPoints" type="number" value="360" min="10" max="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Rho center</label>
+              <input id="patternRhoCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Pause ms</label>
+              <input id="patternPause" type="number" value="0" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Theta center</label>
+              <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Theta radius</label>
+              <input id="patternThetaRadius" type="number" value="25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400">Rho radius</label>
+              <input id="patternRhoRadius" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <div class="hidden" id="advRoseParams">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1"><label class="text-xs text-slate-400">Rose Amp</label><input id="roseAmp" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+            </div>
+          </div>
+          <div class="hidden" id="advLissParams">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1"><label class="text-xs text-slate-400">Theta scale</label><input id="lissTS" type="number" value="15000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+              <div class="space-y-1"><label class="text-xs text-slate-400">Rho scale</label><input id="lissRS" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+            </div>
+          </div>
+          <div class="hidden" id="advEpiParams">
+            <div class="space-y-1"><label class="text-xs text-slate-400">Scale</label><input id="epiScale" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+          </div>
+          <textarea id="patternPreview" class="mono w-full h-28 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Preview commands appear here…"></textarea>
+          <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview Commands</button>
+        </section>
+      </div>
 
     </div>
     <!-- END LEFT -->
@@ -399,18 +593,15 @@
       <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-semibold">Console</h2>
-          <button id="clearLogBtn"
-            class="text-xs text-slate-500 hover:text-slate-300 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700">Clear</button>
+          <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-300 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700">Clear</button>
         </div>
         <div class="flex gap-2">
           <input id="commandInput" type="text" placeholder="TYPE COMMAND…"
             class="mono flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500" />
-          <button id="sendBtn"
-            class="bg-cyan-700 hover:bg-cyan-600 px-3 py-2 rounded-xl font-semibold text-sm" disabled>Send</button>
+          <button id="sendBtn" class="bg-cyan-700 hover:bg-cyan-600 px-3 py-2 rounded-xl font-semibold text-sm" disabled>Send</button>
         </div>
-        <pre id="log"
-          class="mono bg-black/40 rounded-2xl p-4 overflow-auto text-xs whitespace-pre-wrap leading-relaxed"
-          style="height: calc(100vh - 200px); min-height: 400px;"></pre>
+        <pre id="log" class="mono bg-black/40 rounded-2xl p-4 overflow-auto text-xs whitespace-pre-wrap leading-relaxed"
+          style="height: calc(100vh - 220px); min-height: 400px;"></pre>
       </div>
     </div>
 
@@ -419,96 +610,96 @@
 
 <script>
 // ================================================================
-// GROUND RULES — read before touching anything:
-//
-//  1. ALL values sent to firmware are RAW STEP COUNTS.
-//     No translation. No mapping. No flipping. Zero math.
-//     What the user types = exactly what gets sent over serial.
-//
-//  2. Firmware limits (RMIN/RMAX/TMIN/TMAX) are managed in
-//     the Firmware Limits section, pushed with SET commands.
-//
-//  3. currentTheta and currentRho are updated by parsing every
-//     STATUS reply so the UI always knows where the machine is.
-//
-//  4. GO TO RHO IN/OUT uses trackedTheta() so only rho moves.
+// GROUND RULES:
+// 1. ALL values sent to firmware are RAW STEP COUNTS. No translation.
+// 2. Position tracked from STATUS replies.
+// 3. Wizard runs on first connect, sets up limits automatically.
 // ================================================================
 
 // ── Serial state ─────────────────────────────────────────────────
-let port           = null;
-let reader         = null;
-let inputDone      = null;
-let outputDone     = null;
-let writer         = null;
-let lineBuffer     = '';
-let pendingCommand = null;
+let port = null, reader = null, inputDone = null, outputDone = null, writer = null;
+let lineBuffer = '', pendingCommand = null;
 
-// ── Tracked position ─────────────────────────────────────────────
-let currentTheta = null;
-let currentRho   = null;
+// ── Position tracking ─────────────────────────────────────────────
+let currentTheta = null, currentRho = null;
+let rhoInStored  = 0,    rhoOutStored = 6000;
 
 // ── Pattern state ─────────────────────────────────────────────────
-let patternRunning = false;
-let patternAbort   = false;
+let patternRunning = false, patternAbort = false;
+let currentPattern = 'spiral';
+let limitsSynced   = false;
 
-// ── DOM refs ──────────────────────────────────────────────────────
+// ── Wizard state ──────────────────────────────────────────────────
+let wizardStep = 0;
+let wizSetupDone = localStorage.getItem('dwSetupDone') === 'true';
+
+// ── DOM ───────────────────────────────────────────────────────────
 const logEl        = document.getElementById('log');
 const connectBtn   = document.getElementById('connectBtn');
 const commandInput = document.getElementById('commandInput');
 
 // ── Browser check ─────────────────────────────────────────────────
 const supported = 'serial' in navigator;
-document.getElementById('browserStatus').textContent =
-  supported ? 'Web Serial available' : 'NOT available — use Chrome or Edge';
+if (!supported) appendLog('WARNING: Web Serial not supported. Use Chrome or Edge.');
 
 // ── Logging ───────────────────────────────────────────────────────
 function appendLog(text) {
   logEl.textContent += text + '\n';
   logEl.scrollTop = logEl.scrollHeight;
 }
-document.getElementById('clearLogBtn').addEventListener('click', () => {
-  logEl.textContent = '';
-});
+document.getElementById('clearLogBtn').addEventListener('click', () => { logEl.textContent = ''; });
 
-// ── Enable / disable all controls ────────────────────────────────
+// ── Enable/disable controls ───────────────────────────────────────
 function setConnectedState(connected) {
+  const skipIds = ['connectBtn','clearLogBtn','calcCenterBtn','previewPatternBtn','advancedToggleBtn'];
   document.querySelectorAll('button').forEach(btn => {
-    if (btn.id === 'connectBtn')       return;
-    if (btn.id === 'previewPatternBtn') return;
-    if (btn.id === 'clearLogBtn')       return;
-    if (btn.id === 'calcCenterBtn')     return;
+    if (skipIds.includes(btn.id)) return;
+    if (btn.classList.contains('patternTab')) return;
+    if (btn.classList.contains('pattern-card')) return;
+    if (btn.classList.contains('wJogBtn')) return;
     btn.disabled = !connected;
   });
   connectBtn.disabled = connected || !supported;
   document.getElementById('portStatus').textContent = connected ? 'Connected' : 'Not connected';
   const dot = document.getElementById('statusDot');
   if (connected) dot.classList.add('connected');
-  else           dot.classList.remove('connected');
-  // Stop button stays disabled until pattern runs
+  else dot.classList.remove('connected');
   if (!connected) {
     document.getElementById('stopPatternBtn').disabled = true;
     document.getElementById('runPatternBtn').disabled  = true;
   }
 }
 
-// ── Parse every incoming line ─────────────────────────────────────
-// Updates position display, firmware limit fields, and resolves acks.
+// ── Parse incoming lines ──────────────────────────────────────────
 function parseIncomingLine(line) {
-
-  // Live position tracking — always update from STATUS
   if (line.startsWith('THETA ')) {
     currentTheta = parseInt(line.substring(6).trim(), 10);
     document.getElementById('dispTheta').textContent = currentTheta;
+    // Update wizard displays
+    const wd2 = document.getElementById('wizRhoDisplay2');
+    const wd3 = document.getElementById('wizRhoDisplay3');
+    if (wd2) wd2.textContent = currentRho !== null ? currentRho : '--';
+    if (wd3) wd3.textContent = currentRho !== null ? currentRho : '--';
   }
   if (line.startsWith('RHO ')) {
     currentRho = parseInt(line.substring(4).trim(), 10);
     document.getElementById('dispRho').textContent = currentRho;
+    const wd2 = document.getElementById('wizRhoDisplay2');
+    const wd3 = document.getElementById('wizRhoDisplay3');
+    if (wd2) wd2.textContent = currentRho;
+    if (wd3) wd3.textContent = currentRho;
   }
-
-  // One-time limit sync on first connect
-  syncLimitsOnce(line);
-
-  // Resolve pending command ack
+  // Sync limits once on first connect
+  if (!limitsSynced) {
+    const lmap = { 'RMIN ':'fwRmin','RMAX ':'fwRmax','TMIN ':'fwTmin','TMAX ':'fwTmax' };
+    for (const [prefix, id] of Object.entries(lmap)) {
+      if (line.startsWith(prefix)) document.getElementById(id).value = line.substring(prefix.length).trim();
+    }
+    if (line === '=============') {
+      limitsSynced = true;
+      appendLog('Settings loaded from firmware.');
+    }
+  }
   if (pendingCommand && (line.startsWith('OK') || line.startsWith('ERR'))) {
     pendingCommand.resolve(line);
     pendingCommand = null;
@@ -533,53 +724,43 @@ async function readLoop() {
         }
       }
     }
-  } catch (err) {
-    appendLog('Read error: ' + err.message);
-  }
+  } catch (err) { appendLog('Read error: ' + err.message); }
 }
 
 // ── Connect ───────────────────────────────────────────────────────
 async function connectSerial() {
-  if (!supported) {
-    appendLog('ERROR: Web Serial not supported. Use Chrome or Edge.');
-    return;
-  }
+  if (!supported) { appendLog('ERROR: Use Chrome or Edge.'); return; }
   try {
     port = await navigator.serial.requestPort();
     await port.open({ baudRate: 115200 });
-
     const dec = new TextDecoderStream();
     inputDone = port.readable.pipeTo(dec.writable);
     reader = dec.readable.getReader();
-
     const enc = new TextEncoderStream();
     outputDone = enc.readable.pipeTo(port.writable);
     writer = enc.writable.getWriter();
-
     setConnectedState(true);
     appendLog('Connected at 115200 baud.');
     readLoop();
     await sendCommand('STATUS');
-  } catch (err) {
-    appendLog('Connect failed: ' + err.message);
-  }
+    // Show wizard if not done yet
+    if (!wizSetupDone) showWizard();
+    else document.getElementById('wizard').classList.add('hidden');
+  } catch (err) { appendLog('Connect failed: ' + err.message); }
 }
 
 // ── Disconnect ────────────────────────────────────────────────────
 async function disconnectSerial() {
   patternAbort = true;
   try {
-    if (reader)     { await reader.cancel(); await inputDone.catch(() => {}); reader = null; }
+    if (reader)     { await reader.cancel(); await inputDone.catch(()=>{}); reader = null; }
     if (writer)     { await writer.close(); writer = null; }
-    if (outputDone) { await outputDone.catch(() => {}); outputDone = null; }
+    if (outputDone) { await outputDone.catch(()=>{}); outputDone = null; }
     if (port)       { await port.close(); port = null; }
-  } catch (err) {
-    appendLog('Disconnect warning: ' + err.message);
-  }
+  } catch (err) { appendLog('Disconnect warning: ' + err.message); }
   setConnectedState(false);
+  currentTheta = null; currentRho = null;
   limitsSynced = false;
-  currentTheta = null;
-  currentRho   = null;
   document.getElementById('dispTheta').textContent = '--';
   document.getElementById('dispRho').textContent   = '--';
   appendLog('Disconnected.');
@@ -590,7 +771,6 @@ async function sendCommand(cmd, waitForAck = false) {
   if (!writer) return null;
   const line = cmd.trim();
   if (!line) return null;
-
   if (waitForAck) {
     if (pendingCommand) throw new Error('A command is already pending.');
     const ackPromise = new Promise(resolve => { pendingCommand = { resolve }; });
@@ -598,67 +778,157 @@ async function sendCommand(cmd, waitForAck = false) {
     await writer.write(line + '\n');
     return await ackPromise;
   }
-
   appendLog('> ' + line);
   await writer.write(line + '\n');
   return null;
 }
 
-// ── Position helpers ──────────────────────────────────────────────
 function trackedTheta() { return currentTheta !== null ? currentTheta : 0; }
 function trackedRho()   { return currentRho   !== null ? currentRho   : 0; }
 
-// ── One-time limit sync from STATUS on connect ────────────────────
-// Populates firmware limit fields ONCE after first connect.
-// After that, fields NEVER change regardless of STATUS responses.
-let limitsSynced = false;
-function syncLimitsOnce(line) {
-  if (limitsSynced) return;
-  const limitMap = {
-    'RMIN ': 'fwRmin',
-    'RMAX ': 'fwRmax',
-    'TMIN ': 'fwTmin',
-    'TMAX ': 'fwTmax',
-  };
-  for (const [prefix, id] of Object.entries(limitMap)) {
-    if (line.startsWith(prefix)) {
-      document.getElementById(id).value = line.substring(prefix.length).trim();
-    }
-  }
-  // Mark synced once we see the closing separator
-  if (line.startsWith('=====') || line === '=============') {
-    limitsSynced = true;
-    appendLog('Limits synced from firmware — fields are now locked until reconnect.');
-  }
+// ════════════════════════════════════════════════════════════════
+// SETUP WIZARD
+// ════════════════════════════════════════════════════════════════
+
+function showWizard() {
+  wizardStep = 0;
+  document.getElementById('wizard').classList.remove('hidden');
+  updateWizardStep(0);
 }
 
-// ================================================================
-// BUTTON WIRING
-// Every button sends exactly what it says. No hidden math.
-// ================================================================
+function updateWizardStep(step) {
+  wizardStep = step;
+  document.querySelectorAll('.wizard-step').forEach((el, i) => {
+    el.classList.toggle('active', i === step);
+  });
+  document.querySelectorAll('.wizard-dot').forEach((dot, i) => {
+    dot.classList.toggle('bg-amber-400', i <= step);
+    dot.classList.toggle('bg-slate-600', i > step);
+  });
+}
 
-connectBtn.addEventListener('click', connectSerial);
+// Wizard connect button
+document.getElementById('wizConnectBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('wizConnectStatus');
+  statusEl.textContent = 'Connecting...';
+  await connectSerial();
+  if (writer) {
+    statusEl.textContent = '✓ Connected!';
+    setTimeout(() => updateWizardStep(1), 800);
+  } else {
+    statusEl.textContent = '✗ Connection failed. Check cable and try again.';
+  }
+});
+
+// Wizard jog buttons (all steps)
+document.querySelectorAll('.wJogBtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const axis = btn.dataset.axis;
+    const dir  = Number(btn.dataset.dir);
+    // Get jog size from the active step's select
+    const sizeEl = document.getElementById('wizJogSize') ||
+                   document.getElementById('wizJogSize2') ||
+                   document.getElementById('wizJogSize3');
+    let jog = 500;
+    if (wizardStep === 1 && document.getElementById('wizJogSize')) jog = Number(document.getElementById('wizJogSize').value);
+    if (wizardStep === 2 && document.getElementById('wizJogSize2')) jog = Number(document.getElementById('wizJogSize2').value);
+    if (wizardStep === 3 && document.getElementById('wizJogSize3')) jog = Number(document.getElementById('wizJogSize3').value);
+    sendCommand('MOVE ' + axis + ' ' + (dir * jog), true);
+  });
+});
+
+// Step 1: Set home
+document.getElementById('wizSetHomeBtn').addEventListener('click', async () => {
+  await sendCommand('ZERO THETA');
+  await sendCommand('ZERO RHO');
+  updateWizardStep(2);
+});
+
+// Step 2: Capture inside
+document.getElementById('wizCaptureInBtn').addEventListener('click', async () => {
+  if (currentRho === null) { await sendCommand('STATUS'); }
+  const val = currentRho !== null ? currentRho : 0;
+  document.getElementById('rhoInSteps').value = val;
+  document.getElementById('fwRmax').value = val;
+  await sendCommand('SET RMAX ' + val);
+  rhoInStored = val;
+  appendLog('Wizard: Rho In = ' + val);
+  updateWizardStep(3);
+});
+
+// Step 3: Capture outside
+document.getElementById('wizCaptureOutBtn').addEventListener('click', async () => {
+  if (currentRho === null) { await sendCommand('STATUS'); }
+  const val = currentRho !== null ? currentRho : 6000;
+  document.getElementById('rhoOutSteps').value = val;
+  document.getElementById('fwRmin').value = val;
+  await sendCommand('SET RMIN ' + val);
+  rhoOutStored = val;
+  appendLog('Wizard: Rho Out = ' + val);
+  // Auto-calculate center and apply
+  applyRhoCenter();
+  updateWizardStep(4);
+});
+
+// Speed slider
+document.getElementById('wizSpeedSlider').addEventListener('input', function() {
+  const labels = ['', '🐢 Slow selected', '⚡ Medium selected', '🚀 Fast selected'];
+  document.getElementById('wizSpeedLabel').textContent = labels[this.value];
+});
+
+// Step 4: Finish
+document.getElementById('wizFinishBtn').addEventListener('click', async () => {
+  const speed = Number(document.getElementById('wizSpeedSlider').value);
+  const delayMap = { 1: 6, 2: 3, 3: 1 };
+  const delay = delayMap[speed] || 3;
+  await sendCommand('SET DELAY ' + delay);
+  document.getElementById('speedSelect').value = String(delay);
+  // Return to center
+  await sendCommand('RETURN RHO', true);
+  localStorage.setItem('dwSetupDone', 'true');
+  wizSetupDone = true;
+  document.getElementById('wizard').classList.add('hidden');
+  appendLog('Setup complete! Ready to draw.');
+  drawVisualPreview();
+});
+
+// Re-run setup button
+document.getElementById('rerunWizardBtn').addEventListener('click', () => {
+  localStorage.removeItem('dwSetupDone');
+  wizSetupDone = false;
+  limitsSynced = false;
+  showWizard();
+});
+
+// ════════════════════════════════════════════════════════════════
+// MAIN UI WIRING
+// ════════════════════════════════════════════════════════════════
+
+connectBtn.addEventListener('click', async () => {
+  await connectSerial();
+  if (writer && wizSetupDone) {
+    document.getElementById('wizard').classList.add('hidden');
+  }
+});
 document.getElementById('disconnectBtn').addEventListener('click', disconnectSerial);
+document.getElementById('statusBtn').addEventListener('click', () => sendCommand('STATUS'));
+document.getElementById('returnRhoBtn').addEventListener('click',   () => sendCommand('RETURN RHO',   true));
+document.getElementById('returnThetaBtn').addEventListener('click', () => sendCommand('RETURN THETA', true));
+document.getElementById('zeroThetaBtn').addEventListener('click',   () => sendCommand('ZERO THETA'));
+document.getElementById('zeroRhoBtn').addEventListener('click',     () => sendCommand('ZERO RHO'));
+document.getElementById('statusJogBtn').addEventListener('click',   () => sendCommand('STATUS'));
 
-document.getElementById('statusBtn').addEventListener('click',
-  () => sendCommand('STATUS'));
-document.getElementById('returnRhoBtn').addEventListener('click',
-  () => sendCommand('RETURN RHO', true));
-document.getElementById('returnThetaBtn').addEventListener('click',
-  () => sendCommand('RETURN THETA', true));
-document.getElementById('zeroThetaBtn').addEventListener('click',
-  () => sendCommand('ZERO THETA'));
-document.getElementById('zeroRhoBtn').addEventListener('click',
-  () => sendCommand('ZERO RHO'));
-document.getElementById('statusJogBtn').addEventListener('click',
-  () => sendCommand('STATUS'));
+// Speed select
+document.getElementById('speedSelect').addEventListener('change', function() {
+  sendCommand('SET DELAY ' + this.value);
+});
 
-document.getElementById('setJogBtn').addEventListener('click', () =>
-  sendCommand('SET JOG ' + document.getElementById('jogInput').value));
-document.getElementById('setDelayBtn').addEventListener('click', () =>
-  sendCommand('SET DELAY ' + document.getElementById('delayInput').value));
+// Jog size select feeds jogInput
+document.getElementById('jogSizeSelect').addEventListener('change', function() {
+  document.getElementById('jogInput').value = this.value;
+});
 
-// Jog D-pad
+// Jog d-pad
 document.querySelectorAll('.jogBtn').forEach(btn => {
   btn.addEventListener('click', () => {
     const axis = btn.dataset.axis;
@@ -668,145 +938,125 @@ document.querySelectorAll('.jogBtn').forEach(btn => {
   });
 });
 
-// GOTO — sends exactly what user typed
+// Advanced controls
+document.getElementById('setJogBtn').addEventListener('click',   () => sendCommand('SET JOG '   + document.getElementById('jogInput').value));
+document.getElementById('setDelayBtn').addEventListener('click', () => sendCommand('SET DELAY ' + document.getElementById('delayInput').value));
 document.getElementById('gotoBtn').addEventListener('click', () => {
-  const t = document.getElementById('targetTheta').value;
-  const r = document.getElementById('targetRho').value;
-  sendCommand('GOTO T ' + t + ' R ' + r, true);
+  sendCommand('GOTO T ' + document.getElementById('targetTheta').value + ' R ' + document.getElementById('targetRho').value, true);
 });
-
-// GO TO RHO IN / OUT — uses MOVE R so theta is never touched
 document.getElementById('goRhoInBtn').addEventListener('click', () => {
   const target = Number(document.getElementById('rhoInSteps').value);
-  const delta  = target - trackedRho();
-  sendCommand('MOVE R ' + delta, true);
+  sendCommand('MOVE R ' + (target - trackedRho()), true);
 });
 document.getElementById('goRhoOutBtn').addEventListener('click', () => {
   const target = Number(document.getElementById('rhoOutSteps').value);
-  const delta  = target - trackedRho();
-  sendCommand('MOVE R ' + delta, true);
+  sendCommand('MOVE R ' + (target - trackedRho()), true);
 });
-
-// CAPTURE RHO IN / OUT — stores current tracked rho into the field AND pushes firmware limit
 document.getElementById('captureRhoInBtn').addEventListener('click', () => {
-  if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
+  if (currentRho === null) { appendLog('ERROR: Hit STATUS first.'); return; }
   document.getElementById('rhoInSteps').value = currentRho;
-  document.getElementById('fwRmax').value = currentRho;
+  document.getElementById('fwRmax').value     = currentRho;
   sendCommand('SET RMAX ' + currentRho);
-  appendLog('Captured Rho In = ' + currentRho + ' → SET RMAX ' + currentRho);
+  rhoInStored = currentRho;
+  appendLog('Captured Rho In = ' + currentRho);
 });
 document.getElementById('captureRhoOutBtn').addEventListener('click', () => {
-  if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
+  if (currentRho === null) { appendLog('ERROR: Hit STATUS first.'); return; }
   document.getElementById('rhoOutSteps').value = currentRho;
-  document.getElementById('fwRmin').value = currentRho;
+  document.getElementById('fwRmin').value      = currentRho;
   sendCommand('SET RMIN ' + currentRho);
-  appendLog('Captured Rho Out = ' + currentRho + ' → SET RMIN ' + currentRho);
+  rhoOutStored = currentRho;
+  appendLog('Captured Rho Out = ' + currentRho);
 });
 
-// Calculate and apply rho center + radius from In/Out endpoints
-document.getElementById('calcCenterBtn').addEventListener('click', () => {
+function applyRhoCenter() {
   const rhoIn  = Number(document.getElementById('rhoInSteps').value);
   const rhoOut = Number(document.getElementById('rhoOutSteps').value);
   const center = Math.round((rhoIn + rhoOut) / 2);
   const radius = Math.round(Math.abs(rhoOut - rhoIn) / 2);
-
   document.getElementById('patternRhoCenter').value = center;
-  document.getElementById('patternRhoRadius').value = Math.round(radius * 0.85); // 85% for safety margin
-
+  document.getElementById('patternRhoRadius').value = Math.round(radius * 0.85);
   document.getElementById('centerVal').textContent  = center;
   document.getElementById('radiusVal').textContent  = radius;
   document.getElementById('centerReadout').classList.remove('hidden');
+  appendLog('Rho center = ' + center + ', radius = ' + Math.round(radius * 0.85));
+}
+document.getElementById('calcCenterBtn').addEventListener('click', applyRhoCenter);
 
-  appendLog('Rho center set to ' + center + ', radius set to ' + Math.round(radius * 0.85) + ' (85% of max ' + radius + ')');
-});
-document.getElementById('setRminBtn').addEventListener('click', () =>
-  sendCommand('SET RMIN ' + document.getElementById('fwRmin').value));
-document.getElementById('setRmaxBtn').addEventListener('click', () =>
-  sendCommand('SET RMAX ' + document.getElementById('fwRmax').value));
-document.getElementById('setTminBtn').addEventListener('click', () =>
-  sendCommand('SET TMIN ' + document.getElementById('fwTmin').value));
-document.getElementById('setTmaxBtn').addEventListener('click', () =>
-  sendCommand('SET TMAX ' + document.getElementById('fwTmax').value));
+// Firmware limits
+document.getElementById('setRminBtn').addEventListener('click', () => sendCommand('SET RMIN ' + document.getElementById('fwRmin').value));
+document.getElementById('setRmaxBtn').addEventListener('click', () => sendCommand('SET RMAX ' + document.getElementById('fwRmax').value));
+document.getElementById('setTminBtn').addEventListener('click', () => sendCommand('SET TMIN ' + document.getElementById('fwTmin').value));
+document.getElementById('setTmaxBtn').addEventListener('click', () => sendCommand('SET TMAX ' + document.getElementById('fwTmax').value));
 
 // Console
-document.getElementById('sendBtn').addEventListener('click', () => {
-  sendCommand(commandInput.value);
-  commandInput.value = '';
-});
-commandInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') { sendCommand(commandInput.value); commandInput.value = ''; }
+document.getElementById('sendBtn').addEventListener('click', () => { sendCommand(commandInput.value); commandInput.value = ''; });
+commandInput.addEventListener('keydown', e => { if (e.key === 'Enter') { sendCommand(commandInput.value); commandInput.value = ''; } });
+
+// Advanced toggle
+document.getElementById('advancedToggleBtn').addEventListener('click', () => {
+  const panel = document.getElementById('advancedPanel');
+  const btn   = document.getElementById('advancedToggleBtn');
+  panel.classList.toggle('visible');
+  btn.textContent = panel.classList.contains('visible') ? 'Advanced ▴' : 'Advanced ▾';
 });
 
-// ================================================================
-// PATTERN GENERATOR
-// Raw step values throughout. Center + radius in firmware steps.
-// Preview before running — check the numbers make sense.
-// ================================================================
-
-// ================================================================
+// ════════════════════════════════════════════════════════════════
 // PATTERN SYSTEM
-// ================================================================
+// ════════════════════════════════════════════════════════════════
 
 const PATTERN_DEFS = {
-  spiral:      { label: 'Spiral',       desc: 'Expands outward from center while rotating. Classic sand table pattern.', params: 'standard' },
-  circle:      { label: 'Circle',       desc: 'Rotates while rho oscillates in and out. Creates rings and drifting circles.', params: 'standard' },
-  radial:      { label: 'Wave Sweep',   desc: 'Theta sweeps back and forth while rho moves across the tray. Creates wave patterns.', params: 'standard' },
-  rose:        { label: 'Rose',         desc: 'Classic polar rose. Odd K = K petals, even K = 2K petals.', params: 'rose' },
-  lissajous:   { label: 'Lissajous',    desc: 'Figure-8 and complex crossing curves. Change freq ratio for different shapes.', params: 'lissajous' },
-  epitrochoid: { label: 'Spirograph',   desc: 'Spirograph-style looping patterns. Vary R, r, d for different designs.', params: 'epitrochoid' },
-  bouncerho:   { label: 'Ripple Rings', desc: 'Rho pulses rapidly in and out while theta rotates slowly. Creates concentric ripple rings.', params: 'standard' },
-  star:        { label: 'Star',         desc: 'N-pointed star. Control inner and outer rho for sharp or soft points.', params: 'star' },
-  fermat:      { label: 'Fermat',       desc: 'Natural sunflower spiral. Tighter near center, wider at edges.', params: 'standard' },
-  text:        { label: 'Text',         desc: 'Draw connected cursive-style letters centered across the tray. Ball never lifts. Finishes with a decorative spiral.', params: 'text' },
+  spiral:      { desc: 'A classic expanding spiral from center to edge.' },
+  circle:      { desc: 'Rotating circles that drift slightly each pass.' },
+  radial:      { desc: 'Sweeping waves back and forth across the tray.' },
+  rose:        { desc: 'Petal flower shapes — try different petal counts.' },
+  lissajous:   { desc: 'Figure-8 and crossing curves based on frequency.' },
+  epitrochoid: { desc: 'Spirograph-style looping patterns.' },
+  bouncerho:   { desc: 'Rho pulses rapidly creating concentric ripple rings.' },
+  star:        { desc: 'N-pointed star — control sharpness with depth.' },
+  fermat:      { desc: 'Sunflower spiral — natural golden ratio spacing.' },
+  text:        { desc: 'Draw your name or a word in the sand.' },
 };
 
-let currentPattern = 'spiral';
-
-// ── Tab switching ─────────────────────────────────────────────────
-document.querySelectorAll('.patternTab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentPattern = btn.dataset.pattern;
-    document.querySelectorAll('.patternTab').forEach(b => {
-      b.className = 'patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs';
-    });
-    btn.className = 'patternTab bg-rose-800 hover:bg-rose-700 px-3 py-2 rounded-xl text-xs font-semibold';
-
-    const def = PATTERN_DEFS[currentPattern];
-    document.getElementById('patternDesc').textContent = def.desc;
-
-    // Show/hide param panels
-    ['paramStandard','paramRose','paramLissajous','paramEpitrochoid','paramStar','paramText'].forEach(id => {
+// Pattern card selection
+document.querySelectorAll('.pattern-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.pattern-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    currentPattern = card.dataset.pattern;
+    document.getElementById('patternDesc').textContent = PATTERN_DEFS[currentPattern]?.desc || '';
+    // Show/hide simple params
+    ['spRose','spLissajous','spEpitrochoid','spStar','spText'].forEach(id => {
       document.getElementById(id).classList.add('hidden');
     });
-    if (def.params === 'standard') document.getElementById('paramStandard').classList.remove('hidden');
-    if (def.params === 'rose')     document.getElementById('paramRose').classList.remove('hidden');
-    if (def.params === 'lissajous') document.getElementById('paramLissajous').classList.remove('hidden');
-    if (def.params === 'epitrochoid') document.getElementById('paramEpitrochoid').classList.remove('hidden');
-    if (def.params === 'star')     document.getElementById('paramStar').classList.remove('hidden');
-    if (def.params === 'text')     document.getElementById('paramText').classList.remove('hidden');
-
+    if (currentPattern === 'rose')        document.getElementById('spRose').classList.remove('hidden');
+    if (currentPattern === 'lissajous')   document.getElementById('spLissajous').classList.remove('hidden');
+    if (currentPattern === 'epitrochoid') document.getElementById('spEpitrochoid').classList.remove('hidden');
+    if (currentPattern === 'star')        document.getElementById('spStar').classList.remove('hidden');
+    if (currentPattern === 'text')        document.getElementById('spText').classList.remove('hidden');
+    // Show/hide advanced params
+    document.getElementById('advRoseParams').classList.toggle('hidden', currentPattern !== 'rose');
+    document.getElementById('advLissParams').classList.toggle('hidden', currentPattern !== 'lissajous');
+    document.getElementById('advEpiParams').classList.toggle('hidden', currentPattern !== 'epitrochoid');
     drawVisualPreview();
   });
 });
 
-// Init first tab
-document.querySelector('.patternTab[data-pattern="spiral"]').click();
+// Set initial desc
+document.getElementById('patternDesc').textContent = PATTERN_DEFS['spiral'].desc;
 
-// ── Cursive letter strokes ────────────────────────────────────────
-// Each letter is a series of [thetaFrac, rhoFrac] points (0-1 normalized)
-// thetaFrac: 0=left, 1=right of letter width
-// rhoFrac: 0=baseline, 1=top
+// Cursive letter strokes
 const CURSIVE = {
-  'A': [[0,0],[0.2,1],[0.4,0.5],[0.6,0.5],[0.8,1],[1,0]],
-  'B': [[0,0],[0,1],[0.4,1],[0.6,0.8],[0.4,0.5],[0,0.5],[0.6,0.3],[0.4,0],[0,0]],
+  'A': [[0,0],[0.2,1],[0.5,0.5],[0.8,1],[1,0]],
+  'B': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0.2],[0.5,0],[0,0]],
   'C': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2]],
-  'D': [[0,0],[0,1],[0.4,1],[0.8,0.7],[0.8,0.3],[0.4,0],[0,0]],
+  'D': [[0,0],[0,1],[0.5,1],[0.9,0.7],[0.9,0.3],[0.5,0],[0,0]],
   'E': [[0.8,1],[0,1],[0,0.5],[0.6,0.5],[0,0.5],[0,0],[0.8,0]],
   'F': [[0,0],[0,1],[0.8,1],[0,1],[0,0.5],[0.6,0.5]],
-  'G': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2],[0.8,0.5],[0.5,0.5]],
-  'H': [[0,0],[0,1],[0,0.5],[0.8,0.5],[0.8,1],[0.8,0]],
-  'I': [[0,1],[0.8,1],[0.4,1],[0.4,0],[0,0],[0.8,0]],
-  'J': [[0,1],[0.8,1],[0.8,0.3],[0.6,0],[0.2,0],[0,0.2]],
+  'G': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.5],[0.5,0.5]],
+  'H': [[0,0],[0,1],[0,0.5],[0.8,0.5],[0.8,0],[0.8,1]],
+  'I': [[0.2,1],[0.8,1],[0.5,1],[0.5,0],[0.2,0],[0.8,0]],
+  'J': [[0,1],[0.8,1],[0.8,0.2],[0.6,0],[0.2,0],[0,0.2]],
   'K': [[0,0],[0,1],[0,0.5],[0.8,1],[0,0.5],[0.8,0]],
   'L': [[0,1],[0,0],[0.8,0]],
   'M': [[0,0],[0,1],[0.4,0.5],[0.8,1],[0.8,0]],
@@ -815,7 +1065,7 @@ const CURSIVE = {
   'P': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5]],
   'Q': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1],[0.6,0.2],[0.9,0]],
   'R': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0]],
-  'S': [[0.8,0.8],[0.4,1],[0,0.8],[0.2,0.6],[0.6,0.4],[0.8,0.2],[0.4,0],[0,0.2]],
+  'S': [[0.8,0.8],[0.4,1],[0,0.7],[0.4,0.5],[0.8,0.3],[0.4,0],[0,0.2]],
   'T': [[0,1],[0.8,1],[0.4,1],[0.4,0]],
   'U': [[0,1],[0,0.3],[0.2,0],[0.6,0],[0.8,0.3],[0.8,1]],
   'V': [[0,1],[0.4,0],[0.8,1]],
@@ -827,223 +1077,189 @@ const CURSIVE = {
 };
 
 function buildTextCommands() {
-  const text       = (document.getElementById('textInput').value || 'HELLO').toUpperCase().substring(0, 10);
-  const size       = Number(document.getElementById('textSize').value || 2000);
-  const spacing    = Number(document.getElementById('textSpacing').value || 4000);
-  const rhoCenter  = Number(document.getElementById('patternRhoCenter').value || 0);
-  const cmds       = [];
-
-  // Center the text across theta = 0
-  // Total theta width of text
+  const text      = (document.getElementById('textInput').value || 'HELLO').toUpperCase().substring(0, 10);
+  const size      = Number(document.getElementById('textSizeSelect').value || 2000);
+  const spacing   = Number(document.getElementById('textSpacingSelect').value || 4500);
+  const rhoCenter = Number(document.getElementById('patternRhoCenter').value || 0);
+  const cmds      = [];
   const totalWidth = text.length * spacing * 1.2;
   let thetaOffset  = -Math.round(totalWidth / 2);
-
   for (const ch of text) {
     const strokes = CURSIVE[ch] || [[0,0.5],[1,0.5]];
     for (const [tFrac, rFrac] of strokes) {
-      const theta = Math.round(thetaOffset + tFrac * spacing);
-      const rho   = Math.round(rhoCenter + (rFrac - 0.5) * size);
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      cmds.push('GOTO T ' + Math.round(thetaOffset + tFrac * spacing) + ' R ' + Math.round(rhoCenter + (rFrac - 0.5) * size));
     }
     thetaOffset += Math.round(spacing * 1.2);
   }
-
-  // Decorative spiral around the text after it's drawn
-  const spiralPoints = 120;
-  const spiralRhoMin = rhoCenter - Math.round(size * 0.8);
-  const spiralRhoMax = rhoCenter + Math.round(size * 0.8);
-  const spiralThetaRange = Math.round(totalWidth * 0.7);
+  // Decorative spiral after text
+  const spiralPoints = 100;
+  const spiralRange  = Math.round(totalWidth * 0.6);
   for (let i = 0; i <= spiralPoints; i++) {
     const frac  = i / spiralPoints;
     const angle = Math.PI * 4 * frac;
-    const theta = Math.round(spiralThetaRange * frac * Math.cos(angle));
-    const rho   = Math.round(rhoCenter + (spiralRhoMax - spiralRhoMin) * 0.4 * frac * Math.sin(angle));
-    cmds.push('GOTO T ' + theta + ' R ' + rho);
+    cmds.push('GOTO T ' + Math.round(spiralRange * frac * Math.cos(angle)) + ' R ' + Math.round(rhoCenter + size * 0.4 * frac * Math.sin(angle)));
   }
-
   return cmds;
 }
 
-// ── Core pattern builders ─────────────────────────────────────────
 function buildPatternCommands() {
-  const points     = Math.max(10, Number(document.getElementById('patternPoints').value));
-  const rhoCenter  = Number(document.getElementById('patternRhoCenter').value || 0);
-  const pause      = Number(document.getElementById('patternPause').value || 0);
-  const cmds       = [];
-
   if (currentPattern === 'text') return buildTextCommands();
 
+  const points    = Math.max(10, Number(document.getElementById('patternPoints').value || 360));
+  const rhoCenter = Number(document.getElementById('patternRhoCenter').value || 0);
+  const cmds      = [];
+
   if (currentPattern === 'spiral') {
-    const tCenter  = Number(document.getElementById('patternThetaCenter').value || 0);
-    const tRadius  = Number(document.getElementById('patternThetaRadius').value || 25800);
-    const rRadius  = Number(document.getElementById('patternRhoRadius').value || 3000);
+    const tCenter = Number(document.getElementById('patternThetaCenter').value || 0);
+    const tRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
+    const rRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
     for (let i = 0; i <= points; i++) {
       const frac  = i / points;
       const angle = Math.PI * 6 * frac;
-      const theta = Math.round(tCenter + tRadius * frac * Math.cos(angle));
-      const rho   = Math.round(rhoCenter + rRadius * frac * Math.sin(angle));
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      cmds.push('GOTO T ' + Math.round(tCenter + tRadius * frac * Math.cos(angle)) + ' R ' + Math.round(rhoCenter + rRadius * frac * Math.sin(angle)));
     }
   } else if (currentPattern === 'circle') {
-    const tCenter  = Number(document.getElementById('patternThetaCenter').value || 0);
-    const tRadius  = Number(document.getElementById('patternThetaRadius').value || 25800);
-    const rRadius  = Number(document.getElementById('patternRhoRadius').value || 500);
+    const tCenter = Number(document.getElementById('patternThetaCenter').value || 0);
+    const tRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
+    const rRadius = Number(document.getElementById('patternRhoRadius').value || 500);
     for (let i = 0; i <= points; i++) {
       const angle = (Math.PI * 2 * i) / points;
-      const theta = Math.round(tCenter + tRadius * Math.cos(angle));
-      const rho   = Math.round(rhoCenter + rRadius * Math.sin(angle));
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      cmds.push('GOTO T ' + Math.round(tCenter + tRadius * Math.cos(angle)) + ' R ' + Math.round(rhoCenter + rRadius * Math.sin(angle)));
     }
   } else if (currentPattern === 'radial') {
-    const tCenter  = Number(document.getElementById('patternThetaCenter').value || 0);
-    const tRadius  = Number(document.getElementById('patternThetaRadius').value || 20000);
-    const rRadius  = Number(document.getElementById('patternRhoRadius').value || 3000);
+    const tCenter = Number(document.getElementById('patternThetaCenter').value || 0);
+    const tRadius = Number(document.getElementById('patternThetaRadius').value || 20000);
+    const rRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
     for (let i = 0; i <= points; i++) {
-      const frac  = i / points;
-      const theta = Math.round(tCenter + tRadius * Math.sin(Math.PI * 4 * frac));
-      const rho   = Math.round(rhoCenter + rRadius * (2 * frac - 1));
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      const frac = i / points;
+      cmds.push('GOTO T ' + Math.round(tCenter + tRadius * Math.sin(Math.PI * 4 * frac)) + ' R ' + Math.round(rhoCenter + rRadius * (2 * frac - 1)));
     }
   } else if (currentPattern === 'rose') {
-    const k     = Number(document.getElementById('roseK').value || 5);
-    const amp   = Number(document.getElementById('roseAmp').value || 3000);
-    const rots  = Number(document.getElementById('roseRot').value || 1);
+    const k    = Number(document.getElementById('roseK').value || 5);
+    const amp  = Number(document.getElementById('roseAmp')?.value || 3000);
+    const rots = Number(document.getElementById('roseRot').value || 1);
     for (let i = 0; i <= points; i++) {
       const angle = (Math.PI * 2 * rots * i) / points;
       const r     = amp * Math.cos(k * angle);
-      const theta = Math.round(angle * (25800 / (Math.PI * 2)));
-      const rho   = Math.round(rhoCenter + r);
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      cmds.push('GOTO T ' + Math.round(angle * (25800 / (Math.PI * 2))) + ' R ' + Math.round(rhoCenter + r));
     }
   } else if (currentPattern === 'lissajous') {
-    const freqA = Number(document.getElementById('lissA').value || 3);
-    const freqB = Number(document.getElementById('lissB').value || 2);
-    const tScale = Number(document.getElementById('lissTS').value || 15000);
-    const rScale = Number(document.getElementById('lissRS').value || 3000);
+    const freqA  = Number(document.getElementById('lissA').value || 3);
+    const freqB  = Number(document.getElementById('lissB').value || 2);
+    const tScale = Number(document.getElementById('lissTS')?.value || 15000);
+    const rScale = Number(document.getElementById('lissRS')?.value || 3000);
     for (let i = 0; i <= points; i++) {
-      const t     = (Math.PI * 2 * i) / points;
-      const theta = Math.round(tScale * Math.sin(freqA * t));
-      const rho   = Math.round(rhoCenter + rScale * Math.sin(freqB * t + Math.PI / 4));
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      const t = (Math.PI * 2 * i) / points;
+      cmds.push('GOTO T ' + Math.round(tScale * Math.sin(freqA * t)) + ' R ' + Math.round(rhoCenter + rScale * Math.sin(freqB * t + Math.PI / 4)));
     }
   } else if (currentPattern === 'epitrochoid') {
     const R     = Number(document.getElementById('epiR').value || 3);
     const r     = Number(document.getElementById('epir').value || 1);
     const d     = Number(document.getElementById('epid').value || 2);
-    const scale = Number(document.getElementById('epiScale').value || 3000);
-    const steps = Math.lcm ? Math.lcm(R, r) : R * r; // full cycle
+    const scale = Number(document.getElementById('epiScale')?.value || 3000);
     for (let i = 0; i <= points; i++) {
-      const t     = (Math.PI * 2 * i) / points;
-      const x     = (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t);
-      const y     = (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t);
-      const theta = Math.round(x * scale / (R + r + d));
-      const rho   = Math.round(rhoCenter + y * scale / (R + r + d));
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      const t = (Math.PI * 2 * i) / points;
+      const x = (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t);
+      const y = (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t);
+      cmds.push('GOTO T ' + Math.round(x * scale / (R + r + d)) + ' R ' + Math.round(rhoCenter + y * scale / (R + r + d)));
     }
   } else if (currentPattern === 'bouncerho') {
     const tRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
     const rRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
-    const bounces = 8;
     for (let i = 0; i <= points; i++) {
-      const frac  = i / points;
-      const theta = Math.round(tRadius * frac);
-      const rho   = Math.round(rhoCenter + rRadius * Math.sin(Math.PI * 2 * bounces * frac));
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      const frac = i / points;
+      cmds.push('GOTO T ' + Math.round(tRadius * frac) + ' R ' + Math.round(rhoCenter + rRadius * Math.sin(Math.PI * 2 * 8 * frac)));
     }
   } else if (currentPattern === 'star') {
-    const nPoints = Number(document.getElementById('starPoints').value || 5);
-    const outer   = Number(document.getElementById('starOuter').value || 3500);
-    const inner   = Number(document.getElementById('starInner').value || 1500);
-    const total   = nPoints * 2;
+    const nPts  = Number(document.getElementById('starPoints').value || 5);
+    const rOut  = Number(document.getElementById('patternRhoRadius').value || 3000);
+    const depth = Number(document.getElementById('starDepth').value || 40) / 100;
+    const rIn   = Math.round(rOut * depth);
+    const total = nPts * 2;
     for (let i = 0; i <= total; i++) {
       const angle = (Math.PI * 2 * i) / total;
-      const r     = (i % 2 === 0) ? outer : inner;
-      const theta = Math.round(angle * (25800 / (Math.PI * 2)));
-      const rho   = Math.round(rhoCenter + r);
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      const r     = (i % 2 === 0) ? rOut : rIn;
+      cmds.push('GOTO T ' + Math.round(angle * (25800 / (Math.PI * 2))) + ' R ' + Math.round(rhoCenter + r));
     }
   } else if (currentPattern === 'fermat') {
-    const tRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
     const rRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
-    const golden  = 2.399963; // golden angle in radians
+    const golden  = 2.399963;
     for (let i = 0; i <= points; i++) {
       const frac  = i / points;
       const angle = i * golden;
-      const r     = rRadius * Math.sqrt(frac);
-      const theta = Math.round(angle * (25800 / (Math.PI * 2)));
-      const rho   = Math.round(rhoCenter + r);
-      cmds.push('GOTO T ' + theta + ' R ' + rho);
+      cmds.push('GOTO T ' + Math.round(angle * (25800 / (Math.PI * 2))) + ' R ' + Math.round(rhoCenter + rRadius * Math.sqrt(frac)));
     }
   }
-
   return cmds;
 }
 
 // ── Visual preview canvas ─────────────────────────────────────────
 function drawVisualPreview() {
   const canvas = document.getElementById('patternCanvas');
-  const ctx    = canvas.getContext('2d');
-  const W = canvas.width;
-  const H = canvas.height;
-  const cx = W / 2;
-  const cy = H / 2;
-  const maxR = W / 2 - 8;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, maxR = W/2 - 6;
 
   ctx.clearRect(0, 0, W, H);
-
-  // Background circle
   ctx.beginPath();
-  ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
-  ctx.fillStyle = '#0f172a';
-  ctx.fill();
-  ctx.strokeStyle = '#334155';
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  ctx.arc(cx, cy, maxR, 0, Math.PI*2);
+  ctx.fillStyle = '#0f172a'; ctx.fill();
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; ctx.stroke();
 
-  // Get preview commands
+  // Tray rings
+  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 0.5;
+  [0.33, 0.66, 1].forEach(f => {
+    ctx.beginPath(); ctx.arc(cx, cy, maxR*f, 0, Math.PI*2); ctx.stroke();
+  });
+
   const cmds = buildPatternCommands();
   if (cmds.length < 2) return;
 
-  // Parse commands to get theta/rho ranges
-  const points = cmds.map(cmd => {
-    const tm = cmd.match(/T (-?\d+)/);
-    const rm = cmd.match(/R (-?\d+)/);
+  const pts = cmds.map(cmd => {
+    const tm = cmd.match(/T (-?\d+)/), rm = cmd.match(/R (-?\d+)/);
     return { t: tm ? Number(tm[1]) : 0, r: rm ? Number(rm[1]) : 0 };
   });
 
-  const rhoMin = Math.min(...points.map(p => p.r));
-  const rhoMax = Math.max(...points.map(p => p.r));
-  const rhoRange = rhoMax - rhoMin || 1;
+  const rMin = Math.min(...pts.map(p => p.r));
+  const rMax = Math.max(...pts.map(p => p.r));
+  const rRange = rMax - rMin || 1;
 
-  // Draw path
-  ctx.beginPath();
-  ctx.strokeStyle = '#f59e0b';
-  ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.8;
-
-  points.forEach((pt, i) => {
-    const rNorm  = (pt.r - rhoMin) / rhoRange; // 0-1
-    const radius = rNorm * maxR;
-    const angle  = (pt.t / 25800) * Math.PI * 2 - Math.PI / 2;
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
-    if (i === 0) ctx.moveTo(x, y);
-    else         ctx.lineTo(x, y);
-  });
-
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  // Draw gradient path
+  for (let i = 1; i < pts.length; i++) {
+    const pct   = i / pts.length;
+    const hue   = 40 + pct * 20;
+    ctx.beginPath();
+    ctx.strokeStyle = `hsla(${hue},90%,60%,0.7)`;
+    ctx.lineWidth   = 1.5;
+    const prev = pts[i-1], curr = pts[i];
+    const pr = ((prev.r - rMin) / rRange) * maxR;
+    const cr = ((curr.r - rMin) / rRange) * maxR;
+    const pa = (prev.t / 25800) * Math.PI * 2 - Math.PI/2;
+    const ca = (curr.t / 25800) * Math.PI * 2 - Math.PI/2;
+    ctx.moveTo(cx + pr * Math.cos(pa), cy + pr * Math.sin(pa));
+    ctx.lineTo(cx + cr * Math.cos(ca), cy + cr * Math.sin(ca));
+    ctx.stroke();
+  }
 
   // Start dot
-  const first = points[0];
-  const fRNorm = (first.r - rhoMin) / rhoRange;
-  const fRadius = fRNorm * maxR;
-  const fAngle  = (first.t / 25800) * Math.PI * 2 - Math.PI / 2;
+  const f0 = pts[0];
+  const r0 = ((f0.r - rMin) / rRange) * maxR;
+  const a0 = (f0.t / 25800) * Math.PI*2 - Math.PI/2;
   ctx.beginPath();
-  ctx.arc(cx + fRadius * Math.cos(fAngle), cy + fRadius * Math.sin(fAngle), 4, 0, Math.PI * 2);
-  ctx.fillStyle = '#22c55e';
-  ctx.fill();
+  ctx.arc(cx + r0*Math.cos(a0), cy + r0*Math.sin(a0), 5, 0, Math.PI*2);
+  ctx.fillStyle = '#22c55e'; ctx.fill();
 }
+
+// Auto-redraw on input change
+['patternPoints','patternRhoCenter','patternThetaRadius','patternRhoRadius','patternThetaCenter',
+ 'roseK','roseAmp','roseRot','lissA','lissB','lissTS','lissRS',
+ 'epiR','epir','epid','epiScale','starPoints','starDepth',
+ 'textInput','textSizeSelect','textSpacingSelect'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', drawVisualPreview);
+  if (el) el.addEventListener('change', drawVisualPreview);
+});
 
 document.getElementById('previewPatternBtn').addEventListener('click', () => {
   const cmds = buildPatternCommands();
@@ -1051,37 +1267,47 @@ document.getElementById('previewPatternBtn').addEventListener('click', () => {
   drawVisualPreview();
 });
 
-// Auto-redraw preview when inputs change
-document.querySelectorAll('#patternPoints, #patternRhoCenter, #patternThetaRadius, #patternRhoRadius, #patternThetaCenter, #roseK, #roseAmp, #roseRot, #lissA, #lissB, #lissTS, #lissRS, #epiR, #epir, #epid, #epiScale, #starPoints, #starOuter, #starInner, #textInput, #textSize, #textSpacing').forEach(el => {
-  el.addEventListener('input', drawVisualPreview);
-});
-
+// ── Run pattern ───────────────────────────────────────────────────
 async function runPattern() {
   if (patternRunning) return;
   patternRunning = true;
   patternAbort   = false;
   document.getElementById('runPatternBtn').disabled  = true;
   document.getElementById('stopPatternBtn').disabled = false;
+  document.getElementById('progressBar').classList.remove('hidden');
 
-  const pause = Math.max(0, Number(document.getElementById('patternPause').value));
+  const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
   const cmds  = buildPatternCommands();
   appendLog('--- Pattern start (' + cmds.length + ' moves) ---');
 
-  for (const cmd of cmds) {
+  for (let i = 0; i < cmds.length; i++) {
     if (patternAbort) break;
+    const pct = Math.round((i / cmds.length) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent  = pct + '%';
+    document.getElementById('progressLabel').textContent = 'Drawing... move ' + (i+1) + ' of ' + cmds.length;
     try {
-      await sendCommand(cmd, true);
-    } catch (e) {
+      await sendCommand(cmds[i], true);
+    } catch(e) {
       appendLog('Pattern error: ' + e.message);
       break;
     }
     if (pause > 0) await new Promise(r => setTimeout(r, pause));
   }
 
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressPct').textContent  = patternAbort ? 'Stopped' : '100%';
+  document.getElementById('progressLabel').textContent = patternAbort ? 'Stopped' : 'Complete!';
+
   appendLog('--- Pattern ' + (patternAbort ? 'stopped' : 'complete') + ' ---');
   await sendCommand('MOVE T 0');
   await sendCommand('MOVE R 0');
   if (!patternAbort) sendCommand('STATUS');
+
+  setTimeout(() => {
+    document.getElementById('progressBar').classList.add('hidden');
+  }, 3000);
+
   patternRunning = false;
   patternAbort   = false;
   document.getElementById('runPatternBtn').disabled  = false;
@@ -1096,9 +1322,10 @@ document.getElementById('stopPatternBtn').addEventListener('click', () => {
 
 // ── Init ──────────────────────────────────────────────────────────
 setConnectedState(false);
+drawVisualPreview();
 appendLog('Dune Weaver Mini ready.');
-appendLog('All values are raw firmware step counts. No translation.');
-appendLog('Connect and STATUS auto-populates position and limits.');
+appendLog('Click Connect to get started.');
+if (!supported) appendLog('WARNING: Use Chrome or Edge for Web Serial support.');
 </script>
 </body>
 </html>
