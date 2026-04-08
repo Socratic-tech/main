@@ -27,8 +27,9 @@
     .pos-display { font-family:'Share Tech Mono',monospace; font-size:1.4rem; color:#a78bfa; }
 
     /* Wizard overlay */
-    #wizard { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:flex; align-items:center; justify-content:center; }
-    #wizard.hidden { display:none; }
+    #wizard { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:flex; align-items:center; justify-content:center; pointer-events:all; }
+    #wizard.hidden { display:none; pointer-events:none; }
+    #wizard > div { position:relative; z-index:101; pointer-events:all; }
     .wizard-step { display:none; }
     .wizard-step.active { display:block; }
 
@@ -51,7 +52,7 @@
 <!-- SETUP WIZARD OVERLAY                                           -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <div id="wizard">
-  <div class="bg-slate-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 space-y-6">
+  <div class="bg-slate-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4 space-y-6" style="position:relative;z-index:102;pointer-events:all;">
 
     <!-- Progress dots -->
     <div class="flex justify-between items-center mb-2">
@@ -826,17 +827,18 @@ document.getElementById('wizSkipBtn').addEventListener('click', () => {
   document.getElementById('wizard').classList.add('hidden');
 });
 
-// Wizard connect button
+// Wizard connect button — requestPort must be first thing called on click
 document.getElementById('wizConnectBtn').addEventListener('click', async () => {
   const statusEl = document.getElementById('wizConnectStatus');
   statusEl.textContent = 'Connecting...';
+  // connectSerial calls requestPort() immediately — no awaits before it
   await connectSerial();
   if (writer) {
     statusEl.textContent = '✓ Connected!';
     await startWizardSetup();
     setTimeout(() => updateWizardStep(1), 800);
   } else {
-    statusEl.textContent = '✗ Connection failed. Check cable and try again.';
+    statusEl.textContent = '✗ Connection failed. Check USB cable and try again.';
   }
 });
 
