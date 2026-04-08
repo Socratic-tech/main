@@ -821,8 +821,13 @@ function enforceFirmwareFriendly(points) {
   }));
 }
 
-function buildPatternCommands() {
-  const pts = enforceFirmwareFriendly(buildPatternPoints());
+function buildPatternCommands(thetaOffset = 0) {
+  const pts = enforceFirmwareFriendly(
+    buildPatternPoints().map(p => ({
+      t: p.t + thetaOffset,
+      r: p.r
+    }))
+  );
   return pts.map(p => `GOTO T ${p.t} R ${p.r}`);
 }
 
@@ -883,9 +888,11 @@ async function runPattern() {
   document.getElementById('runPatternBtn').disabled = true;
   document.getElementById('stopPatternBtn').disabled = false;
 
+  const startTheta = trackedTheta();
   const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
-  const cmds = buildPatternCommands();
+  const cmds = buildPatternCommands(startTheta);
   appendLog('--- Pattern start (' + cmds.length + ' moves) ---');
+  appendLog('Pattern theta anchored to current theta: ' + startTheta);
   setProgress(0, cmds.length);
 
   for (let i = 0; i < cmds.length; i++) {
@@ -1024,7 +1031,8 @@ document.querySelectorAll('.patternTab').forEach(btn => {
 });
 
 document.getElementById('previewPatternBtn').addEventListener('click', () => {
-  const cmds = buildPatternCommands();
+  const startTheta = trackedTheta();
+  const cmds = buildPatternCommands(startTheta);
   document.getElementById('patternPreview').value = cmds.join('\n');
   drawVisualPreview();
 });
@@ -1043,6 +1051,7 @@ setProgress(0, 0);
 document.querySelector('.patternTab[data-pattern="spiral"]').click();
 appendLog('Dune Weaver Mini ready.');
 appendLog('All values are raw firmware step counts. No translation.');
+appendLog('Patterns anchor to current theta when a run starts.');
 appendLog('Direct connect button preserved for reliable Web Serial requestPort().');
 </script>
 </body>
