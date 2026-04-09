@@ -1,1584 +1,973 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dune Weaver Mini Controller</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;500;700&display=swap');
-    body { font-family: 'Exo 2', sans-serif; }
-    .mono { font-family: 'Share Tech Mono', monospace; }
-    code, pre, input[type="number"], input[type="text"], textarea { font-family: 'Share Tech Mono', monospace; }
-    .sand-grain {
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-    }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      display: inline-block; margin-right: 6px;
-      background: #ef4444; box-shadow: 0 0 6px #ef4444;
-      transition: background 0.25s, box-shadow 0.25s;
-    }
-    .status-dot.connected {
-      background: #22c55e; box-shadow: 0 0 8px #22c55e;
-      animation: pulse-green 2s infinite;
-    }
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 0 6px #22c55e; }
-      50% { box-shadow: 0 0 14px #22c55e; }
-    }
-    .pos-display {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 1.4rem;
-      color: #a78bfa;
-    }
-    button:disabled { opacity: 0.35; cursor: not-allowed; }
-    button:not(:disabled) { transition: transform 0.1s; }
-    button:not(:disabled):active { transform: scale(0.97); }
-    .tab-active { background: rgb(159 18 57) !important; font-weight: 700; }
-    .mode-active { background: rgb(37 99 235) !important; font-weight: 700; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dune Weaver Mini</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'Exo 2',sans-serif}
+.mono{font-family:'Share Tech Mono',monospace}
+input,textarea,pre,select{font-family:'Share Tech Mono',monospace}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")}
+body>*{position:relative;z-index:1}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:#ef4444;box-shadow:0 0 6px #ef4444;transition:background .25s,box-shadow .25s;flex-shrink:0}
+.status-dot.on{background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse-g 2s infinite}
+@keyframes pulse-g{0%,100%{box-shadow:0 0 6px #22c55e}50%{box-shadow:0 0 14px #22c55e}}
+.pos-num{font-family:'Share Tech Mono',monospace;font-size:1.35rem;color:#a78bfa}
+button{transition:transform .1s,opacity .15s;cursor:pointer}
+button:active:not(:disabled){transform:scale(0.96)}
+button:disabled{opacity:0.3;cursor:not-allowed}
+.tab-active{background:rgb(159 18 57)!important;font-weight:700}
+.mode-active{background:rgb(37 99 235)!important;font-weight:700}
+@keyframes warn-pulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0.5)}}
+.plan-stale{animation:warn-pulse 1.8s infinite}
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen sand-grain">
-<div class="max-w-7xl mx-auto p-6">
-  <header class="border-b border-slate-800 pb-4 mb-6 flex items-center justify-between flex-wrap gap-4">
-    <div>
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">🌀</span>
-        <h1 class="text-3xl font-bold tracking-tight">Dune Weaver Mini</h1>
-      </div>
-      <p class="text-slate-400 text-sm mt-1">Chrome / Edge desktop only — raw firmware step counts only</p>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+<div class="max-w-7xl mx-auto p-4 md:p-6">
+
+<header class="border-b border-slate-800 pb-4 mb-5 flex items-center justify-between flex-wrap gap-4">
+  <div>
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">&#127744;</span>
+      <h1 class="text-2xl font-bold tracking-tight">Dune Weaver Mini <span class="text-slate-500 text-base font-normal">v2</span></h1>
     </div>
-    <div class="bg-slate-900 rounded-2xl px-6 py-3 flex gap-8 items-center shadow-xl">
-      <div class="text-center">
-        <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Theta</div>
-        <div class="pos-display" id="dispTheta">--</div>
-      </div>
-      <div class="text-center">
-        <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Rho</div>
-        <div class="pos-display" id="dispRho">--</div>
-      </div>
+    <p class="text-slate-500 text-xs mt-1">Chrome / Edge only &middot; raw firmware step counts throughout</p>
+  </div>
+  <div class="bg-slate-900 rounded-2xl px-5 py-3 flex gap-7 items-center shadow-xl">
+    <div class="text-center">
+      <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Theta</div>
+      <div class="pos-num" id="dispTheta">--</div>
     </div>
-  </header>
-
-  <section class="bg-slate-900 rounded-2xl p-4 shadow-xl mb-6 space-y-3">
-    <div class="flex flex-wrap items-center gap-3">
-      <button id="uiModeCalibrate" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-semibold">Calibrate Mode</button>
-      <button id="uiModeRun" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-semibold">Run Mode</button>
-      <span id="uiModeReadout" class="text-xs text-slate-400">Run mode shows pattern tools. Calibrate mode keeps the tuning controls front and center.</span>
+    <div class="text-center">
+      <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Rho</div>
+      <div class="pos-num" id="dispRho">--</div>
     </div>
-  </section>
+  </div>
+</header>
 
-  <div class="grid xl:grid-cols-[1fr_340px] gap-6">
-    <div class="space-y-6">
-      <section class="bg-slate-900 rounded-2xl p-4 shadow-xl space-y-3">
-        <div class="flex flex-wrap gap-3 items-center">
-          <button id="connectBtn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-semibold">Connect ESP32</button>
-          <button id="disconnectBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl font-semibold" disabled>Disconnect</button>
-          <button id="statusBtn" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-xl font-semibold" disabled>STATUS</button>
-          <button id="returnRhoBtn" class="bg-violet-700 hover:bg-violet-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN RHO</button>
-          <button id="returnThetaBtn" class="bg-fuchsia-700 hover:bg-fuchsia-600 px-4 py-2 rounded-xl font-semibold" disabled>RETURN THETA</button>
-          <button id="saveBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl font-semibold" disabled>SAVE</button>
+<section class="bg-slate-900 rounded-2xl p-3 mb-5 flex flex-wrap items-center gap-3">
+  <button id="btnModeCalibrate" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-semibold">Calibrate Mode</button>
+  <button id="btnModeRun"       class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-semibold">Run Mode</button>
+  <span   id="modeReadout"      class="text-xs text-slate-400 ml-1"></span>
+</section>
+
+<div class="grid xl:grid-cols-[1fr_340px] gap-5">
+<div class="space-y-5">
+
+<!-- CONNECTION -->
+<section class="bg-slate-900 rounded-2xl p-4 space-y-3">
+  <div class="flex flex-wrap gap-2 items-center">
+    <button id="btnConnect"     class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl font-semibold text-sm">Connect ESP32</button>
+    <button id="btnDisconnect"  class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>Disconnect</button>
+    <button id="btnStatus"      class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-xl text-sm" disabled>STATUS</button>
+    <button id="btnReturnRho"   class="bg-violet-700 hover:bg-violet-600 px-4 py-2 rounded-xl text-sm" disabled>RETURN RHO</button>
+    <button id="btnReturnTheta" class="bg-fuchsia-700 hover:bg-fuchsia-600 px-4 py-2 rounded-xl text-sm" disabled>RETURN THETA</button>
+    <button id="btnSave"        class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>SAVE</button>
+  </div>
+  <div class="text-xs text-slate-400 flex gap-5 flex-wrap items-center">
+    <span class="flex items-center"><span class="status-dot" id="statusDot"></span><span id="portStatus">Not connected</span></span>
+    <span>Browser: <span id="browserStatus" class="text-slate-200"></span></span>
+  </div>
+</section>
+
+<!-- CALIBRATE SECTION -->
+<div data-section="calibrate" class="space-y-5">
+  <div class="grid lg:grid-cols-2 gap-5">
+
+    <!-- JOG -->
+    <div class="bg-slate-900 rounded-2xl p-5 space-y-4">
+      <h2 class="text-lg font-semibold">Jog</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1">
+          <label class="text-[10px] text-slate-400 uppercase tracking-widest">Step size</label>
+          <input id="jogInput" type="number" value="100" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+          <button id="btnSetJog" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET JOG</button>
         </div>
-        <div class="text-sm text-slate-400 flex gap-6 flex-wrap">
-          <div><span class="status-dot" id="statusDot"></span>Port: <span id="portStatus" class="text-slate-200">Not connected</span></div>
-          <div>Browser: <span id="browserStatus" class="text-slate-200"></span></div>
+        <div class="space-y-1">
+          <label class="text-[10px] text-slate-400 uppercase tracking-widest">Delay ms</label>
+          <input id="delayInput" type="number" value="4" min="1" max="100" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+          <button id="btnSetDelay" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET DELAY</button>
         </div>
-        <div class="text-xs text-slate-500">No startup wizard in this build. Connect stays direct so the Web Serial port picker remains reliable.</div>
-      </section>
-
-      <section data-ui-section="calibrate" class="grid lg:grid-cols-2 gap-6">
-        <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xl font-semibold">Jog</h2>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Step size</label>
-              <input id="jogInput" type="number" value="100" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-              <button id="setJogBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-sm" disabled>SET JOG</button>
-            </div>
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Delay ms</label>
-              <input id="delayInput" type="number" value="4" min="1" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-              <button id="setDelayBtn" class="w-full bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-sm" disabled>SET DELAY</button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
-            <div></div>
-            <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho Out +</button>
-            <div></div>
-            <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta -</button>
-            <button id="statusJogBtn" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-4 text-xs" disabled>STATUS</button>
-            <button data-axis="T" data-dir="1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-4 text-sm font-medium" disabled>Theta +</button>
-            <div></div>
-            <button data-axis="R" data-dir="1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-4 text-sm font-medium" disabled>Rho In -</button>
-            <div></div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <button id="zeroThetaBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm" disabled>ZERO THETA</button>
-            <button id="zeroRhoBtn" class="bg-amber-800 hover:bg-amber-700 px-4 py-3 rounded-xl text-sm" disabled>ZERO RHO</button>
-          </div>
-        </div>
-
-        <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xl font-semibold">Go To Position</h2>
-          <p class="text-xs text-slate-400">Raw firmware step values. Both axes move together for GOTO.</p>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Theta</label>
-              <input id="targetTheta" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Target Rho</label>
-              <input id="targetRho" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-            </div>
-          </div>
-          <button id="gotoBtn" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-3 rounded-xl font-semibold" disabled>GOTO</button>
-
-          <hr class="border-slate-700" />
-
-          <h3 class="text-sm font-semibold text-slate-300">Named Rho Endpoints</h3>
-          <p class="text-xs text-slate-400">GO TO buttons use MOVE R delta so theta is never touched.</p>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho In (steps)</label>
-              <div class="flex gap-2 items-center">
-                <input id="rhoInSteps" type="number" value="400" class="mono w-32 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-                <button id="captureRhoInBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap" disabled>● Capture Here</button>
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 uppercase tracking-widest mb-1">Rho Out (steps)</label>
-              <div class="flex gap-2 items-center">
-                <input id="rhoOutSteps" type="number" value="-9500" class="mono w-32 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-                <button id="captureRhoOutBtn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap" disabled>● Capture Here</button>
-              </div>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <button id="goRhoInBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO IN</button>
-            <button id="goRhoOutBtn" class="bg-emerald-900 hover:bg-emerald-800 px-4 py-3 rounded-xl text-sm" disabled>GO TO RHO OUT</button>
-          </div>
-          <button id="calcCenterBtn" class="w-full bg-blue-900 hover:bg-blue-800 px-4 py-3 rounded-xl text-sm">⊕ Calculate &amp; Apply Rho Center + Radius</button>
-          <div id="centerReadout" class="text-xs text-slate-400 text-center hidden">
-            Center: <span id="centerVal" class="text-slate-200"></span> &nbsp;|&nbsp; Max safe radius: <span id="radiusVal" class="text-slate-200"></span>
-          </div>
-        </div>
-      </section>
-
-      <section data-ui-section="calibrate" class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <h2 class="text-xl font-semibold">Firmware Limits</h2>
-          <span class="text-xs text-slate-500">Syncs once from STATUS after connect. Edit fields and press SET to push to firmware.</span>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">RMIN</label>
-            <input id="fwRmin" type="number" value="-9800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setRminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">RMAX</label>
-            <input id="fwRmax" type="number" value="400" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setRmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">TMIN</label>
-            <input id="fwTmin" type="number" value="-25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setTminBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400 w-14 shrink-0">TMAX</label>
-            <input id="fwTmax" type="number" value="25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-            <button id="setTmaxBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs shrink-0" disabled>SET</button>
-          </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="text-xs text-slate-400">Comp</div>
-          <input id="compInput" type="number" value="17" min="0" max="100" class="mono w-24 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm" />
-          <button id="setCompBtn" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET COMP</button>
-        </div>
-      </section>
-
-      <section id="patternSection" data-ui-section="run" class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-4">
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h2 class="text-xl font-semibold">Pattern Generator</h2>
-            <p class="text-xs text-slate-400 mt-1">This view compiles a pattern, shows the exact transformed plan, and lets you run it in small chunks.</p>
-          </div>
-          <div id="planStatus" class="text-xs text-slate-400 bg-slate-800 rounded-xl px-3 py-2">No compiled plan yet.</div>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <button data-pattern="spiral" class="patternTab bg-rose-800 hover:bg-rose-700 px-3 py-2 rounded-xl text-xs font-semibold">Spiral</button>
-          <button data-pattern="circle" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Circle</button>
-          <button data-pattern="radial" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Wave Sweep</button>
-          <button data-pattern="rose" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Rose</button>
-          <button data-pattern="lissajous" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Lissajous</button>
-          <button data-pattern="epitrochoid" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Spirograph</button>
-          <button data-pattern="bouncerho" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Ripple Rings</button>
-          <button data-pattern="pond" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Pond Ripples</button>
-          <button data-pattern="star" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Star</button>
-          <button data-pattern="fermat" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Fermat</button>
-          <button data-pattern="text" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">✏️ Text</button>
-        </div>
-
-        <p id="patternDesc" class="text-xs text-slate-400 italic"></p>
-
-        <div class="grid sm:grid-cols-5 gap-4">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
-            <input id="patternPoints" type="number" value="360" min="10" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Pause ms</label>
-            <input id="patternPause" type="number" value="0" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center</label>
-            <input id="patternRhoCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Start position</label>
-            <select id="patternStartMode" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
-              <option value="inside">Inside</option>
-              <option value="outside">Outside</option>
-              <option value="current">Current</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">End position</label>
-            <select id="patternEndMode" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
-              <option value="natural">Natural</option>
-              <option value="inside">Inside</option>
-              <option value="outside">Outside</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="paramStandard" class="grid sm:grid-cols-4 gap-4">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta radius</label>
-            <input id="patternThetaRadius" type="number" value="25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho radius</label>
-            <input id="patternRhoRadius" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta center</label>
-            <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Turns / cycles</label>
-            <input id="spiralTurns" type="number" value="4" min="1" max="30" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-
-        <div id="paramPond" class="grid sm:grid-cols-4 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rings</label>
-            <input id="pondRings" type="number" value="12" min="2" max="60" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Turns per ring</label>
-            <input id="pondTurnsPerRing" type="number" value="1" min="1" max="5" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Outer margin</label>
-            <input id="pondOuterMargin" type="number" value="250" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Inner margin</label>
-            <input id="pondInnerMargin" type="number" value="350" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramRose" class="grid sm:grid-cols-3 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Petals (odd=N, even=2N)</label>
-            <input id="roseK" type="number" value="5" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho amplitude</label>
-            <input id="roseAmp" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rotations</label>
-            <input id="roseRot" type="number" value="1" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramLissajous" class="grid sm:grid-cols-4 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Freq A</label>
-            <input id="lissA" type="number" value="3" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Freq B</label>
-            <input id="lissB" type="number" value="2" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta scale</label>
-            <input id="lissTS" type="number" value="15000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho scale</label>
-            <input id="lissRS" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramEpitrochoid" class="grid sm:grid-cols-4 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">R (outer)</label>
-            <input id="epiR" type="number" value="3" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">r (inner)</label>
-            <input id="epir" type="number" value="1" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">d (pen dist)</label>
-            <input id="epid" type="number" value="2" min="0" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Scale</label>
-            <input id="epiScale" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramStar" class="grid sm:grid-cols-3 gap-4 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
-            <input id="starPoints" type="number" value="5" min="3" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Outer rho</label>
-            <input id="starOuter" type="number" value="3500" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Inner rho</label>
-            <input id="starInner" type="number" value="1500" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-          </div>
-        </div>
-
-        <div id="paramText" class="space-y-3 hidden">
-          <div class="space-y-2">
-            <label class="block text-xs text-slate-400 uppercase tracking-widest">Text to draw</label>
-            <input id="textInput" type="text" value="HELLO" maxlength="12" placeholder="Up to 12 characters" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 uppercase" />
-          </div>
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Letter size (rho steps)</label>
-              <input id="textSize" type="number" value="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-            </div>
-            <div class="space-y-2">
-              <label class="block text-xs text-slate-400 uppercase tracking-widest">Theta per letter</label>
-              <input id="textSpacing" type="number" value="4000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-2">
-          <label class="block text-xs text-slate-400 uppercase tracking-widest">Visual Preview</label>
-          <canvas id="patternCanvas" width="320" height="320" class="rounded-2xl bg-black/40 mx-auto block" style="max-width:320px;"></canvas>
-        </div>
-
-        <div class="space-y-2">
-          <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-            <div id="progressFill" class="bg-rose-600 h-3 rounded-full transition-all" style="width:0%"></div>
-          </div>
-          <div id="progressText" class="text-xs text-slate-400 text-center">Idle</div>
-        </div>
-
-        <div class="flex flex-wrap gap-3">
-          <button id="previewPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Preview / Recompile</button>
-          <button id="resetPlanBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm">Reset Plan</button>
-          <button id="runPatternBtn" class="bg-rose-700 hover:bg-rose-600 px-4 py-3 rounded-xl font-semibold" disabled>▶ Run Full</button>
-          <button id="run1Btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl text-sm" disabled>Run 1</button>
-          <button id="run5Btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl text-sm" disabled>Run 5</button>
-          <button id="run20Btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-3 rounded-xl text-sm" disabled>Run 20</button>
-          <button id="stopPatternBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl text-sm" disabled>■ Stop</button>
-        </div>
-
-        <div class="grid lg:grid-cols-2 gap-4">
-          <div class="bg-slate-950/50 rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <h3 class="text-sm font-semibold text-slate-200">Preflight Diagnostics</h3>
-              <span id="diagnosticBadge" class="text-[11px] text-slate-400 bg-slate-800 rounded-lg px-2 py-1">Awaiting preview</span>
-            </div>
-            <div id="diagGrid" class="grid grid-cols-2 gap-2 text-xs text-slate-300">
-              <div class="bg-slate-900 rounded-xl px-3 py-2">Points <span id="diagPoints" class="float-right text-slate-100">--</span></div>
-              <div class="bg-slate-900 rounded-xl px-3 py-2">Anchor θ <span id="diagAnchor" class="float-right text-slate-100">--</span></div>
-              <div class="bg-slate-900 rounded-xl px-3 py-2">θ min/max <span id="diagThetaRange" class="float-right text-slate-100">--</span></div>
-              <div class="bg-slate-900 rounded-xl px-3 py-2">ρ min/max <span id="diagRhoRange" class="float-right text-slate-100">--</span></div>
-              <div class="bg-slate-900 rounded-xl px-3 py-2">θ behavior <span id="diagThetaMode" class="float-right text-slate-100">--</span></div>
-              <div class="bg-slate-900 rounded-xl px-3 py-2">ρ clamped <span id="diagClampCount" class="float-right text-slate-100">--</span></div>
-            </div>
-            <div class="space-y-2">
-              <div class="text-[11px] uppercase tracking-widest text-slate-500">Warnings</div>
-              <div id="diagWarnings" class="text-xs text-slate-300 bg-slate-900 rounded-xl p-3 min-h-[68px]">Compile a preview to see warnings.</div>
-            </div>
-          </div>
-
-          <div class="bg-slate-950/50 rounded-2xl p-4 space-y-3">
-            <div class="text-sm font-semibold text-slate-200">Exact Plan Preview</div>
-            <div class="grid gap-2 text-xs text-slate-300">
-              <div class="bg-slate-900 rounded-xl px-3 py-2">First command <span id="diagFirstCmd" class="block text-slate-100 mt-1 break-all">--</span></div>
-              <div class="bg-slate-900 rounded-xl px-3 py-2">Last command <span id="diagLastCmd" class="block text-slate-100 mt-1 break-all">--</span></div>
-            </div>
-          </div>
-        </div>
-
-        <textarea id="patternPreview" class="mono w-full h-40 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Click Preview to compile the exact GOTO list before running…"></textarea>
-      </section>
+      </div>
+      <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto">
+        <div></div>
+        <button data-axis="R" data-dir="-1" class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-3 text-xs font-medium" disabled>Rho Out</button>
+        <div></div>
+        <button data-axis="T" data-dir="-1" class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-3 text-xs font-medium" disabled>&#952; &minus;</button>
+        <button id="btnStatusJog" class="bg-slate-700 hover:bg-slate-600 rounded-2xl py-3 text-[10px]" disabled>STATUS</button>
+        <button data-axis="T" data-dir="1"  class="jogBtn bg-blue-800 hover:bg-blue-700 rounded-2xl py-3 text-xs font-medium" disabled>&#952; +</button>
+        <div></div>
+        <button data-axis="R" data-dir="1"  class="jogBtn bg-emerald-800 hover:bg-emerald-700 rounded-2xl py-3 text-xs font-medium" disabled>Rho In</button>
+        <div></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btnZeroTheta" class="bg-amber-800 hover:bg-amber-700 px-3 py-2 rounded-xl text-xs" disabled>ZERO THETA</button>
+        <button id="btnZeroRho"   class="bg-amber-800 hover:bg-amber-700 px-3 py-2 rounded-xl text-xs" disabled>ZERO RHO</button>
+      </div>
     </div>
 
-    <div class="w-full xl:w-[340px] xl:sticky xl:top-6 self-start">
-      <div class="bg-slate-900 rounded-2xl p-5 shadow-xl space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold">Console</h2>
-          <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-300 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700">Clear</button>
+    <!-- GOTO + ENDPOINTS -->
+    <div class="bg-slate-900 rounded-2xl p-5 space-y-4">
+      <h2 class="text-lg font-semibold">Go To Position</h2>
+      <p class="text-xs text-slate-400">GOTO moves both axes together (with compensation).</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Target Theta</label>
+          <input id="targetTheta" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
         </div>
-        <div class="flex gap-2">
-          <input id="commandInput" type="text" placeholder="TYPE COMMAND…" class="mono flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500" />
-          <button id="sendBtn" class="bg-cyan-700 hover:bg-cyan-600 px-3 py-2 rounded-xl font-semibold text-sm" disabled>Send</button>
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Target Rho</label>
+          <input id="targetRho" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
         </div>
-        <pre id="log" class="mono bg-black/40 rounded-2xl p-4 overflow-auto text-xs whitespace-pre-wrap leading-relaxed" style="height: calc(100vh - 220px); min-height: 420px;"></pre>
       </div>
+      <button id="btnGoto" class="w-full bg-violet-700 hover:bg-violet-600 px-4 py-2 rounded-xl font-semibold text-sm" disabled>GOTO</button>
+      <hr class="border-slate-700"/>
+      <h3 class="text-sm font-semibold text-slate-300">Named Rho Endpoints</h3>
+      <p class="text-xs text-slate-400">GO TO buttons use MOVE R (literal, no comp).</p>
+      <div class="space-y-2">
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Rho In (steps)</label>
+          <div class="flex gap-2">
+            <input id="rhoInSteps" type="number" value="400" class="mono w-28 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+            <button id="btnCaptureRhoIn" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap flex-1" disabled>&#9679; Capture Here</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Rho Out (steps)</label>
+          <div class="flex gap-2">
+            <input id="rhoOutSteps" type="number" value="-9500" class="mono w-28 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+            <button id="btnCaptureRhoOut" class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded-xl text-xs whitespace-nowrap flex-1" disabled>&#9679; Capture Here</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btnGoRhoIn"  class="bg-emerald-900 hover:bg-emerald-800 px-3 py-2 rounded-xl text-xs" disabled>GO TO RHO IN</button>
+        <button id="btnGoRhoOut" class="bg-emerald-900 hover:bg-emerald-800 px-3 py-2 rounded-xl text-xs" disabled>GO TO RHO OUT</button>
+      </div>
+      <button id="btnCalcCenter" class="w-full bg-blue-900 hover:bg-blue-800 px-3 py-2 rounded-xl text-xs">&#8853; Calculate &amp; Apply Rho Center + Radius</button>
+      <div id="centerReadout" class="text-xs text-slate-400 text-center hidden">
+        Center: <span id="centerVal" class="text-slate-200"></span> &nbsp;|&nbsp; Radius: <span id="radiusVal" class="text-slate-200"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIRMWARE LIMITS -->
+  <div class="bg-slate-900 rounded-2xl p-5 space-y-4">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <h2 class="text-lg font-semibold">Firmware Limits</h2>
+      <span class="text-xs text-slate-500">Synced from STATUS after connect.</span>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-400 w-12 shrink-0">RMIN</label>
+        <input id="fwRmin" type="number" value="-9800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+        <button id="btnSetRmin" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-400 w-12 shrink-0">RMAX</label>
+        <input id="fwRmax" type="number" value="400" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+        <button id="btnSetRmax" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-400 w-12 shrink-0">TMIN</label>
+        <input id="fwTmin" type="number" value="-25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+        <button id="btnSetTmin" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-400 w-12 shrink-0">TMAX</label>
+        <input id="fwTmax" type="number" value="25800" class="mono flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+        <button id="btnSetTmax" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET</button>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="text-xs text-slate-400 shrink-0">COMP</label>
+      <input id="compInput" type="number" value="17" min="0" max="100" class="mono w-20 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/>
+      <button id="btnSetComp" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs" disabled>SET COMP</button>
+      <span class="text-xs text-slate-500">rho nudges per 100 theta steps</span>
     </div>
   </div>
 </div>
 
+<!-- RUN SECTION -->
+<div data-section="run" class="space-y-5">
+  <div class="bg-slate-900 rounded-2xl p-5 space-y-4">
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h2 class="text-lg font-semibold">Pattern Generator</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Compile anchors the plan to live theta. Jogging after compile marks the plan stale.</p>
+      </div>
+      <div id="planStatus" class="text-xs text-slate-400 bg-slate-800 rounded-xl px-3 py-2 max-w-xs text-right">No plan compiled.</div>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button data-pattern="spiral"      class="patternTab bg-rose-800 hover:bg-rose-700 px-3 py-1.5 rounded-xl text-xs font-semibold">Spiral</button>
+      <button data-pattern="circle"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Circle</button>
+      <button data-pattern="radial"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Wave Sweep</button>
+      <button data-pattern="rose"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Rose</button>
+      <button data-pattern="lissajous"   class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Lissajous</button>
+      <button data-pattern="epitrochoid" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Spirograph</button>
+      <button data-pattern="bouncerho"   class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Ripple Rings</button>
+      <button data-pattern="pond"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Pond Ripples</button>
+      <button data-pattern="star"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Star</button>
+      <button data-pattern="fermat"      class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">Fermat</button>
+      <button data-pattern="text"        class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-xs">&#9999;&#65039; Text</button>
+    </div>
+    <p id="patternDesc" class="text-xs text-slate-400 italic"></p>
+
+    <div class="grid sm:grid-cols-5 gap-3">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Source pts</label>
+        <input id="patternPoints" type="number" value="360" min="10" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Pause ms</label>
+        <input id="patternPause" type="number" value="0" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Rho center</label>
+        <input id="patternRhoCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Start pos</label>
+        <select id="patternStartMode" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-2 py-2 text-sm">
+          <option value="inside">Inside</option><option value="outside">Outside</option><option value="current">Current</option>
+        </select></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">End pos</label>
+        <select id="patternEndMode" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-2 py-2 text-sm">
+          <option value="natural">Natural</option><option value="inside">Inside</option><option value="outside">Outside</option>
+        </select></div>
+    </div>
+
+    <div id="paramStandard" class="grid sm:grid-cols-4 gap-3">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Theta radius</label>
+        <input id="patternThetaRadius" type="number" value="25800" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Rho radius</label>
+        <input id="patternRhoRadius" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Theta center</label>
+        <input id="patternThetaCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Turns / cycles</label>
+        <input id="spiralTurns" type="number" value="4" min="1" max="30" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+    </div>
+    <div id="paramPond" class="grid sm:grid-cols-4 gap-3 hidden">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Rings</label>
+        <input id="pondRings" type="number" value="12" min="2" max="60" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Turns/ring</label>
+        <input id="pondTurnsPerRing" type="number" value="1" min="1" max="5" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Outer margin</label>
+        <input id="pondOuterMargin" type="number" value="250" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Inner margin</label>
+        <input id="pondInnerMargin" type="number" value="350" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+    </div>
+    <div id="paramRose" class="grid sm:grid-cols-3 gap-3 hidden">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Petals k</label>
+        <input id="roseK" type="number" value="5" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Rho amplitude</label>
+        <input id="roseAmp" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Rotations</label>
+        <input id="roseRot" type="number" value="1" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+    </div>
+    <div id="paramLissajous" class="grid sm:grid-cols-4 gap-3 hidden">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Freq A</label>
+        <input id="lissA" type="number" value="3" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Freq B</label>
+        <input id="lissB" type="number" value="2" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Theta scale</label>
+        <input id="lissTS" type="number" value="15000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Rho scale</label>
+        <input id="lissRS" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+    </div>
+    <div id="paramEpitrochoid" class="grid sm:grid-cols-4 gap-3 hidden">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">R outer</label>
+        <input id="epiR" type="number" value="3" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">r inner</label>
+        <input id="epir" type="number" value="1" min="1" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">d pen</label>
+        <input id="epid" type="number" value="2" min="0" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Scale</label>
+        <input id="epiScale" type="number" value="3000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+    </div>
+    <div id="paramStar" class="grid sm:grid-cols-3 gap-3 hidden">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Points</label>
+        <input id="starPoints" type="number" value="5" min="3" max="20" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Outer rho</label>
+        <input id="starOuter" type="number" value="3500" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Inner rho</label>
+        <input id="starInner" type="number" value="1500" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+    </div>
+    <div id="paramText" class="space-y-3 hidden">
+      <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Text (max 12)</label>
+        <input id="textInput" type="text" value="HELLO" maxlength="12" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm uppercase"/></div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Letter size (rho)</label>
+          <input id="textSize" type="number" value="2000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+        <div class="space-y-1"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Theta / letter</label>
+          <input id="textSpacing" type="number" value="4000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm"/></div>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Visual Preview</label>
+      <canvas id="patternCanvas" width="320" height="320" class="rounded-2xl bg-black/40 mx-auto block" style="max-width:320px;"></canvas>
+    </div>
+
+    <div class="space-y-1">
+      <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+        <div id="progressFill" class="bg-rose-600 h-2.5 rounded-full transition-all duration-200" style="width:0%"></div>
+      </div>
+      <div id="progressText" class="text-xs text-slate-400 text-center">Idle</div>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button id="btnPreview"   class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm">Preview / Compile</button>
+      <button id="btnResetPlan" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm">Reset Plan</button>
+      <button id="btnRunFull"   class="bg-rose-700 hover:bg-rose-600 px-4 py-2 rounded-xl text-sm font-semibold" disabled>&#9654; Run Full</button>
+      <button id="btnRun1"      class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-xl text-sm" disabled>Run 1</button>
+      <button id="btnRun5"      class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-xl text-sm" disabled>Run 5</button>
+      <button id="btnRun20"     class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-xl text-sm" disabled>Run 20</button>
+      <button id="btnStop"      class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm" disabled>&#9632; Stop</button>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-4">
+      <div class="bg-slate-950/50 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-sm font-semibold">Preflight Diagnostics</h3>
+          <span id="diagBadge" class="text-[11px] text-slate-400 bg-slate-800 rounded-lg px-2 py-1">Awaiting preview</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs text-slate-300">
+          <div class="bg-slate-900 rounded-xl px-3 py-2">Points    <span id="diagPoints"     class="float-right text-slate-100">--</span></div>
+          <div class="bg-slate-900 rounded-xl px-3 py-2">Anchor &#952; <span id="diagAnchor"  class="float-right text-slate-100">--</span></div>
+          <div class="bg-slate-900 rounded-xl px-3 py-2">&#952; min/max<span id="diagThetaRange" class="float-right text-slate-100">--</span></div>
+          <div class="bg-slate-900 rounded-xl px-3 py-2">&#961; min/max<span id="diagRhoRange"   class="float-right text-slate-100">--</span></div>
+          <div class="bg-slate-900 rounded-xl px-3 py-2">&#952; behavior<span id="diagThetaMode"  class="float-right text-slate-100">--</span></div>
+          <div class="bg-slate-900 rounded-xl px-3 py-2">&#961; clamped <span id="diagClampCount" class="float-right text-slate-100">--</span></div>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Warnings</div>
+          <div id="diagWarnings" class="text-xs text-slate-300 bg-slate-900 rounded-xl p-3 min-h-[56px]">Compile a plan to see warnings.</div>
+        </div>
+      </div>
+      <div class="bg-slate-950/50 rounded-2xl p-4 space-y-3">
+        <div class="text-sm font-semibold">Plan Bookends</div>
+        <div class="space-y-2 text-xs text-slate-300">
+          <div class="bg-slate-900 rounded-xl px-3 py-2">First GOTO <span id="diagFirstCmd" class="block text-slate-100 mt-1 break-all">--</span></div>
+          <div class="bg-slate-900 rounded-xl px-3 py-2">Last GOTO  <span id="diagLastCmd"  class="block text-slate-100 mt-1 break-all">--</span></div>
+        </div>
+      </div>
+    </div>
+
+    <textarea id="planPreview" class="mono w-full h-36 bg-black/40 rounded-2xl p-4 text-xs resize-y" spellcheck="false" placeholder="Compiled GOTO list appears here after Preview..."></textarea>
+  </div>
+</div>
+
+</div><!-- main col -->
+
+<!-- CONSOLE -->
+<div class="w-full xl:w-[340px] xl:sticky xl:top-5 self-start">
+  <div class="bg-slate-900 rounded-2xl p-4 space-y-3">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold">Console</h2>
+      <button id="btnClearLog" class="text-xs text-slate-500 hover:text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg">Clear</button>
+    </div>
+    <div class="flex gap-2">
+      <input id="commandInput" type="text" placeholder="TYPE COMMAND..." class="mono flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500"/>
+      <button id="btnSend" class="bg-cyan-700 hover:bg-cyan-600 px-3 py-2 rounded-xl text-sm font-semibold" disabled>Send</button>
+    </div>
+    <pre id="log" class="mono bg-black/40 rounded-2xl p-4 overflow-auto text-xs whitespace-pre-wrap leading-relaxed" style="height:calc(100vh - 240px);min-height:400px;"></pre>
+  </div>
+</div>
+
+</div><!-- grid -->
+</div><!-- container -->
+
 <script>
-let port = null;
-let reader = null;
-let writer = null;
-let inputDone = null;
-let outputDone = null;
-let lineBuffer = '';
-let pendingCommand = null;
-let currentTheta = null;
-let currentRho = null;
-let patternRunning = false;
-let patternAbort = false;
-let limitsSynced = false;
-let uiMode = 'run';
-let planDirty = true;
-let currentPlanCommands = [];
-let currentPlanStats = null;
-let currentPlanIndex = 0;
-let currentPlanAnchor = 0;
-let currentPlanExpandedPoints = [];
-const SEGMENT_LIMITS = {
-  maxThetaStep: 100,
-  maxRhoStep: 50,
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const MAX_THETA_STEP=50,MAX_RHO_STEP=25;
+const PATTERN_DEFS={
+  spiral:     {desc:'Archimedean spiral sweeping from Rho In to Rho Out.',params:'standard'},
+  circle:     {desc:'Ring: theta rotates, rho fixed.',params:'standard'},
+  radial:     {desc:'Wave sweep: theta sweeps back and forth while rho drifts.',params:'standard'},
+  rose:       {desc:'Polar rose: rho follows cosine petal as theta advances.',params:'rose'},
+  lissajous:  {desc:'Cartesian Lissajous converted to continuous polar motion.',params:'lissajous'},
+  epitrochoid:{desc:'Spirograph loop converted to continuous polar motion.',params:'epitrochoid'},
+  bouncerho:  {desc:'Ripple rings: theta rotates while rho oscillates.',params:'standard'},
+  pond:       {desc:'Concentric rings stepping outward — pond ripple look.',params:'pond'},
+  star:       {desc:'Star polygon converted to continuous polar motion.',params:'star'},
+  fermat:     {desc:'Fermat spiral converted to continuous polar motion.',params:'standard'},
+  text:       {desc:'Single-stroke block letters with trailing flourish.',params:'text'},
 };
-
-const supported = 'serial' in navigator;
-const logEl = document.getElementById('log');
-const connectBtn = document.getElementById('connectBtn');
-const commandInput = document.getElementById('commandInput');
-
-document.getElementById('browserStatus').textContent =
-  supported ? 'Web Serial available' : 'NOT available — use Chrome or Edge';
-
-const PATTERN_DEFS = {
-  spiral:      { desc: 'Window-based spiral: starts at Rho In and sweeps toward Rho Out while theta advances.', params: 'standard' },
-  circle:      { desc: 'True circular ring: theta rotates steadily while rho stays fixed.', params: 'standard' },
-  radial:      { desc: 'Wave sweep: theta sweeps back and forth while rho drifts across the tray.', params: 'standard' },
-  rose:        { desc: 'True polar rose: theta rotates steadily while rho follows a cosine petal pattern.', params: 'rose' },
-  lissajous:   { desc: 'Cartesian Lissajous converted into continuous polar motion.', params: 'lissajous' },
-  epitrochoid: { desc: 'Spirograph loop converted into continuous polar motion.', params: 'epitrochoid' },
-  bouncerho:   { desc: 'Ripple rings: theta rotates while rho pulses in and out repeatedly.', params: 'standard' },
-  pond:        { desc: 'Concentric circles that step inward one ring at a time for a calm pond-ripple look.', params: 'pond' },
-  star:        { desc: 'Connected star path converted into continuous polar motion.', params: 'star' },
-  fermat:      { desc: 'Fermat spiral converted into continuous polar motion.', params: 'standard' },
-  text:        { desc: 'Connected single-stroke letters followed by a small flourish.', params: 'text' },
+const CURSIVE={
+  'A':[[0,0],[0.2,1],[0.4,0.5],[0.6,0.5],[0.8,1],[1,0]],
+  'B':[[0,0],[0,1],[0.4,1],[0.6,0.8],[0.4,0.5],[0,0.5],[0.6,0.3],[0.4,0],[0,0]],
+  'C':[[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2]],
+  'D':[[0,0],[0,1],[0.4,1],[0.8,0.7],[0.8,0.3],[0.4,0],[0,0]],
+  'E':[[0.8,1],[0,1],[0,0.5],[0.6,0.5],[0,0.5],[0,0],[0.8,0]],
+  'F':[[0,0],[0,1],[0.8,1],[0,1],[0,0.5],[0.6,0.5]],
+  'G':[[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2],[0.8,0.5],[0.5,0.5]],
+  'H':[[0,0],[0,1],[0,0.5],[0.8,0.5],[0.8,1],[0.8,0]],
+  'I':[[0,1],[0.8,1],[0.4,1],[0.4,0],[0,0],[0.8,0]],
+  'J':[[0,1],[0.8,1],[0.8,0.3],[0.6,0],[0.2,0],[0,0.2]],
+  'K':[[0,0],[0,1],[0,0.5],[0.8,1],[0,0.5],[0.8,0]],
+  'L':[[0,1],[0,0],[0.8,0]],
+  'M':[[0,0],[0,1],[0.4,0.5],[0.8,1],[0.8,0]],
+  'N':[[0,0],[0,1],[0.8,0],[0.8,1]],
+  'O':[[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1]],
+  'P':[[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5]],
+  'Q':[[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1],[0.6,0.2],[0.9,0]],
+  'R':[[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0]],
+  'S':[[0.8,0.8],[0.4,1],[0,0.8],[0.2,0.6],[0.6,0.4],[0.8,0.2],[0.4,0],[0,0.2]],
+  'T':[[0,1],[0.8,1],[0.4,1],[0.4,0]],
+  'U':[[0,1],[0,0.3],[0.2,0],[0.6,0],[0.8,0.3],[0.8,1]],
+  'V':[[0,1],[0.4,0],[0.8,1]],
+  'W':[[0,1],[0.2,0],[0.4,0.5],[0.6,0],[0.8,1]],
+  'X':[[0,1],[0.8,0],[0.4,0.5],[0,0],[0.8,1]],
+  'Y':[[0,1],[0.4,0.5],[0.8,1],[0.4,0.5],[0.4,0]],
+  'Z':[[0,1],[0.8,1],[0,0],[0.8,0]],
+  ' ':[[0.5,0.5]],
 };
+const STORAGE={rhoIn:'dune_rho_in',rhoOut:'dune_rho_out',rhoCenter:'dune_rho_center',
+  rhoRadius:'dune_rho_radius',spiralTurns:'dune_spiral_turns',
+  startMode:'dune_start_mode',endMode:'dune_end_mode',uiMode:'dune_ui_mode'};
 
-let currentPattern = 'spiral';
-const STORAGE_KEYS = {
-  rhoIn: 'dune_rho_in_steps',
-  rhoOut: 'dune_rho_out_steps',
-  patternRhoCenter: 'dune_pattern_rho_center',
-  patternRhoRadius: 'dune_pattern_rho_radius',
-  spiralTurns: 'dune_spiral_turns'
-};
+// ── STATE ──────────────────────────────────────────────────────────────────
+let port=null,reader=null,writer=null,inputDone=null,outputDone=null,lineBuffer='';
+let currentTheta=null,currentRho=null;
+let planDirty=true,planCommands=[],planIndex=0,planAnchor=0,planStats=null;
+let patternRunning=false,patternAbort=false;
+let pendingCmd=null,limitsSynced=false;
+let currentPattern='spiral',uiMode='run';
+let previewDebounce=null;
+const supported='serial' in navigator;
+const logEl=document.getElementById('log');
+const $=id=>document.getElementById(id);
 
-const CURSIVE = {
-  'A': [[0,0],[0.2,1],[0.4,0.5],[0.6,0.5],[0.8,1],[1,0]],
-  'B': [[0,0],[0,1],[0.4,1],[0.6,0.8],[0.4,0.5],[0,0.5],[0.6,0.3],[0.4,0],[0,0]],
-  'C': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2]],
-  'D': [[0,0],[0,1],[0.4,1],[0.8,0.7],[0.8,0.3],[0.4,0],[0,0]],
-  'E': [[0.8,1],[0,1],[0,0.5],[0.6,0.5],[0,0.5],[0,0],[0.8,0]],
-  'F': [[0,0],[0,1],[0.8,1],[0,1],[0,0.5],[0.6,0.5]],
-  'G': [[0.8,0.8],[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.2],[0.8,0.5],[0.5,0.5]],
-  'H': [[0,0],[0,1],[0,0.5],[0.8,0.5],[0.8,1],[0.8,0]],
-  'I': [[0,1],[0.8,1],[0.4,1],[0.4,0],[0,0],[0.8,0]],
-  'J': [[0,1],[0.8,1],[0.8,0.3],[0.6,0],[0.2,0],[0,0.2]],
-  'K': [[0,0],[0,1],[0,0.5],[0.8,1],[0,0.5],[0.8,0]],
-  'L': [[0,1],[0,0],[0.8,0]],
-  'M': [[0,0],[0,1],[0.4,0.5],[0.8,1],[0.8,0]],
-  'N': [[0,0],[0,1],[0.8,0],[0.8,1]],
-  'O': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1]],
-  'P': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5]],
-  'Q': [[0.4,1],[0,0.7],[0,0.3],[0.4,0],[0.8,0.3],[0.8,0.7],[0.4,1],[0.6,0.2],[0.9,0]],
-  'R': [[0,0],[0,1],[0.5,1],[0.8,0.8],[0.5,0.5],[0,0.5],[0.5,0.5],[0.8,0]],
-  'S': [[0.8,0.8],[0.4,1],[0,0.8],[0.2,0.6],[0.6,0.4],[0.8,0.2],[0.4,0],[0,0.2]],
-  'T': [[0,1],[0.8,1],[0.4,1],[0.4,0]],
-  'U': [[0,1],[0,0.3],[0.2,0],[0.6,0],[0.8,0.3],[0.8,1]],
-  'V': [[0,1],[0.4,0],[0.8,1]],
-  'W': [[0,1],[0.2,0],[0.4,0.5],[0.6,0],[0.8,1]],
-  'X': [[0,1],[0.8,0],[0.4,0.5],[0,0],[0.8,1]],
-  'Y': [[0,1],[0.4,0.5],[0.8,1],[0.4,0.5],[0.4,0]],
-  'Z': [[0,1],[0.8,1],[0,0],[0.8,0]],
-  ' ': [[0.5,0.5]],
-};
+// ── HELPERS ────────────────────────────────────────────────────────────────
+const appendLog=t=>{logEl.textContent+=t+'\n';logEl.scrollTop=logEl.scrollHeight};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const trackedTheta=()=>currentTheta!==null?currentTheta:0;
+const trackedRho=()=>currentRho!==null?currentRho:0;
+function setProgress(done,total){
+  const pct=total>0?Math.round(done/total*100):0;
+  $('progressFill').style.width=pct+'%';
+  $('progressText').textContent=total>0?`${done} / ${total} (${pct}%)`:'Idle';
+}
 
-function gcd(a, b) {
-  a = Math.abs(a); b = Math.abs(b);
-  while (b) [a, b] = [b, a % b];
-  return a || 1;
-}
-function lcm(a, b) {
-  return Math.abs(a * b) / gcd(a, b);
-}
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-function appendLog(text) {
-  logEl.textContent += text + '\n';
-  logEl.scrollTop = logEl.scrollHeight;
-}
-function setUIMode(nextMode) {
-  uiMode = nextMode;
-  document.querySelectorAll('[data-ui-section]').forEach(el => {
-    const mode = el.getAttribute('data-ui-section');
-    el.classList.toggle('hidden', mode !== nextMode);
+// ── UI MODE ────────────────────────────────────────────────────────────────
+function setUIMode(mode){
+  uiMode=mode;
+  document.querySelectorAll('[data-section]').forEach(el=>{
+    el.classList.toggle('hidden',el.dataset.section!==mode);
   });
-  document.getElementById('uiModeCalibrate').classList.toggle('mode-active', nextMode === 'calibrate');
-  document.getElementById('uiModeRun').classList.toggle('mode-active', nextMode === 'run');
-  document.getElementById('uiModeReadout').textContent =
-    nextMode === 'calibrate'
-      ? 'Calibrate mode surfaces jog, endpoints, limits, and the console so you can tune the mechanics.'
-      : 'Run mode compiles the exact transformed plan, shows diagnostics, and lets you run a few points at a time.';
-  try { localStorage.setItem('dune_ui_mode', nextMode); } catch (e) {}
+  $('btnModeCalibrate').classList.toggle('mode-active',mode==='calibrate');
+  $('btnModeRun').classList.toggle('mode-active',mode==='run');
+  $('modeReadout').textContent=mode==='calibrate'
+    ?'Jog, endpoints, and limits front and center.'
+    :'Compile exact plan, inspect diagnostics, run in chunks.';
+  try{localStorage.setItem(STORAGE.uiMode,mode)}catch{}
 }
-function setProgress(done, total) {
-  const pct = total <= 0 ? 0 : Math.round((done / total) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressText').textContent =
-    total > 0 ? `${done} / ${total} moves (${pct}%)` : 'Idle';
-}
-function setConnectedState(connected) {
-  document.querySelectorAll('button').forEach(btn => {
-    if (btn.id === 'connectBtn') return;
-    if (btn.id === 'previewPatternBtn') return;
-    if (btn.id === 'clearLogBtn') return;
-    if (btn.id === 'calcCenterBtn') return;
-    btn.disabled = !connected;
+
+// ── CONNECTED STATE ────────────────────────────────────────────────────────
+function setConnectedState(connected){
+  const skipIds=['btnConnect','btnPreview','btnResetPlan','btnClearLog','btnModeCalibrate','btnModeRun','btnCalcCenter'];
+  document.querySelectorAll('button').forEach(btn=>{
+    if(skipIds.includes(btn.id)||btn.classList.contains('patternTab'))return;
+    btn.disabled=!connected;
   });
-  connectBtn.disabled = connected || !supported;
-  document.getElementById('portStatus').textContent = connected ? 'Connected' : 'Not connected';
-  const dot = document.getElementById('statusDot');
-  if (connected) dot.classList.add('connected'); else dot.classList.remove('connected');
-  if (!connected) {
-    document.getElementById('stopPatternBtn').disabled = true;
-    document.getElementById('runPatternBtn').disabled = true;
-  }
-}
-function trackedTheta() { return currentTheta !== null ? currentTheta : 0; }
-function trackedRho() { return currentRho !== null ? currentRho : 0; }
-
-
-function markPlanDirty(reason = 'Pattern settings changed.') {
-  planDirty = true;
-  currentPlanCommands = [];
-  currentPlanStats = null;
-  currentPlanIndex = 0;
-  currentPlanAnchor = 0;
-  updatePlanStatus(reason + ' Compile again before running.');
-}
-function updatePlanStatus(extra = '') {
-  const total = currentPlanCommands.length;
-  let msg = total
-    ? `Compiled ${total} moves · next index ${Math.min(currentPlanIndex + 1, total)}`
-    : 'No compiled plan yet.';
-  if (extra) msg += ' ' + extra;
-  const el = document.getElementById('planStatus');
-  if (el) el.textContent = msg;
-}
-function summarizeThetaBehavior(points) {
-  if (points.length < 2) return 'single';
-  let nonDec = true, nonInc = true, repeated = 0;
-  for (let i = 1; i < points.length; i++) {
-    const d = points[i].t - points[i - 1].t;
-    if (d < 0) nonDec = false;
-    if (d > 0) nonInc = false;
-    if (d === 0) repeated++;
-  }
-  if (nonDec && !nonInc) return repeated > points.length * 0.25 ? 'mostly ↑ + flats' : 'increasing';
-  if (nonInc && !nonDec) return repeated > points.length * 0.25 ? 'mostly ↓ + flats' : 'decreasing';
-  return 'oscillating';
-}
-function buildWarnings(stats) {
-  const out = [];
-  if (!stats) return out;
-  if (stats.clampCount > 0) out.push(`${stats.clampCount} rho points were clamped to the current RMIN/RMAX window.`);
-  if (stats.points < 20) out.push('Very few points. This is good for debugging but usually too coarse for a smooth pattern.');
-  if (stats.thetaBehavior.includes('flats')) out.push('Many consecutive theta values are identical. Expect visible radial streaks or stalled rotation.');
-  if (stats.thetaSpan > 25800 * 12) out.push('Theta span is very large. That can be fine, but it is worth confirming the pattern really needs that much rotation.');
-  if (stats.rhoMin === stats.rhoMax) out.push('Rho is constant. That means you are drawing a ring-like pattern.');
-  if (stats.maxThetaJump > 100 || stats.maxRhoJump > 50) out.push(`Some plan segments are still large (ΔT max ${stats.maxThetaJump}, ΔR max ${stats.maxRhoJump}).`);
-  if (stats.startMode) out.push(`Start ${stats.startMode} · End ${stats.endMode}`);
-  if (stats.patternName === 'spiral') {
-    if (Math.abs(stats.rhoOut - stats.rhoIn) < 500) out.push('Spiral endpoint window is too small. Re-capture Rho In / Rho Out.');
-    if (stats.firstRho !== stats.rhoIn) out.push('Spiral does not start at captured Rho In. Check the compiled plan.');
-    if (stats.lastRho !== stats.rhoOut) out.push('Spiral does not end at captured Rho Out. Check the compiled plan.');
-  }
-  return out;
-}
-function renderDiagnostics(stats) {
-  document.getElementById('diagPoints').textContent = stats ? (stats.sourcePoints && stats.sourcePoints !== stats.points ? `${stats.sourcePoints}→${stats.points}` : stats.points) : '--';
-  document.getElementById('diagAnchor').textContent = stats ? stats.anchorTheta : '--';
-  document.getElementById('diagThetaRange').textContent = stats ? `${stats.thetaMin} / ${stats.thetaMax}` : '--';
-  document.getElementById('diagRhoRange').textContent = stats ? `${stats.rhoMin} / ${stats.rhoMax}` : '--';
-  document.getElementById('diagThetaMode').textContent = stats ? stats.thetaBehavior : '--';
-  document.getElementById('diagClampCount').textContent = stats ? stats.clampCount : '--';
-  document.getElementById('diagFirstCmd').textContent = stats ? stats.firstCmd : '--';
-  document.getElementById('diagLastCmd').textContent = stats ? stats.lastCmd : '--';
-  const warnings = buildWarnings(stats);
-  document.getElementById('diagWarnings').innerHTML = warnings.length
-    ? warnings.map(w => `<div class="mb-2">• ${w}</div>`).join('')
-    : 'No obvious warnings. Preview and run math are aligned.';
-  const badge = document.getElementById('diagnosticBadge');
-  badge.textContent = stats ? (warnings.length ? 'Review warnings' : 'Looks sane') : 'Awaiting preview';
+  $('btnConnect').disabled=connected||!supported;
+  $('portStatus').textContent=connected?'Connected':'Not connected';
+  $('statusDot').classList.toggle('on',connected);
+  if(!connected){['btnStop','btnRunFull','btnRun1','btnRun5','btnRun20'].forEach(id=>{$(id).disabled=true})}
 }
 
-function subdividePointsForReliableMotion(points, maxThetaStep = SEGMENT_LIMITS.maxThetaStep, maxRhoStep = SEGMENT_LIMITS.maxRhoStep) {
-  if (!points.length) return [];
-  const out = [points[0]];
-  for (let i = 1; i < points.length; i++) {
-    const a = out[out.length - 1];
-    const b = points[i];
-    const dTheta = b.t - a.t;
-    const dRho = b.r - a.r;
-    const steps = Math.max(
-      1,
-      Math.ceil(Math.abs(dTheta) / Math.max(1, maxThetaStep)),
-      Math.ceil(Math.abs(dRho) / Math.max(1, maxRhoStep))
-    );
-    for (let j = 1; j <= steps; j++) {
-      const frac = j / steps;
-      out.push({
-        t: Math.round(a.t + dTheta * frac),
-        r: Math.round(a.r + dRho * frac),
-      });
-    }
+// ── SERIAL ─────────────────────────────────────────────────────────────────
+function syncLimitsOnce(line){
+  if(limitsSynced)return;
+  const map={'TMIN ':'fwTmin','TMAX ':'fwTmax','RMIN ':'fwRmin','RMAX ':'fwRmax',
+             'JOG ':'jogInput','DELAY ':'delayInput','COMP ':'compInput'};
+  for(const[pfx,id]of Object.entries(map)){
+    if(line.startsWith(pfx))$(id).value=line.substring(pfx.length).trim();
   }
-  return out;
+  if(line.startsWith('====='))limitsSynced=true,appendLog('Limits synced.');
 }
-
-function compilePatternPlan(thetaAnchor = 0) {
-  const rawPts = buildPatternPoints();
-  if (!rawPts.length) {
-    currentPlanCommands = [];
-    currentPlanMoveCommands = [];
-    currentPlanExpandedPoints = [];
-    currentPlanStats = null;
-    currentPlanIndex = 0;
-    currentPlanAnchor = thetaAnchor;
-    renderDiagnostics(null);
-    updatePlanStatus('No points generated.');
-    return [];
-  }
-
-  const firstTheta = rawPts[0].t;
-  const rebasedPts = rawPts.map(p => ({
-    t: (p.t - firstTheta) + thetaAnchor,
-    r: p.r
-  }));
-
-  const endMode = getPatternEndMode();
-  const startMode = getPatternStartMode();
-  if (endMode !== 'natural' && rebasedPts.length) {
-    const last = rebasedPts[rebasedPts.length - 1];
-    rebasedPts.push({ t: last.t, r: getBoundaryRho(endMode) });
-  }
-
-  const rawRmin = Number(document.getElementById('fwRmin').value || -9800);
-  const rawRmax = Number(document.getElementById('fwRmax').value || 400);
-  const clampCount = rebasedPts.filter(p => Math.round(p.r) < rawRmin || Math.round(p.r) > rawRmax).length;
-
-  const pts = enforceFirmwareFriendly(rebasedPts);
-  const expandedPts = subdividePointsForReliableMotion(pts);
-
-  currentPlanStartPos = { t: trackedTheta(), r: trackedRho() };
-
-  const gotoCmds = expandedPts.map(p => `GOTO T ${p.t} R ${p.r}`);
-  const moveCmds = [];
-  let prevT = currentPlanStartPos.t;
-  let prevR = currentPlanStartPos.r;
-  for (const p of expandedPts) {
-    const dT = Math.round(p.t - prevT);
-    const dR = Math.round(p.r - prevR);
-    moveCmds.push({ dT, dR, preview: `MOVE T ${dT} | MOVE R ${dR}` });
-    prevT = p.t;
-    prevR = p.r;
-  }
-
-  currentPlanExpandedPoints = expandedPts;
-  currentPlanCommands = gotoCmds;      // kept for diagnostics/reference
-  currentPlanMoveCommands = moveCmds;  // actual executor path
-
-  const { rhoIn, rhoOut } = getRhoWindow();
-
-  let maxThetaJump = 0;
-  let maxRhoJump = 0;
-  for (let i = 1; i < expandedPts.length; i++) {
-    maxThetaJump = Math.max(maxThetaJump, Math.abs(expandedPts[i].t - expandedPts[i-1].t));
-    maxRhoJump = Math.max(maxRhoJump, Math.abs(expandedPts[i].r - expandedPts[i-1].r));
-  }
-
-  currentPlanStats = {
-    patternName: currentPattern,
-    points: expandedPts.length,
-    sourcePoints: pts.length,
-    anchorTheta: thetaAnchor,
-    startTheta: currentPlanStartPos.t,
-    startRho: currentPlanStartPos.r,
-    thetaMin: Math.min(...expandedPts.map(p => p.t)),
-    thetaMax: Math.max(...expandedPts.map(p => p.t)),
-    rhoMin: Math.min(...expandedPts.map(p => p.r)),
-    rhoMax: Math.max(...expandedPts.map(p => p.r)),
-    thetaSpan: Math.max(...expandedPts.map(p => p.t)) - Math.min(...expandedPts.map(p => p.t)),
-    clampCount,
-    thetaBehavior: summarizeThetaBehavior(expandedPts),
-    firstCmd: moveCmds[0]?.preview || '',
-    lastCmd: moveCmds[moveCmds.length - 1]?.preview || '',
-    firstRho: expandedPts[0].r,
-    lastRho: expandedPts[expandedPts.length - 1].r,
-    rhoIn,
-    rhoOut,
-    maxThetaJump,
-    maxRhoJump,
-    segmentized: expandedPts.length - pts.length,
-    startMode,
-    endMode,
-  };
-  currentPlanIndex = 0;
-  currentPlanAnchor = thetaAnchor;
-  planDirty = false;
-  renderDiagnostics(currentPlanStats);
-  updatePlanStatus(`Compiled at theta anchor ${thetaAnchor}. Executor will use relative MOVE steps. Segments expanded from ${pts.length} to ${expandedPts.length}.`);
-  return moveCmds.map(m => m.preview);
-}
-async function previewCurrentPattern() {
-  if (writer) {
-    try { await requestFreshStatus(); } catch (e) {}
-  }
-  const anchor = writer ? trackedTheta() : 0;
-  const cmds = compilePatternPlan(anchor);
-  document.getElementById('patternPreview').value = cmds.join('\n');
-}
-async function ensurePlanReady(forceRecompile = false) {
-  if (currentPattern === 'spiral') {
-    const check = validateSpiralWindow();
-    if (!check.ok) {
-      appendLog('SPIRAL BLOCKED: ' + check.message);
-      updatePlanStatus(check.message);
-      return false;
-    }
-  }
-  if (forceRecompile || planDirty || !currentPlanCommands.length || currentPlanIndex >= currentPlanCommands.length) {
-    await moveToPatternStart();
-    appendLog('Zeroing theta before compiling pattern plan...');
-    await sendCommand('ZERO THETA', true);
-    await requestFreshStatus();
-    const startTheta = 0;
-    compilePatternPlan(startTheta);
-    document.getElementById('patternPreview').value = currentPlanMoveCommands.map(m => m.preview).join('\n');
-    appendLog('Compiled new plan at theta 0.');
-  }
-  return currentPlanMoveCommands.length > 0;
-}
-function syncLimitsOnce(line) {
-  if (limitsSynced) return;
-  const limitMap = { 'RMIN ': 'fwRmin', 'RMAX ': 'fwRmax', 'TMIN ': 'fwTmin', 'TMAX ': 'fwTmax', 'COMP ': 'compInput', 'JOG ': 'jogInput', 'DELAY ': 'delayInput' };
-  for (const [prefix, id] of Object.entries(limitMap)) {
-    if (line.startsWith(prefix)) {
-      document.getElementById(id).value = line.substring(prefix.length).trim();
-    }
-  }
-  if (line.startsWith('=====') || line === '=============') {
-    limitsSynced = true;
-    appendLog('Limits synced from firmware.');
-  }
-}
-function parseIncomingLine(line) {
-  if (line.startsWith('THETA ')) {
-    currentTheta = parseInt(line.substring(6).trim(), 10);
-    document.getElementById('dispTheta').textContent = currentTheta;
-  }
-  if (line.startsWith('RHO ')) {
-    currentRho = parseInt(line.substring(4).trim(), 10);
-    document.getElementById('dispRho').textContent = currentRho;
-  }
+function parseIncomingLine(line){
+  if(line.startsWith('THETA ')){currentTheta=parseInt(line.substring(6),10);$('dispTheta').textContent=currentTheta}
+  if(line.startsWith('RHO ')){currentRho=parseInt(line.substring(4),10);$('dispRho').textContent=currentRho}
   syncLimitsOnce(line);
-  if (pendingCommand && (line.startsWith('OK') || line.startsWith('ERR'))) {
-    pendingCommand.resolve(line);
-    pendingCommand = null;
-  }
+  if(pendingCmd&&(line.startsWith('OK')||line.startsWith('ERR'))){pendingCmd.resolve(line);pendingCmd=null}
 }
-async function readLoop() {
-  try {
-    while (port && reader) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) {
-        logEl.textContent += value;
-        logEl.scrollTop = logEl.scrollHeight;
-        lineBuffer += value;
-        const parts = lineBuffer.split(/\r?\n/);
-        lineBuffer = parts.pop() || '';
-        for (const raw of parts) {
-          const line = raw.trim();
-          if (line) parseIncomingLine(line);
-        }
+async function readLoop(){
+  try{
+    while(port&&reader){
+      const{value,done}=await reader.read();
+      if(done)break;
+      if(value){
+        logEl.textContent+=value;logEl.scrollTop=logEl.scrollHeight;
+        lineBuffer+=value;
+        const parts=lineBuffer.split(/\r?\n/);lineBuffer=parts.pop()||'';
+        for(const raw of parts){const line=raw.trim();if(line)parseIncomingLine(line)}
       }
     }
-  } catch (err) {
-    appendLog('Read error: ' + err.message);
+  }catch(e){appendLog('Read error: '+e.message)}
+}
+async function connectSerial(){
+  if(!supported){appendLog('ERROR: Use Chrome or Edge.');return}
+  try{
+    port=await navigator.serial.requestPort();
+    await port.open({baudRate:115200});
+    const dec=new TextDecoderStream();inputDone=port.readable.pipeTo(dec.writable);reader=dec.readable.getReader();
+    const enc=new TextEncoderStream();outputDone=enc.readable.pipeTo(port.writable);writer=enc.writable.getWriter();
+    setConnectedState(true);appendLog('Connected at 115200 baud.');
+    readLoop();await sendCommand('STATUS');$('btnRunFull').disabled=false;
+  }catch(e){appendLog('Connect failed: '+e.message)}
+}
+async function disconnectSerial(){
+  patternAbort=true;
+  try{
+    if(reader){await reader.cancel();await inputDone.catch(()=>{});reader=null}
+    if(writer){await writer.close();writer=null}
+    if(outputDone){await outputDone.catch(()=>{});outputDone=null}
+    if(port){await port.close();port=null}
+  }catch(e){appendLog('Disconnect warning: '+e.message)}
+  setConnectedState(false);limitsSynced=false;currentTheta=currentRho=null;
+  $('dispTheta').textContent=$('dispRho').textContent='--';setProgress(0,0);appendLog('Disconnected.');
+}
+async function sendCommand(cmd,waitAck=false){
+  if(!writer)return null;
+  const line=cmd.trim();if(!line)return null;
+  appendLog('> '+line);
+  if(waitAck){
+    if(pendingCmd)throw new Error('Command already pending.');
+    const p=new Promise(resolve=>{pendingCmd={resolve}});
+    await writer.write(line+'\n');return await p;
   }
-}
-async function connectSerial() {
-  if (!supported) {
-    appendLog('ERROR: Web Serial not supported. Use Chrome or Edge.');
-    return;
-  }
-  try {
-    port = await navigator.serial.requestPort();
-    await port.open({ baudRate: 115200 });
-
-    const dec = new TextDecoderStream();
-    inputDone = port.readable.pipeTo(dec.writable);
-    reader = dec.readable.getReader();
-
-    const enc = new TextEncoderStream();
-    outputDone = enc.readable.pipeTo(port.writable);
-    writer = enc.writable.getWriter();
-
-    setConnectedState(true);
-    appendLog('Connected at 115200 baud.');
-    readLoop();
-    await sendCommand('STATUS');
-    document.getElementById('runPatternBtn').disabled = false;
-  } catch (err) {
-    appendLog('Connect failed: ' + err.message);
-  }
-}
-async function disconnectSerial() {
-  patternAbort = true;
-  try {
-    if (reader) { await reader.cancel(); await inputDone.catch(() => {}); reader = null; }
-    if (writer) { await writer.close(); writer = null; }
-    if (outputDone) { await outputDone.catch(() => {}); outputDone = null; }
-    if (port) { await port.close(); port = null; }
-  } catch (err) {
-    appendLog('Disconnect warning: ' + err.message);
-  }
-  setConnectedState(false);
-  limitsSynced = false;
-  currentTheta = null;
-  currentRho = null;
-  document.getElementById('dispTheta').textContent = '--';
-  document.getElementById('dispRho').textContent = '--';
-  setProgress(0, 0);
-  appendLog('Disconnected.');
-}
-async function sendCommand(cmd, waitForAck = false) {
-  if (!writer) return null;
-  const line = cmd.trim();
-  if (!line) return null;
-
-  if (waitForAck) {
-    if (pendingCommand) throw new Error('A command is already pending.');
-    const ackPromise = new Promise(resolve => { pendingCommand = { resolve }; });
-    appendLog('> ' + line);
-    await writer.write(line + '\n');
-    return await ackPromise;
-  }
-  appendLog('> ' + line);
-  await writer.write(line + '\n');
-  return null;
-}
-function clampNum(n, min, max) {
-  return Math.max(min, Math.min(max, n));
-}
-function triangleWave(frac) {
-  return 1 - 4 * Math.abs((frac % 1) - 0.5);
-}
-function getRhoWindow() {
-  const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
-  const rhoOut = Number(document.getElementById('rhoOutSteps').value || 0);
-  return {
-    rhoIn,
-    rhoOut,
-    rhoMin: Math.min(rhoIn, rhoOut),
-    rhoMax: Math.max(rhoIn, rhoOut),
-    span: Math.abs(rhoOut - rhoIn),
-  };
-}
-function persistEndpointState() {
-  try {
-    localStorage.setItem(STORAGE_KEYS.rhoIn, document.getElementById('rhoInSteps').value);
-    localStorage.setItem(STORAGE_KEYS.rhoOut, document.getElementById('rhoOutSteps').value);
-    localStorage.setItem(STORAGE_KEYS.patternRhoCenter, document.getElementById('patternRhoCenter').value);
-    localStorage.setItem(STORAGE_KEYS.patternRhoRadius, document.getElementById('patternRhoRadius').value);
-    localStorage.setItem(STORAGE_KEYS.spiralTurns, document.getElementById('spiralTurns').value);
-    localStorage.setItem(STORAGE_KEYS.patternStartMode, document.getElementById('patternStartMode').value);
-    localStorage.setItem(STORAGE_KEYS.patternEndMode, document.getElementById('patternEndMode').value);
-  } catch (e) {}
-}
-function restoreEndpointState() {
-  try {
-    const rhoIn = localStorage.getItem(STORAGE_KEYS.rhoIn);
-    const rhoOut = localStorage.getItem(STORAGE_KEYS.rhoOut);
-    const rhoCenter = localStorage.getItem(STORAGE_KEYS.patternRhoCenter);
-    const rhoRadius = localStorage.getItem(STORAGE_KEYS.patternRhoRadius);
-    const spiralTurns = localStorage.getItem(STORAGE_KEYS.spiralTurns);
-    const patternStartMode = localStorage.getItem(STORAGE_KEYS.patternStartMode);
-    const patternEndMode = localStorage.getItem(STORAGE_KEYS.patternEndMode);
-    if (rhoIn !== null) document.getElementById('rhoInSteps').value = rhoIn;
-    if (rhoOut !== null) document.getElementById('rhoOutSteps').value = rhoOut;
-    if (rhoCenter !== null) document.getElementById('patternRhoCenter').value = rhoCenter;
-    if (rhoRadius !== null) document.getElementById('patternRhoRadius').value = rhoRadius;
-    if (spiralTurns !== null) document.getElementById('spiralTurns').value = spiralTurns;
-    if (patternStartMode !== null) document.getElementById('patternStartMode').value = patternStartMode;
-    if (patternEndMode !== null) document.getElementById('patternEndMode').value = patternEndMode;
-  } catch (e) {}
-}
-function validateSpiralWindow() {
-  const { rhoIn, rhoOut, span } = getRhoWindow();
-  if (!Number.isFinite(rhoIn) || !Number.isFinite(rhoOut)) {
-    return { ok: false, message: 'Spiral endpoints are not valid numbers.' };
-  }
-  if (span < 500) {
-    return { ok: false, message: 'Spiral Rho In / Rho Out window is too small. Re-capture the endpoints first.' };
-  }
-  if (getPatternStartMode() !== 'current' && rhoIn === 0 && rhoOut < -500 && currentRho === 0) {
-    return { ok: false, message: 'Spiral thinks Rho In is 0 and current rho is already 0. That usually means the inside endpoint was lost. Re-capture Rho In.' };
-  }
-  return { ok: true, message: '' };
+  await writer.write(line+'\n');return null;
 }
 
-function getPatternStartMode() {
-  return document.getElementById('patternStartMode').value || 'inside';
+// ── RHO WINDOW ─────────────────────────────────────────────────────────────
+function getRhoWindow(){
+  const rhoIn=Number($('rhoInSteps').value||0),rhoOut=Number($('rhoOutSteps').value||0);
+  return{rhoIn,rhoOut,rhoMin:Math.min(rhoIn,rhoOut),rhoMax:Math.max(rhoIn,rhoOut),span:Math.abs(rhoOut-rhoIn)};
 }
-function getPatternEndMode() {
-  return document.getElementById('patternEndMode').value || 'natural';
+function getBoundaryRho(mode){
+  const{rhoIn,rhoOut}=getRhoWindow();
+  if(mode==='inside')return rhoIn;if(mode==='outside')return rhoOut;return trackedRho();
 }
-function getBoundaryRho(mode) {
-  const { rhoIn, rhoOut } = getRhoWindow();
-  if (mode === 'inside') return rhoIn;
-  if (mode === 'outside') return rhoOut;
-  return trackedRho();
+const getStartMode=()=>$('patternStartMode').value||'inside';
+const getEndMode=()=>$('patternEndMode').value||'natural';
+const getFwRmin=()=>Number($('fwRmin').value||-9800);
+const getFwRmax=()=>Number($('fwRmax').value||400);
+
+// ── PERSIST ────────────────────────────────────────────────────────────────
+function persistState(){
+  try{
+    [['rhoIn','rhoInSteps'],['rhoOut','rhoOutSteps'],['rhoCenter','patternRhoCenter'],
+     ['rhoRadius','patternRhoRadius'],['spiralTurns','spiralTurns'],
+     ['startMode','patternStartMode'],['endMode','patternEndMode']
+    ].forEach(([k,id])=>localStorage.setItem(STORAGE[k],$(id).value));
+  }catch{}
 }
-function getNaturalSpiralEndMode(startMode) {
-  if (startMode === 'outside') return 'inside';
-  return 'outside';
-}
-function getSafeThetaSpan() {
-  const userSpan = Math.max(25800, Math.abs(Number(document.getElementById('patternThetaRadius').value || 25800)));
-  const tMin = Number(document.getElementById('fwTmin').value || -200000);
-  const tMax = Number(document.getElementById('fwTmax').value || 200000);
-  const available = Math.max(25800, Math.floor(Math.abs(tMax - tMin) * 0.8));
-  return Math.min(userSpan, available);
+function restoreState(){
+  try{
+    [['rhoIn','rhoInSteps'],['rhoOut','rhoOutSteps'],['rhoCenter','patternRhoCenter'],
+     ['rhoRadius','patternRhoRadius'],['spiralTurns','spiralTurns'],
+     ['startMode','patternStartMode'],['endMode','patternEndMode']
+    ].forEach(([k,id])=>{const v=localStorage.getItem(STORAGE[k]);if(v!==null)$(id).value=v});
+  }catch{}
 }
 
-function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius, thetaSpan = null) {
-  if (!xyPoints.length) return [];
-  const mags = xyPoints.map(p => Math.hypot(p.x, p.y));
-  const maxMag = Math.max(...mags, 1e-9);
+// ── MATH HELPERS ───────────────────────────────────────────────────────────
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
+function lcm(a,b){return Math.abs(a*b)/gcd(a,b)}
+const triWave=frac=>1-4*Math.abs((frac%1)-0.5);
 
-  const unwrappedAngles = [];
-  let prevRaw = null;
-  let prevUnwrapped = null;
-  let baseAngle = 0;
-
-  xyPoints.forEach((p, idx) => {
-    const raw = Math.atan2(p.y, p.x);
-    let unwrapped = raw;
-    if (idx === 0) {
-      baseAngle = raw;
-    } else {
-      let delta = raw - prevRaw;
-      while (delta > Math.PI) delta -= Math.PI * 2;
-      while (delta < -Math.PI) delta += Math.PI * 2;
-      unwrapped = prevUnwrapped + delta;
-    }
-    prevRaw = raw;
-    prevUnwrapped = unwrapped;
-    unwrappedAngles.push(unwrapped - baseAngle);
+function cartToPolar(xyPts,thetaCenter,rhoCenter,rhoRadius,thetaSpan){
+  if(!xyPts.length)return[];
+  const span=Math.max(25800,Math.abs(thetaSpan||25800));
+  const maxMag=Math.max(...xyPts.map(p=>Math.hypot(p.x,p.y)),1e-9);
+  const uw=[];let prevRaw=null,prevUw=0;
+  xyPts.forEach((p,i)=>{
+    const raw=Math.atan2(p.y,p.x);
+    if(i===0){prevRaw=raw;uw.push(0);return}
+    let d=raw-prevRaw;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;
+    prevUw+=d;prevRaw=raw;uw.push(prevUw);
   });
-
-  const span = thetaSpan === null ? getSafeThetaSpan() : Math.max(25800, Math.abs(thetaSpan));
-  const angleMax = Math.max(...unwrappedAngles.map(a => Math.abs(a)), 1e-9);
-
-  return xyPoints.map((p, idx) => ({
-    t: Math.round(thetaCenter + (unwrappedAngles[idx] / angleMax) * span),
-    r: Math.round(rhoCenter + (Math.hypot(p.x, p.y) / maxMag) * rhoRadius)
+  const angleMax=Math.max(...uw.map(a=>Math.abs(a)),1e-9);
+  return xyPts.map((p,i)=>({
+    t:Math.round(thetaCenter+(uw[i]/angleMax)*span),
+    r:Math.round(rhoCenter+(Math.hypot(p.x,p.y)/maxMag)*rhoRadius),
   }));
 }
 
-function buildTextCommands() {
-  const text = (document.getElementById('textInput').value || 'HELLO').toUpperCase().substring(0, 12);
-  const size = Number(document.getElementById('textSize').value || 2000);
-  const spacing = Number(document.getElementById('textSpacing').value || 4000);
-  const rhoCenter = Number(document.getElementById('patternRhoCenter').value || 0);
-  const cmds = [];
-  const totalWidth = text.length * spacing * 1.2;
-  let thetaOffset = -Math.round(totalWidth / 2);
+// ── PATTERN BUILDER ────────────────────────────────────────────────────────
+function buildPatternPoints(){
+  const N=Math.max(10,Number($('patternPoints').value||360));
+  const rhoC=Number($('patternRhoCenter').value||0);
+  const tC=Number($('patternThetaCenter').value||0);
+  const tR=Number($('patternThetaRadius').value||25800);
+  const rR=Number($('patternRhoRadius').value||3000);
+  const turns=Math.max(1,Number($('spiralTurns').value||4));
+  const out=[];
 
-  for (const ch of text) {
-    const strokes = CURSIVE[ch] || [[0,0.5],[1,0.5]];
-    for (const [tFrac, rFrac] of strokes) {
-      const theta = Math.round(thetaOffset + tFrac * spacing);
-      const rho = Math.round(rhoCenter + (rFrac - 0.5) * size);
-      cmds.push(`GOTO T ${theta} R ${rho}`);
+  if(currentPattern==='text'){
+    const text=($('textInput').value||'HELLO').toUpperCase().slice(0,12);
+    const size=Number($('textSize').value||2000),spacing=Number($('textSpacing').value||4000);
+    const total=text.length*spacing*1.2;let tOff=-Math.round(total/2);
+    for(const ch of text){
+      const strokes=CURSIVE[ch]||[[0,0.5],[1,0.5]];
+      for(const[tf,rf]of strokes)out.push({t:Math.round(tOff+tf*spacing),r:Math.round(rhoC+(rf-0.5)*size)});
+      tOff+=Math.round(spacing*1.2);
     }
-    thetaOffset += Math.round(spacing * 1.2);
+    const fl=Math.round(Math.max(1200,spacing*0.35));
+    for(let i=0;i<=60;i++){const f=i/60,a=Math.PI*3*f;out.push({t:Math.round((tOff-total/2)+fl*f*Math.cos(a)),r:Math.round(rhoC+fl*0.25*f*Math.sin(a))})}
+    return out;
   }
-
-  const spiralPoints = 60;
-  const flourish = Math.round(Math.max(1200, spacing * 0.35));
-  for (let i = 0; i <= spiralPoints; i++) {
-    const frac = i / spiralPoints;
-    const angle = Math.PI * 3 * frac;
-    const theta = Math.round((thetaOffset - totalWidth / 2) + flourish * frac * Math.cos(angle));
-    const rho = Math.round(rhoCenter + flourish * 0.25 * frac * Math.sin(angle));
-    cmds.push(`GOTO T ${theta} R ${rho}`);
+  if(currentPattern==='spiral'){
+    const{rhoIn,rhoOut}=getRhoWindow();
+    for(let i=0;i<=N;i++){const f=i/N;out.push({t:Math.round(tC+turns*25800*f),r:Math.round(rhoIn+(rhoOut-rhoIn)*f)})}
+    return out;
   }
-
-  return cmds;
-}
-
-function buildPatternPoints() {
-  const points = Math.max(10, Number(document.getElementById('patternPoints').value || 360));
-  const rhoCenter = Number(document.getElementById('patternRhoCenter').value || 0);
-  const thetaCenter = Number(document.getElementById('patternThetaCenter').value || 0);
-  const thetaRadius = Number(document.getElementById('patternThetaRadius').value || 25800);
-  const rhoRadius = Number(document.getElementById('patternRhoRadius').value || 3000);
-  const turns = Math.max(1, Number(document.getElementById('spiralTurns').value || 4));
-  const out = [];
-
-  if (currentPattern === 'text') {
-    return buildTextCommands().map(cmd => {
-      const tm = cmd.match(/T (-?\d+)/);
-      const rm = cmd.match(/R (-?\d+)/);
-      return { t: tm ? Number(tm[1]) : 0, r: rm ? Number(rm[1]) : 0 };
-    });
+  if(currentPattern==='circle'){
+    for(let i=0;i<=N;i++)out.push({t:Math.round(tC+turns*25800*(i/N)),r:Math.round(rhoC+rR)});
+    return out;
   }
-
-  if (currentPattern === 'spiral') {
-    const { rhoIn, rhoOut } = getRhoWindow();
-    for (let i = 0; i <= points; i++) {
-      const frac = i / points;
-      out.push({
-        t: Math.round(thetaCenter + turns * 25800 * frac),
-        r: Math.round(rhoIn + (rhoOut - rhoIn) * frac)
-      });
+  if(currentPattern==='radial'){
+    for(let i=0;i<=N;i++){const f=i/N;out.push({t:Math.round(tC+tR*triWave(turns*f)),r:Math.round(rhoC+rR*(2*f-1))})}
+    return out;
+  }
+  if(currentPattern==='rose'){
+    const k=Number($('roseK').value||5),amp=Number($('roseAmp').value||3000),rot=Number($('roseRot').value||1);
+    for(let i=0;i<=N;i++){const a=Math.PI*2*rot*(i/N);out.push({t:Math.round(tC+a*25800/(Math.PI*2)),r:Math.round(rhoC+amp*Math.cos(k*a))})}
+    return out;
+  }
+  if(currentPattern==='lissajous'){
+    const a=Number($('lissA').value||3),b=Number($('lissB').value||2);
+    const xy=[];
+    for(let i=0;i<=N;i++){const t=Math.PI*2*turns*(i/N);xy.push({x:Math.sin(a*t+Math.PI/2),y:Math.sin(b*t)})}
+    return cartToPolar(xy,tC,rhoC,rR,tR);
+  }
+  if(currentPattern==='epitrochoid'){
+    const R=Number($('epiR').value||3),r=Math.max(1,Number($('epir').value||1)),d=Number($('epid').value||2);
+    const loops=lcm(R,r)/r,xy=[];
+    for(let i=0;i<=N;i++){const t=Math.PI*2*loops*(i/N);xy.push({x:(R+r)*Math.cos(t)-d*Math.cos(((R+r)/r)*t),y:(R+r)*Math.sin(t)-d*Math.sin(((R+r)/r)*t)})}
+    return cartToPolar(xy,tC,rhoC,rR,tR);
+  }
+  if(currentPattern==='bouncerho'){
+    const waves=Math.max(3,turns*3);
+    for(let i=0;i<=N;i++){const f=i/N;out.push({t:Math.round(tC+turns*25800*f),r:Math.round(rhoC+rR*Math.sin(Math.PI*2*waves*f))})}
+    return out;
+  }
+  if(currentPattern==='pond'){
+    // Step from outer ring inward. rhoOut is physically further out (more negative).
+    const{rhoIn,rhoOut}=getRhoWindow();
+    const rings=Math.max(2,Number($('pondRings').value||12));
+    const tpr=Math.max(1,Number($('pondTurnsPerRing').value||1));
+    const om=Math.max(0,Number($('pondOuterMargin').value||250));
+    const im=Math.max(0,Number($('pondInnerMargin').value||350));
+    // outer boundary (more negative) with margin applied toward center
+    const outerRho=rhoOut+om;  // move slightly toward center from hard out
+    const innerRho=rhoIn-im;   // move slightly toward center from hard in
+    for(let ring=0;ring<rings;ring++){
+      const rf=rings===1?0:ring/(rings-1);
+      const ringRho=Math.round(outerRho+(innerRho-outerRho)*rf);
+      const tBase=ring*tpr*25800;
+      for(let i=0;i<=N;i++){const f=i/N;out.push({t:Math.round(tC+tBase+tpr*25800*f),r:ringRho})}
     }
     return out;
   }
-
-  if (currentPattern === 'circle') {
-    for (let i = 0; i <= points; i++) {
-      const frac = i / points;
-      out.push({
-        t: Math.round(thetaCenter + turns * 25800 * frac),
-        r: Math.round(rhoCenter + rhoRadius)
-      });
+  if(currentPattern==='star'){
+    const pts=Math.max(3,Number($('starPoints').value||5)),outer=Math.max(1,Number($('starOuter').value||3500)),inner=Math.max(1,Number($('starInner').value||1500));
+    const verts=[];
+    for(let i=0;i<pts*2;i++){const a=-Math.PI/2+Math.PI*i/pts,rad=i%2===0?outer:inner;verts.push({x:rad*Math.cos(a),y:rad*Math.sin(a)})}
+    verts.push(verts[0]);const xy=[];
+    for(let i=0;i<verts.length-1;i++){
+      const a=verts[i],b=verts[i+1],seg=Math.max(2,Math.floor(N/(verts.length-1)));
+      for(let j=0;j<seg;j++){const f=j/seg;xy.push({x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f})}
     }
-    return out;
+    xy.push(verts[0]);return cartToPolar(xy,tC,rhoC,rR,tR);
   }
-
-  if (currentPattern === 'radial') {
-    for (let i = 0; i <= points; i++) {
-      const frac = i / points;
-      const sweep = triangleWave(turns * frac);
-      out.push({
-        t: Math.round(thetaCenter + thetaRadius * sweep),
-        r: Math.round(rhoCenter + rhoRadius * (2 * frac - 1))
-      });
-    }
-    return out;
+  if(currentPattern==='fermat'){
+    const xy=[];
+    for(let i=0;i<=N;i++){const f=i/N,a=Math.PI*2*turns*f*2.5,mag=Math.sqrt(f);xy.push({x:mag*Math.cos(a),y:mag*Math.sin(a)})}
+    return cartToPolar(xy,tC,rhoC,rR,tR);
   }
-
-  if (currentPattern === 'rose') {
-    const k = Number(document.getElementById('roseK').value || 5);
-    const amp = Number(document.getElementById('roseAmp').value || 3000);
-    const rots = Number(document.getElementById('roseRot').value || 1);
-    for (let i = 0; i <= points; i++) {
-      const frac = i / points;
-      const angle = Math.PI * 2 * rots * frac;
-      out.push({
-        t: Math.round(thetaCenter + (angle * 25800 / (Math.PI * 2))),
-        r: Math.round(rhoCenter + amp * Math.cos(k * angle))
-      });
-    }
-    return out;
-  }
-
-  if (currentPattern === 'lissajous') {
-    const a = Number(document.getElementById('lissA').value || 3);
-    const b = Number(document.getElementById('lissB').value || 2);
-    const xy = [];
-    for (let i = 0; i <= points; i++) {
-      const t = Math.PI * 2 * turns * (i / points);
-      xy.push({
-        x: Math.sin(a * t + Math.PI / 2),
-        y: Math.sin(b * t)
-      });
-    }
-    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
-  }
-
-  if (currentPattern === 'epitrochoid') {
-    const R = Number(document.getElementById('epiR').value || 3);
-    const r = Math.max(1, Number(document.getElementById('epir').value || 1));
-    const d = Number(document.getElementById('epid').value || 2);
-    const xy = [];
-    const loops = lcm(R, r) / r;
-    for (let i = 0; i <= points; i++) {
-      const t = Math.PI * 2 * loops * (i / points);
-      xy.push({
-        x: (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t),
-        y: (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t)
-      });
-    }
-    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
-  }
-
-  if (currentPattern === 'bouncerho') {
-    const waves = Math.max(3, turns * 3);
-    for (let i = 0; i <= points; i++) {
-      const frac = i / points;
-      out.push({
-        t: Math.round(thetaCenter + turns * 25800 * frac),
-        r: Math.round(rhoCenter + rhoRadius * Math.sin(Math.PI * 2 * waves * frac))
-      });
-    }
-    return out;
-  }
-
-
-  if (currentPattern === 'pond') {
-    const { rhoIn, rhoOut } = getRhoWindow();
-    const rings = Math.max(2, Number(document.getElementById('pondRings').value || 12));
-    const turnsPerRing = Math.max(1, Number(document.getElementById('pondTurnsPerRing').value || 1));
-    const outerMargin = Math.max(0, Number(document.getElementById('pondOuterMargin').value || 250));
-    const innerMargin = Math.max(0, Number(document.getElementById('pondInnerMargin').value || 350));
-
-    const outerRho = rhoOut + outerMargin;
-    const innerRho = rhoIn - innerMargin;
-    const safeOuter = Math.min(outerRho, innerRho);
-    const safeInner = Math.max(outerRho, innerRho);
-    const ringCount = Math.max(2, rings);
-
-    for (let ring = 0; ring < ringCount; ring++) {
-      const ringFrac = ringCount === 1 ? 0 : ring / (ringCount - 1);
-      const ringRho = Math.round(safeOuter + (safeInner - safeOuter) * ringFrac);
-      for (let i = 0; i <= points; i++) {
-        const frac = i / points;
-        const totalTurns = ring * turnsPerRing + turnsPerRing * frac;
-        out.push({
-          t: Math.round(thetaCenter + totalTurns * 25800),
-          r: ringRho
-        });
-      }
-    }
-    return out;
-  }
-
-  if (currentPattern === 'star') {
-    const starPts = Math.max(3, Number(document.getElementById('starPoints').value || 5));
-    const outer = Math.max(1, Number(document.getElementById('starOuter').value || 3500));
-    const inner = Math.max(1, Number(document.getElementById('starInner').value || 1500));
-    const vertices = [];
-    for (let i = 0; i < starPts * 2; i++) {
-      const angle = -Math.PI / 2 + (Math.PI * i / starPts);
-      const radius = i % 2 === 0 ? outer : inner;
-      vertices.push({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
-    }
-    vertices.push(vertices[0]);
-    const xy = [];
-    const segments = vertices.length - 1;
-    for (let i = 0; i < segments; i++) {
-      const a = vertices[i], b = vertices[i + 1];
-      const perSeg = Math.max(2, Math.floor(points / segments));
-      for (let j = 0; j < perSeg; j++) {
-        const frac = j / perSeg;
-        xy.push({
-          x: a.x + (b.x - a.x) * frac,
-          y: a.y + (b.y - a.y) * frac
-        });
-      }
-    }
-    xy.push(vertices[0]);
-    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
-  }
-
-  if (currentPattern === 'fermat') {
-    const xy = [];
-    for (let i = 0; i <= points; i++) {
-      const frac = i / points;
-      const angle = Math.PI * 2 * turns * frac * 2.5;
-      const radius = Math.sqrt(frac);
-      xy.push({
-        x: radius * Math.cos(angle),
-        y: radius * Math.sin(angle)
-      });
-    }
-    return cartesianPathToPolar(xy, thetaCenter, rhoCenter, rhoRadius);
-  }
-
   return out;
 }
 
-function enforceFirmwareFriendly(points) {
-  const rMin = Number(document.getElementById('fwRmin').value || -9800);
-  const rMax = Number(document.getElementById('fwRmax').value || 400);
-  return points.map(p => ({
-    t: Math.round(p.t),                 // theta is unlimited in firmware; do not clamp it here
-    r: clampNum(Math.round(p.r), rMin, rMax)
-  }));
+function clampToFw(pts){
+  const mn=getFwRmin(),mx=getFwRmax();
+  return pts.map(p=>({t:Math.round(p.t),r:Math.max(mn,Math.min(mx,Math.round(p.r)))}));
+}
+function subdivide(pts){
+  if(!pts.length)return[];const out=[pts[0]];
+  for(let i=1;i<pts.length;i++){
+    const a=out[out.length-1],b=pts[i];
+    const steps=Math.max(1,Math.ceil(Math.abs(b.t-a.t)/MAX_THETA_STEP),Math.ceil(Math.abs(b.r-a.r)/MAX_RHO_STEP));
+    for(let j=1;j<=steps;j++){const f=j/steps;out.push({t:Math.round(a.t+(b.t-a.t)*f),r:Math.round(a.r+(b.r-a.r)*f)})}
+  }
+  return out;
+}
+function dedup(pts){
+  if(!pts.length)return[];const out=[pts[0]];
+  for(let i=1;i<pts.length;i++){const p=out[out.length-1];if(pts[i].t!==p.t||pts[i].r!==p.r)out.push(pts[i])}
+  return out;
 }
 
-function buildPatternCommands(thetaAnchor = 0) {
-  const rawPts = buildPatternPoints();
-  if (!rawPts.length) return [];
+// ── PLAN COMPILE ───────────────────────────────────────────────────────────
+function thetaBehavior(pts){
+  if(pts.length<2)return'single';let up=0,dn=0,fl=0;
+  for(let i=1;i<pts.length;i++){const d=pts[i].t-pts[i-1].t;if(d>0)up++;else if(d<0)dn++;else fl++;}
+  if(dn===0)return fl>pts.length*0.2?'mostly up+flats':'increasing';
+  if(up===0)return fl>pts.length*0.2?'mostly dn+flats':'decreasing';
+  return'oscillating';
+}
+function buildWarnings(s){
+  if(!s)return[];const w=[];
+  if(s.clampCount>0)w.push(`${s.clampCount} rho points clamped to RMIN/RMAX.`);
+  if(s.points<20)w.push('Very few points — good for debugging, usually too coarse.');
+  if(s.thetaBehavior.includes('flats'))w.push('Many flat theta segments — expect radial streaks.');
+  if(s.rhoMin===s.rhoMax)w.push('Rho is constant — this draws a ring.');
+  if(currentPattern==='spiral'&&getRhoWindow().span<500)w.push('Spiral rho window too small. Re-capture endpoints.');
+  return w;
+}
+function renderDiag(s){
+  $('diagPoints').textContent=s?(s.sourcePoints!==s.points?`${s.sourcePoints}->${s.points}`:s.points):'--';
+  $('diagAnchor').textContent=s?s.anchorTheta:'--';
+  $('diagThetaRange').textContent=s?`${s.thetaMin}/${s.thetaMax}`:'--';
+  $('diagRhoRange').textContent=s?`${s.rhoMin}/${s.rhoMax}`:'--';
+  $('diagThetaMode').textContent=s?s.thetaBehavior:'--';
+  $('diagClampCount').textContent=s?s.clampCount:'--';
+  $('diagFirstCmd').textContent=s?s.firstCmd:'--';
+  $('diagLastCmd').textContent=s?s.lastCmd:'--';
+  const w=buildWarnings(s);
+  $('diagWarnings').innerHTML=w.length?w.map(x=>`<div class="mb-1">${x}</div>`).join(''):'No obvious issues.';
+  $('diagBadge').textContent=s?(w.length?`${w.length} warning(s)`:'Looks good'):'Awaiting preview';
+}
+function markPlanDirty(reason=''){
+  planDirty=true;planCommands=[];planIndex=0;planStats=null;
+  $('planStatus').textContent=(reason?reason+' ':'' )+'No plan compiled.';
+  $('btnRunFull').classList.add('plan-stale');
+  renderDiag(null);
+}
+function updatePlanStatus(msg){$('planStatus').textContent=msg}
 
-  const firstTheta = rawPts[0].t;
-  const rebasedPts = rawPts.map(p => ({
-    t: (p.t - firstTheta) + thetaAnchor,
-    r: p.r
-  }));
-
-  const pts = enforceFirmwareFriendly(rebasedPts);
-  return pts.map(p => `GOTO T ${p.t} R ${p.r}`);
+function compilePlan(anchor){
+  const rawPts=buildPatternPoints();
+  if(!rawPts.length){planCommands=[];planIndex=0;planStats=null;planAnchor=anchor;planDirty=false;renderDiag(null);updatePlanStatus('No points generated.');return[]}
+  const firstT=rawPts[0].t;
+  const rebased=rawPts.map(p=>({t:(p.t-firstT)+anchor,r:p.r}));
+  const mn=getFwRmin(),mx=getFwRmax();
+  const clampCount=rebased.filter(p=>Math.round(p.r)<mn||Math.round(p.r)>mx).length;
+  const endMode=getEndMode();
+  if(endMode!=='natural'&&rebased.length){const last=rebased[rebased.length-1];rebased.push({t:last.t,r:getBoundaryRho(endMode)})}
+  const expanded=dedup(subdivide(clampToFw(rebased)));
+  planCommands=expanded;planIndex=0;planAnchor=anchor;planDirty=false;
+  planStats={
+    points:expanded.length,sourcePoints:rebased.length,anchorTheta:anchor,
+    thetaMin:Math.min(...expanded.map(p=>p.t)),thetaMax:Math.max(...expanded.map(p=>p.t)),
+    rhoMin:Math.min(...expanded.map(p=>p.r)),rhoMax:Math.max(...expanded.map(p=>p.r)),
+    clampCount,thetaBehavior:thetaBehavior(expanded),
+    firstCmd:expanded[0]?`GOTO T ${expanded[0].t} R ${expanded[0].r}`:'--',
+    lastCmd:expanded[expanded.length-1]?`GOTO T ${expanded[expanded.length-1].t} R ${expanded[expanded.length-1].r}`:'--',
+    startMode:getStartMode(),endMode,
+  };
+  renderDiag(planStats);
+  $('btnRunFull').classList.remove('plan-stale');
+  updatePlanStatus(`Compiled: ${expanded.length} moves, anchor theta=${anchor}.`);
+  return expanded;
 }
 
-function drawVisualPreview() {
-  const canvas = document.getElementById('patternCanvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const cx = W / 2, cy = H / 2;
-  const maxR = Math.min(W, H) * 0.42;
-
-  ctx.clearRect(0, 0, W, H);
-
+// ── CANVAS PREVIEW ─────────────────────────────────────────────────────────
+function drawPreview(){
+  const canvas=$('patternCanvas'),ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,maxR=Math.min(W,H)*0.44;
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath();ctx.arc(cx,cy,maxR,0,Math.PI*2);ctx.fillStyle='#0f172a';ctx.fill();
+  ctx.strokeStyle='#334155';ctx.lineWidth=1;ctx.stroke();
+  const raw=buildPatternPoints();if(raw.length<2)return;
+  const firstT=raw[0].t;
+  const pts=clampToFw(raw.map(p=>({t:p.t-firstT,r:p.r})));
+  const rMin=Math.min(...pts.map(p=>p.r)),rMax=Math.max(...pts.map(p=>p.r)),rRange=(rMax-rMin)||1;
   ctx.beginPath();
-  ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
-  ctx.fillStyle = '#0f172a';
-  ctx.fill();
-  ctx.strokeStyle = '#334155';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  const previewPts = buildPatternPoints();
-  if (previewPts.length < 2) return;
-
-  const firstTheta = previewPts[0].t;
-  const points = enforceFirmwareFriendly(previewPts.map(p => ({
-    t: p.t - firstTheta,
-    r: p.r
-  })));
-
-  const rhoMin = Math.min(...points.map(p => p.r));
-  const rhoMax = Math.max(...points.map(p => p.r));
-  const rhoRange = rhoMax - rhoMin || 1;
-
-  ctx.beginPath();
-  ctx.strokeStyle = '#f59e0b';
-  ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.85;
-
-  points.forEach((pt, i) => {
-    const rNorm = (pt.r - rhoMin) / rhoRange;
-    const radius = rNorm * maxR;
-    const angle = (pt.t / 25800) * Math.PI * 2 - Math.PI / 2;
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  pts.forEach((pt,i)=>{
+    const rn=(pt.r-rMin)/rRange*maxR,a=(pt.t/25800)*Math.PI*2-Math.PI/2;
+    const x=cx+rn*Math.cos(a),y=cy+rn*Math.sin(a);
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
   });
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-
-  const first = points[0];
-  const fRNorm = (first.r - rhoMin) / rhoRange;
-  const fRadius = fRNorm * maxR;
-  const fAngle = (first.t / 25800) * Math.PI * 2 - Math.PI / 2;
-  ctx.beginPath();
-  ctx.arc(cx + fRadius * Math.cos(fAngle), cy + fRadius * Math.sin(fAngle), 4, 0, Math.PI * 2);
-  ctx.fillStyle = '#22c55e';
-  ctx.fill();
+  ctx.strokeStyle='#f59e0b';ctx.lineWidth=1;ctx.globalAlpha=0.85;ctx.stroke();ctx.globalAlpha=1;
+  const p0=pts[0],r0n=(p0.r-rMin)/rRange*maxR,a0=(p0.t/25800)*Math.PI*2-Math.PI/2;
+  ctx.beginPath();ctx.arc(cx+r0n*Math.cos(a0),cy+r0n*Math.sin(a0),4,0,Math.PI*2);
+  ctx.fillStyle='#22c55e';ctx.fill();
+}
+function schedulePreview(){
+  clearTimeout(previewDebounce);
+  previewDebounce=setTimeout(()=>{drawPreview();markPlanDirty();},180);
 }
 
-async function requestFreshStatus() {
-  await sendCommand('STATUS');
-  await sleep(80);
+// ── EXECUTION ──────────────────────────────────────────────────────────────
+async function moveToStart(){
+  const mode=getStartMode();if(mode==='current')return;
+  const delta=getBoundaryRho(mode)-trackedRho();
+  if(delta===0){appendLog('Already at start boundary.');return}
+  appendLog(`Pre-move to ${mode} (delta=${delta})...`);
+  await sendCommand(`MOVE R ${delta}`,true);
 }
 
-async function moveToPatternStart() {
-  const startMode = getPatternStartMode();
-  if (startMode === 'current') {
-    appendLog('Pattern start mode is Current. No pre-start rho move.');
-    await sendCommand('STATUS');
-    return;
+async function ensurePlanReady(){
+  if(currentPattern==='spiral'&&getRhoWindow().span<500){
+    const msg='Spiral window too small. Re-capture Rho In / Rho Out.';
+    appendLog('BLOCKED: '+msg);updatePlanStatus(msg);return false;
   }
-  const targetRho = getBoundaryRho(startMode);
-  const rhoNow = trackedRho();
-  const delta = targetRho - rhoNow;
-
-  appendLog(`Moving to ${startMode === 'inside' ? 'Rho In' : 'Rho Out'} before pattern start...`);
-  if (delta !== 0) {
-    await sendCommand(`MOVE R ${delta}`, true);
-  } else {
-    appendLog('Already at requested start boundary.');
-  }
-  await sendCommand('STATUS');
+  if(!planDirty&&planCommands.length>0&&planIndex<planCommands.length)return true;
+  // Recompile
+  await moveToStart();
+  await sendCommand('STATUS');await sleep(120);
+  const anchor=trackedTheta();
+  appendLog(`Compiling plan at theta=${anchor}...`);
+  compilePlan(anchor);
+  $('planPreview').value=planCommands.map(p=>`GOTO T ${p.t} R ${p.r}`).join('\n');
+  return planCommands.length>0;
 }
 
-
-async function runPatternChunk(chunkSize = null, forceRecompile = false) {
-  if (patternRunning || !writer) return;
-  patternRunning = true;
-  patternAbort = false;
-  document.getElementById('runPatternBtn').disabled = true;
-  document.getElementById('run1Btn').disabled = true;
-  document.getElementById('run5Btn').disabled = true;
-  document.getElementById('run20Btn').disabled = true;
-  document.getElementById('stopPatternBtn').disabled = false;
-
-  try {
-    const ready = await ensurePlanReady(forceRecompile);
-    if (!ready) throw new Error('No compiled plan available.');
-  } catch (e) {
-    appendLog('Plan preparation error: ' + e.message);
-    patternRunning = false;
-    patternAbort = false;
-    document.getElementById('runPatternBtn').disabled = false;
-    document.getElementById('run1Btn').disabled = false;
-    document.getElementById('run5Btn').disabled = false;
-    document.getElementById('run20Btn').disabled = false;
-    document.getElementById('stopPatternBtn').disabled = true;
-    return;
+async function runChunk(chunkSize=null){
+  if(patternRunning||!writer)return;
+  patternRunning=true;patternAbort=false;
+  ['btnRunFull','btnRun1','btnRun5','btnRun20'].forEach(id=>{$(id).disabled=true});
+  $('btnStop').disabled=false;
+  try{if(!await ensurePlanReady())throw new Error('No plan.')}
+  catch(e){appendLog('Plan error: '+e.message);finishRun();return}
+  const total=planCommands.length;
+  const stop=chunkSize===null?total:Math.min(total,planIndex+chunkSize);
+  appendLog(`--- Running ${planIndex+1} to ${stop} of ${total} ---`);
+  setProgress(planIndex,total);
+  for(;planIndex<stop;planIndex++){
+    if(patternAbort)break;
+    const p=planCommands[planIndex];
+    try{
+      const res=await sendCommand(`GOTO T ${p.t} R ${p.r}`,true);
+      if(res&&res.startsWith('ERR')&&(res.includes('PARSE')||res.includes('ABORTED'))){appendLog('Fatal error, stopping: '+res);break}
+    }catch(e){appendLog('Send error: '+e.message);break}
+    setProgress(planIndex+1,total);
+    updatePlanStatus(`Executing: ${planIndex+1} / ${total}`);
+    const pause=Math.max(0,Number($('patternPause').value||0));
+    if(pause>0)await sleep(pause);
   }
-
-  const total = currentPlanMoveCommands.length;
-  const startIndex = currentPlanIndex;
-  const stopIndex = chunkSize === null ? total : Math.min(total, startIndex + chunkSize);
-
-  appendLog(`--- Pattern run ${startIndex + 1} to ${stopIndex} of ${total} ---`);
-  setProgress(currentPlanIndex, total);
-
-  for (; currentPlanIndex < stopIndex; currentPlanIndex++) {
-    if (patternAbort) break;
-    const step = currentPlanMoveCommands[currentPlanIndex];
-    try {
-      if (step.dT !== 0) await sendCommand(`MOVE T ${step.dT}`, true);
-      if (step.dR !== 0) await sendCommand(`MOVE R ${step.dR}`, true);
-      setProgress(currentPlanIndex + 1, total);
-      updatePlanStatus(`Executed ${currentPlanIndex + 1} of ${total} relative move steps.`);
-    } catch (e) {
-      appendLog('Pattern error: ' + e.message);
-      break;
-    }
-    const pause = Math.max(0, Number(document.getElementById('patternPause').value || 0));
-    if (pause > 0) await sleep(pause);
+  if(planIndex>=total){
+    appendLog('--- Pattern complete ---');try{await sendCommand('STATUS')}catch{}
+    updatePlanStatus('Complete. Preview or Reset to run again.');planIndex=0;
+  }else if(patternAbort){
+    appendLog('--- Stopped ---');updatePlanStatus(`Stopped at step ${planIndex+1} of ${total}.`);
+  }else{
+    appendLog(`--- Chunk done, next: ${planIndex+1} of ${total} ---`);
+    updatePlanStatus(`Paused at ${planIndex} of ${total}. Click Run to continue.`);
   }
-
-  const completed = currentPlanIndex >= total;
-  if (completed) {
-    appendLog('--- Pattern complete ---');
-    try { await sendCommand('STATUS'); } catch (e) {}
-    updatePlanStatus('Pattern complete. Preview or Reset Plan to start over.');
-  } else if (patternAbort) {
-    appendLog('--- Pattern stopped ---');
-    updatePlanStatus(`Stopped at ${currentPlanIndex + 1} of ${total}.`);
-  } else {
-    appendLog(`--- Chunk complete: next point ${Math.min(currentPlanIndex + 1, total)} of ${total} ---`);
-    updatePlanStatus(`Paused after ${currentPlanIndex} of ${total}.`);
-  }
-
-  patternRunning = false;
-  patternAbort = false;
-  document.getElementById('runPatternBtn').disabled = false;
-  document.getElementById('run1Btn').disabled = false;
-  document.getElementById('run5Btn').disabled = false;
-  document.getElementById('run20Btn').disabled = false;
-  document.getElementById('stopPatternBtn').disabled = true;
+  finishRun();
+}
+function finishRun(){
+  patternRunning=false;patternAbort=false;
+  ['btnRunFull','btnRun1','btnRun5','btnRun20'].forEach(id=>{$(id).disabled=false});
+  $('btnStop').disabled=true;
 }
 
-document.getElementById('clearLogBtn').addEventListener('click', () => logEl.textContent = '');
-connectBtn.addEventListener('click', connectSerial);
-document.getElementById('disconnectBtn').addEventListener('click', disconnectSerial);
-
-document.getElementById('statusBtn').addEventListener('click', () => sendCommand('STATUS'));
-document.getElementById('returnRhoBtn').addEventListener('click', () => sendCommand('RETURN RHO', true));
-document.getElementById('returnThetaBtn').addEventListener('click', () => sendCommand('RETURN THETA', true));
-document.getElementById('saveBtn').addEventListener('click', () => sendCommand('SAVE', true));
-document.getElementById('zeroThetaBtn').addEventListener('click', () => sendCommand('ZERO THETA', true));
-document.getElementById('zeroRhoBtn').addEventListener('click', () => sendCommand('ZERO RHO', true));
-document.getElementById('statusJogBtn').addEventListener('click', () => sendCommand('STATUS'));
-
-document.getElementById('setJogBtn').addEventListener('click', () => sendCommand('SET JOG ' + document.getElementById('jogInput').value, true));
-document.getElementById('setDelayBtn').addEventListener('click', () => sendCommand('SET DELAY ' + document.getElementById('delayInput').value, true));
-document.getElementById('setCompBtn').addEventListener('click', () => sendCommand('SET COMP ' + document.getElementById('compInput').value, true));
-document.getElementById('setRminBtn').addEventListener('click', () => sendCommand('SET RMIN ' + document.getElementById('fwRmin').value, true));
-document.getElementById('setRmaxBtn').addEventListener('click', () => sendCommand('SET RMAX ' + document.getElementById('fwRmax').value, true));
-document.getElementById('setTminBtn').addEventListener('click', () => sendCommand('SET TMIN ' + document.getElementById('fwTmin').value, true));
-document.getElementById('setTmaxBtn').addEventListener('click', () => sendCommand('SET TMAX ' + document.getElementById('fwTmax').value, true));
-
-document.querySelectorAll('.jogBtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const axis = btn.dataset.axis;
-    const dir = Number(btn.dataset.dir);
-    const jog = Number(document.getElementById('jogInput').value || 100);
-    sendCommand(`MOVE ${axis} ${dir * jog}`, true);
+// ── EVENT WIRING ───────────────────────────────────────────────────────────
+$('browserStatus').textContent=supported?'Web Serial available':'NOT available — use Chrome or Edge';
+$('btnConnect').addEventListener('click',connectSerial);
+$('btnDisconnect').addEventListener('click',disconnectSerial);
+$('btnStatus').addEventListener('click',()=>sendCommand('STATUS'));
+$('btnReturnRho').addEventListener('click',()=>sendCommand('RETURN RHO',true));
+$('btnReturnTheta').addEventListener('click',()=>sendCommand('RETURN THETA',true));
+$('btnSave').addEventListener('click',()=>sendCommand('SAVE',true));
+$('btnClearLog').addEventListener('click',()=>{logEl.textContent=''});
+$('btnSetJog').addEventListener('click',()=>sendCommand('SET JOG '+$('jogInput').value,true));
+$('btnSetDelay').addEventListener('click',()=>sendCommand('SET DELAY '+$('delayInput').value,true));
+$('btnStatusJog').addEventListener('click',()=>sendCommand('STATUS'));
+$('btnZeroTheta').addEventListener('click',()=>sendCommand('ZERO THETA',true));
+$('btnZeroRho').addEventListener('click',()=>sendCommand('ZERO RHO',true));
+document.querySelectorAll('.jogBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const axis=btn.dataset.axis,dir=Number(btn.dataset.dir),jog=Number($('jogInput').value||100);
+    sendCommand(`MOVE ${axis} ${dir*jog}`,true).then(()=>markPlanDirty('Jogged.'));
   });
 });
+$('btnGoto').addEventListener('click',()=>{
+  sendCommand(`GOTO T ${$('targetTheta').value} R ${$('targetRho').value}`,true)
+    .then(()=>markPlanDirty('Manual GOTO.'));
+});
+$('btnGoRhoIn').addEventListener('click',()=>{
+  sendCommand(`MOVE R ${Number($('rhoInSteps').value)-trackedRho()}`,true).then(()=>markPlanDirty('Moved to Rho In.'));
+});
+$('btnGoRhoOut').addEventListener('click',()=>{
+  sendCommand(`MOVE R ${Number($('rhoOutSteps').value)-trackedRho()}`,true).then(()=>markPlanDirty('Moved to Rho Out.'));
+});
+$('btnCaptureRhoIn').addEventListener('click',()=>{
+  if(currentRho===null){appendLog('ERROR: Send STATUS first.');return}
+  $('rhoInSteps').value=currentRho;$('fwRmax').value=currentRho;persistState();
+  sendCommand('SET RMAX '+currentRho,true);appendLog('Captured Rho In = '+currentRho);markPlanDirty('Rho In captured.');
+});
+$('btnCaptureRhoOut').addEventListener('click',()=>{
+  if(currentRho===null){appendLog('ERROR: Send STATUS first.');return}
+  $('rhoOutSteps').value=currentRho;$('fwRmin').value=currentRho;persistState();
+  sendCommand('SET RMIN '+currentRho,true);appendLog('Captured Rho Out = '+currentRho);markPlanDirty('Rho Out captured.');
+});
+$('btnCalcCenter').addEventListener('click',()=>{
+  const ri=Number($('rhoInSteps').value),ro=Number($('rhoOutSteps').value);
+  const center=Math.round((ri+ro)/2),radius=Math.round(Math.abs(ro-ri)/2);
+  $('patternRhoCenter').value=center;$('patternRhoRadius').value=Math.round(radius*0.85);
+  $('centerVal').textContent=center;$('radiusVal').textContent=radius;
+  $('centerReadout').classList.remove('hidden');persistState();
+  appendLog(`Rho center=${center}, radius=${Math.round(radius*0.85)}`);drawPreview();markPlanDirty('Center recalculated.');
+});
+$('btnSetRmin').addEventListener('click',()=>sendCommand('SET RMIN '+$('fwRmin').value,true));
+$('btnSetRmax').addEventListener('click',()=>sendCommand('SET RMAX '+$('fwRmax').value,true));
+$('btnSetTmin').addEventListener('click',()=>sendCommand('SET TMIN '+$('fwTmin').value,true));
+$('btnSetTmax').addEventListener('click',()=>sendCommand('SET TMAX '+$('fwTmax').value,true));
+$('btnSetComp').addEventListener('click',()=>sendCommand('SET COMP '+$('compInput').value,true));
+$('btnSend').addEventListener('click',()=>{sendCommand($('commandInput').value);$('commandInput').value=''});
+$('commandInput').addEventListener('keydown',e=>{if(e.key==='Enter'){sendCommand(e.target.value);e.target.value=''}});
 
-document.getElementById('gotoBtn').addEventListener('click', () => {
-  const t = document.getElementById('targetTheta').value;
-  const r = document.getElementById('targetRho').value;
-  sendCommand(`GOTO T ${t} R ${r}`, true);
-});
-
-document.getElementById('goRhoInBtn').addEventListener('click', () => {
-  const target = Number(document.getElementById('rhoInSteps').value);
-  const delta = target - trackedRho();
-  sendCommand(`MOVE R ${delta}`, true);
-});
-document.getElementById('goRhoOutBtn').addEventListener('click', () => {
-  const target = Number(document.getElementById('rhoOutSteps').value);
-  const delta = target - trackedRho();
-  sendCommand(`MOVE R ${delta}`, true);
-});
-document.getElementById('captureRhoInBtn').addEventListener('click', () => {
-  if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
-  document.getElementById('rhoInSteps').value = currentRho;
-  document.getElementById('fwRmax').value = currentRho;
-  persistEndpointState();
-  sendCommand('SET RMAX ' + currentRho, true);
-  appendLog('Captured Rho In = ' + currentRho);
-});
-document.getElementById('captureRhoOutBtn').addEventListener('click', () => {
-  if (currentRho === null) { appendLog('ERROR: No position known yet — send STATUS first.'); return; }
-  document.getElementById('rhoOutSteps').value = currentRho;
-  document.getElementById('fwRmin').value = currentRho;
-  persistEndpointState();
-  sendCommand('SET RMIN ' + currentRho, true);
-  appendLog('Captured Rho Out = ' + currentRho);
-});
-document.getElementById('calcCenterBtn').addEventListener('click', () => {
-  const rhoIn = Number(document.getElementById('rhoInSteps').value);
-  const rhoOut = Number(document.getElementById('rhoOutSteps').value);
-  const center = Math.round((rhoIn + rhoOut) / 2);
-  const radius = Math.round(Math.abs(rhoOut - rhoIn) / 2);
-  document.getElementById('patternRhoCenter').value = center;
-  document.getElementById('patternRhoRadius').value = Math.round(radius * 0.85);
-  document.getElementById('centerVal').textContent = center;
-  document.getElementById('radiusVal').textContent = radius;
-  document.getElementById('centerReadout').classList.remove('hidden');
-  persistEndpointState();
-  appendLog(`Rho center set to ${center}, radius set to ${Math.round(radius * 0.85)}.`);
-  drawVisualPreview();
-});
-
-document.getElementById('sendBtn').addEventListener('click', () => {
-  sendCommand(commandInput.value);
-  commandInput.value = '';
-});
-commandInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    sendCommand(commandInput.value);
-    commandInput.value = '';
-  }
-});
-
-document.querySelectorAll('.patternTab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentPattern = btn.dataset.pattern;
-    document.querySelectorAll('.patternTab').forEach(b => b.classList.remove('tab-active'));
+document.querySelectorAll('.patternTab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    currentPattern=btn.dataset.pattern;
+    document.querySelectorAll('.patternTab').forEach(b=>b.classList.remove('tab-active'));
     btn.classList.add('tab-active');
-    const def = PATTERN_DEFS[currentPattern];
-    document.getElementById('patternDesc').textContent = def.desc;
-    ['paramStandard', 'paramPond', 'paramRose', 'paramLissajous', 'paramEpitrochoid', 'paramStar', 'paramText'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-    if (def.params === 'standard') document.getElementById('paramStandard').classList.remove('hidden');
-    if (def.params === 'pond') document.getElementById('paramPond').classList.remove('hidden');
-    if (def.params === 'rose') document.getElementById('paramRose').classList.remove('hidden');
-    if (def.params === 'lissajous') document.getElementById('paramLissajous').classList.remove('hidden');
-    if (def.params === 'epitrochoid') document.getElementById('paramEpitrochoid').classList.remove('hidden');
-    if (def.params === 'star') document.getElementById('paramStar').classList.remove('hidden');
-    if (def.params === 'text') document.getElementById('paramText').classList.remove('hidden');
-    drawVisualPreview();
-    markPlanDirty('Pattern type changed.');
+    $('patternDesc').textContent=PATTERN_DEFS[currentPattern].desc;
+    ['paramStandard','paramPond','paramRose','paramLissajous','paramEpitrochoid','paramStar','paramText'].forEach(id=>$(id).classList.add('hidden'));
+    const pid={standard:'paramStandard',pond:'paramPond',rose:'paramRose',lissajous:'paramLissajous',epitrochoid:'paramEpitrochoid',star:'paramStar',text:'paramText'}[PATTERN_DEFS[currentPattern].params];
+    if(pid)$(pid).classList.remove('hidden');
+    schedulePreview();markPlanDirty('Pattern changed.');
   });
 });
 
-document.getElementById('previewPatternBtn').addEventListener('click', async () => {
-  await previewCurrentPattern();
-  drawVisualPreview();
-});
-document.getElementById('resetPlanBtn').addEventListener('click', () => {
-  markPlanDirty('Plan reset.');
-  document.getElementById('patternPreview').value = '';
-  renderDiagnostics(null);
-  setProgress(0, 0);
-});
-document.getElementById('runPatternBtn').addEventListener('click', () => runPatternChunk(null, false));
-document.getElementById('run1Btn').addEventListener('click', () => runPatternChunk(1, false));
-document.getElementById('run5Btn').addEventListener('click', () => runPatternChunk(5, false));
-document.getElementById('run20Btn').addEventListener('click', () => runPatternChunk(20, false));
-document.getElementById('stopPatternBtn').addEventListener('click', () => {
-  patternAbort = true;
-  appendLog('Stop requested — halting after current move.');
+document.querySelectorAll('input,select').forEach(el=>{
+  if(el.id==='commandInput')return;
+  el.addEventListener('input',schedulePreview);
+  el.addEventListener('change',()=>{persistState();markPlanDirty();});
 });
 
-document.querySelectorAll('input').forEach(el => el.addEventListener('input', () => {
-  if (el.id !== 'commandInput') {
-    drawVisualPreview();
-    markPlanDirty();
-  }
-}));
+$('btnPreview').addEventListener('click',async()=>{
+  if(writer){await sendCommand('STATUS');await sleep(100)}
+  const anchor=trackedTheta();
+  compilePlan(anchor);
+  $('planPreview').value=planCommands.map(p=>`GOTO T ${p.t} R ${p.r}`).join('\n');
+  drawPreview();
+});
+$('btnResetPlan').addEventListener('click',()=>{
+  markPlanDirty('Plan reset.');$('planPreview').value='';setProgress(0,0);
+});
+$('btnRunFull').addEventListener('click',()=>runChunk(null));
+$('btnRun1').addEventListener('click',()=>runChunk(1));
+$('btnRun5').addEventListener('click',()=>runChunk(5));
+$('btnRun20').addEventListener('click',()=>runChunk(20));
+$('btnStop').addEventListener('click',()=>{patternAbort=true;appendLog('Stop requested.')});
+$('btnModeCalibrate').addEventListener('click',()=>setUIMode('calibrate'));
+$('btnModeRun').addEventListener('click',()=>setUIMode('run'));
 
-document.getElementById('uiModeCalibrate').addEventListener('click', () => setUIMode('calibrate'));
-document.getElementById('uiModeRun').addEventListener('click', () => setUIMode('run'));
-
-setConnectedState(false);
-setProgress(0, 0);
+// ── INIT ───────────────────────────────────────────────────────────────────
+setConnectedState(false);setProgress(0,0);restoreState();
 document.querySelector('.patternTab[data-pattern="spiral"]').click();
-setUIMode((() => { try { return localStorage.getItem('dune_ui_mode') || 'run'; } catch (e) { return 'run'; } })());
-updatePlanStatus();
-renderDiagnostics(null);
-appendLog('Dune Weaver Mini ready.');
-appendLog('All values are raw firmware step counts. No translation.');
-appendLog('Calibrate mode keeps tuning controls visible; Run mode compiles and diagnoses exact plans.');
-appendLog('Patterns move to Rho In before starting and stop at the pattern end.');
-appendLog('Pattern theta is rebased so the first point starts at the live theta.');
-appendLog('Spiral uses captured Rho In / Rho Out as its radial window.');
-appendLog('Theta is not clamped in the UI because firmware treats theta as unlimited.');
-appendLog('Captured Rho In / Rho Out are persisted locally and spiral refuses to run if that window looks wrong.');
-appendLog('Direct connect button preserved for reliable Web Serial requestPort().');
+const savedMode=(()=>{try{return localStorage.getItem(STORAGE.uiMode)||'run'}catch{return'run'}})();
+setUIMode(savedMode);markPlanDirty();renderDiag(null);drawPreview();
+
+appendLog('Dune Weaver Mini v2 ready.');
+appendLog('All values are raw firmware step counts.');
+appendLog('Plans compile to absolute GOTO commands, anchored to live theta at compile time.');
+appendLog('Jogging after compile marks plan stale and forces recompile on next run.');
+appendLog('Firmware v2: RHO_LIMIT mid-move aborts the GOTO immediately, no silent drift.');
 </script>
 </body>
 </html>
