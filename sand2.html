@@ -780,8 +780,7 @@ async function ensurePlanReady(forceRecompile = false) {
     await requestFreshStatus();
     const startTheta = 0;
     compilePatternPlan(startTheta);
-    document.getElementById('patternPreview').value = currentPlanCommands.join('
-');
+    document.getElementById('patternPreview').value = currentPlanMoveCommands.map(m => m.preview).join('\n');
     appendLog('Compiled new plan at theta 0.');
   }
   return currentPlanMoveCommands.length > 0;
