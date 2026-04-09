@@ -220,6 +220,7 @@
           <button data-pattern="lissajous" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Lissajous</button>
           <button data-pattern="epitrochoid" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Spirograph</button>
           <button data-pattern="bouncerho" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Ripple Rings</button>
+          <button data-pattern="pond" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Pond Ripples</button>
           <button data-pattern="star" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Star</button>
           <button data-pattern="fermat" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">Fermat</button>
           <button data-pattern="text" class="patternTab bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-xl text-xs">✏️ Text</button>
@@ -274,6 +275,26 @@
           <div class="space-y-2">
             <label class="block text-xs text-slate-400 uppercase tracking-widest">Turns / cycles</label>
             <input id="spiralTurns" type="number" value="4" min="1" max="30" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+
+        <div id="paramPond" class="grid sm:grid-cols-4 gap-4 hidden">
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Rings</label>
+            <input id="pondRings" type="number" value="12" min="2" max="60" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Turns per ring</label>
+            <input id="pondTurnsPerRing" type="number" value="1" min="1" max="5" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Outer margin</label>
+            <input id="pondOuterMargin" type="number" value="250" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Inner margin</label>
+            <input id="pondInnerMargin" type="number" value="350" min="0" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
           </div>
         </div>
 
@@ -474,6 +495,7 @@ const PATTERN_DEFS = {
   lissajous:   { desc: 'Cartesian Lissajous converted into continuous polar motion.', params: 'lissajous' },
   epitrochoid: { desc: 'Spirograph loop converted into continuous polar motion.', params: 'epitrochoid' },
   bouncerho:   { desc: 'Ripple rings: theta rotates while rho pulses in and out repeatedly.', params: 'standard' },
+  pond:        { desc: 'Concentric circles that step inward one ring at a time for a calm pond-ripple look.', params: 'pond' },
   star:        { desc: 'Connected star path converted into continuous polar motion.', params: 'star' },
   fermat:      { desc: 'Fermat spiral converted into continuous polar motion.', params: 'standard' },
   text:        { desc: 'Connected single-stroke letters followed by a small flourish.', params: 'text' },
@@ -1155,6 +1177,35 @@ function buildPatternPoints() {
     return out;
   }
 
+
+  if (currentPattern === 'pond') {
+    const { rhoIn, rhoOut } = getRhoWindow();
+    const rings = Math.max(2, Number(document.getElementById('pondRings').value || 12));
+    const turnsPerRing = Math.max(1, Number(document.getElementById('pondTurnsPerRing').value || 1));
+    const outerMargin = Math.max(0, Number(document.getElementById('pondOuterMargin').value || 250));
+    const innerMargin = Math.max(0, Number(document.getElementById('pondInnerMargin').value || 350));
+
+    const outerRho = rhoOut + outerMargin;
+    const innerRho = rhoIn - innerMargin;
+    const safeOuter = Math.min(outerRho, innerRho);
+    const safeInner = Math.max(outerRho, innerRho);
+    const ringCount = Math.max(2, rings);
+
+    for (let ring = 0; ring < ringCount; ring++) {
+      const ringFrac = ringCount === 1 ? 0 : ring / (ringCount - 1);
+      const ringRho = Math.round(safeOuter + (safeInner - safeOuter) * ringFrac);
+      for (let i = 0; i <= points; i++) {
+        const frac = i / points;
+        const totalTurns = ring * turnsPerRing + turnsPerRing * frac;
+        out.push({
+          t: Math.round(thetaCenter + totalTurns * 25800),
+          r: ringRho
+        });
+      }
+    }
+    return out;
+  }
+
   if (currentPattern === 'star') {
     const starPts = Math.max(3, Number(document.getElementById('starPoints').value || 5));
     const outer = Math.max(1, Number(document.getElementById('starOuter').value || 3500));
@@ -1469,10 +1520,11 @@ document.querySelectorAll('.patternTab').forEach(btn => {
     btn.classList.add('tab-active');
     const def = PATTERN_DEFS[currentPattern];
     document.getElementById('patternDesc').textContent = def.desc;
-    ['paramStandard', 'paramRose', 'paramLissajous', 'paramEpitrochoid', 'paramStar', 'paramText'].forEach(id => {
+    ['paramStandard', 'paramPond', 'paramRose', 'paramLissajous', 'paramEpitrochoid', 'paramStar', 'paramText'].forEach(id => {
       document.getElementById(id).classList.add('hidden');
     });
     if (def.params === 'standard') document.getElementById('paramStandard').classList.remove('hidden');
+    if (def.params === 'pond') document.getElementById('paramPond').classList.remove('hidden');
     if (def.params === 'rose') document.getElementById('paramRose').classList.remove('hidden');
     if (def.params === 'lissajous') document.getElementById('paramLissajous').classList.remove('hidden');
     if (def.params === 'epitrochoid') document.getElementById('paramEpitrochoid').classList.remove('hidden');
