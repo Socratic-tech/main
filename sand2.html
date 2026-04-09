@@ -666,6 +666,7 @@ function compilePatternPlan(thetaAnchor = 0) {
   const rawPts = buildPatternPoints();
   if (!rawPts.length) {
     currentPlanCommands = [];
+    currentPlanMoveCommands = [];
     currentPlanExpandedPoints = [];
     currentPlanStats = null;
     currentPlanIndex = 0;
@@ -694,10 +695,25 @@ function compilePatternPlan(thetaAnchor = 0) {
 
   const pts = enforceFirmwareFriendly(rebasedPts);
   const expandedPts = subdividePointsForReliableMotion(pts);
-  const cmds = expandedPts.map(p => `GOTO T ${p.t} R ${p.r}`);
+
+  currentPlanStartPos = { t: trackedTheta(), r: trackedRho() };
+
+  const gotoCmds = expandedPts.map(p => `GOTO T ${p.t} R ${p.r}`);
+  const moveCmds = [];
+  let prevT = currentPlanStartPos.t;
+  let prevR = currentPlanStartPos.r;
+  for (const p of expandedPts) {
+    const dT = Math.round(p.t - prevT);
+    const dR = Math.round(p.r - prevR);
+    moveCmds.push({ dT, dR, preview: `MOVE T ${dT} | MOVE R ${dR}` });
+    prevT = p.t;
+    prevR = p.r;
+  }
 
   currentPlanExpandedPoints = expandedPts;
-  currentPlanCommands = cmds;
+  currentPlanCommands = gotoCmds;      // kept for diagnostics/reference
+  currentPlanMoveCommands = moveCmds;  // actual executor path
+
   const { rhoIn, rhoOut } = getRhoWindow();
 
   let maxThetaJump = 0;
@@ -712,6 +728,8 @@ function compilePatternPlan(thetaAnchor = 0) {
     points: expandedPts.length,
     sourcePoints: pts.length,
     anchorTheta: thetaAnchor,
+    startTheta: currentPlanStartPos.t,
+    startRho: currentPlanStartPos.r,
     thetaMin: Math.min(...expandedPts.map(p => p.t)),
     thetaMax: Math.max(...expandedPts.map(p => p.t)),
     rhoMin: Math.min(...expandedPts.map(p => p.r)),
@@ -719,8 +737,8 @@ function compilePatternPlan(thetaAnchor = 0) {
     thetaSpan: Math.max(...expandedPts.map(p => p.t)) - Math.min(...expandedPts.map(p => p.t)),
     clampCount,
     thetaBehavior: summarizeThetaBehavior(expandedPts),
-    firstCmd: cmds[0],
-    lastCmd: cmds[cmds.length - 1],
+    firstCmd: moveCmds[0]?.preview || '',
+    lastCmd: moveCmds[moveCmds.length - 1]?.preview || '',
     firstRho: expandedPts[0].r,
     lastRho: expandedPts[expandedPts.length - 1].r,
     rhoIn,
@@ -735,8 +753,8 @@ function compilePatternPlan(thetaAnchor = 0) {
   currentPlanAnchor = thetaAnchor;
   planDirty = false;
   renderDiagnostics(currentPlanStats);
-  updatePlanStatus(`Compiled at theta anchor ${thetaAnchor}. Segments expanded from ${pts.length} to ${expandedPts.length}.`);
-  return cmds;
+  updatePlanStatus(`Compiled at theta anchor ${thetaAnchor}. Executor will use relative MOVE steps. Segments expanded from ${pts.length} to ${expandedPts.length}.`);
+  return moveCmds.map(m => m.preview);
 }
 async function previewCurrentPattern() {
   if (writer) {
@@ -757,13 +775,16 @@ async function ensurePlanReady(forceRecompile = false) {
   }
   if (forceRecompile || planDirty || !currentPlanCommands.length || currentPlanIndex >= currentPlanCommands.length) {
     await moveToPatternStart();
+    appendLog('Zeroing theta before compiling pattern plan...');
+    await sendCommand('ZERO THETA', true);
     await requestFreshStatus();
-    const startTheta = trackedTheta();
+    const startTheta = 0;
     compilePatternPlan(startTheta);
-    document.getElementById('patternPreview').value = currentPlanCommands.join('\n');
-    appendLog('Compiled new plan at live theta ' + startTheta);
+    document.getElementById('patternPreview').value = currentPlanCommands.join('
+');
+    appendLog('Compiled new plan at theta 0.');
   }
-  return currentPlanCommands.length > 0;
+  return currentPlanMoveCommands.length > 0;
 }
 function syncLimitsOnce(line) {
   if (limitsSynced) return;
@@ -951,11 +972,20 @@ function getNaturalSpiralEndMode(startMode) {
   if (startMode === 'outside') return 'inside';
   return 'outside';
 }
-function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius) {
+function getSafeThetaSpan() {
+  const userSpan = Math.max(25800, Math.abs(Number(document.getElementById('patternThetaRadius').value || 25800)));
+  const tMin = Number(document.getElementById('fwTmin').value || -200000);
+  const tMax = Number(document.getElementById('fwTmax').value || 200000);
+  const available = Math.max(25800, Math.floor(Math.abs(tMax - tMin) * 0.8));
+  return Math.min(userSpan, available);
+}
+
+function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius, thetaSpan = null) {
   if (!xyPoints.length) return [];
   const mags = xyPoints.map(p => Math.hypot(p.x, p.y));
   const maxMag = Math.max(...mags, 1e-9);
-  const out = [];
+
+  const unwrappedAngles = [];
   let prevRaw = null;
   let prevUnwrapped = null;
   let baseAngle = 0;
@@ -973,13 +1003,16 @@ function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius) {
     }
     prevRaw = raw;
     prevUnwrapped = unwrapped;
-
-    out.push({
-      t: Math.round(thetaCenter + ((unwrapped - baseAngle) * 25800 / (Math.PI * 2))),
-      r: Math.round(rhoCenter + (Math.hypot(p.x, p.y) / maxMag) * rhoRadius)
-    });
+    unwrappedAngles.push(unwrapped - baseAngle);
   });
-  return out;
+
+  const span = thetaSpan === null ? getSafeThetaSpan() : Math.max(25800, Math.abs(thetaSpan));
+  const angleMax = Math.max(...unwrappedAngles.map(a => Math.abs(a)), 1e-9);
+
+  return xyPoints.map((p, idx) => ({
+    t: Math.round(thetaCenter + (unwrappedAngles[idx] / angleMax) * span),
+    r: Math.round(rhoCenter + (Math.hypot(p.x, p.y) / maxMag) * rhoRadius)
+  }));
 }
 
 function buildTextCommands() {
@@ -1298,7 +1331,7 @@ async function runPatternChunk(chunkSize = null, forceRecompile = false) {
     return;
   }
 
-  const total = currentPlanCommands.length;
+  const total = currentPlanMoveCommands.length;
   const startIndex = currentPlanIndex;
   const stopIndex = chunkSize === null ? total : Math.min(total, startIndex + chunkSize);
 
@@ -1307,11 +1340,12 @@ async function runPatternChunk(chunkSize = null, forceRecompile = false) {
 
   for (; currentPlanIndex < stopIndex; currentPlanIndex++) {
     if (patternAbort) break;
-    const cmd = currentPlanCommands[currentPlanIndex];
+    const step = currentPlanMoveCommands[currentPlanIndex];
     try {
-      await sendCommand(cmd, true);
+      if (step.dT !== 0) await sendCommand(`MOVE T ${step.dT}`, true);
+      if (step.dR !== 0) await sendCommand(`MOVE R ${step.dR}`, true);
       setProgress(currentPlanIndex + 1, total);
-      updatePlanStatus(`Executed ${currentPlanIndex + 1} of ${total}.`);
+      updatePlanStatus(`Executed ${currentPlanIndex + 1} of ${total} relative move steps.`);
     } catch (e) {
       appendLog('Pattern error: ' + e.message);
       break;
