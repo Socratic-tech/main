@@ -227,7 +227,7 @@
 
         <p id="patternDesc" class="text-xs text-slate-400 italic"></p>
 
-        <div class="grid sm:grid-cols-3 gap-4">
+        <div class="grid sm:grid-cols-5 gap-4">
           <div class="space-y-2">
             <label class="block text-xs text-slate-400 uppercase tracking-widest">Points</label>
             <input id="patternPoints" type="number" value="360" min="10" max="5000" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
@@ -239,6 +239,22 @@
           <div class="space-y-2">
             <label class="block text-xs text-slate-400 uppercase tracking-widest">Rho center</label>
             <input id="patternRhoCenter" type="number" value="0" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">Start position</label>
+            <select id="patternStartMode" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
+              <option value="inside">Inside</option>
+              <option value="outside">Outside</option>
+              <option value="current">Current</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 uppercase tracking-widest">End position</label>
+            <select id="patternEndMode" class="mono w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
+              <option value="natural">Natural</option>
+              <option value="inside">Inside</option>
+              <option value="outside">Outside</option>
+            </select>
           </div>
         </div>
 
@@ -597,6 +613,7 @@ function buildWarnings(stats) {
   if (stats.thetaSpan > 25800 * 12) out.push('Theta span is very large. That can be fine, but it is worth confirming the pattern really needs that much rotation.');
   if (stats.rhoMin === stats.rhoMax) out.push('Rho is constant. That means you are drawing a ring-like pattern.');
   if (stats.maxThetaJump > 100 || stats.maxRhoJump > 50) out.push(`Some plan segments are still large (ΔT max ${stats.maxThetaJump}, ΔR max ${stats.maxRhoJump}).`);
+  if (stats.startMode) out.push(`Start ${stats.startMode} · End ${stats.endMode}`);
   if (stats.patternName === 'spiral') {
     if (Math.abs(stats.rhoOut - stats.rhoIn) < 500) out.push('Spiral endpoint window is too small. Re-capture Rho In / Rho Out.');
     if (stats.firstRho !== stats.rhoIn) out.push('Spiral does not start at captured Rho In. Check the compiled plan.');
@@ -664,6 +681,13 @@ function compilePatternPlan(thetaAnchor = 0) {
     r: p.r
   }));
 
+  const endMode = getPatternEndMode();
+  const startMode = getPatternStartMode();
+  if (endMode !== 'natural' && rebasedPts.length) {
+    const last = rebasedPts[rebasedPts.length - 1];
+    rebasedPts.push({ t: last.t, r: getBoundaryRho(endMode) });
+  }
+
   const rawRmin = Number(document.getElementById('fwRmin').value || -9800);
   const rawRmax = Number(document.getElementById('fwRmax').value || 400);
   const clampCount = rebasedPts.filter(p => Math.round(p.r) < rawRmin || Math.round(p.r) > rawRmax).length;
@@ -704,6 +728,8 @@ function compilePatternPlan(thetaAnchor = 0) {
     maxThetaJump,
     maxRhoJump,
     segmentized: expandedPts.length - pts.length,
+    startMode,
+    endMode,
   };
   currentPlanIndex = 0;
   currentPlanAnchor = thetaAnchor;
@@ -730,7 +756,7 @@ async function ensurePlanReady(forceRecompile = false) {
     }
   }
   if (forceRecompile || planDirty || !currentPlanCommands.length || currentPlanIndex >= currentPlanCommands.length) {
-    await moveToRhoIn();
+    await moveToPatternStart();
     await requestFreshStatus();
     const startTheta = trackedTheta();
     compilePatternPlan(startTheta);
@@ -873,6 +899,8 @@ function persistEndpointState() {
     localStorage.setItem(STORAGE_KEYS.patternRhoCenter, document.getElementById('patternRhoCenter').value);
     localStorage.setItem(STORAGE_KEYS.patternRhoRadius, document.getElementById('patternRhoRadius').value);
     localStorage.setItem(STORAGE_KEYS.spiralTurns, document.getElementById('spiralTurns').value);
+    localStorage.setItem(STORAGE_KEYS.patternStartMode, document.getElementById('patternStartMode').value);
+    localStorage.setItem(STORAGE_KEYS.patternEndMode, document.getElementById('patternEndMode').value);
   } catch (e) {}
 }
 function restoreEndpointState() {
@@ -882,11 +910,15 @@ function restoreEndpointState() {
     const rhoCenter = localStorage.getItem(STORAGE_KEYS.patternRhoCenter);
     const rhoRadius = localStorage.getItem(STORAGE_KEYS.patternRhoRadius);
     const spiralTurns = localStorage.getItem(STORAGE_KEYS.spiralTurns);
+    const patternStartMode = localStorage.getItem(STORAGE_KEYS.patternStartMode);
+    const patternEndMode = localStorage.getItem(STORAGE_KEYS.patternEndMode);
     if (rhoIn !== null) document.getElementById('rhoInSteps').value = rhoIn;
     if (rhoOut !== null) document.getElementById('rhoOutSteps').value = rhoOut;
     if (rhoCenter !== null) document.getElementById('patternRhoCenter').value = rhoCenter;
     if (rhoRadius !== null) document.getElementById('patternRhoRadius').value = rhoRadius;
     if (spiralTurns !== null) document.getElementById('spiralTurns').value = spiralTurns;
+    if (patternStartMode !== null) document.getElementById('patternStartMode').value = patternStartMode;
+    if (patternEndMode !== null) document.getElementById('patternEndMode').value = patternEndMode;
   } catch (e) {}
 }
 function validateSpiralWindow() {
@@ -897,10 +929,27 @@ function validateSpiralWindow() {
   if (span < 500) {
     return { ok: false, message: 'Spiral Rho In / Rho Out window is too small. Re-capture the endpoints first.' };
   }
-  if (rhoIn === 0 && rhoOut < -500 && currentRho === 0) {
+  if (getPatternStartMode() !== 'current' && rhoIn === 0 && rhoOut < -500 && currentRho === 0) {
     return { ok: false, message: 'Spiral thinks Rho In is 0 and current rho is already 0. That usually means the inside endpoint was lost. Re-capture Rho In.' };
   }
   return { ok: true, message: '' };
+}
+
+function getPatternStartMode() {
+  return document.getElementById('patternStartMode').value || 'inside';
+}
+function getPatternEndMode() {
+  return document.getElementById('patternEndMode').value || 'natural';
+}
+function getBoundaryRho(mode) {
+  const { rhoIn, rhoOut } = getRhoWindow();
+  if (mode === 'inside') return rhoIn;
+  if (mode === 'outside') return rhoOut;
+  return trackedRho();
+}
+function getNaturalSpiralEndMode(startMode) {
+  if (startMode === 'outside') return 'inside';
+  return 'outside';
 }
 function cartesianPathToPolar(xyPoints, thetaCenter, rhoCenter, rhoRadius) {
   if (!xyPoints.length) return [];
@@ -1203,19 +1252,26 @@ async function requestFreshStatus() {
   await sleep(80);
 }
 
-async function moveToRhoIn() {
-  const rhoIn = Number(document.getElementById('rhoInSteps').value || 0);
+async function moveToPatternStart() {
+  const startMode = getPatternStartMode();
+  if (startMode === 'current') {
+    appendLog('Pattern start mode is Current. No pre-start rho move.');
+    await sendCommand('STATUS');
+    return;
+  }
+  const targetRho = getBoundaryRho(startMode);
   const rhoNow = trackedRho();
-  const delta = rhoIn - rhoNow;
+  const delta = targetRho - rhoNow;
 
-  appendLog('Moving to Rho In before pattern start...');
+  appendLog(`Moving to ${startMode === 'inside' ? 'Rho In' : 'Rho Out'} before pattern start...`);
   if (delta !== 0) {
     await sendCommand(`MOVE R ${delta}`, true);
   } else {
-    appendLog('Already at Rho In.');
+    appendLog('Already at requested start boundary.');
   }
-  await requestFreshStatus();
+  await sendCommand('STATUS');
 }
+
 
 async function runPatternChunk(chunkSize = null, forceRecompile = false) {
   if (patternRunning || !writer) return;
