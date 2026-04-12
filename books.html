@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Classroom Library</title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,300&display=swap');
 
@@ -232,7 +231,8 @@ input:focus { border-color: var(–kraft); }
         </svg>
         <p>Tap below to scan barcode</p>
       </div>
-      <div id="scanRegion" style="display:none;width:100%;height:100%;position:absolute;inset:0;overflow:hidden;border-radius:14px"></div>
+      <video id="scanVideo" playsinline muted style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0"></video>
+      <canvas id="scanCanvas" style="display:none;position:absolute;inset:0;width:100%;height:100%"></canvas>
     </div>
     <div class="scan-overlay" id="scanOverlay" style="display:none">
       <div class="scan-frame">
@@ -302,12 +302,20 @@ function saveLibrary() {
   updateCounts();
 }
 
-// ─── SCANNER — html5-qrcode ─────────────────────────────
-let html5Scanner = null;
+// ─── SCANNER — native BarcodeDetector API ───────────────
+let videoStream  = null;
+let scanRafId    = null;
+let barcodeDetector = null;
 
 async function startScanner() {
+  // Check native support
+  if (!('BarcodeDetector' in window)) {
+    showToast('Camera scan not supported on this browser — use manual entry below');
+    return;
+  }
+
   document.getElementById('scanIdle').style.display    = 'none';
-  document.getElementById('scanRegion').style.display  = 'block';
+  document.getElementById('scanVideo').style.display   = 'block';
   document.getElementById('scanOverlay').style.display = 'flex';
   document.getElementById('scanStatus').style.display  = 'block';
   document.getElementById('btnScan').style.display     = 'none';
@@ -315,37 +323,20 @@ async function startScanner() {
   setScanStatus('Starting camera…');
 
   try {
-    html5Scanner = new Html5Qrcode('scanRegion', { verbose: false });
+    barcodeDetector = new BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128']
+    });
 
-    const config = {
-      fps: 10,
-      qrbox: { width: 250, height: 120 },
-      aspectRatio: 1.333,
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-      ],
-    };
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
 
-    await html5Scanner.start(
-      { facingMode: 'environment' },
-      config,
-      (decodedText) => {
-        // Success — got a barcode
-        const raw   = decodedText.replace(/[^0-9X]/gi, '').toUpperCase();
-        const codes = candidatesFor(raw);
-        const isbn  = codes.find(c => isValidISBN(c)) || raw;
-        stopScanner();
-        showToast('✓ Barcode read!');
-        lookupBook(isbn);
-      },
-      () => {} // scan errors are normal between frames, ignore silently
-    );
+    const video = document.getElementById('scanVideo');
+    video.srcObject = videoStream;
+    await video.play();
 
     setScanStatus('Point at barcode…');
+    scanFrame();
 
   } catch(e) {
     showToast('Camera error: ' + (e.message || String(e)));
@@ -353,14 +344,35 @@ async function startScanner() {
   }
 }
 
+function scanFrame() {
+  const video = document.getElementById('scanVideo');
+  if (!video || !videoStream) return;
+
+  barcodeDetector.detect(video).then(barcodes => {
+    if (barcodes.length > 0) {
+      const raw   = barcodes[0].rawValue.replace(/[^0-9X]/gi, '').toUpperCase();
+      const codes = candidatesFor(raw);
+      const isbn  = codes.find(c => isValidISBN(c)) || raw;
+      stopScanner();
+      showToast('✓ Barcode read!');
+      lookupBook(isbn);
+      return;
+    }
+    // Nothing yet — try again next frame
+    scanRafId = requestAnimationFrame(scanFrame);
+  }).catch(() => {
+    scanRafId = requestAnimationFrame(scanFrame);
+  });
+}
+
 function stopScanner() {
-  if (html5Scanner) {
-    html5Scanner.stop().catch(() => {}).finally(() => {
-      html5Scanner.clear();
-      html5Scanner = null;
-    });
-  }
-  document.getElementById('scanRegion').style.display  = 'none';
+  if (scanRafId) { cancelAnimationFrame(scanRafId); scanRafId = null; }
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  barcodeDetector = null;
+
+  const video = document.getElementById('scanVideo');
+  if (video) { video.srcObject = null; video.style.display = 'none'; }
+
   document.getElementById('scanOverlay').style.display = 'none';
   document.getElementById('scanStatus').style.display  = 'none';
   document.getElementById('btnScan').style.display     = 'block';
