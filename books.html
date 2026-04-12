@@ -356,44 +356,75 @@ async function warmUpOCR() {
 async function snapAndRead() {
   if (!videoEl) { showToast('Camera not ready'); return; }
 
-  // Freeze frame onto canvas
+  // ── Freeze frame ─────────────────────────────────────────
   const canvas = document.createElement('canvas');
   canvas.width  = videoEl.videoWidth  || 640;
   canvas.height = videoEl.videoHeight || 480;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(videoEl, 0, 0);
 
-  // Show frozen preview immediately
+  // Show frozen preview
   const preview = document.getElementById('snapPreview');
   preview.src = canvas.toDataURL('image/jpeg', 0.9);
   preview.style.display = 'block';
 
-  // Kill the live feed — we have our frame
+  // Stop live feed
   if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
   videoEl = null;
 
   showScanUI('processing');
-  setScanStatus('Reading ISBN…');
+  setScanStatus('Loading OCR…');
   showOCRBox('loading', '');
 
   try {
-    // Ensure worker is ready
     if (!ocrWorker) {
-      setScanStatus('Loading OCR engine…');
       ocrWorker = await Tesseract.createWorker('eng');
     }
 
-    const { data: { text } } = await ocrWorker.recognize(canvas);
-    const isbn = extractISBN(text);
+    // ── Strip-scan strategy ───────────────────────────────
+    // Scan horizontal strips from 25%–80% of image height.
+    // ISBN label text is always somewhere in that band.
+    // PSM 7 = single text line, much more accurate for this use case.
+    const h = canvas.height;
+    const w = canvas.width;
+    const stripHeight = Math.round(h * 0.08);   // 8% of image height
+    const step        = Math.round(h * 0.03);   // step 3% each time
+    const startY      = Math.round(h * 0.25);
+    const endY        = Math.round(h * 0.80);
 
+    let isbn    = null;
+    let allText = '';
+
+    // Offscreen canvas for strip crops
+    const strip   = document.createElement('canvas');
+    const sCtx    = strip.getContext('2d');
+    strip.width   = w * 3;   // 3x upscale for better OCR
+    strip.height  = stripHeight * 3;
+
+    for (let y = startY; y < endY && !isbn; y += step) {
+      setScanStatus(`Scanning… (${Math.round((y-startY)/(endY-startY)*100)}%)`);
+
+      // Draw upscaled strip onto offscreen canvas
+      sCtx.filter = 'contrast(200%) grayscale(100%)';
+      sCtx.drawImage(canvas,
+        0, y, w, stripHeight,          // source rect
+        0, 0, strip.width, strip.height // dest (3x upscale)
+      );
+
+      const { data: { text } } = await ocrWorker.recognize(strip, {}, { tessedit_pageseg_mode: '7' });
+      allText += text + ' ';
+      isbn = extractISBN(text);
+    }
+
+    // Fallback: try extracting from all accumulated text
+    if (!isbn) isbn = extractISBN(allText);
+
+    showScanUI('done');
     if (isbn) {
-      showScanUI('done');
       showOCRBox('found', isbn);
       lookupBook(isbn);
     } else {
-      // Show raw text so teacher can see/copy what was read
-      showScanUI('done');
-      showOCRBox('notfound', text);
+      showOCRBox('notfound', allText);
     }
 
   } catch(e) {
