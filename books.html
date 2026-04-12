@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Classroom Library</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.4/umd/index.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,300&display=swap');
 
@@ -85,67 +85,32 @@ position: absolute; inset: 0;
 display: flex; align-items: center; justify-content: center;
 pointer-events: none;
 }
-.scan-frame {
-width: 80%; height: 38%;
-position: relative; border-radius: 10px;
-transition: border-color 0.2s;
-}
-/* Animated corner brackets */
-.scan-frame::before, .scan-frame::after,
-.scan-frame .corner-bl, .scan-frame .corner-tr {
-content: ‘’; position: absolute; width: 22px; height: 22px;
+.scan-frame { width: 80%; height: 40%; position: relative; border-radius: 8px; }
+.scan-frame::before, .scan-frame::after {
+content: ‘’; position: absolute; width: 20px; height: 20px;
 border-color: var(–kraft); border-style: solid;
-transition: border-color 0.2s, transform 0.15s;
 }
-.scan-frame::before { top:0; left:0;   border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-.scan-frame::after  { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
-.scan-frame .corner-bl { bottom:0; left:0;  border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-.scan-frame .corner-tr { top:0;   right:0; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-/* Locked state */
-.scan-frame.locked::before, .scan-frame.locked::after,
-.scan-frame.locked .corner-bl, .scan-frame.locked .corner-tr {
-border-color: var(–sage); transform: scale(1.15);
-}
-
+.scan-frame::before { top:-2px; left:-2px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+.scan-frame::after  { bottom:-2px; right:-2px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
 .scan-line {
-position: absolute; left: 4%; right: 4%; height: 2px;
-background: linear-gradient(90deg, transparent, var(–rust) 20%, #ff6b4a 50%, var(–rust) 80%, transparent);
-border-radius: 1px; box-shadow: 0 0 6px rgba(184,74,46,0.8);
-animation: sweep 1.8s ease-in-out infinite;
+position: absolute; left: 0; right: 0; height: 2px;
+background: linear-gradient(90deg, transparent, var(–rust), transparent);
+box-shadow: 0 0 6px rgba(184,74,46,0.7);
+animation: sweep 2s ease-in-out infinite;
 }
-.scan-line.locked {
-background: linear-gradient(90deg, transparent, var(–sage) 20%, #7ec87e 50%, var(–sage) 80%, transparent);
-box-shadow: 0 0 10px rgba(74,103,65,0.9);
-animation: none; top: 50%;
-}
-@keyframes sweep { 0%{top:4%;opacity:0} 8%{opacity:1} 92%{opacity:1} 100%{top:92%;opacity:0} }
-
-/* Green flash when locked */
-.lock-flash {
-position: absolute; inset: 0; background: rgba(74,103,65,0.25);
-pointer-events: none; opacity: 0; border-radius: 14px;
-}
-.lock-flash.flash { animation: lockflash 0.4s ease forwards; }
-@keyframes lockflash { 0%{opacity:1} 100%{opacity:0} }
+@keyframes sweep { 0%{top:2%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:96%;opacity:0} }
 
 .scan-status {
 position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
 background: rgba(26,18,8,0.85); color: var(–kraft);
-font-size: 0.68rem; padding: 4px 14px; border-radius: 20px;
-white-space: nowrap; letter-spacing: 0.3px;
-transition: color 0.2s;
+font-size: 0.68rem; padding: 4px 14px; border-radius: 20px; white-space: nowrap;
 }
-.scan-status.locked { color: #7ec87e; }
 
 /* ── BUTTONS ── */
 .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 10px; font-family: ‘Playfair Display’, serif; font-size: 0.98rem; font-weight: 700; cursor: pointer; transition: all 0.18s; }
 .btn-primary { background: var(–rust); color: #fff; }
 .btn-primary:active { background: #9a3d25; transform: scale(0.98); }
 .btn-stop { background: #333; color: var(–cream); margin-top: 8px; font-size: 0.88rem; }
-.ocr-result-box { background: var(–card); border: 1.5px solid var(–border); border-radius: 10px; padding: 12px 14px; margin-top: 10px; display: none; }
-.ocr-result-box .ocr-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(–muted); font-weight: 600; margin-bottom: 6px; }
-.ocr-result-box .ocr-isbn { font-family: monospace; font-size: 1.1rem; font-weight: 700; color: var(–sage); letter-spacing: 1px; }
-.ocr-result-box .ocr-retry { font-size: 0.75rem; color: var(–muted); font-style: italic; margin-top: 6px; cursor: pointer; text-decoration: underline; }
 
 .manual-box { margin-top: 13px; background: var(–card); border: 1px solid var(–border); border-radius: 12px; padding: 13px; }
 .manual-box h3 { font-family: ‘Playfair Display’, serif; font-size: 0.82rem; color: var(–muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 10px; }
@@ -265,24 +230,20 @@ input:focus { border-color: var(–kraft); }
           <line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
           <line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>
         </svg>
-        <p>Tap below to scan ISBN</p>
+        <p>Tap below to scan barcode</p>
       </div>
+      <video id="scanVideo" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0" playsinline></video>
     </div>
-    <!-- scanning overlay: corners + sweep line -->
     <div class="scan-overlay" id="scanOverlay" style="display:none">
-      <div class="scan-frame" id="scanFrame">
-        <div class="scan-line" id="scanLine"></div>
+      <div class="scan-frame">
+        <div class="scan-line"></div>
       </div>
     </div>
-    <!-- lock flash overlay -->
-    <div class="lock-flash" id="lockFlash"></div>
-    <div class="scan-status" id="scanStatus" style="display:none">Initializing…</div>
+    <div class="scan-status" id="scanStatus" style="display:none"></div>
   </div>
 
-<button class="btn btn-primary" id="btnScan" onclick="startScanner()">📷 Scan ISBN</button>
-<button class="btn btn-stop"    id="btnStop" onclick="stopScanner()" style="display:none">✕ Stop</button>
-
-  <div id="ocrResultBox" class="ocr-result-box"></div>
+<button class="btn btn-primary" id="btnScan" onclick="startScanner()">📷 Scan Barcode</button>
+<button class="btn btn-stop"    id="btnStop" onclick="stopScanner()" style="display:none">✕ Stop Scanner</button>
 
   <div class="manual-box">
     <h3>Manual Entry</h3>
@@ -341,213 +302,70 @@ function saveLibrary() {
   updateCounts();
 }
 
-// ─── SCANNER — continuous auto-scan ────────────────────
-let videoStream  = null;
-let videoEl      = null;
-let ocrWorker    = null;
-let scanActive   = false;
-let scanTimer    = null;
-let isProcessing = false;
+// ─── SCANNER — ZXing continuous barcode reader ──────────
+let zxingReader = null;
 
 async function startScanner() {
-  setScanStatus('Starting camera…');
-  setUI('starting');
+  setScanStatus('Starting…');
+  document.getElementById('scanIdle').style.display    = 'none';
+  document.getElementById('scanVideo').style.display   = 'block';
+  document.getElementById('scanOverlay').style.display = 'flex';
+  document.getElementById('scanStatus').style.display  = 'block';
+  document.getElementById('btnScan').style.display     = 'none';
+  document.getElementById('btnStop').style.display     = 'block';
 
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
-    });
+    // ZXingBrowser is the @zxing/browser package global
+    const hints = new Map();
+    hints.set(2, [
+      1,  // EAN_8
+      2,  // EAN_13  ← most book barcodes
+      14, // UPC_A
+      15, // UPC_E
+      12, // CODE_128
+    ]);
+    hints.set(3, true); // TRY_HARDER
 
-    const container = document.getElementById('scannerContainer');
-    container.innerHTML = `
-      <div id="scanIdle" style="display:none"></div>`;
+    zxingReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
 
-    videoEl = document.createElement('video');
-    videoEl.setAttribute('playsinline', '');
-    videoEl.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0';
-    videoEl.srcObject = videoStream;
-    await videoEl.play();
-    container.appendChild(videoEl);
+    const videoEl = document.getElementById('scanVideo');
 
-    // Add corner elements to scan frame (CSS ::before/::after cover 2, need 2 more)
-    const frame = document.getElementById('scanFrame');
-    frame.innerHTML = '<div class="corner-bl"></div><div class="corner-tr"></div><div class="scan-line" id="scanLine"></div>';
+    await zxingReader.decodeFromConstraints(
+      { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } } },
+      videoEl,
+      (result, err) => {
+        if (!result) return;
+        const raw = result.getText().replace(/[^0-9X]/gi, '').toUpperCase();
+        const codes = candidatesFor(raw);
+        // Accept first candidate that passes ISBN validation, or just use raw
+        const isbn = codes.find(c => isValidISBN(c)) || raw;
+        stopScanner();
+        showToast('✓ Barcode detected');
+        lookupBook(isbn);
+      }
+    );
 
-    setUI('live');
-    setScanStatus('Hold ISBN label in frame…');
-    scanActive = true;
-
-    // Load OCR worker, then start scanning loop
-    setScanStatus('Loading OCR…');
-    if (!ocrWorker) ocrWorker = await Tesseract.createWorker('eng');
-    setScanStatus('Hold ISBN label in frame…');
-
-    // Kick off continuous scan loop
-    scheduleScan();
+    scannerOn = true;
+    setScanStatus('Point at barcode…');
 
   } catch(e) {
-    showToast('Camera error: ' + e.message);
-    setUI('idle');
+    showToast('Camera error: ' + (e.message || e));
+    stopScanner();
   }
-}
-
-function scheduleScan() {
-  if (!scanActive) return;
-  scanTimer = setTimeout(runScan, 1500);
-}
-
-async function runScan() {
-  if (!scanActive || !videoEl || isProcessing) { scheduleScan(); return; }
-  isProcessing = true;
-
-  try {
-    // Capture current frame
-    const canvas = document.createElement('canvas');
-    canvas.width  = videoEl.videoWidth  || 640;
-    canvas.height = videoEl.videoHeight || 480;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoEl, 0, 0);
-
-    const isbn = await stripScanISBN(canvas);
-
-    if (isbn && scanActive) {
-      triggerLock(isbn);
-      return; // don't reschedule — done
-    }
-  } catch(e) {
-    console.warn('Scan error:', e);
-  }
-
-  isProcessing = false;
-  scheduleScan();
-}
-
-async function stripScanISBN(canvas) {
-  const h = canvas.height;
-  const w = canvas.width;
-  const stripH = Math.round(h * 0.08);
-  const step   = Math.round(h * 0.03);
-
-  const strip = document.createElement('canvas');
-  strip.width  = w * 3;
-  strip.height = stripH * 3;
-  const sCtx   = strip.getContext('2d');
-
-  let allText = '';
-
-  for (let y = Math.round(h * 0.20); y < Math.round(h * 0.85); y += step) {
-    if (!scanActive) return null;
-    sCtx.filter = 'contrast(200%) grayscale(100%)';
-    sCtx.drawImage(canvas, 0, y, w, stripH, 0, 0, strip.width, strip.height);
-    const { data: { text } } = await ocrWorker.recognize(strip, {}, { tessedit_pageseg_mode: '7' });
-    const isbn = extractISBN(text);
-    if (isbn) return isbn;
-    allText += text + ' ';
-  }
-
-  return extractISBN(allText);
-}
-
-function triggerLock(isbn) {
-  scanActive   = false;
-  isProcessing = false;
-  if (scanTimer) { clearTimeout(scanTimer); scanTimer = null; }
-
-  // Visual lock feedback
-  const frame    = document.getElementById('scanFrame');
-  const line     = document.getElementById('scanLine');
-  const flash    = document.getElementById('lockFlash');
-  const statusEl = document.getElementById('scanStatus');
-  if (frame)    frame.classList.add('locked');
-  if (line)     line.classList.add('locked');
-  if (flash)    { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
-  if (statusEl) { statusEl.textContent = '✓ ISBN Found'; statusEl.classList.add('locked'); }
-
-  // Stop camera after brief lock display
-  setTimeout(() => {
-    stopCamera();
-    setUI('done');
-    showOCRBox('found', isbn);
-    lookupBook(isbn);
-  }, 600);
-}
-
-function stopCamera() {
-  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
-  videoEl = null;
 }
 
 function stopScanner() {
-  scanActive   = false;
-  isProcessing = false;
-  if (scanTimer) { clearTimeout(scanTimer); scanTimer = null; }
-  stopCamera();
-  if (ocrWorker) { ocrWorker.terminate(); ocrWorker = null; }
-
-  document.getElementById('ocrResultBox').style.display = 'none';
-  document.getElementById('scannerContainer').innerHTML =
-    `<div class="scan-idle" id="scanIdle">
-      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
-        <line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>
-      </svg>
-      <p>Tap below to scan ISBN</p>
-    </div>`;
-  setUI('idle');
-}
-
-// UI states: idle | starting | live | done
-function setUI(state) {
-  const btnScan = document.getElementById('btnScan');
-  const btnStop = document.getElementById('btnStop');
-  const overlay = document.getElementById('scanOverlay');
-  const status  = document.getElementById('scanStatus');
-
-  btnScan.style.display = 'none';
-  btnStop.style.display = 'none';
-  overlay.style.display = 'none';
-  status.style.display  = 'none';
-  btnStop.textContent   = '✕ Stop';
-  if (status) status.classList.remove('locked');
-  const frame = document.getElementById('scanFrame');
-  if (frame) { frame.classList.remove('locked'); }
-  const line = document.getElementById('scanLine');
-  if (line)  { line.classList.remove('locked'); }
-
-  if (state === 'idle') {
-    btnScan.style.display = 'block';
-  } else if (state === 'starting') {
-    btnStop.style.display = 'block';
-    status.style.display  = 'block';
-  } else if (state === 'live') {
-    btnStop.style.display = 'block';
-    overlay.style.display = 'flex';
-    status.style.display  = 'block';
-  } else if (state === 'done') {
-    btnStop.style.display = 'block';
-    btnStop.textContent   = '↺ Scan Another';
+  if (zxingReader) {
+    try { zxingReader.reset(); } catch {}
+    zxingReader = null;
   }
-}
-
-function showOCRBox(state, value) {
-  const box = document.getElementById('ocrResultBox');
-  box.style.display = 'block';
-  if (state === 'found') {
-    box.innerHTML = `
-      <div class="ocr-label">✓ ISBN Found</div>
-      <div class="ocr-isbn">${value}</div>`;
-  } else if (state === 'notfound') {
-    const raw = (value || '').replace(/</g,'&lt;').replace(/\s+/g,' ').trim().slice(0,300);
-    box.innerHTML = `
-      <div class="ocr-label">No ISBN detected — try repositioning</div>
-      <div style="font-size:.72rem;color:var(--muted);font-family:monospace;line-height:1.4;word-break:break-all;margin-bottom:8px">${raw||'(nothing legible)'}</div>
-      <div class="ocr-retry" onclick="stopScanner()">↺ Try Again</div>`;
-  } else if (state === 'error') {
-    box.innerHTML = `
-      <div class="ocr-label" style="color:var(--rust)">Error: ${value}</div>
-      <div class="ocr-retry" onclick="stopScanner()">↺ Try Again</div>`;
-  }
+  scannerOn = false;
+  document.getElementById('scanVideo').style.display   = 'none';
+  document.getElementById('scanOverlay').style.display = 'none';
+  document.getElementById('scanStatus').style.display  = 'none';
+  document.getElementById('btnScan').style.display     = 'block';
+  document.getElementById('btnStop').style.display     = 'none';
+  document.getElementById('scanIdle').style.display    = 'flex';
 }
 
 function setScanStatus(msg) {
