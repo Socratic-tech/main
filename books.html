@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Classroom Library</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap');
+
+:root {
+–ink: #1a1208;
+–kraft: #c8a96e;
+–paper: #f5efe3;
+–cream: #fdf8ef;
+–rust: #b84a2e;
+–sage: #4a6741;
+–muted: #8a7a62;
+–card: #fffdf7;
+–border: #d4c4a0;
+–shadow: rgba(26,18,8,0.12);
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘Source Serif 4’, serif;
+background: var(–paper);
+color: var(–ink);
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Subtle noise texture overlay */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 200 200’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.85’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+pointer-events: none;
+z-index: 0;
+opacity: 0.6;
+}
+
+/* Header */
+header {
+background: var(–ink);
+color: var(–cream);
+padding: 18px 20px 14px;
+position: sticky;
+top: 0;
+z-index: 100;
+border-bottom: 3px solid var(–kraft);
+}
+
+.header-top {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+header h1 {
+font-family: ‘Playfair Display’, serif;
+font-size: 1.45rem;
+font-weight: 900;
+letter-spacing: 0.5px;
+}
+
+header h1 span {
+color: var(–kraft);
+}
+
+.book-count {
+background: var(–kraft);
+color: var(–ink);
+font-size: 0.7rem;
+font-weight: 600;
+padding: 3px 10px;
+border-radius: 20px;
+font-family: ‘Source Serif 4’, serif;
+letter-spacing: 0.5px;
+}
+
+/* Nav tabs */
+.nav-tabs {
+display: flex;
+background: var(–ink);
+padding: 0 20px 12px;
+gap: 6px;
+}
+
+.tab-btn {
+flex: 1;
+padding: 7px 4px;
+border: 1px solid rgba(200,169,110,0.3);
+background: transparent;
+color: rgba(253,248,239,0.6);
+font-family: ‘Source Serif 4’, serif;
+font-size: 0.75rem;
+border-radius: 6px;
+cursor: pointer;
+transition: all 0.2s;
+letter-spacing: 0.3px;
+}
+
+.tab-btn.active {
+background: var(–kraft);
+color: var(–ink);
+border-color: var(–kraft);
+font-weight: 600;
+}
+
+/* Views */
+.view { display: none; padding: 16px; position: relative; z-index: 1; }
+.view.active { display: block; }
+
+/* Scanner view */
+.scan-area {
+background: var(–ink);
+border-radius: 14px;
+overflow: hidden;
+position: relative;
+margin-bottom: 16px;
+aspect-ratio: 4/3;
+max-height: 280px;
+}
+
+#scanner-container {
+width: 100%;
+height: 100%;
+position: relative;
+}
+
+#scanner-container video {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+
+#scanner-container canvas {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+}
+
+.scan-overlay {
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+pointer-events: none;
+}
+
+.scan-frame {
+width: 75%;
+height: 55%;
+border: 2px solid var(–kraft);
+border-radius: 8px;
+position: relative;
+}
+
+.scan-frame::before, .scan-frame::after {
+content: ‘’;
+position: absolute;
+width: 20px;
+height: 20px;
+border-color: var(–rust);
+border-style: solid;
+}
+.scan-frame::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.scan-frame::after { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+.scan-line {
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+height: 2px;
+background: linear-gradient(90deg, transparent, var(–rust), transparent);
+animation: scan-sweep 2s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+0% { top: 5%; opacity: 0; }
+10% { opacity: 1; }
+90% { opacity: 1; }
+100% { top: 95%; opacity: 0; }
+}
+
+.scanner-status {
+position: absolute;
+bottom: 10px;
+left: 50%;
+transform: translateX(-50%);
+background: rgba(26,18,8,0.8);
+color: var(–kraft);
+font-size: 0.7rem;
+padding: 4px 12px;
+border-radius: 20px;
+white-space: nowrap;
+}
+
+.scanner-idle {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+height: 100%;
+color: var(–muted);
+gap: 10px;
+}
+
+.scanner-idle svg { opacity: 0.4; }
+.scanner-idle p { font-size: 0.85rem; opacity: 0.7; }
+
+/* Buttons */
+.btn {
+display: block;
+width: 100%;
+padding: 14px;
+border: none;
+border-radius: 10px;
+font-family: ‘Playfair Display’, serif;
+font-size: 1rem;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s;
+letter-spacing: 0.3px;
+}
+
+.btn-primary {
+background: var(–rust);
+color: white;
+}
+.btn-primary:active { background: #9a3d25; transform: scale(0.98); }
+
+.btn-secondary {
+background: transparent;
+color: var(–ink);
+border: 1.5px solid var(–border);
+margin-top: 8px;
+font-size: 0.9rem;
+}
+
+.btn-scan-stop {
+background: #444;
+color: var(–cream);
+margin-top: 8px;
+font-size: 0.9rem;
+}
+
+/* Manual entry */
+.manual-section {
+margin-top: 16px;
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 14px;
+}
+
+.manual-section h3 {
+font-family: ‘Playfair Display’, serif;
+font-size: 0.9rem;
+margin-bottom: 10px;
+color: var(–muted);
+text-transform: uppercase;
+letter-spacing: 1px;
+font-weight: 700;
+}
+
+.input-row {
+display: flex;
+gap: 8px;
+}
+
+input[type=“text”], input[type=“search”], textarea {
+flex: 1;
+padding: 10px 12px;
+border: 1.5px solid var(–border);
+border-radius: 8px;
+font-family: ‘Source Serif 4’, serif;
+font-size: 0.9rem;
+background: var(–cream);
+color: var(–ink);
+outline: none;
+transition: border-color 0.2s;
+}
+input:focus, textarea:focus { border-color: var(–kraft); }
+
+.btn-inline {
+padding: 10px 16px;
+background: var(–sage);
+color: white;
+border: none;
+border-radius: 8px;
+font-family: ‘Playfair Display’, serif;
+font-weight: 700;
+cursor: pointer;
+font-size: 0.9rem;
+white-space: nowrap;
+transition: all 0.2s;
+}
+.btn-inline:active { background: #3a5433; }
+
+/* Book result card */
+.book-result {
+background: var(–card);
+border: 1.5px solid var(–border);
+border-radius: 14px;
+padding: 16px;
+margin-top: 14px;
+animation: slide-up 0.3s ease;
+}
+
+@keyframes slide-up {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.book-header {
+display: flex;
+gap: 12px;
+margin-bottom: 12px;
+}
+
+.book-cover {
+width: 60px;
+height: 85px;
+object-fit: cover;
+border-radius: 5px;
+border: 1px solid var(–border);
+flex-shrink: 0;
+}
+
+.book-cover-placeholder {
+width: 60px;
+height: 85px;
+background: var(–ink);
+border-radius: 5px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+
+.book-cover-placeholder span {
+font-family: ‘Playfair Display’, serif;
+color: var(–kraft);
+font-size: 1.4rem;
+font-weight: 900;
+}
+
+.book-meta h2 {
+font-family: ‘Playfair Display’, serif;
+font-size: 1rem;
+font-weight: 700;
+line-height: 1.3;
+margin-bottom: 4px;
+}
+
+.book-meta .author {
+font-size: 0.8rem;
+color: var(–muted);
+font-style: italic;
+margin-bottom: 4px;
+}
+
+.book-meta .year {
+font-size: 0.75rem;
+color: var(–muted);
+}
+
+/* Themes */
+.themes-section { margin-top: 10px; }
+.themes-section h4 {
+font-size: 0.7rem;
+text-transform: uppercase;
+letter-spacing: 1.2px;
+color: var(–muted);
+margin-bottom: 7px;
+font-weight: 600;
+}
+
+.theme-tags {
+display: flex;
+flex-wrap: wrap;
+gap: 5px;
+}
+
+.theme-tag {
+padding: 3px 10px;
+border-radius: 20px;
+font-size: 0.72rem;
+font-weight: 600;
+letter-spacing: 0.3px;
+}
+
+.theme-tag.main { background: rgba(184,74,46,0.12); color: var(–rust); border: 1px solid rgba(184,74,46,0.25); }
+.theme-tag.concept { background: rgba(74,103,65,0.12); color: var(–sage); border: 1px solid rgba(74,103,65,0.25); }
+.theme-tag.grade { background: rgba(200,169,110,0.2); color: #7a5c20; border: 1px solid rgba(200,169,110,0.4); }
+
+.ai-loading {
+display: flex;
+align-items: center;
+gap: 8px;
+color: var(–muted);
+font-size: 0.82rem;
+font-style: italic;
+margin-top: 10px;
+}
+
+.spinner {
+width: 14px;
+height: 14px;
+border: 2px solid var(–border);
+border-top-color: var(–kraft);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Search view */
+.search-bar {
+position: relative;
+margin-bottom: 14px;
+}
+
+.search-bar input {
+width: 100%;
+padding: 12px 44px 12px 14px;
+border-radius: 10px;
+}
+
+.search-icon {
+position: absolute;
+right: 12px;
+top: 50%;
+transform: translateY(-50%);
+color: var(–muted);
+pointer-events: none;
+}
+
+.search-hint {
+font-size: 0.78rem;
+color: var(–muted);
+font-style: italic;
+margin-bottom: 14px;
+line-height: 1.4;
+}
+
+.search-hint strong { color: var(–sage); font-style: normal; }
+
+/* Inventory list */
+.inventory-list { display: flex; flex-direction: column; gap: 10px; }
+
+.inv-card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 12px 14px;
+display: flex;
+gap: 12px;
+align-items: flex-start;
+animation: slide-up 0.25s ease;
+}
+
+.inv-card.search-match {
+border-color: var(–sage);
+background: rgba(74,103,65,0.04);
+}
+
+.inv-thumb {
+width: 42px;
+height: 58px;
+object-fit: cover;
+border-radius: 4px;
+border: 1px solid var(–border);
+flex-shrink: 0;
+}
+
+.inv-thumb-placeholder {
+width: 42px;
+height: 58px;
+background: var(–ink);
+border-radius: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+
+.inv-thumb-placeholder span {
+font-family: ‘Playfair Display’, serif;
+color: var(–kraft);
+font-size: 1rem;
+font-weight: 900;
+}
+
+.inv-info { flex: 1; min-width: 0; }
+
+.inv-title {
+font-family: ‘Playfair Display’, serif;
+font-size: 0.9rem;
+font-weight: 700;
+line-height: 1.3;
+margin-bottom: 2px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.inv-author {
+font-size: 0.75rem;
+color: var(–muted);
+font-style: italic;
+margin-bottom: 5px;
+}
+
+.inv-tags {
+display: flex;
+flex-wrap: wrap;
+gap: 3px;
+}
+
+.inv-tag {
+font-size: 0.65rem;
+padding: 2px 7px;
+border-radius: 10px;
+font-weight: 600;
+}
+
+.inv-tag.t { background: rgba(184,74,46,0.1); color: var(–rust); }
+.inv-tag.c { background: rgba(74,103,65,0.1); color: var(–sage); }
+
+.inv-actions {
+display: flex;
+flex-direction: column;
+gap: 4px;
+flex-shrink: 0;
+}
+
+.btn-icon {
+padding: 6px 8px;
+border: 1px solid var(–border);
+background: transparent;
+border-radius: 6px;
+cursor: pointer;
+font-size: 0.75rem;
+color: var(–muted);
+transition: all 0.2s;
+}
+.btn-icon:active { background: var(–paper); }
+.btn-icon.delete { color: var(–rust); border-color: rgba(184,74,46,0.3); }
+
+.match-badge {
+display: inline-block;
+background: var(–sage);
+color: white;
+font-size: 0.62rem;
+padding: 2px 7px;
+border-radius: 10px;
+font-weight: 700;
+letter-spacing: 0.5px;
+margin-bottom: 3px;
+}
+
+/* Toast */
+.toast {
+position: fixed;
+bottom: 24px;
+left: 50%;
+transform: translateX(-50%) translateY(80px);
+background: var(–ink);
+color: var(–cream);
+padding: 10px 20px;
+border-radius: 30px;
+font-size: 0.82rem;
+z-index: 999;
+transition: transform 0.3s ease;
+white-space: nowrap;
+border: 1px solid var(–kraft);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Empty state */
+.empty-state {
+text-align: center;
+padding: 40px 20px;
+color: var(–muted);
+}
+
+.empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 0.9rem; font-style: italic; line-height: 1.5; }
+
+/* Book detail modal */
+.modal-backdrop {
+position: fixed;
+inset: 0;
+background: rgba(26,18,8,0.6);
+z-index: 200;
+display: none;
+align-items: flex-end;
+}
+.modal-backdrop.open { display: flex; }
+
+.modal {
+background: var(–cream);
+border-radius: 20px 20px 0 0;
+width: 100%;
+max-height: 85vh;
+overflow-y: auto;
+padding: 20px;
+animation: modal-up 0.3s ease;
+}
+
+@keyframes modal-up {
+from { transform: translateY(100%); }
+to { transform: translateY(0); }
+}
+
+.modal-handle {
+width: 36px;
+height: 4px;
+background: var(–border);
+border-radius: 2px;
+margin: 0 auto 16px;
+}
+
+.modal h2 {
+font-family: ‘Playfair Display’, serif;
+font-size: 1.2rem;
+margin-bottom: 4px;
+}
+
+.modal .author {
+font-style: italic;
+color: var(–muted);
+font-size: 0.85rem;
+margin-bottom: 14px;
+}
+
+.modal-section { margin-bottom: 14px; }
+.modal-section h4 {
+font-size: 0.7rem;
+text-transform: uppercase;
+letter-spacing: 1.2px;
+color: var(–muted);
+margin-bottom: 6px;
+font-weight: 600;
+}
+
+.modal-section p {
+font-size: 0.85rem;
+line-height: 1.5;
+color: var(–ink);
+}
+
+.modal-close {
+display: block;
+width: 100%;
+margin-top: 16px;
+padding: 12px;
+background: var(–ink);
+color: var(–cream);
+border: none;
+border-radius: 10px;
+font-family: ‘Playfair Display’, serif;
+font-weight: 700;
+font-size: 0.95rem;
+cursor: pointer;
+}
+
+.stats-bar {
+display: flex;
+gap: 8px;
+margin-bottom: 14px;
+}
+
+.stat-pill {
+flex: 1;
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 10px 8px;
+text-align: center;
+}
+
+.stat-pill .num {
+font-family: ‘Playfair Display’, serif;
+font-size: 1.4rem;
+font-weight: 900;
+color: var(–rust);
+display: block;
+}
+
+.stat-pill .lbl {
+font-size: 0.65rem;
+text-transform: uppercase;
+letter-spacing: 0.8px;
+color: var(–muted);
+font-weight: 600;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>Classroom <span>Library</span></h1>
+    <span class="book-count" id="bookCountBadge">0 books</span>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="switchTab('scan')">📷 Scan</button>
+  <button class="tab-btn" onclick="switchTab('search')">🔍 Search</button>
+  <button class="tab-btn" onclick="switchTab('inventory')">📚 Library</button>
+</div>
+
+<!-- SCAN VIEW -->
+
+<div class="view active" id="view-scan">
+
+  <div class="scan-area">
+    <div id="scanner-container">
+      <div class="scanner-idle" id="scannerIdle">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/>
+          <line x1="15" y1="3" x2="15" y2="21"/>
+        </svg>
+        <p>Tap below to start scanning</p>
+      </div>
+    </div>
+    <div class="scan-overlay" id="scanOverlay" style="display:none">
+      <div class="scan-frame"><div class="scan-line"></div></div>
+    </div>
+    <div class="scanner-status" id="scannerStatus" style="display:none">Scanning for barcode…</div>
+  </div>
+
+<button class="btn btn-primary" id="scanBtn" onclick="startScanner()">📷 Start Camera Scan</button>
+<button class="btn btn-scan-stop" id="stopBtn" onclick="stopScanner()" style="display:none">⏹ Stop Scanner</button>
+
+  <div class="manual-section">
+    <h3>Manual Entry</h3>
+    <div class="input-row">
+      <input type="text" id="manualIsbn" placeholder="ISBN or UPC number…" inputmode="numeric">
+      <button class="btn-inline" onclick="lookupManual()">Look Up</button>
+    </div>
+  </div>
+
+  <div id="bookResult"></div>
+</div>
+
+<!-- SEARCH VIEW -->
+
+<div class="view" id="view-search">
+  <div class="search-bar">
+    <input type="search" id="searchInput" placeholder="Search concept, theme, or topic…" oninput="doSearch()">
+    <span class="search-icon">🔍</span>
+  </div>
+  <p class="search-hint">Try concepts like <strong>friendship</strong>, <strong>life cycles</strong>, <strong>perseverance</strong>, or <strong>ecosystems</strong> to find matching books in your library.</p>
+  <div id="searchResults" class="inventory-list"></div>
+</div>
+
+<!-- INVENTORY VIEW -->
+
+<div class="view" id="view-inventory">
+  <div class="stats-bar">
+    <div class="stat-pill">
+      <span class="num" id="statTotal">0</span>
+      <span class="lbl">Books</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num" id="statThemes">0</span>
+      <span class="lbl">Themes</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num" id="statConcepts">0</span>
+      <span class="lbl">Concepts</span>
+    </div>
+  </div>
+  <div id="inventoryList" class="inventory-list"></div>
+</div>
+
+<!-- Book detail modal -->
+
+<div class="modal-backdrop" id="detailModal" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-handle"></div>
+    <div id="modalBody"></div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let library = JSON.parse(localStorage.getItem('classroomLibrary') || '[]');
+let scannerRunning = false;
+let currentBookData = null;
+
+function saveLibrary() {
+  localStorage.setItem('classroomLibrary', JSON.stringify(library));
+  updateCounts();
+}
+
+function updateCounts() {
+  const n = library.length;
+  document.getElementById('bookCountBadge').textContent = n + (n === 1 ? ' book' : ' books');
+  document.getElementById('statTotal').textContent = n;
+  const allThemes = new Set(library.flatMap(b => b.themes || []));
+  const allConcepts = new Set(library.flatMap(b => b.concepts || []));
+  document.getElementById('statThemes').textContent = allThemes.size;
+  document.getElementById('statConcepts').textContent = allConcepts.size;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'inventory') renderInventory();
+  if (tab === 'search') {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+  }
+}
+
+// ============================================================
+// SCANNER
+// ============================================================
+function startScanner() {
+  const container = document.getElementById('scanner-container');
+  document.getElementById('scannerIdle').style.display = 'none';
+  document.getElementById('scanOverlay').style.display = 'flex';
+  document.getElementById('scannerStatus').style.display = 'block';
+  document.getElementById('scanBtn').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'block';
+
+  Quagga.init({
+    inputStream: {
+      name: 'Live',
+      type: 'LiveStream',
+      target: container,
+      constraints: { facingMode: 'environment', width: 640, height: 480 }
+    },
+    decoder: {
+      readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader']
+    },
+    locate: true
+  }, err => {
+    if (err) {
+      showToast('Camera error: ' + err.message);
+      stopScanner();
+      return;
+    }
+    Quagga.start();
+    scannerRunning = true;
+  });
+
+  Quagga.onDetected(result => {
+    const code = result.codeResult.code;
+    if (code) {
+      stopScanner();
+      showToast('Barcode detected: ' + code);
+      lookupBook(code);
+    }
+  });
+}
+
+function stopScanner() {
+  if (scannerRunning) {
+    Quagga.stop();
+    scannerRunning = false;
+  }
+  const container = document.getElementById('scanner-container');
+  container.innerHTML = '<div class="scanner-idle" id="scannerIdle"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg><p>Tap below to start scanning</p></div>';
+  document.getElementById('scanOverlay').style.display = 'none';
+  document.getElementById('scannerStatus').style.display = 'none';
+  document.getElementById('scanBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display = 'none';
+}
+
+// ============================================================
+// BOOK LOOKUP
+// ============================================================
+function lookupManual() {
+  const val = document.getElementById('manualIsbn').value.trim();
+  if (!val) return;
+  lookupBook(val);
+}
+
+async function lookupBook(isbn) {
+  const resultDiv = document.getElementById('bookResult');
+  resultDiv.innerHTML = `<div class="book-result"><div class="ai-loading"><div class="spinner"></div>Looking up book…</div></div>`;
+
+  try {
+    // Try Open Library first
+    const olUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`;
+    const resp = await fetch(olUrl);
+    const data = await resp.json();
+    const key = `ISBN:${isbn}`;
+    let bookInfo = null;
+
+    if (data[key]) {
+      const ol = data[key];
+      bookInfo = {
+        isbn,
+        title: ol.title || 'Unknown Title',
+        author: ol.authors ? ol.authors.map(a => a.name).join(', ') : 'Unknown Author',
+        year: ol.publish_date || '',
+        cover: ol.cover ? (ol.cover.medium || ol.cover.small || '') : '',
+        subjects: ol.subjects ? ol.subjects.slice(0, 10).map(s => typeof s === 'string' ? s : s.name) : [],
+        description: ol.excerpts ? ol.excerpts[0]?.text : ''
+      };
+    } else {
+      // Fallback: Open Library search
+      const searchResp = await fetch(`https://openlibrary.org/search.json?isbn=${isbn}&limit=1`);
+      const searchData = await searchResp.json();
+      if (searchData.docs && searchData.docs.length > 0) {
+        const doc = searchData.docs[0];
+        bookInfo = {
+          isbn,
+          title: doc.title || 'Unknown Title',
+          author: doc.author_name ? doc.author_name.join(', ') : 'Unknown Author',
+          year: doc.first_publish_year ? String(doc.first_publish_year) : '',
+          cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : '',
+          subjects: doc.subject ? doc.subject.slice(0, 10) : [],
+          description: ''
+        };
+      }
+    }
+
+    if (!bookInfo) {
+      resultDiv.innerHTML = `<div class="book-result"><p style="color:var(--muted);font-style:italic;font-size:0.85rem;">No book found for that ISBN/UPC. Try entering the title manually below.</p></div>`;
+      return;
+    }
+
+    currentBookData = bookInfo;
+    showBookResult(bookInfo, true);
+    getAIThemes(bookInfo);
+
+  } catch (e) {
+    resultDiv.innerHTML = `<div class="book-result"><p style="color:var(--rust);font-size:0.85rem;">Error looking up book. Check your connection and try again.</p></div>`;
+  }
+}
+
+function showBookResult(book, loading = false) {
+  const resultDiv = document.getElementById('bookResult');
+  const alreadyAdded = library.some(b => b.isbn === book.isbn);
+
+  resultDiv.innerHTML = `
+    <div class="book-result">
+      <div class="book-header">
+        ${book.cover
+          ? `<img class="book-cover" src="${book.cover}" alt="cover" onerror="this.style.display='none'">`
+          : `<div class="book-cover-placeholder"><span>${(book.title[0] || '?').toUpperCase()}</span></div>`}
+        <div class="book-meta">
+          <h2>${book.title}</h2>
+          <div class="author">${book.author}</div>
+          ${book.year ? `<div class="year">${book.year}</div>` : ''}
+        </div>
+      </div>
+      <div class="themes-section" id="themesArea">
+        ${loading
+          ? `<div class="ai-loading"><div class="spinner"></div>Analyzing themes with AI…</div>`
+          : renderThemeTags(book)}
+      </div>
+      ${!alreadyAdded
+        ? `<button class="btn btn-primary" style="margin-top:14px" onclick="addBook()">+ Add to Library</button>`
+        : `<p style="text-align:center;color:var(--sage);font-size:0.82rem;margin-top:12px;font-style:italic;">✓ Already in your library</p>`}
+    </div>`;
+}
+
+function renderThemeTags(book) {
+  if (!book.themes && !book.concepts) return '';
+  let html = '';
+  if (book.themes && book.themes.length) {
+    html += `<h4>Themes</h4><div class="theme-tags" style="margin-bottom:8px">`;
+    book.themes.forEach(t => { html += `<span class="theme-tag main">${t}</span>`; });
+    html += `</div>`;
+  }
+  if (book.concepts && book.concepts.length) {
+    html += `<h4>Lesson Concepts</h4><div class="theme-tags" style="margin-bottom:8px">`;
+    book.concepts.forEach(c => { html += `<span class="theme-tag concept">${c}</span>`; });
+    html += `</div>`;
+  }
+  if (book.gradeLevel) {
+    html += `<div class="theme-tags"><span class="theme-tag grade">Grades ${book.gradeLevel}</span></div>`;
+  }
+  return html;
+}
+
+// ============================================================
+// CLAUDE AI THEME ANALYSIS
+// ============================================================
+async function getAIThemes(book) {
+  const prompt = `You are a K-12 curriculum specialist. Analyze this book and return a JSON object ONLY (no markdown, no explanation):
+
+Title: "${book.title}"
+Author: ${book.author}
+${book.subjects.length ? 'Subject tags from library: ' + book.subjects.join(', ') : ''}
+${book.description ? 'Description excerpt: ' + book.description.slice(0, 300) : ''}
+
+Return this exact JSON structure:
+{
+  "themes": ["3-6 major literary/narrative themes, e.g. 'friendship', 'perseverance', 'identity'"],
+  "concepts": ["4-8 lesson/curriculum concepts teachers could pair this with, e.g. 'life cycles', 'community helpers', 'civil rights', 'ecosystems'"],
+  "gradeLevel": "e.g. K-2 or 3-5 or 6-8",
+  "summary": "2-sentence teacher-facing summary of educational value"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await resp.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    currentBookData.themes = parsed.themes || [];
+    currentBookData.concepts = parsed.concepts || [];
+    currentBookData.gradeLevel = parsed.gradeLevel || '';
+    currentBookData.aiSummary = parsed.summary || '';
+
+    // Update the themes area in the result card
+    const themesArea = document.getElementById('themesArea');
+    if (themesArea) {
+      themesArea.innerHTML = renderThemeTags(currentBookData);
+    }
+  } catch (e) {
+    // Fallback: use subject tags as themes
+    currentBookData.themes = book.subjects.slice(0, 5);
+    currentBookData.concepts = book.subjects.slice(5, 10);
+    const themesArea = document.getElementById('themesArea');
+    if (themesArea) {
+      themesArea.innerHTML = renderThemeTags(currentBookData);
+    }
+  }
+}
+
+// ============================================================
+// ADD TO LIBRARY
+// ============================================================
+function addBook() {
+  if (!currentBookData) return;
+  if (library.some(b => b.isbn === currentBookData.isbn)) {
+    showToast('Already in library!');
+    return;
+  }
+  library.push({ ...currentBookData, addedAt: Date.now() });
+  saveLibrary();
+  showToast('📚 Added to library!');
+  document.getElementById('bookResult').innerHTML = '';
+  document.getElementById('manualIsbn').value = '';
+  currentBookData = null;
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+function renderInventory(filterFn = null, matchLabel = null) {
+  const list = document.getElementById('inventoryList');
+  const books = filterFn ? library.filter(filterFn) : library;
+
+  if (!books.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📖</div><p>${library.length === 0 ? 'Your library is empty.<br>Scan a book to get started!' : 'No matching books found.'}</p></div>`;
+    return;
+  }
+
+  list.innerHTML = books.map(b => `
+    <div class="inv-card ${matchLabel ? 'search-match' : ''}" onclick="showDetail('${b.isbn}')">
+      ${b.cover
+        ? `<img class="inv-thumb" src="${b.cover}" alt="cover" onerror="this.style.display='none'">`
+        : `<div class="inv-thumb-placeholder"><span>${(b.title[0] || '?').toUpperCase()}</span></div>`}
+      <div class="inv-info">
+        ${matchLabel ? `<span class="match-badge">✓ Matches</span>` : ''}
+        <div class="inv-title">${b.title}</div>
+        <div class="inv-author">${b.author}${b.year ? ' · ' + b.year : ''}</div>
+        <div class="inv-tags">
+          ${(b.themes || []).slice(0, 3).map(t => `<span class="inv-tag t">${t}</span>`).join('')}
+          ${(b.concepts || []).slice(0, 2).map(c => `<span class="inv-tag c">${c}</span>`).join('')}
+          ${b.gradeLevel ? `<span class="inv-tag" style="background:rgba(200,169,110,0.2);color:#7a5c20">Gr ${b.gradeLevel}</span>` : ''}
+        </div>
+      </div>
+      <div class="inv-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon delete" onclick="removeBook('${b.isbn}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function removeBook(isbn) {
+  if (!confirm('Remove this book from your library?')) return;
+  library = library.filter(b => b.isbn !== isbn);
+  saveLibrary();
+  renderInventory();
+  showToast('Removed from library.');
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const resultsDiv = document.getElementById('searchResults');
+
+  if (!q) { resultsDiv.innerHTML = ''; return; }
+
+  if (!library.length) {
+    resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">📚</div><p>Your library is empty.<br>Scan some books first!</p></div>`;
+    return;
+  }
+
+  const scored = library.map(b => {
+    let score = 0;
+    const all = [
+      ...(b.themes || []),
+      ...(b.concepts || []),
+      b.title || '',
+      b.author || '',
+      b.aiSummary || ''
+    ].join(' ').toLowerCase();
+
+    // Exact match in tags/concepts
+    if ((b.themes || []).some(t => t.toLowerCase().includes(q))) score += 3;
+    if ((b.concepts || []).some(c => c.toLowerCase().includes(q))) score += 3;
+    if (b.title.toLowerCase().includes(q)) score += 2;
+    if (all.includes(q)) score += 1;
+    return { book: b, score };
+  }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+
+  if (!scored.length) {
+    resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>No books matched <strong>"${q}"</strong>.<br>Try a different concept or theme.</p></div>`;
+    return;
+  }
+
+  resultsDiv.innerHTML = `<p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-style:italic;">${scored.length} book${scored.length > 1 ? 's' : ''} matching <strong style="color:var(--sage)">"${q}"</strong></p>` +
+    scored.map(({ book: b }) => `
+      <div class="inv-card search-match" onclick="showDetail('${b.isbn}')">
+        ${b.cover
+          ? `<img class="inv-thumb" src="${b.cover}" alt="cover" onerror="this.style.display='none'">`
+          : `<div class="inv-thumb-placeholder"><span>${(b.title[0] || '?').toUpperCase()}</span></div>`}
+        <div class="inv-info">
+          <span class="match-badge">✓ Match</span>
+          <div class="inv-title">${b.title}</div>
+          <div class="inv-author">${b.author}</div>
+          <div class="inv-tags">
+            ${(b.themes || []).slice(0, 3).map(t => `<span class="inv-tag t">${t}</span>`).join('')}
+            ${(b.concepts || []).slice(0, 2).map(c => `<span class="inv-tag c">${c}</span>`).join('')}
+          </div>
+        </div>
+      </div>`).join('');
+}
+
+// ============================================================
+// DETAIL MODAL
+// ============================================================
+function showDetail(isbn) {
+  const b = library.find(x => x.isbn === isbn);
+  if (!b) return;
+
+  document.getElementById('modalBody').innerHTML = `
+    <div style="display:flex;gap:14px;margin-bottom:14px">
+      ${b.cover
+        ? `<img style="width:70px;height:100px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0" src="${b.cover}" alt="cover">`
+        : `<div style="width:70px;height:100px;background:var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-family:'Playfair Display',serif;color:var(--kraft);font-size:1.8rem;font-weight:900">${(b.title[0]||'?').toUpperCase()}</span></div>`}
+      <div>
+        <h2>${b.title}</h2>
+        <div class="author">${b.author}${b.year ? ' · ' + b.year : ''}</div>
+        ${b.gradeLevel ? `<span class="theme-tag grade" style="display:inline-block">Grades ${b.gradeLevel}</span>` : ''}
+      </div>
+    </div>
+    ${b.aiSummary ? `<div class="modal-section"><h4>Educational Value</h4><p>${b.aiSummary}</p></div>` : ''}
+    ${b.themes?.length ? `<div class="modal-section"><h4>Themes</h4><div class="theme-tags">${b.themes.map(t => `<span class="theme-tag main">${t}</span>`).join('')}</div></div>` : ''}
+    ${b.concepts?.length ? `<div class="modal-section"><h4>Lesson Concepts</h4><div class="theme-tags">${b.concepts.map(c => `<span class="theme-tag concept">${c}</span>`).join('')}</div></div>` : ''}
+    <div class="modal-section"><h4>ISBN / UPC</h4><p style="font-size:0.82rem;color:var(--muted)">${b.isbn}</p></div>`;
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('detailModal') || e.target.classList.contains('modal-close')) {
+    document.getElementById('detailModal').classList.remove('open');
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+updateCounts();
+</script>
+
+</body>
+</html>
