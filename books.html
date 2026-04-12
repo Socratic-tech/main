@@ -316,7 +316,6 @@ function saveLibrary() {
 let videoStream = null;
 let videoEl     = null;
 let ocrWorker   = null;
-let scannerOn   = false;
 
 async function startScanner() {
   document.getElementById('scanIdle').style.display    = 'none';
@@ -366,7 +365,7 @@ async function loadOCR() {
 }
 
 async function snapAndRead() {
-  if (!videoEl || !scannerOn) return;
+  if (!videoEl) return;
 
   // ── Freeze the frame ────────────────────────────────────
   document.getElementById('btnSnap').disabled = true;
@@ -471,6 +470,7 @@ function stopCamera() {
   document.getElementById('scanOverlay').style.display = 'none';
   document.getElementById('scanStatus').style.display  = 'none';
   document.getElementById('btnSnap').style.display     = 'none';
+  document.getElementById('btnStop').style.display     = 'block';
 }
 
 function stopScanner() {
