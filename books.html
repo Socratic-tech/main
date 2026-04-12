@@ -5,9 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Classroom Library</title>
-<!-- ZXing barcode reader -->
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
-<!-- Tesseract.js OCR for ISBN text recognition -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,300&display=swap');
@@ -318,13 +315,8 @@ let videoEl     = null;
 let ocrWorker   = null;
 
 async function startScanner() {
-  document.getElementById('scanIdle').style.display    = 'none';
-  document.getElementById('scanOverlay').style.display = 'flex';
-  document.getElementById('scanStatus').style.display  = 'block';
-  document.getElementById('btnScan').style.display     = 'none';
-  document.getElementById('btnSnap').style.display     = 'none';
-  document.getElementById('btnStop').style.display     = 'block';
   setScanStatus('Starting camera…');
+  showScanUI('starting');
 
   try {
     videoStream = await navigator.mediaDevices.getUserMedia({
@@ -333,7 +325,6 @@ async function startScanner() {
 
     const container = document.getElementById('scannerContainer');
     container.innerHTML = '';
-
     videoEl = document.createElement('video');
     videoEl.setAttribute('playsinline', '');
     videoEl.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
@@ -341,122 +332,141 @@ async function startScanner() {
     await videoEl.play();
     container.appendChild(videoEl);
 
-    scannerOn = true;
+    showScanUI('live');
     setScanStatus('Frame the ISBN label, then tap Snap');
-    document.getElementById('btnSnap').style.display = 'block';
 
-    // Pre-load Tesseract in background while teacher frames the shot
-    loadOCR();
+    // Warm up Tesseract in the background
+    warmUpOCR();
 
   } catch(e) {
     showToast('Camera error: ' + e.message);
-    stopScanner();
+    showScanUI('idle');
   }
 }
 
-async function loadOCR() {
-  if (ocrWorker) return;
+async function warmUpOCR() {
   try {
-    ocrWorker = await Tesseract.createWorker('eng', 1, { logger: () => {} });
-    await ocrWorker.setParameters({ tessedit_pageseg_mode: '6' });
+    if (ocrWorker) return;
+    ocrWorker = await Tesseract.createWorker('eng');
   } catch(e) {
-    console.warn('OCR preload failed:', e);
+    console.warn('OCR warmup failed, will retry on snap:', e);
   }
 }
 
 async function snapAndRead() {
-  if (!videoEl) return;
+  if (!videoEl) { showToast('Camera not ready'); return; }
 
-  // ── Freeze the frame ────────────────────────────────────
-  document.getElementById('btnSnap').disabled = true;
-  setScanStatus('Reading…');
-
+  // Freeze frame onto canvas
   const canvas = document.createElement('canvas');
-  canvas.width  = videoEl.videoWidth;
-  canvas.height = videoEl.videoHeight;
+  canvas.width  = videoEl.videoWidth  || 640;
+  canvas.height = videoEl.videoHeight || 480;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(videoEl, 0, 0);
 
-  // Show the frozen frame so teacher can see what was captured
+  // Show frozen preview immediately
   const preview = document.getElementById('snapPreview');
-  preview.src = canvas.toDataURL('image/jpeg', 0.92);
+  preview.src = canvas.toDataURL('image/jpeg', 0.9);
   preview.style.display = 'block';
 
-  // Stop the live camera now — frame is frozen
-  stopCamera();
+  // Kill the live feed — we have our frame
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  videoEl = null;
 
-  // ── Try ZXing barcode first (instant) ───────────────────
-  let isbn = null;
+  showScanUI('processing');
+  setScanStatus('Reading ISBN…');
+  showOCRBox('loading', '');
+
   try {
-    if (window.ZXing) {
-      const hints = new Map();
-      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-        ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
-        ZXing.BarcodeFormat.UPC_A,  ZXing.BarcodeFormat.UPC_E,
-        ZXing.BarcodeFormat.CODE_128,
-      ]);
-      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-      const reader   = new ZXing.MultiFormatReader();
-      reader.setHints(hints);
-      const imgData  = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const lum      = new ZXing.RGBLuminanceSource(imgData.data, canvas.width, canvas.height);
-      const bitmap   = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
-      const result   = reader.decode(bitmap);
-      const raw      = result.getText().replace(/[^0-9X]/gi, '').toUpperCase();
-      if (isValidISBN(raw)) isbn = raw;
+    // Ensure worker is ready
+    if (!ocrWorker) {
+      setScanStatus('Loading OCR engine…');
+      ocrWorker = await Tesseract.createWorker('eng');
     }
-  } catch { /* no barcode — fall through to OCR */ }
 
-  // ── OCR fallback ────────────────────────────────────────
-  if (!isbn) {
-    setScanStatus('No barcode found — reading text…');
-    try {
-      if (!ocrWorker) await loadOCR();
-      const { data: { text } } = await ocrWorker.recognize(canvas);
-      isbn = extractISBN(text);
-      if (!isbn) {
-        // Show raw OCR output so teacher can see what was read
-        showOCRResult(null, text);
-        return;
-      }
-    } catch(e) {
-      setScanStatus('OCR failed — try again or enter manually.');
-      document.getElementById('btnSnap').disabled = false;
-      document.getElementById('btnSnap').style.display = 'block';
-      document.getElementById('btnStop').style.display = 'block';
-      return;
+    const { data: { text } } = await ocrWorker.recognize(canvas);
+    const isbn = extractISBN(text);
+
+    if (isbn) {
+      showScanUI('done');
+      showOCRBox('found', isbn);
+      lookupBook(isbn);
+    } else {
+      // Show raw text so teacher can see/copy what was read
+      showScanUI('done');
+      showOCRBox('notfound', text);
     }
+
+  } catch(e) {
+    showScanUI('done');
+    showOCRBox('error', e.message);
   }
-
-  // ── Found it! ───────────────────────────────────────────
-  showOCRResult(isbn, null);
-  lookupBook(isbn);
 }
 
-function showOCRResult(isbn, rawText) {
+// ── UI state machine ──────────────────────────────────────
+function showScanUI(state) {
+  const idle       = document.getElementById('scanIdle');
+  const overlay    = document.getElementById('scanOverlay');
+  const status     = document.getElementById('scanStatus');
+  const btnScan    = document.getElementById('btnScan');
+  const btnSnap    = document.getElementById('btnSnap');
+  const btnStop    = document.getElementById('btnStop');
+
+  // Reset all
+  [overlay, status, btnSnap, btnStop].forEach(el => el.style.display = 'none');
+  btnScan.style.display = 'block';
+  btnScan.disabled = false;
+
+  if (state === 'idle') {
+    // defaults above — show idle graphic
+    if (idle) idle.style.display = 'flex';
+  } else if (state === 'starting') {
+    if (idle) idle.style.display = 'none';
+    status.style.display = 'block';
+    btnScan.style.display = 'none';
+    btnStop.style.display = 'block';
+  } else if (state === 'live') {
+    if (idle) idle.style.display = 'none';
+    overlay.style.display = 'flex';
+    status.style.display  = 'block';
+    btnScan.style.display = 'none';
+    btnSnap.style.display = 'block';
+    btnStop.style.display = 'block';
+  } else if (state === 'processing') {
+    overlay.style.display = 'none';
+    status.style.display  = 'block';
+    btnScan.style.display = 'none';
+    btnSnap.style.display = 'none';
+    btnStop.style.display = 'none';
+  } else if (state === 'done') {
+    btnScan.style.display = 'none';
+    btnSnap.style.display = 'none';
+    btnStop.style.display = 'block';
+    btnStop.textContent   = '↺ Scan Another';
+  }
+}
+
+function showOCRBox(state, value) {
   const box = document.getElementById('ocrResultBox');
-  if (isbn) {
-    box.innerHTML = `
-      <div class="ocr-label">ISBN Detected</div>
-      <div class="ocr-isbn">${isbn}</div>`;
-  } else {
-    // Show what OCR actually read so teacher can copy/correct it
-    const cleaned = (rawText || '').replace(/\s+/g,' ').trim().slice(0, 200);
-    box.innerHTML = `
-      <div class="ocr-label">Could not extract ISBN — OCR read:</div>
-      <div style="font-size:.75rem;color:var(--muted);font-family:monospace;margin-bottom:6px;word-break:break-all">${cleaned || '(nothing legible)'}</div>
-      <div class="ocr-retry" onclick="retrySnap()">Try again</div>`;
-  }
   box.style.display = 'block';
-  // Reset snap button for retry
-  document.getElementById('btnSnap').disabled = false;
-  document.getElementById('btnStop').style.display = 'block';
-}
 
-function retrySnap() {
-  document.getElementById('ocrResultBox').style.display = 'none';
-  document.getElementById('snapPreview').style.display  = 'none';
-  startScanner();
+  if (state === 'loading') {
+    box.innerHTML = `<div class="ai-spin"><div class="spinner"></div>Running OCR…</div>`;
+  } else if (state === 'found') {
+    box.innerHTML = `
+      <div class="ocr-label">✓ ISBN Found</div>
+      <div class="ocr-isbn">${value}</div>`;
+  } else if (state === 'notfound') {
+    const raw = (value || '').replace(/</g,'&lt;').replace(/\s+/g,' ').trim().slice(0, 300);
+    box.innerHTML = `
+      <div class="ocr-label">No ISBN detected — OCR read:</div>
+      <div style="font-size:.72rem;color:var(--muted);font-family:monospace;line-height:1.4;word-break:break-all;margin-bottom:8px">${raw || '(nothing legible)'}</div>
+      <div class="ocr-retry" onclick="resetScanner()">↺ Try Again</div>`;
+  } else if (state === 'error') {
+    box.innerHTML = `
+      <div class="ocr-label" style="color:var(--rust)">OCR Error</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">${value}</div>
+      <div class="ocr-retry" onclick="resetScanner()">↺ Try Again</div>`;
+  }
 }
 
 function setScanStatus(msg) {
@@ -464,22 +474,17 @@ function setScanStatus(msg) {
   if (el) el.textContent = msg;
 }
 
-function stopCamera() {
+function resetScanner() {
   if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
   videoEl = null;
-  document.getElementById('scanOverlay').style.display = 'none';
-  document.getElementById('scanStatus').style.display  = 'none';
-  document.getElementById('btnSnap').style.display     = 'none';
-  document.getElementById('btnStop').style.display     = 'block';
-}
+  document.getElementById('snapPreview').style.display  = 'none';
+  document.getElementById('ocrResultBox').style.display = 'none';
+  document.getElementById('scanStatus').style.display   = 'none';
 
-function stopScanner() {
-  stopCamera();
-  scannerOn = false;
-  if (ocrWorker) { ocrWorker.terminate(); ocrWorker = null; }
-
-  document.getElementById('scannerContainer').innerHTML =
-    `<div class="scan-idle" id="scanIdle">
+  // Restore idle graphic
+  const container = document.getElementById('scannerContainer');
+  if (!container.querySelector('.scan-idle')) {
+    container.innerHTML = `<div class="scan-idle" id="scanIdle">
       <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
         <rect x="3" y="3" width="18" height="18" rx="2"/>
         <line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
@@ -487,13 +492,15 @@ function stopScanner() {
       </svg>
       <p>Tap below to scan ISBN</p>
     </div>`;
-  document.getElementById('snapPreview').style.display  = 'none';
-  document.getElementById('ocrResultBox').style.display = 'none';
-  document.getElementById('scanOverlay').style.display  = 'none';
-  document.getElementById('scanStatus').style.display   = 'none';
-  document.getElementById('btnScan').style.display      = 'block';
-  document.getElementById('btnSnap').style.display      = 'none';
-  document.getElementById('btnStop').style.display      = 'none';
+  }
+
+  showScanUI('idle');
+  document.getElementById('btnStop').textContent = '✕ Cancel';
+}
+
+function stopScanner() {
+  if (ocrWorker) { ocrWorker.terminate(); ocrWorker = null; }
+  resetScanner();
 }
 
 // ─── ISBN / UPC UTILITIES ────────────────────────────────
