@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dune Text Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--card:#1e2330;--border:#2a3040;--text:#e8eaf0;--muted:#5a6580;--accent:#f0c060;--accent2:#60d0a0;--danger:#e05858;}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.app{max-width:960px;margin:0 auto;padding:24px 20px;}
+header{text-align:center;margin-bottom:28px;}
+header h1{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--accent);}
+header p{color:var(--muted);font-size:0.9rem;margin-top:6px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:680px){.grid{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.card-title{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;padding:9px 14px;border-bottom:1px solid var(--border);}
+.card-body{padding:14px;}
+label{display:block;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;}
+.text-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:1.4rem;padding:10px 14px;outline:none;transition:border-color 0.15s;}
+.text-input:focus{border-color:var(--accent);}
+.params{display:flex;flex-direction:column;gap:9px;margin:10px 0;}
+.param-row{display:grid;grid-template-columns:90px 1fr 50px;align-items:center;gap:8px;}
+.param-label{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--accent2);}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;}
+.param-val{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);text-align:right;}
+.btn-row{display:flex;gap:8px;margin-top:12px;}
+.btn{font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.9rem;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;transition:filter 0.15s,transform 0.1s;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--accent);color:#1a0e00;flex:1;}
+.btn-download{background:var(--accent2);color:#001a10;flex:1;}
+.btn-sm{background:var(--border);color:var(--text);font-size:0.75rem;padding:6px 10px;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.canvas-wrap{background:var(--bg);border-radius:8px;aspect-ratio:1;overflow:hidden;position:relative;}
+canvas{width:100%;height:100%;display:block;}
+.canvas-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.stat{background:var(--bg);border-radius:6px;padding:8px;text-align:center;}
+.stat-val{font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text);}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;}
+.field{margin-bottom:10px;}
+.name-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;padding:9px 12px;outline:none;}
+.name-input:focus{border-color:var(--accent2);}
+.help{font-size:0.72rem;color:var(--muted);margin-top:8px;line-height:1.5;}
+.help code{font-family:'DM Mono',monospace;color:var(--accent2);background:rgba(96,208,160,0.08);padding:1px 4px;border-radius:3px;}
+.warn{color:var(--danger);font-family:'DM Mono',monospace;font-size:0.68rem;margin-top:6px;min-height:16px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Dune Text Maker</h1>
+    <p>Single-stroke block letters optimised for sand table tracing</p>
+  </header>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-title">// text input</div>
+        <div class="card-body">
+          <div class="field">
+            <label>Text to draw (A–Z, 0–9, space)</label>
+            <input class="text-input" id="textInput" value="DUNE" maxlength="12" oninput="schedulePreview()">
+          </div>
+          <div class="params">
+            <div class="param-row">
+              <span class="param-label">Size</span>
+              <input type="range" id="textSize" min="20" max="85" value="55" step="5" oninput="pv('textSize','textSizeVal');schedulePreview()">
+              <span class="param-val" id="textSizeVal">55</span>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Approach</span>
+              <input type="range" id="spiralWrap" min="0" max="3" value="1" step="0.5" oninput="pv('spiralWrap','spiralWrapVal');schedulePreview()">
+              <span class="param-val" id="spiralWrapVal">1</span>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Rotate °</span>
+              <input type="range" id="rotation" min="0" max="355" value="0" step="5" oninput="pvr();schedulePreview()">
+              <span class="param-val" id="rotationVal">0°</span>
+            </div>
+          </div>
+          <div class="warn" id="warnMsg"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateAndPreview()">▶ Preview</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">// export</div>
+        <div class="card-body">
+          <div class="field">
+            <label>Filename</label>
+            <input class="name-input" id="patternName" value="dune_text">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-download" id="downloadBtn" onclick="downloadTHR()" disabled>Download .thr</button>
+            <button class="btn btn-sm" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Replay</button>
+          </div>
+          <div class="help">Drop <code>.thr</code> into the Pi's <code>patterns/</code> folder. Each letter is traced as a continuous stroke so the ball lifts are minimised.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">// sand simulation</div>
+        <div class="card-body">
+          <div class="canvas-wrap">
+            <canvas id="preview" width="500" height="500"></canvas>
+            <div class="canvas-label" id="canvasLabel">enter text and click Preview</div>
+          </div>
+          <div class="stats">
+            <div class="stat"><div class="stat-val" id="statPts">--</div><div class="stat-lbl">Points</div></div>
+            <div class="stat"><div class="stat-val" id="statTime">--</div><div class="stat-lbl">Est. Time</div></div>
+            <div class="stat"><div class="stat-val" id="statMaxDr">--</div><div class="stat-lbl">Max ΔRho</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ─────────────────────────────────────────────────────────────
+// SINGLE-STROKE BLOCK FONT
+// Each letter is one or more strokes designed to be traced
+// continuously. Coordinates in a 0..6 (w) x 0..8 (h) grid.
+// Pen-up between strokes is unavoidable for some letters but
+// minimised. Origin is bottom-left of cell.
+// ─────────────────────────────────────────────────────────────
+// Format: array of strokes, each stroke is array of [x,y]
+// Letter width is always 6 units, height 8
+
+var W = 6, H = 8;  // cell size
+
+var GLYPHS = {
+  'A': [[[0,0],[0,6],[3,8],[6,6],[6,0]], [[1,3],[5,3]]],
+  'B': [[[0,0],[0,8],[4,8],[5,7],[5,5],[4,4],[0,4]], [[4,4],[5,3],[5,1],[4,0],[0,0]]],
+  'C': [[[6,1],[5,0],[1,0],[0,1],[0,7],[1,8],[5,8],[6,7]]],
+  'D': [[[0,0],[0,8],[3,8],[5,6],[6,4],[6,4],[6,4],[5,2],[3,0],[0,0]]],
+  'E': [[[6,0],[0,0],[0,8],[6,8]], [[0,4],[5,4]]],
+  'F': [[[0,0],[0,8],[6,8]], [[0,4],[5,4]]],
+  'G': [[[6,7],[5,8],[1,8],[0,7],[0,1],[1,0],[5,0],[6,1],[6,4],[3,4]]],
+  'H': [[[0,0],[0,8]], [[6,0],[6,8]], [[0,4],[6,4]]],
+  'I': [[[1,0],[5,0]], [[3,0],[3,8]], [[1,8],[5,8]]],
+  'J': [[[0,2],[1,0],[5,0],[6,2],[6,8]], [[1,8],[5,8]]],
+  'K': [[[0,0],[0,8]], [[6,8],[0,4],[6,0]]],
+  'L': [[[0,8],[0,0],[6,0]]],
+  'M': [[[0,0],[0,8],[3,5],[6,8],[6,0]]],
+  'N': [[[0,0],[0,8],[6,0],[6,8]]],
+  'O': [[[1,0],[0,1],[0,7],[1,8],[5,8],[6,7],[6,1],[5,0],[1,0]]],
+  'P': [[[0,0],[0,8],[4,8],[6,7],[6,5],[4,4],[0,4]]],
+  'Q': [[[1,0],[0,1],[0,7],[1,8],[5,8],[6,7],[6,1],[5,0],[1,0]], [[4,2],[6,0]]],
+  'R': [[[0,0],[0,8],[4,8],[6,7],[6,5],[4,4],[0,4]], [[4,4],[6,0]]],
+  'S': [[[6,7],[5,8],[1,8],[0,7],[0,5],[1,4],[5,4],[6,3],[6,1],[5,0],[1,0],[0,1]]],
+  'T': [[[0,8],[6,8]], [[3,8],[3,0]]],
+  'U': [[[0,8],[0,1],[1,0],[5,0],[6,1],[6,8]]],
+  'V': [[[0,8],[3,0],[6,8]]],
+  'W': [[[0,8],[1,0],[3,3],[5,0],[6,8]]],
+  'X': [[[0,8],[6,0]], [[6,8],[0,0]]],
+  'Y': [[[0,8],[3,4],[6,8]], [[3,4],[3,0]]],
+  'Z': [[[0,8],[6,8],[0,0],[6,0]]],
+  '0': [[[1,0],[0,1],[0,7],[1,8],[5,8],[6,7],[6,1],[5,0],[1,0]], [[0,2],[6,6]]],
+  '1': [[[1,6],[3,8],[3,0]], [[1,0],[5,0]]],
+  '2': [[[0,6],[1,8],[5,8],[6,6],[6,5],[0,0],[6,0]]],
+  '3': [[[0,7],[1,8],[5,8],[6,7],[6,5],[4,4],[6,3],[6,1],[5,0],[1,0],[0,1]]],
+  '4': [[[0,8],[0,4],[6,4]], [[6,8],[6,0]]],
+  '5': [[[6,8],[0,8],[0,4],[5,4],[6,3],[6,1],[5,0],[1,0],[0,1]]],
+  '6': [[[6,7],[5,8],[1,8],[0,7],[0,1],[1,0],[5,0],[6,1],[6,3],[5,4],[1,4],[0,3]]],
+  '7': [[[0,8],[6,8],[1,0]]],
+  '8': [[[1,4],[0,3],[0,1],[1,0],[5,0],[6,1],[6,3],[5,4],[1,4],[0,5],[0,7],[1,8],[5,8],[6,7],[6,5],[5,4]]],
+  '9': [[[0,1],[1,0],[5,0],[6,1],[6,7],[5,8],[1,8],[0,7],[0,5],[1,4],[5,4],[6,5]]],
+  ' ': [],
+  '!': [[[3,2],[3,8]], [[3,0],[3,1]]],
+  '.': [[[3,0],[3,1]]],
+  '-': [[[1,4],[5,4]]],
+};
+
+var LETTER_W = 7;   // advance width (cell + gap)
+var LETTER_H = 8;   // cell height
+
+// Convert text to list of cartesian stroke arrays
+// Returns {strokes, totalWidth}
+function textToStrokes(text) {
+  var allStrokes = [];
+  var cursor = 0;
+  text = text.toUpperCase();
+  for(var i=0; i<text.length; i++) {
+    var ch = text[i];
+    var glyph = GLYPHS[ch];
+    if(glyph === undefined) glyph = [];
+    glyph.forEach(function(stroke) {
+      var pts = stroke.map(function(p) {
+        return [cursor + p[0], p[1]];
+      });
+      allStrokes.push(pts);
+    });
+    cursor += LETTER_W;
+  }
+  return {strokes: allStrokes, totalWidth: cursor - 1};
+}
+
+// Convert cartesian strokes → polar THR points
+// Text is laid out flat, then wrapped onto the circular table
+function strokesToPolar(strokes, totalWidth, sizePercent, spiralWrap, rotDeg) {
+  var scale = (sizePercent / 100) / Math.max(totalWidth / 2, LETTER_H / 2, 1);
+  var rotRad = rotDeg * Math.PI / 180;
+  var offsetX = totalWidth / 2;
+  var offsetY = LETTER_H / 2;
+
+  // Approach spiral
+  var polar = [];
+  var spiralPts = Math.round(spiralWrap * 100);
+  for(var i=0; i<spiralPts; i++) {
+    var t = (i / Math.max(spiralPts,1)) * spiralWrap * 2 * Math.PI;
+    var r = (i / Math.max(spiralPts,1)) * 0.08;
+    polar.push([t + rotRad, Math.max(0, Math.min(1, r))]);
+  }
+
+  var prevTheta = polar.length > 0 ? polar[polar.length-1][0] : rotRad;
+
+  for(var si=0; si<strokes.length; si++) {
+    var stroke = strokes[si];
+    if(!stroke.length) continue;
+    for(var pi=0; pi<stroke.length; pi++) {
+      // Centre the text
+      var cx = (stroke[pi][0] - offsetX) * scale;
+      var cy = (stroke[pi][1] - offsetY) * scale;
+      // Negate x so text reads left-to-right in polar space
+      var x = -cx;
+      var y = cy;
+      var r = Math.sqrt(x*x + y*y);
+      if(!isFinite(r)) continue;
+      r = Math.max(0, Math.min(1, r));
+      var theta = Math.atan2(y, x) + rotRad;
+      // Unwrap theta
+      while(theta - prevTheta > Math.PI) theta -= 2*Math.PI;
+      while(prevTheta - theta > Math.PI) theta += 2*Math.PI;
+      prevTheta = theta;
+      polar.push([theta, r]);
+    }
+  }
+
+  // Interpolate large rho jumps
+  if(polar.length < 2) return polar;
+  var smoothed = [polar[0]];
+  var MAX_DR = 0.035;
+  for(var i=1; i<polar.length; i++) {
+    var p0 = smoothed[smoothed.length-1];
+    var p1 = polar[i];
+    var dr = Math.abs(p1[1]-p0[1]);
+    if(dr > MAX_DR) {
+      var steps = Math.ceil(dr/MAX_DR);
+      for(var s=1; s<steps; s++) {
+        var frac = s/steps;
+        smoothed.push([p0[0]+(p1[0]-p0[0])*frac, p0[1]+(p1[1]-p0[1])*frac]);
+      }
+    }
+    smoothed.push(p1);
+  }
+  return smoothed;
+}
+
+// ── UI helpers ──
+var lastPoints = null, previewTimer = null;
+var animFrame = null, animPts = null, animIndex = 0;
+var ANIM_STEP = 12;
+var sandOffscreen = null;
+
+function pv(id, vid) { document.getElementById(vid).textContent = document.getElementById(id).value; }
+function pvr() { document.getElementById('rotationVal').textContent = document.getElementById('rotation').value+'°'; }
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(generateAndPreview, 400);
+}
+
+function generateAndPreview() {
+  var text = document.getElementById('textInput').value.trim();
+  if(!text) { document.getElementById('warnMsg').textContent='Enter some text'; return; }
+  document.getElementById('warnMsg').textContent='';
+
+  var size    = parseInt(document.getElementById('textSize').value);
+  var spiral  = parseFloat(document.getElementById('spiralWrap').value);
+  var rot     = parseInt(document.getElementById('rotation').value);
+
+  var result  = textToStrokes(text);
+  if(!result.strokes.length) { document.getElementById('warnMsg').textContent='No renderable characters'; return; }
+
+  var polar = strokesToPolar(result.strokes, result.totalWidth, size, spiral, rot);
+  if(polar.length < 2) { document.getElementById('warnMsg').textContent='Too few points'; return; }
+
+  lastPoints = polar;
+  document.getElementById('patternName').value =
+    text.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').substring(0,20);
+  document.getElementById('downloadBtn').disabled = false;
+
+  // Stats
+  var maxDr = 0;
+  for(var i=1;i<polar.length;i++) {
+    var dr = Math.abs(polar[i][1]-polar[i-1][1]);
+    if(dr>maxDr) maxDr=dr;
+  }
+  var maxDrSteps = Math.round(maxDr*8500);
+  var waitMs = maxDrSteps>100?180:50;
+  document.getElementById('statPts').textContent   = polar.length.toLocaleString();
+  document.getElementById('statTime').textContent  = '~'+Math.round(polar.length*waitMs/60000)+'m';
+  document.getElementById('statMaxDr').textContent = maxDrSteps;
+
+  startAnimation(polar);
+}
+
+function safeV(v, fb) { return isFinite(v)?v:fb; }
+
+function startAnimation(pts) {
+  if(animFrame) cancelAnimationFrame(animFrame);
+  animPts=pts; animIndex=0;
+  var canvas=document.getElementById('preview');
+  var W=canvas.width,H=canvas.height;
+  sandOffscreen=document.createElement('canvas');
+  sandOffscreen.width=W; sandOffscreen.height=H;
+  var oc=sandOffscreen.getContext('2d');
+  oc.fillStyle='#0a0c0f'; oc.fillRect(0,0,W,H);
+  oc.strokeStyle='#1e2530'; oc.lineWidth=1;
+  oc.beginPath(); oc.arc(W/2,H/2,W*0.44,0,2*Math.PI); oc.stroke();
+  requestAnimationFrame(animStep);
+}
+
+function animStep() {
+  if(!animPts) return;
+  var canvas=document.getElementById('preview');
+  var ctx=canvas.getContext('2d');
+  var W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,maxR=W*0.44;
+  var pts=animPts;
+  var end=Math.min(animIndex+ANIM_STEP,pts.length);
+  var oc=sandOffscreen.getContext('2d');
+
+  if(animIndex>0) {
+    oc.beginPath();
+    oc.strokeStyle='rgba(215,190,145,0.55)';
+    oc.lineWidth=2.5; oc.lineCap='round'; oc.lineJoin='round';
+    var p0=pts[animIndex-1];
+    oc.moveTo(safeV(cx+p0[1]*maxR*Math.cos(p0[0]),cx), safeV(cy+p0[1]*maxR*Math.sin(p0[0]),cy));
+    for(var i=animIndex;i<end;i++) {
+      oc.lineTo(safeV(cx+pts[i][1]*maxR*Math.cos(pts[i][0]),cx), safeV(cy+pts[i][1]*maxR*Math.sin(pts[i][0]),cy));
+    }
+    oc.stroke();
+  }
+  animIndex=end;
+
+  ctx.drawImage(sandOffscreen,0,0);
+
+  var cur=pts[Math.min(animIndex,pts.length-1)];
+  var bx=safeV(cx+cur[1]*maxR*Math.cos(cur[0]),cx);
+  var by=safeV(cy+cur[1]*maxR*Math.sin(cur[0]),cy);
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=6; ctx.shadowOffsetY=2;
+  try {
+    var bg=ctx.createRadialGradient(bx-1.5,by-2,0.5,bx,by,6);
+    bg.addColorStop(0,'#f0f0f8'); bg.addColorStop(0.4,'#a8a8b8'); bg.addColorStop(1,'#282838');
+    ctx.fillStyle=bg;
+  } catch(e){ctx.fillStyle='#a0a0b0';}
+  ctx.beginPath(); ctx.arc(bx,by,6,0,2*Math.PI); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.beginPath(); ctx.arc(bx-2,by-2.5,2,0,2*Math.PI); ctx.fill();
+  ctx.restore();
+
+  var pct=Math.round((animIndex/pts.length)*100);
+  document.getElementById('canvasLabel').textContent='drawing... '+pct+'%';
+  if(animIndex<pts.length) {
+    animFrame=requestAnimationFrame(animStep);
+  } else {
+    document.getElementById('canvasLabel').textContent=pts.length.toLocaleString()+' pts complete ✓';
+    animFrame=null;
+  }
+}
+
+function downloadTHR() {
+  if(!lastPoints) return;
+  var name=document.getElementById('patternName').value.trim().replace(/[^a-z0-9_\-]/gi,'_')||'text';
+  var lines=['# Dune Text Maker — single-stroke block letters','# theta (radians)  rho (0.0 to 1.0)'];
+  for(var i=0;i<lastPoints.length;i++) {
+    if(isFinite(lastPoints[i][0])&&isFinite(lastPoints[i][1]))
+      lines.push(lastPoints[i][0].toFixed(6)+' '+lastPoints[i][1].toFixed(6));
+  }
+  var blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name+'.thr'; a.click();
+}
+
+generateAndPreview();
+</script>
+</body>
+</html>
