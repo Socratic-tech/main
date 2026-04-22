@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dune Formula Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c24;--card:#1e2330;--border:#2a3040;
+  --text:#e8eaf0;--muted:#5a6580;--accent:#f0c060;--accent2:#60d0a0;
+  --danger:#e05858;--purple:#a870f0;
+}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+
+/* Sand texture overlay */
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+.app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px 20px;}
+
+header{text-align:center;margin-bottom:32px;}
+header h1{font-family:'Playfair Display',serif;font-size:2.4rem;color:var(--accent);letter-spacing:-0.02em;line-height:1.1;}
+header p{color:var(--muted);font-size:0.95rem;margin-top:8px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:700px){.grid{grid-template-columns:1fr;}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-title{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;padding:10px 16px;border-bottom:1px solid var(--border);}
+.card-body{padding:16px;}
+
+/* Formula type selector */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.type-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.7rem;padding:8px 4px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.type-btn:hover{border-color:var(--accent);color:var(--accent);}
+.type-btn.active{border-color:var(--accent);background:rgba(240,192,96,0.1);color:var(--accent);}
+.type-btn .icon{display:block;font-size:1.1rem;margin-bottom:2px;}
+
+/* Formula input */
+.formula-section{margin-bottom:14px;}
+label{display:block;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+.formula-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:1rem;padding:10px 14px;outline:none;transition:border-color 0.15s;}
+.formula-input:focus{border-color:var(--accent);}
+.formula-input.error{border-color:var(--danger);}
+
+/* Param sliders */
+.params{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.param-row{display:grid;grid-template-columns:80px 1fr 50px;align-items:center;gap:8px;}
+.param-label{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent2);}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;}
+.param-val{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text);text-align:right;}
+
+/* Buttons */
+.btn-row{display:flex;gap:8px;margin-bottom:14px;}
+.btn{font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.9rem;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;transition:filter 0.15s,transform 0.1s;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--accent);color:#1a0e00;flex:1;}
+.btn-secondary{background:var(--border);color:var(--text);}
+.btn-download{background:var(--accent2);color:#001a10;flex:1;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Error message */
+.error-msg{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--danger);margin-top:4px;min-height:18px;}
+
+/* Formula library */
+.lib-grid{display:grid;gap:6px;}
+.lib-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color 0.15s;}
+.lib-item:hover{border-color:var(--accent);}
+.lib-name{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent);margin-bottom:2px;}
+.lib-formula{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);}
+.lib-desc{font-size:0.72rem;color:var(--text);margin-top:3px;}
+
+/* Canvas */
+.canvas-wrap{background:var(--bg);border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+canvas{width:100%;height:100%;}
+.canvas-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.stat{background:var(--bg);border-radius:6px;padding:8px 10px;text-align:center;}
+.stat-val{font-family:'DM Mono',monospace;font-size:1rem;color:var(--text);}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;}
+
+/* Help text */
+.help{font-size:0.75rem;color:var(--muted);margin-top:8px;line-height:1.5;}
+.help code{font-family:'DM Mono',monospace;color:var(--accent2);background:rgba(96,208,160,0.08);padding:1px 4px;border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Dune Formula Maker</h1>
+    <p>Turn algebraic formulas into sand table patterns</p>
+  </header>
+
+  <div class="grid">
+    <!-- Left: Controls -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">// formula type</div>
+        <div class="card-body">
+          <div class="type-grid">
+            <button class="type-btn active" onclick="setType('polar')" id="btn-polar"><span class="icon">🌀</span>Polar r(θ)</button>
+            <button class="type-btn" onclick="setType('parametric')" id="btn-parametric"><span class="icon">〰️</span>Parametric</button>
+            <button class="type-btn" onclick="setType('lissajous')" id="btn-lissajous"><span class="icon">∞</span>Lissajous</button>
+          </div>
+
+          <div id="polar-inputs">
+            <div class="formula-section">
+              <label>r = f(θ) — use θ or t for theta</label>
+              <input class="formula-input" id="polarFormula" value="sin(3*t)" placeholder="e.g. sin(3*t)" oninput="schedulePreview()">
+              <div class="error-msg" id="polarError"></div>
+            </div>
+            <div class="params">
+              <div class="param-row">
+                <span class="param-label">Turns</span>
+                <input type="range" id="turns" min="1" max="20" value="6" step="1" oninput="updateVal('turns','turnsVal');schedulePreview()">
+                <span class="param-val" id="turnsVal">6</span>
+              </div>
+              <div class="param-row">
+                <span class="param-label">Points</span>
+                <input type="range" id="npts" min="200" max="8000" value="2000" step="200" oninput="updateVal('npts','nptsVal');schedulePreview()">
+                <span class="param-val" id="nptsVal">2000</span>
+              </div>
+            </div>
+            <div class="help">
+              Use <code>t</code> or <code>θ</code> for angle. Functions: <code>sin</code> <code>cos</code> <code>tan</code> <code>abs</code> <code>sqrt</code> <code>pow(x,n)</code>. Constants: <code>pi</code> <code>e</code>.
+              <br><br>Examples: <code>sin(3*t)</code> · <code>1+cos(t)</code> · <code>abs(sin(4*t))</code>
+            </div>
+          </div>
+
+          <div id="parametric-inputs" style="display:none">
+            <div class="formula-section">
+              <label>x(t) =</label>
+              <input class="formula-input" id="paramX" value="sin(3*t)*cos(t)" placeholder="e.g. sin(3*t)*cos(t)" oninput="schedulePreview()">
+            </div>
+            <div class="formula-section">
+              <label>y(t) =</label>
+              <input class="formula-input" id="paramY" value="sin(3*t)*sin(t)" placeholder="e.g. sin(3*t)*sin(t)" oninput="schedulePreview()">
+              <div class="error-msg" id="paramError"></div>
+            </div>
+            <div class="params">
+              <div class="param-row">
+                <span class="param-label">t range</span>
+                <input type="range" id="paramTurns" min="1" max="20" value="6" step="1" oninput="updateVal('paramTurns','paramTurnsVal');schedulePreview()">
+                <span class="param-val" id="paramTurnsVal">6π</span>
+              </div>
+              <div class="param-row">
+                <span class="param-label">Points</span>
+                <input type="range" id="paramNpts" min="200" max="8000" value="2000" step="200" oninput="updateVal('paramNpts','paramNptsVal');schedulePreview()">
+                <span class="param-val" id="paramNptsVal">2000</span>
+              </div>
+            </div>
+            <div class="help">
+              t goes from 0 to range×π. Use <code>sin</code> <code>cos</code> <code>t</code> <code>pi</code>.
+              <br>Examples: <code>x=cos(3*t), y=sin(2*t)</code> (Lissajous)
+            </div>
+          </div>
+
+          <div id="lissajous-inputs" style="display:none">
+            <div class="params">
+              <div class="param-row">
+                <span class="param-label">A (x freq)</span>
+                <input type="range" id="lissA" min="1" max="12" value="3" step="1" oninput="updateVal('lissA','lissAVal');schedulePreview()">
+                <span class="param-val" id="lissAVal">3</span>
+              </div>
+              <div class="param-row">
+                <span class="param-label">B (y freq)</span>
+                <input type="range" id="lissB" min="1" max="12" value="2" step="1" oninput="updateVal('lissB','lissBVal');schedulePreview()">
+                <span class="param-val" id="lissBVal">2</span>
+              </div>
+              <div class="param-row">
+                <span class="param-label">δ phase</span>
+                <input type="range" id="lissDelta" min="0" max="314" value="79" step="1" oninput="updateVal('lissDelta','lissDeltaVal');schedulePreview()">
+                <span class="param-val" id="lissDeltaVal">π/4</span>
+              </div>
+              <div class="param-row">
+                <span class="param-label">Spiral</span>
+                <input type="range" id="lissSpiral" min="0" max="100" value="0" step="1" oninput="updateVal('lissSpiral','lissSpiralVal');schedulePreview()">
+                <span class="param-val" id="lissSpiralVal">0</span>
+              </div>
+            </div>
+            <div class="help">
+              Lissajous: <code>x=sin(A·t+δ), y=sin(B·t)</code>. Ratio A:B creates the pattern shape. Add spiral to gradually expand outward.
+            </div>
+          </div>
+
+          <div class="btn-row" style="margin-top:14px">
+            <button class="btn btn-primary" onclick="generatePreview()">Preview Pattern</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula Library -->
+      <div class="card">
+        <div class="card-title">// formula library</div>
+        <div class="card-body">
+          <div class="lib-grid" id="libGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Preview + Export -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">// pattern preview</div>
+        <div class="card-body">
+          <div class="canvas-wrap">
+            <canvas id="preview" width="500" height="500"></canvas>
+            <div class="canvas-label" id="canvasLabel">adjust formula and click Preview</div>
+          </div>
+          <div style="text-align:right;margin-top:6px"><button class="btn btn-secondary" style="font-size:0.75rem;padding:6px 12px" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Replay</button></div>
+          <div class="stats">
+            <div class="stat"><div class="stat-val" id="statPts">--</div><div class="stat-lbl">Points</div></div>
+            <div class="stat"><div class="stat-val" id="statTime">--</div><div class="stat-lbl">Est. Time</div></div>
+            <div class="stat"><div class="stat-val" id="statMaxDr">--</div><div class="stat-lbl">Max ΔRho</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">// export</div>
+        <div class="card-body">
+          <div class="formula-section">
+            <label>Pattern name (filename)</label>
+            <input class="formula-input" id="patternName" value="my_formula" placeholder="my_formula">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-download" id="downloadBtn" onclick="downloadTHR()" disabled>Download .thr File</button>
+          </div>
+          <div class="help">
+            Drop the downloaded <code>.thr</code> file into the Pi's <code>patterns/</code> folder. It will appear in the controller automatically.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Safe math evaluator
+function makeMath(expr) {
+  expr = expr.replace(/θ/g, 't').replace(/theta/g, 't');
+  expr = expr.replace(/\bpi\b/g, 'Math.PI')
+             .replace(/\be\b/g, 'Math.E')
+             .replace(/\bsin\b/g, 'Math.sin')
+             .replace(/\bcos\b/g, 'Math.cos')
+             .replace(/\btan\b/g, 'Math.tan')
+             .replace(/\babs\b/g, 'Math.abs')
+             .replace(/\bsqrt\b/g, 'Math.sqrt')
+             .replace(/\bpow\b/g, 'Math.pow')
+             .replace(/\bfloor\b/g, 'Math.floor')
+             .replace(/\bround\b/g, 'Math.round')
+             .replace(/\bexp\b/g, 'Math.exp')
+             .replace(/\blog\b/g, 'Math.log')
+             .replace(/\bsign\b/g, 'Math.sign')
+             .replace(/\bmin\b/g, 'Math.min')
+             .replace(/\bmax\b/g, 'Math.max');
+  return new Function('t', '"use strict"; return ' + expr + ';');
+}
+
+var currentType = 'polar';
+var lastPoints = null;
+var previewTimer = null;
+var animFrame = null;
+var animPts = null;
+var animIndex = 0;
+var sandCanvas = null;
+var sandCtx = null;
+var ANIM_STEP = 8; // points drawn per frame
+
+function initCanvas() {
+  sandCanvas = document.getElementById('preview');
+  sandCtx = sandCanvas.getContext('2d');
+}
+
+function clearSand() {
+  var W = sandCanvas.width, H = sandCanvas.height;
+  sandCtx.fillStyle = '#0a0c0f';
+  sandCtx.fillRect(0,0,W,H);
+  // Draw table edge
+  sandCtx.strokeStyle = '#1e2530';
+  sandCtx.lineWidth = 1;
+  sandCtx.beginPath();
+  sandCtx.arc(W/2, H/2, W*0.44, 0, 2*Math.PI);
+  sandCtx.stroke();
+  // Sand texture — subtle radial gradient
+  var grad = sandCtx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.44);
+  grad.addColorStop(0, 'rgba(60,50,30,0.08)');
+  grad.addColorStop(1, 'rgba(60,50,30,0.0)');
+  sandCtx.fillStyle = grad;
+  sandCtx.beginPath();
+  sandCtx.arc(W/2,H/2,W*0.44,0,2*Math.PI);
+  sandCtx.fill();
+}
+
+function startAnimation(pts) {
+  if(animFrame) cancelAnimationFrame(animFrame);
+  if(!sandCanvas) initCanvas();
+  animPts = pts;
+  animIndex = 0;
+  clearSand();
+  // Draw trail buffer — we keep a persistent offscreen image for sand marks
+  requestAnimationFrame(animStep);
+}
+
+function animStep() {
+  if(!animPts) return;
+  var W = sandCanvas.width, H = sandCanvas.height;
+  var cx = W/2, cy = H/2, maxR = W*0.44;
+  var pts = animPts;
+  var end = Math.min(animIndex + ANIM_STEP, pts.length);
+
+  // Draw trail segments
+  if(animIndex > 0) {
+    sandCtx.beginPath();
+    sandCtx.strokeStyle = 'rgba(200,180,140,0.35)';
+    sandCtx.lineWidth = 2.5;
+    sandCtx.lineCap = 'round';
+    var p0 = pts[animIndex-1];
+    sandCtx.moveTo(cx + p0[1]*maxR*Math.cos(p0[0]), cy + p0[1]*maxR*Math.sin(p0[0]));
+    for(var i=animIndex; i<end; i++) {
+      var x = cx + pts[i][1]*maxR*Math.cos(pts[i][0]);
+      var y = cy + pts[i][1]*maxR*Math.sin(pts[i][0]);
+      sandCtx.lineTo(x, y);
+    }
+    sandCtx.stroke();
+  }
+
+  animIndex = end;
+
+  // Draw ball at current position
+  // First erase previous ball area with a small redraw — we use a separate overlay approach
+  // Draw the ball on top each frame by saving/restoring
+  var cur = pts[Math.min(animIndex, pts.length-1)];
+  var bx = cx + cur[1]*maxR*Math.cos(cur[0]);
+  var by = cy + cur[1]*maxR*Math.sin(cur[0]);
+
+  // Redraw ball (clear old one with sand color first — small circle)
+  if(animIndex > 1) {
+    var prev2 = pts[animIndex-2] || pts[0];
+    var px = cx + prev2[1]*maxR*Math.cos(prev2[0]);
+    var py = cy + prev2[1]*maxR*Math.sin(prev2[0]);
+    // We don't erase — ball just leaves trail which is the whole point
+  }
+
+  sandCtx.save();
+  // Ball shadow
+  sandCtx.shadowColor = 'rgba(0,0,0,0.5)';
+  sandCtx.shadowBlur = 4;
+  sandCtx.shadowOffsetY = 2;
+  // Ball gradient
+  var ballGrad = sandCtx.createRadialGradient(bx-1,by-2,1,bx,by,5);
+  ballGrad.addColorStop(0,'#e8e8f0');
+  ballGrad.addColorStop(0.4,'#a0a0b0');
+  ballGrad.addColorStop(1,'#404050');
+  sandCtx.fillStyle = ballGrad;
+  sandCtx.beginPath();
+  sandCtx.arc(bx, by, 5, 0, 2*Math.PI);
+  sandCtx.fill();
+  // Highlight
+  sandCtx.shadowBlur = 0;
+  sandCtx.fillStyle = 'rgba(255,255,255,0.6)';
+  sandCtx.beginPath();
+  sandCtx.arc(bx-1.5, by-2, 1.5, 0, 2*Math.PI);
+  sandCtx.fill();
+  sandCtx.restore();
+
+  // Progress in canvas label
+  var pct = Math.round((animIndex/pts.length)*100);
+  document.getElementById('canvasLabel').textContent = 'drawing... ' + pct + '%';
+
+  if(animIndex < pts.length) {
+    // Speed: use requestAnimationFrame — ANIM_STEP controls how many pts per frame
+    animFrame = requestAnimationFrame(animStep);
+  } else {
+    document.getElementById('canvasLabel').textContent = pts.length.toLocaleString() + ' points complete';
+    animFrame = null;
+  }
+}
+
+function setType(t) {
+  currentType = t;
+  ['polar','parametric','lissajous'].forEach(function(s) {
+    document.getElementById(s+'-inputs').style.display = s===t ? 'block' : 'none';
+    document.getElementById('btn-'+s).classList.toggle('active', s===t);
+  });
+  schedulePreview();
+}
+
+function updateVal(id, valId) {
+  var v = document.getElementById(id).value;
+  if(id==='lissDelta') { document.getElementById(valId).textContent = (v/100).toFixed(2)+'π'; return; }
+  if(id==='paramTurns') { document.getElementById(valId).textContent = v+'π'; return; }
+  document.getElementById(valId).textContent = v;
+}
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(generatePreview, 400);
+}
+
+function generatePoints() {
+  if(currentType === 'polar') {
+    var expr = document.getElementById('polarFormula').value.trim();
+    var turns = parseInt(document.getElementById('turns').value);
+    var npts = parseInt(document.getElementById('npts').value);
+    document.getElementById('polarError').textContent = '';
+    try {
+      var fn = makeMath(expr);
+      fn(0); // test
+    } catch(e) {
+      document.getElementById('polarError').textContent = 'Error: ' + e.message;
+      return null;
+    }
+    var pts = [];
+    for(var i=0; i<=npts; i++) {
+      var t = (i/npts) * turns * 2 * Math.PI;
+      var r = fn(t);
+      if(!isFinite(r)) r = 0;
+      pts.push([t, r]);
+    }
+    return pts;
+  }
+
+  if(currentType === 'parametric') {
+    var exprX = document.getElementById('paramX').value.trim();
+    var exprY = document.getElementById('paramY').value.trim();
+    var turns = parseInt(document.getElementById('paramTurns').value);
+    var npts = parseInt(document.getElementById('paramNpts').value);
+    document.getElementById('paramError').textContent = '';
+    try {
+      var fnX = makeMath(exprX);
+      var fnY = makeMath(exprY);
+      fnX(0); fnY(0);
+    } catch(e) {
+      document.getElementById('paramError').textContent = 'Error: ' + e.message;
+      return null;
+    }
+    // Convert x,y to polar
+    var pts = [];
+    for(var i=0; i<=npts; i++) {
+      var t = (i/npts) * turns * Math.PI;
+      var x = fnX(t), y = fnY(t);
+      if(!isFinite(x)) x=0; if(!isFinite(y)) y=0;
+      var theta = Math.atan2(y, x);
+      var r = Math.sqrt(x*x + y*y);
+      pts.push([theta, r]);
+    }
+    return pts;
+  }
+
+  if(currentType === 'lissajous') {
+    var A = parseInt(document.getElementById('lissA').value);
+    var B = parseInt(document.getElementById('lissB').value);
+    var delta = (parseInt(document.getElementById('lissDelta').value)/100) * Math.PI;
+    var spiral = parseInt(document.getElementById('lissSpiral').value)/100;
+    var npts = 4000;
+    var pts = [];
+    for(var i=0; i<=npts; i++) {
+      var t = (i/npts) * 20 * Math.PI;
+      var s = 1 - spiral * (i/npts) * 0.9;
+      var x = Math.sin(A*t + delta) * s;
+      var y = Math.sin(B*t) * s;
+      var theta = Math.atan2(y, x);
+      var r = Math.sqrt(x*x + y*y);
+      pts.push([theta, r]);
+    }
+    return pts;
+  }
+  return null;
+}
+
+function normalizeToTHR(pts) {
+  // Unwrap theta for polar mode, keep as-is for others
+  var thetas = pts.map(function(p){return p[0];});
+  var rhos = pts.map(function(p){return p[1];});
+
+  // Unwrap theta
+  var unwrapped = [thetas[0]];
+  var offset = 0, prev = thetas[0];
+  for(var i=1; i<thetas.length; i++) {
+    var delta = thetas[i] - prev;
+    if(delta > Math.PI) offset -= 2*Math.PI;
+    else if(delta < -Math.PI) offset += 2*Math.PI;
+    unwrapped.push(thetas[i] + offset);
+    prev = thetas[i];
+  }
+
+  // Normalize rho to 0-1
+  var rMin = Math.min.apply(null, rhos);
+  var rMax = Math.max.apply(null, rhos);
+  var rSpan = Math.max(rMax - rMin, 1e-9);
+  // Re-zero theta
+  var t0 = unwrapped[0];
+  var normalized = [];
+  for(var i=0; i<pts.length; i++) {
+    normalized.push([(unwrapped[i]-t0), (rhos[i]-rMin)/rSpan]);
+  }
+  return normalized;
+}
+
+function generatePreview() {
+  var raw = generatePoints();
+  if(!raw) return;
+  var pts = normalizeToTHR(raw);
+  lastPoints = pts;
+
+  startAnimation(pts);
+
+  // Stats
+  var maxDr = 0;
+  for(var i=1; i<pts.length; i++) {
+    var dr = Math.abs((pts[i][1]-pts[i-1][1]) * 8500);
+    if(dr>maxDr) maxDr=dr;
+  }
+  var waitMs = maxDr > 100 ? 180 : maxDr > 50 ? 100 : 50;
+  var estMin = Math.round(pts.length * waitMs / 1000 / 60);
+
+  document.getElementById('statPts').textContent = pts.length.toLocaleString();
+  document.getElementById('statTime').textContent = '~' + estMin + 'm';
+  document.getElementById('statMaxDr').textContent = Math.round(maxDr);
+  document.getElementById('canvasLabel').textContent = pts.length.toLocaleString() + ' points · ' + (maxDr>180 ? '⚠ high ΔRho' : 'motor OK');
+  document.getElementById('downloadBtn').disabled = false;
+}
+
+function downloadTHR() {
+  if(!lastPoints) return;
+  var name = document.getElementById('patternName').value.trim().replace(/[^a-z0-9_\-]/gi,'_') || 'formula';
+  var lines = ['# Generated by Dune Formula Maker', '# theta (radians)  rho (0.0 to 1.0)'];
+  for(var i=0; i<lastPoints.length; i++) {
+    lines.push(lastPoints[i][0].toFixed(6) + ' ' + lastPoints[i][1].toFixed(6));
+  }
+  var blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name + '.thr'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Formula library
+var library = [
+  {name:'Rose Curve', type:'polar', formula:'abs(sin(3*t))', turns:6, desc:'3-petal rose (change 3 for more petals)'},
+  {name:'Cardioid', type:'polar', formula:'1 - cos(t)', turns:1, desc:'Heart-shaped curve'},
+  {name:'Limaçon', type:'polar', formula:'0.5 + cos(t)', turns:1, desc:'Snail curve — change 0.5 for dimple or loop'},
+  {name:'Spiral', type:'polar', formula:'t / (6*pi)', turns:6, desc:'Archimedean spiral — expands evenly'},
+  {name:'Lemniscate', type:'polar', formula:'sqrt(abs(cos(2*t)))', turns:4, desc:'Figure-8 infinity curve'},
+  {name:'Star', type:'polar', formula:'abs(cos(5*t/2))', turns:4, desc:'5-pointed star (change 5 for more points)'},
+  {name:'Hypotrochoid', type:'parametric', x:'cos(t) + 0.5*cos(3*t)', y:'sin(t) - 0.5*sin(3*t)', turns:6, desc:'Spirograph-style inner gear curve'},
+  {name:'Lissajous 3:2', type:'lissajous', A:3, B:2, delta:79, desc:'Classic 3:2 frequency ratio figure'},
+  {name:'Maclaurin Spiral', type:'polar', formula:'1/sqrt(t+0.1)', turns:8, desc:'Reciprocal spiral, converges to center'},
+  {name:'Butterfly', type:'polar', formula:'exp(sin(t)) - 2*cos(4*t)', turns:4, desc:'Butterfly curve by Temple Fay'},
+];
+
+var libGrid = document.getElementById('libGrid');
+library.forEach(function(item) {
+  var div = document.createElement('div');
+  div.className = 'lib-item';
+  div.innerHTML = '<div class="lib-name">'+item.name+'</div><div class="lib-formula">'+(item.formula||'x='+item.x+', y='+item.y)+'</div><div class="lib-desc">'+item.desc+'</div>';
+  div.onclick = function() {
+    if(item.type==='polar') {
+      setType('polar');
+      document.getElementById('polarFormula').value = item.formula;
+      if(item.turns) document.getElementById('turns').value = item.turns;
+      document.getElementById('turnsVal').textContent = document.getElementById('turns').value;
+    } else if(item.type==='parametric') {
+      setType('parametric');
+      document.getElementById('paramX').value = item.x;
+      document.getElementById('paramY').value = item.y;
+      if(item.turns) document.getElementById('paramTurns').value = item.turns;
+    } else if(item.type==='lissajous') {
+      setType('lissajous');
+      document.getElementById('lissA').value = item.A;
+      document.getElementById('lissB').value = item.B;
+      if(item.delta) document.getElementById('lissDelta').value = item.delta;
+      document.getElementById('lissAVal').textContent = item.A;
+      document.getElementById('lissBVal').textContent = item.B;
+    }
+    document.getElementById('patternName').value = item.name.toLowerCase().replace(/\s+/g,'_');
+    generatePreview();
+  };
+  libGrid.appendChild(div);
+});
+
+// Init
+generatePreview();
+</script>
+</body>
+</html>
