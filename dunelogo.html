@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dune Image Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--card:#1e2330;--border:#2a3040;--text:#e8eaf0;--muted:#5a6580;--accent:#f0c060;--accent2:#60d0a0;--danger:#e05858;}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.app{max-width:1000px;margin:0 auto;padding:24px 20px;}
+header{text-align:center;margin-bottom:28px;}
+header h1{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--accent);}
+header p{color:var(--muted);font-size:0.9rem;margin-top:6px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:700px){.grid{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.card-title{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;padding:9px 14px;border-bottom:1px solid var(--border);}
+.card-body{padding:14px;}
+label{display:block;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;}
+.params{display:flex;flex-direction:column;gap:9px;margin:10px 0;}
+.param-row{display:grid;grid-template-columns:100px 1fr 55px;align-items:center;gap:8px;}
+.param-label{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--accent2);}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;}
+.param-val{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);text-align:right;}
+.btn-row{display:flex;gap:8px;margin-top:12px;}
+.btn{font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.9rem;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;transition:filter 0.15s,transform 0.1s;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--accent);color:#1a0e00;flex:1;}
+.btn-download{background:var(--accent2);color:#001a10;flex:1;}
+.btn-sm{background:var(--border);color:var(--text);font-size:0.75rem;padding:6px 10px;}
+.btn-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:0.75rem;padding:6px 12px;border-radius:6px;cursor:pointer;}
+.btn-toggle.active{border-color:var(--accent);color:var(--accent);background:rgba(240,192,96,0.1);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:12px;background:var(--bg);}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);}
+.drop-zone input{display:none;}
+.drop-icon{font-size:2rem;margin-bottom:6px;}
+.drop-label{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);}
+.drop-label span{color:var(--accent);}
+.img-preview{width:100%;max-height:160px;object-fit:contain;border-radius:6px;margin-top:8px;display:none;}
+.canvas-wrap{background:var(--bg);border-radius:8px;aspect-ratio:1;overflow:hidden;position:relative;}
+canvas{width:100%;height:100%;display:block;}
+.canvas-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.stat{background:var(--bg);border-radius:6px;padding:8px;text-align:center;}
+.stat-val{font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text);}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;}
+.field{margin-bottom:10px;}
+.name-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;padding:9px 12px;outline:none;}
+.name-input:focus{border-color:var(--accent2);}
+.help{font-size:0.72rem;color:var(--muted);line-height:1.6;}
+.help code{font-family:'DM Mono',monospace;color:var(--accent2);background:rgba(96,208,160,0.08);padding:1px 4px;border-radius:3px;}
+.warn{color:var(--danger);font-family:'DM Mono',monospace;font-size:0.68rem;margin-top:6px;min-height:16px;}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Dune Image Maker</h1>
+    <p>Upload a logo or image — the ball traces a spiral that avoids the dark areas, leaving your image in the sand</p>
+  </header>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-title">// image upload</div>
+        <div class="card-body">
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <div class="drop-icon">🖼</div>
+            <div class="drop-label">Drop image here or <span>browse</span></div>
+            <input type="file" id="fileInput" accept="image/*">
+          </div>
+          <img id="imgPreview" class="img-preview" alt="preview">
+          <canvas id="imgCanvas" style="display:none"></canvas>
+          <div class="warn" id="warnMsg"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">// settings</div>
+        <div class="card-body">
+          <div class="params">
+            <div class="param-row">
+              <span class="param-label">Threshold</span>
+              <input type="range" id="threshold" min="10" max="245" value="128" step="5" oninput="pv('threshold','thresholdVal');scheduleGen()">
+              <span class="param-val" id="thresholdVal">128</span>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Image size</span>
+              <input type="range" id="scale" min="20" max="98" value="85" step="1" oninput="pv('scale','scaleVal');scheduleGen()">
+              <span class="param-val" id="scaleVal">85%</span>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Rotation</span>
+              <input type="range" id="rotation" min="0" max="355" value="0" step="5" oninput="pvd('rotation','rotationVal');scheduleGen()">
+              <span class="param-val" id="rotationVal">0°</span>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Density</span>
+              <input type="range" id="density" min="20" max="60" value="40" step="5" oninput="pv2('density','densityVal');scheduleGen()">
+              <span class="param-val" id="densityVal">40</span>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn-toggle" id="invertBtn" onclick="toggleInvert()">Invert (draw logo, skip bg)</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="genBtn" onclick="generateAndPreview()" disabled>▶ Generate</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">// export</div>
+        <div class="card-body">
+          <div class="field"><label>Filename</label><input class="name-input" id="patternName" value="my_logo"></div>
+          <div class="btn-row">
+            <button class="btn btn-download" id="downloadBtn" onclick="downloadTHR()" disabled>Download .thr</button>
+            <button class="btn btn-sm" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Replay</button>
+          </div>
+          <div class="help" style="margin-top:8px">
+            <strong>Tips:</strong> High contrast images work best. Dark logo on white background = logo appears as undrawn sand. Use <code>Invert</code> to flip. Reduce <code>Threshold</code> if too much is being masked.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title">// sand simulation</div>
+        <div class="card-body">
+          <div class="canvas-wrap">
+            <canvas id="preview" width="500" height="500"></canvas>
+            <div class="canvas-label" id="canvasLabel">upload an image to begin</div>
+          </div>
+          <div class="stats">
+            <div class="stat"><div class="stat-val" id="statPts">--</div><div class="stat-lbl">Points</div></div>
+            <div class="stat"><div class="stat-val" id="statTime">--</div><div class="stat-lbl">Est. Time</div></div>
+            <div class="stat"><div class="stat-val" id="statPct">--</div><div class="stat-lbl">% Masked</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var lastPoints = null, genTimer = null, animFrame = null;
+var animPts = null, animIndex = 0, sandOffscreen = null;
+var ANIM_STEP = 25;
+var invertMode = false;
+var pixelData = null, imgW = 0, imgH = 0;
+
+// ── Image loading ──
+var dz = document.getElementById('dropZone');
+var fi = document.getElementById('fileInput');
+dz.addEventListener('dragover', function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave', function(){dz.classList.remove('over');});
+dz.addEventListener('drop', function(e){e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])loadImage(e.dataTransfer.files[0]);});
+fi.addEventListener('change', function(){if(fi.files[0])loadImage(fi.files[0]);});
+
+function loadImage(file) {
+  if(!file.type.startsWith('image/')) {
+    document.getElementById('warnMsg').textContent='Please upload an image file';
+    return;
+  }
+  document.getElementById('warnMsg').textContent='';
+  var url = URL.createObjectURL(file);
+  var img = new Image();
+  img.onload = function() {
+    var preview = document.getElementById('imgPreview');
+    preview.src = url;
+    preview.style.display = 'block';
+
+    // Draw to hidden canvas to get pixel data
+    var c = document.getElementById('imgCanvas');
+    var SIZE = 200; // sample at 200x200
+    c.width = SIZE; c.height = SIZE;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0,0,SIZE,SIZE);
+    // Draw image centered and scaled to fit
+    var scale = Math.min(SIZE/img.width, SIZE/img.height);
+    var sw = img.width*scale, sh = img.height*scale;
+    var ox = (SIZE-sw)/2, oy = (SIZE-sh)/2;
+    ctx.drawImage(img, ox, oy, sw, sh);
+    pixelData = ctx.getImageData(0,0,SIZE,SIZE).data;
+    imgW = SIZE; imgH = SIZE;
+
+    // Update filename
+    var name = file.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+    document.getElementById('patternName').value = name || 'logo';
+    document.getElementById('genBtn').disabled = false;
+    URL.revokeObjectURL(url);
+    scheduleGen();
+  };
+  img.src = url;
+}
+
+function toggleInvert() {
+  invertMode = !invertMode;
+  var btn = document.getElementById('invertBtn');
+  btn.classList.toggle('active', invertMode);
+  scheduleGen();
+}
+
+function pv(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value+'%';}
+function pvd(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value+'°';}
+function pv2(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value;}
+
+function scheduleGen(){
+  if(!pixelData) return;
+  clearTimeout(genTimer);
+  genTimer = setTimeout(generateAndPreview, 600);
+}
+
+// ── Core generation (mirrors tested Python logic) ──
+function sampleBrightness(x, y) {
+  // x,y in -1..1
+  var px = Math.round((x+1)/2*(imgW-1));
+  var py = Math.round((y+1)/2*(imgH-1));
+  px = Math.max(0, Math.min(imgW-1, px));
+  py = Math.max(0, Math.min(imgH-1, py));
+  var idx = (py*imgW+px)*4;
+  return (pixelData[idx]+pixelData[idx+1]+pixelData[idx+2])/3;
+}
+
+function generatePoints(threshold, scale, rotDeg, density, invert) {
+  var MAX_DR = 0.025;
+  var MAX_DT = Math.PI/2;
+  var turns = density;
+  var ptsPerTurn = 500;
+  var total = turns * ptsPerTurn;
+  var rotRad = rotDeg * Math.PI / 180;
+  var sc = scale / 100;
+
+  var raw = [];
+  var masked = 0;
+
+  for(var i=0; i<total; i++) {
+    var rho = i/total;
+    var theta = (i/ptsPerTurn)*2*Math.PI;
+    var tn = theta % (2*Math.PI);
+
+    var x = rho * Math.cos(tn + rotRad) * sc;
+    var y = rho * Math.sin(tn + rotRad) * sc;
+
+    var bright = sampleBrightness(x, y);
+    var isLogo = bright < threshold;
+    if(invert) isLogo = !isLogo;
+
+    if(!isLogo) {
+      raw.push([theta, rho]);
+    } else {
+      masked++;
+    }
+  }
+
+  if(!raw.length) return {points:[], pct:100};
+
+  // Bridge gaps
+  var smoothed = [raw[0]];
+  for(var i=1; i<raw.length; i++) {
+    var p0 = smoothed[smoothed.length-1];
+    var p1 = raw[i];
+    var dr = Math.abs(p1[1]-p0[1]);
+    var dt = Math.abs(p1[0]-p0[0]);
+    var steps = Math.max(1, Math.ceil(dr/MAX_DR), Math.ceil(dt/MAX_DT));
+    for(var s=1; s<=steps; s++) {
+      var f=s/steps;
+      smoothed.push([p0[0]+(p1[0]-p0[0])*f, p0[1]+(p1[1]-p0[1])*f]);
+    }
+  }
+
+  return {points: smoothed, pct: Math.round(100*masked/total)};
+}
+
+function generateAndPreview() {
+  if(!pixelData) return;
+  document.getElementById('canvasLabel').textContent='generating...';
+
+  var threshold = parseInt(document.getElementById('threshold').value);
+  var scale = parseInt(document.getElementById('scale').value);
+  var rotation = parseInt(document.getElementById('rotation').value);
+  var density = parseInt(document.getElementById('density').value);
+
+  setTimeout(function(){
+    var result = generatePoints(threshold, scale, rotation, density, invertMode);
+    var pts = result.points;
+
+    if(!pts.length) {
+      document.getElementById('canvasLabel').textContent='No points — adjust threshold';
+      return;
+    }
+
+    lastPoints = pts;
+    document.getElementById('downloadBtn').disabled = false;
+    document.getElementById('statPts').textContent = pts.length.toLocaleString();
+    document.getElementById('statTime').textContent = '~'+Math.round(pts.length*100/60000)+'m';
+    document.getElementById('statPct').textContent = result.pct+'%';
+
+    startAnimation(pts);
+  }, 50);
+}
+
+function safeV(v,fb){return isFinite(v)?v:fb;}
+
+function startAnimation(pts) {
+  if(animFrame) cancelAnimationFrame(animFrame);
+  animPts=pts; animIndex=0;
+  var c=document.getElementById('preview'),W=c.width,H=c.height;
+  sandOffscreen=document.createElement('canvas');
+  sandOffscreen.width=W; sandOffscreen.height=H;
+  var oc=sandOffscreen.getContext('2d');
+  oc.fillStyle='#0a0c0f'; oc.fillRect(0,0,W,H);
+  oc.strokeStyle='#1e2530'; oc.lineWidth=1;
+  oc.beginPath(); oc.arc(W/2,H/2,W*0.44,0,2*Math.PI); oc.stroke();
+  requestAnimationFrame(animStep);
+}
+
+function animStep() {
+  if(!animPts) return;
+  var c=document.getElementById('preview'),ctx=c.getContext('2d');
+  var W=c.width,H=c.height,cx=W/2,cy=H/2,maxR=W*0.44;
+  var pts=animPts, end=Math.min(animIndex+ANIM_STEP,pts.length);
+  var oc=sandOffscreen.getContext('2d');
+
+  if(animIndex>0){
+    oc.beginPath();
+    oc.strokeStyle='rgba(215,190,145,0.55)';
+    oc.lineWidth=1.8; oc.lineCap='round'; oc.lineJoin='round';
+    var p0=pts[animIndex-1];
+    oc.moveTo(safeV(cx+p0[1]*maxR*Math.cos(p0[0]),cx),safeV(cy+p0[1]*maxR*Math.sin(p0[0]),cy));
+    for(var i=animIndex;i<end;i++)
+      oc.lineTo(safeV(cx+pts[i][1]*maxR*Math.cos(pts[i][0]),cx),safeV(cy+pts[i][1]*maxR*Math.sin(pts[i][0]),cy));
+    oc.stroke();
+  }
+  animIndex=end;
+  ctx.drawImage(sandOffscreen,0,0);
+
+  var cur=pts[Math.min(animIndex,pts.length-1)];
+  var bx=safeV(cx+cur[1]*maxR*Math.cos(cur[0]),cx);
+  var by=safeV(cy+cur[1]*maxR*Math.sin(cur[0]),cy);
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=6; ctx.shadowOffsetY=2;
+  try{var bg=ctx.createRadialGradient(bx-1.5,by-2,0.5,bx,by,6);bg.addColorStop(0,'#f0f0f8');bg.addColorStop(0.4,'#a8a8b8');bg.addColorStop(1,'#282838');ctx.fillStyle=bg;}
+  catch(e){ctx.fillStyle='#a0a0b0';}
+  ctx.beginPath();ctx.arc(bx,by,6,0,2*Math.PI);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.beginPath();ctx.arc(bx-2,by-2.5,2,0,2*Math.PI);ctx.fill();
+  ctx.restore();
+
+  var pct=Math.round((animIndex/pts.length)*100);
+  document.getElementById('canvasLabel').textContent='drawing... '+pct+'%';
+  if(animIndex<pts.length) animFrame=requestAnimationFrame(animStep);
+  else{document.getElementById('canvasLabel').textContent=pts.length.toLocaleString()+' pts ✓';animFrame=null;}
+}
+
+function downloadTHR() {
+  if(!lastPoints) return;
+  var name=document.getElementById('patternName').value.trim().replace(/[^a-z0-9_\-]/gi,'_')||'logo';
+  var lines=['# Dune Image Maker — image negative space pattern','# theta (radians)  rho (0.0 to 1.0)'];
+  for(var i=0;i<lastPoints.length;i++){
+    var t=lastPoints[i][0],r=lastPoints[i][1];
+    if(isFinite(t)&&isFinite(r)&&r>=0&&r<=1)
+      lines.push(t.toFixed(6)+' '+r.toFixed(6));
+  }
+  var blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.thr';a.click();
+}
+</script>
+</body>
+</html>
