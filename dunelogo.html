@@ -33,8 +33,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 .btn-sm{background:var(--border);color:var(--text);font-size:0.75rem;padding:6px 10px;}
 .btn-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:0.75rem;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'DM Mono',monospace;}
 .btn-toggle.active{border-color:var(--accent);color:var(--accent);background:rgba(240,192,96,0.1);}
-.btn-mask{background:transparent;border:1px solid var(--purple);color:var(--purple);font-size:0.75rem;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'DM Mono',monospace;}
-.btn-mask.active{background:rgba(168,85,247,0.15);}
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
 .drop-zone{border:2px dashed var(--border);border-radius:8px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:12px;background:var(--bg);}
 .drop-zone:hover,.drop-zone.over{border-color:var(--accent);}
@@ -54,15 +52,15 @@ canvas{width:100%;height:100%;display:block;}
 .name-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;padding:9px 12px;outline:none;}
 .help{font-size:0.72rem;color:var(--muted);line-height:1.6;}
 .help code{font-family:'DM Mono',monospace;color:var(--accent2);background:rgba(96,208,160,0.08);padding:1px 4px;border-radius:3px;}
-.warn{color:var(--danger);font-family:'DM Mono',monospace;font-size:0.68rem;margin-top:6px;min-height:16px;}
-.mask-tip{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--purple);margin-top:6px;}
+.status{font-family:'DM Mono',monospace;font-size:0.68rem;margin-top:6px;min-height:18px;color:var(--accent2);}
+.status.warn{color:var(--danger);}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <h1>Dune Image Maker</h1>
-    <p>Upload a logo — the ball spirals across the table, skipping your image shape</p>
+    <p>Traces the outline of your logo as a continuous path in sand — like a sketch</p>
   </header>
   <div class="grid">
     <div>
@@ -76,7 +74,7 @@ canvas{width:100%;height:100%;display:block;}
           </div>
           <img id="imgPreview" class="img-preview" alt="preview">
           <canvas id="imgCanvas" style="display:none"></canvas>
-          <div class="warn" id="warnMsg"></div>
+          <div class="status" id="statusMsg"></div>
         </div>
       </div>
 
@@ -86,13 +84,13 @@ canvas{width:100%;height:100%;display:block;}
           <div class="params">
             <div class="param-row">
               <span class="param-label">Threshold</span>
-              <input type="range" id="threshold" min="10" max="245" value="180" step="5" oninput="pv('threshold','thresholdVal');scheduleGen()">
-              <span class="param-val" id="thresholdVal">180</span>
+              <input type="range" id="threshold" min="10" max="245" value="160" step="5" oninput="pv('threshold','thresholdVal');scheduleGen()">
+              <span class="param-val" id="thresholdVal">160</span>
             </div>
             <div class="param-row">
               <span class="param-label">Image size</span>
-              <input type="range" id="scale" min="20" max="98" value="88" step="1" oninput="pvp('scale','scaleVal');scheduleGen()">
-              <span class="param-val" id="scaleVal">88%</span>
+              <input type="range" id="scale" min="20" max="95" value="82" step="1" oninput="pvp('scale','scaleVal');scheduleGen()">
+              <span class="param-val" id="scaleVal">82%</span>
             </div>
             <div class="param-row">
               <span class="param-label">Rotation</span>
@@ -100,16 +98,14 @@ canvas{width:100%;height:100%;display:block;}
               <span class="param-val" id="rotationVal">0°</span>
             </div>
             <div class="param-row">
-              <span class="param-label">Density</span>
-              <input type="range" id="density" min="15" max="60" value="30" step="5" oninput="pv2('density','densityVal');scheduleGen()">
-              <span class="param-val" id="densityVal">30</span>
+              <span class="param-label">Detail</span>
+              <input type="range" id="maxPts" min="200" max="1200" value="600" step="100" oninput="pv2('maxPts','maxPtsVal');scheduleGen()">
+              <span class="param-val" id="maxPtsVal">600</span>
             </div>
           </div>
           <div class="btn-row" style="margin-top:8px">
-            <button class="btn-toggle" id="invertBtn" onclick="toggleInvert()">Invert colors</button>
-            <button class="btn-mask" id="maskBtn" onclick="toggleMask()">Show mask</button>
+            <button class="btn-toggle" id="invertBtn" onclick="toggleInvert()">Invert (light logo on dark bg)</button>
           </div>
-          <div class="mask-tip" id="maskTip"></div>
           <div class="btn-row">
             <button class="btn btn-primary" id="genBtn" onclick="generateAndPreview()" disabled>▶ Generate</button>
           </div>
@@ -122,15 +118,11 @@ canvas{width:100%;height:100%;display:block;}
           <div class="field"><label>Filename</label><input class="name-input" id="patternName" value="my_logo"></div>
           <div class="btn-row">
             <button class="btn btn-download" id="downloadBtn" onclick="downloadTHR()" disabled>Download .thr</button>
-            <button class="btn btn-sm" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Animate</button>
-            <button class="btn btn-sm" style="border:1px solid var(--purple);color:var(--purple);background:transparent" onclick="staticPreview()">⊙ Static</button>
+            <button class="btn btn-sm" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Replay</button>
           </div>
           <div class="help" style="margin-top:10px">
-            <strong>Getting good results:</strong><br>
-            • <code>Show mask</code> — purple areas will be blank sand (your logo). Adjust threshold until it matches your logo shape.<br>
-            • Lower <code>Density</code> = wider gaps = more visible in sand<br>
-            • <code>Invert</code> flips what gets drawn vs skipped<br>
-            • High contrast logos work best — dark on white
+            The ball traces the <strong>outline</strong> of your logo — like drawing it with a single pencil stroke.<br><br>
+            <strong>Tips:</strong> Bold logos with thick outlines work best. If lines look messy, lower <code>Detail</code>. If outline is missing parts, raise <code>Threshold</code>. Use <code>Invert</code> for light logos on dark backgrounds.
           </div>
         </div>
       </div>
@@ -147,7 +139,7 @@ canvas{width:100%;height:100%;display:block;}
           <div class="stats">
             <div class="stat"><div class="stat-val" id="statPts">--</div><div class="stat-lbl">Points</div></div>
             <div class="stat"><div class="stat-val" id="statTime">--</div><div class="stat-lbl">Est. Time</div></div>
-            <div class="stat"><div class="stat-val" id="statPct">--</div><div class="stat-lbl">% Masked</div></div>
+            <div class="stat"><div class="stat-val" id="statEdge">--</div><div class="stat-lbl">Edge Pixels</div></div>
           </div>
         </div>
       </div>
@@ -156,49 +148,45 @@ canvas{width:100%;height:100%;display:block;}
 </div>
 
 <script>
-var lastPoints = null, genTimer = null, animFrame = null;
-var animPts = null, animIndex = 0, sandOffscreen = null;
-var ANIM_STEP = 30;
-var invertMode = false, showMask = false;
-var pixelData = null, imgW = 0, imgH = 0;
+var lastPoints=null, genTimer=null, animFrame=null;
+var animPts=null, animIndex=0, sandOffscreen=null;
+var ANIM_STEP=8;
+var invertMode=false;
+var pixelData=null, imgW=0, imgH=0;
 
 // ── Image loading ──
-var dz = document.getElementById('dropZone');
-var fi = document.getElementById('fileInput');
+var dz=document.getElementById('dropZone');
+var fi=document.getElementById('fileInput');
 dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
 dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
 dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])loadImage(e.dataTransfer.files[0]);});
 fi.addEventListener('change',function(){if(fi.files[0])loadImage(fi.files[0]);});
 
-function loadImage(file) {
-  if(!file.type.startsWith('image/')){document.getElementById('warnMsg').textContent='Please upload an image file';return;}
-  document.getElementById('warnMsg').textContent='';
-  var url = URL.createObjectURL(file);
-  var img = new Image();
-  img.onload = function(){
-    var preview = document.getElementById('imgPreview');
-    preview.src = url; preview.style.display='block';
-    // Draw to hidden canvas at 300x300 for better resolution
-    var c = document.getElementById('imgCanvas');
-    var SIZE = 300;
+function loadImage(file){
+  if(!file.type.startsWith('image/')){setStatus('Please upload an image file',true);return;}
+  var url=URL.createObjectURL(file);
+  var img=new Image();
+  img.onload=function(){
+    var preview=document.getElementById('imgPreview');
+    preview.src=url; preview.style.display='block';
+    var c=document.getElementById('imgCanvas');
+    var SIZE=250;
     c.width=SIZE; c.height=SIZE;
-    var ctx = c.getContext('2d');
+    var ctx=c.getContext('2d');
     ctx.fillStyle='white'; ctx.fillRect(0,0,SIZE,SIZE);
-    var sc = Math.min(SIZE/img.width, SIZE/img.height);
-    var sw=img.width*sc, sh=img.height*sc;
+    var sc=Math.min(SIZE/img.width,SIZE/img.height);
+    var sw=img.width*sc,sh=img.height*sc;
     ctx.drawImage(img,(SIZE-sw)/2,(SIZE-sh)/2,sw,sh);
-    var imgData = ctx.getImageData(0,0,SIZE,SIZE);
-    pixelData = imgData.data;
-    imgW=SIZE; imgH=SIZE;
-    // Validate: check if canvas is readable (CORS issue gives all zeros)
-    var brightnessSum=0;
-    for(var pi=0;pi<pixelData.length;pi+=4)
-      brightnessSum+=pixelData[pi]+pixelData[pi+1]+pixelData[pi+2];
-    var avgBright=brightnessSum/(pixelData.length/4*3);
-    if(avgBright<5){
-      document.getElementById('warnMsg').textContent='⚠ Image appears all-black — browser security may be blocking pixel access. Try saving as JPG first.';
+    var id=ctx.getImageData(0,0,SIZE,SIZE);
+    pixelData=id.data; imgW=SIZE; imgH=SIZE;
+    // Validate brightness
+    var sum=0;
+    for(var i=0;i<pixelData.length;i+=4) sum+=pixelData[i]+pixelData[i+1]+pixelData[i+2];
+    var avg=sum/(pixelData.length/4*3);
+    if(avg<5){
+      setStatus('⚠ Cannot read pixels — try saving as JPG first',true);
     } else {
-      document.getElementById('warnMsg').textContent='Image loaded (avg brightness: '+Math.round(avgBright)+')';
+      setStatus('Image loaded (avg brightness: '+Math.round(avg)+')');
     }
     var name=file.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
     document.getElementById('patternName').value=name||'logo';
@@ -206,7 +194,14 @@ function loadImage(file) {
     URL.revokeObjectURL(url);
     scheduleGen();
   };
+  img.onerror=function(){setStatus('Failed to load image',true);};
   img.src=url;
+}
+
+function setStatus(msg,warn){
+  var el=document.getElementById('statusMsg');
+  el.textContent=msg;
+  el.className=warn?'status warn':'status';
 }
 
 function toggleInvert(){
@@ -215,150 +210,156 @@ function toggleInvert(){
   scheduleGen();
 }
 
-function toggleMask(){
-  showMask=!showMask;
-  document.getElementById('maskBtn').classList.toggle('active',showMask);
-  if(showMask) renderMaskPreview();
-  else if(lastPoints) startAnimation(lastPoints);
-}
-
-// ── Render mask preview — shows what will be blank sand ──
-function renderMaskPreview(){
-  if(!pixelData) return;
-  var threshold=parseInt(document.getElementById('threshold').value);
-  var scale=parseInt(document.getElementById('scale').value)/100;
-  var rotDeg=parseInt(document.getElementById('rotation').value);
-  var rotRad=rotDeg*Math.PI/180;
-  var c=document.getElementById('preview'),W=c.width,H=c.height;
-  var ctx=c.getContext('2d');
-  // Draw dark background
-  ctx.fillStyle='#0a0c0f'; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='#1e2530'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.arc(W/2,H/2,W*0.44,0,2*Math.PI); ctx.stroke();
-
-  var cx=W/2,cy=H/2,maxR=W*0.44;
-  var masked=0,total=0;
-  // Sample grid
-  var GRID=200;
-  for(var gy=0;gy<GRID;gy++){
-    for(var gx=0;gx<GRID;gx++){
-      // Map grid to circle
-      var nx=(gx/GRID)*2-1, ny=(gy/GRID)*2-1;
-      var rho=Math.sqrt(nx*nx+ny*ny);
-      if(rho>0.99) continue;
-      total++;
-      var ix=nx*Math.cos(-rotRad)-ny*Math.sin(-rotRad);
-      var iy=nx*Math.sin(-rotRad)+ny*Math.cos(-rotRad);
-      var bright=sampleBrightness(ix/scale,iy/scale);
-      var isMasked=(bright<threshold)!==invertMode;
-      if(!isMasked) continue; // only draw masked areas
-      masked++;
-      var px=cx+nx*maxR, py=cy+ny*maxR;
-      ctx.fillStyle='rgba(168,85,247,0.6)';
-      ctx.fillRect(px-1.5,py-1.5,3,3);
-    }
-  }
-  var pct=total>0?Math.round(100*masked/total):0;
-  document.getElementById('canvasLabel').textContent='mask preview — purple = blank sand ('+pct+'% of table)';
-  document.getElementById('maskTip').textContent=pct<5?'Too little masked — lower threshold':pct>60?'Too much masked — raise threshold':'Looking good — '+pct+'% will be blank sand';
-  document.getElementById('statPct').textContent=pct+'%';
-}
-
 function pv(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value;}
 function pvp(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value+'%';}
 function pvd(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value+'°';}
 function pv2(id,vid){document.getElementById(vid).textContent=document.getElementById(id).value;}
+function scheduleGen(){if(!pixelData)return;clearTimeout(genTimer);genTimer=setTimeout(generateAndPreview,500);}
 
-function scheduleGen(){
-  if(!pixelData) return;
-  clearTimeout(genTimer);
-  if(showMask){genTimer=setTimeout(renderMaskPreview,300);return;}
-  genTimer=setTimeout(generateAndPreview,600);
-}
+// ── Core: contour tracing pipeline ──
 
-// ── Core: sample image brightness in polar space ──
-function sampleBrightness(x,y){
-  // x,y in -1..1 (image normalised coords)
-  var px=Math.round((x+1)/2*(imgW-1));
-  var py=Math.round((y+1)/2*(imgH-1));
+function sampleLuminance(px,py){
   px=Math.max(0,Math.min(imgW-1,px));
   py=Math.max(0,Math.min(imgH-1,py));
-  if(px<0||px>=imgW||py<0||py>=imgH) return 255;
   var idx=(py*imgW+px)*4;
   var r=pixelData[idx],g=pixelData[idx+1],b=pixelData[idx+2],a=pixelData[idx+3];
-  // Transparent pixels (alpha=0) = treat as WHITE background
-  if(a<10) return 255;
-  // Blend with white background based on alpha
-  var alpha=a/255;
-  r=Math.round(r*alpha+255*(1-alpha));
-  g=Math.round(g*alpha+255*(1-alpha));
-  b=Math.round(b*alpha+255*(1-alpha));
-  return 0.299*r + 0.587*g + 0.114*b;
+  // Blend transparent pixels with white
+  if(a<255){var af=a/255;r=Math.round(r*af+255*(1-af));g=Math.round(g*af+255*(1-af));b=Math.round(b*af+255*(1-af));}
+  return 0.299*r+0.587*g+0.114*b;
 }
 
-function generatePoints(threshold,scale,rotDeg,density,invert){
-  var MAX_DR=0.025, MAX_DT=Math.PI/2;
-  var turns=density, ptsPerTurn=600;
-  var total=turns*ptsPerTurn;
-  var rotRad=rotDeg*Math.PI/180;
-  var sc=scale/100;
-  var raw=[], masked=0;
-
-  for(var i=0;i<total;i++){
-    var rho=i/total;
-    var theta=(i/ptsPerTurn)*2*Math.PI;
-    var tn=theta%(2*Math.PI);
-    // Sample image: rotate point back to image space
-    var wx=rho*Math.cos(tn), wy=rho*Math.sin(tn);
-    // Unrotate by rotRad to get image coords
-    var ix=(wx*Math.cos(-rotRad)-wy*Math.sin(-rotRad))/sc;
-    var iy=(wx*Math.sin(-rotRad)+wy*Math.cos(-rotRad))/sc;
-    var bright=sampleBrightness(ix,iy);
-    var isMasked=(bright<threshold)!==invert;
-    if(!isMasked) raw.push([theta,rho]);
-    else masked++;
+function buildBinary(threshold,invert){
+  var binary=new Uint8Array(imgW*imgH);
+  for(var y=0;y<imgH;y++){
+    for(var x=0;x<imgW;x++){
+      var lum=sampleLuminance(x,y);
+      var dark=lum<threshold;
+      binary[y*imgW+x]=invert?(!dark?1:0):(dark?1:0);
+    }
   }
+  return binary;
+}
 
-  if(!raw.length) return {points:[],pct:100};
+function findEdges(binary,rotDeg){
+  var rotRad=rotDeg*Math.PI/180;
+  var edges=[];
+  for(var y=1;y<imgH-1;y++){
+    for(var x=1;x<imgW-1;x++){
+      if(binary[y*imgW+x]){
+        // Edge if any 4-neighbor is NOT dark
+        if(!binary[(y-1)*imgW+x]||!binary[(y+1)*imgW+x]||!binary[y*imgW+(x-1)]||!binary[y*imgW+(x+1)]){
+          // Convert to normalized polar
+          var nx=((x/(imgW-1))*2-1);
+          var ny=((y/(imgH-1))*2-1);
+          // Apply rotation
+          var rx=nx*Math.cos(rotRad)-ny*Math.sin(rotRad);
+          var ry=nx*Math.sin(rotRad)+ny*Math.cos(rotRad);
+          edges.push([rx,ry]);
+        }
+      }
+    }
+  }
+  return edges;
+}
 
-  // Only bridge RHO gaps (not theta gaps - theta gaps ARE the logo shape)
-  var smoothed=[raw[0]];
-  for(var i=1;i<raw.length;i++){
-    var p0=smoothed[smoothed.length-1], p1=raw[i];
+function subsample(edges,maxPts){
+  if(edges.length<=maxPts) return edges;
+  var step=Math.floor(edges.length/maxPts);
+  var out=[];
+  for(var i=0;i<edges.length;i+=step) out.push(edges[i]);
+  return out;
+}
+
+function nearestNeighborOrder(edges){
+  if(!edges.length) return [];
+  var remaining=edges.slice();
+  var path=[remaining.splice(0,1)[0]];
+  while(remaining.length){
+    var last=path[path.length-1];
+    var bestDist=Infinity,bestIdx=0;
+    for(var i=0;i<remaining.length;i++){
+      var dx=remaining[i][0]-last[0],dy=remaining[i][1]-last[1];
+      var d=dx*dx+dy*dy;
+      if(d<bestDist){bestDist=d;bestIdx=i;}
+    }
+    path.push(remaining.splice(bestIdx,1)[0]);
+  }
+  return path;
+}
+
+function edgesToPolar(orderedEdges,scale){
+  var pts=[]; var prevTheta=null; var thetaC=0;
+  for(var i=0;i<orderedEdges.length;i++){
+    var nx=orderedEdges[i][0]*scale;
+    var ny=orderedEdges[i][1]*scale;
+    var rho=Math.min(1.0,Math.sqrt(nx*nx+ny*ny));
+    var theta=Math.atan2(ny,nx);
+    if(prevTheta===null){thetaC=theta;}
+    else{
+      var d=theta-prevTheta;
+      while(d>Math.PI)d-=2*Math.PI;
+      while(d<-Math.PI)d+=2*Math.PI;
+      thetaC+=d;
+    }
+    prevTheta=theta;
+    pts.push([thetaC,rho]);
+  }
+  return pts;
+}
+
+function interpolateRho(polar){
+  var MAX_DR=150/9237;
+  var out=[polar[0]];
+  for(var i=1;i<polar.length;i++){
+    var p0=out[out.length-1],p1=polar[i];
     var dr=Math.abs(p1[1]-p0[1]);
-    var dt=Math.abs(p1[0]-p0[0]);
-    // Only interpolate if BOTH theta and rho are close (consecutive spiral points)
-    // Large theta jumps = logo gaps = keep them as direct jumps
-    if(dt < 0.5 && dr > MAX_DR){
+    if(dr>MAX_DR){
       var steps=Math.ceil(dr/MAX_DR);
       for(var s=1;s<steps;s++){
         var f=s/steps;
-        smoothed.push([p0[0]+(p1[0]-p0[0])*f, p0[1]+(p1[1]-p0[1])*f]);
+        out.push([p0[0]+(p1[0]-p0[0])*f,p0[1]+(p1[1]-p0[1])*f]);
       }
     }
-    smoothed.push(p1);
+    out.push(p1);
   }
-  return {points:smoothed, pct:Math.round(100*masked/total)};
+  return out;
 }
 
 function generateAndPreview(){
   if(!pixelData) return;
   document.getElementById('canvasLabel').textContent='generating...';
   var threshold=parseInt(document.getElementById('threshold').value);
-  var scale=parseInt(document.getElementById('scale').value);
+  var scale=parseInt(document.getElementById('scale').value)/100;
   var rotation=parseInt(document.getElementById('rotation').value);
-  var density=parseInt(document.getElementById('density').value);
+  var maxPts=parseInt(document.getElementById('maxPts').value);
+
   setTimeout(function(){
-    var result=generatePoints(threshold,scale,rotation,density,invertMode);
-    var pts=result.points;
-    if(!pts.length){document.getElementById('canvasLabel').textContent='Nothing to draw — adjust threshold';return;}
-    lastPoints=pts;
+    var binary=buildBinary(threshold,invertMode);
+    var edges=findEdges(binary,rotation);
+
+    if(!edges.length){
+      document.getElementById('canvasLabel').textContent='No edges found — adjust threshold';
+      setStatus('No edges found — try adjusting threshold',true);
+      return;
+    }
+
+    document.getElementById('statEdge').textContent=edges.length;
+    var sampled=subsample(edges,maxPts);
+    var ordered=nearestNeighborOrder(sampled);
+    var polar=edgesToPolar(ordered,scale);
+    var smoothed=interpolateRho(polar);
+
+    if(!smoothed.length){
+      document.getElementById('canvasLabel').textContent='No points generated';
+      return;
+    }
+
+    lastPoints=smoothed;
     document.getElementById('downloadBtn').disabled=false;
-    document.getElementById('statPts').textContent=pts.length.toLocaleString();
-    document.getElementById('statTime').textContent='~'+Math.round(pts.length*120/60000)+'m';
-    document.getElementById('statPct').textContent=result.pct+'%';
-    document.getElementById('maskTip').textContent=result.pct<5?'⚠ Very little masked — try lowering threshold':result.pct>70?'⚠ Too much masked — try raising threshold':'✓ '+result.pct+'% will be blank sand';
-    startAnimation(pts);
+    document.getElementById('statPts').textContent=smoothed.length.toLocaleString();
+    document.getElementById('statTime').textContent='~'+Math.round(smoothed.length*180/60000)+'m';
+    setStatus('✓ '+edges.length+' edge pixels → '+smoothed.length+' path points');
+    startAnimation(smoothed);
   },50);
 }
 
@@ -385,8 +386,8 @@ function animStep(){
   var oc=sandOffscreen.getContext('2d');
   if(animIndex>0){
     oc.beginPath();
-    oc.strokeStyle='rgba(215,190,145,0.6)';
-    oc.lineWidth=1.2; oc.lineCap='round'; oc.lineJoin='round';
+    oc.strokeStyle='rgba(215,190,145,0.7)';
+    oc.lineWidth=2; oc.lineCap='round'; oc.lineJoin='round';
     var p0=pts[animIndex-1];
     oc.moveTo(safeV(cx+p0[1]*maxR*Math.cos(p0[0]),cx),safeV(cy+p0[1]*maxR*Math.sin(p0[0]),cy));
     for(var i=animIndex;i<end;i++)
@@ -409,59 +410,13 @@ function animStep(){
   var pct=Math.round((animIndex/pts.length)*100);
   document.getElementById('canvasLabel').textContent='drawing... '+pct+'%';
   if(animIndex<pts.length) animFrame=requestAnimationFrame(animStep);
-  else{document.getElementById('canvasLabel').textContent=pts.length.toLocaleString()+' pts ✓';animFrame=null;}
-}
-
-
-function staticPreview(){
-  if(!lastPoints) return;
-  if(animFrame) cancelAnimationFrame(animFrame);
-  var c=document.getElementById('preview'),ctx=c.getContext('2d');
-  var W=c.width,H=c.height,cx=W/2,cy=H/2,maxR=W*0.44;
-  ctx.fillStyle='#0a0c0f'; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='#1e2530'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.arc(cx,cy,maxR,0,2*Math.PI); ctx.stroke();
-  // Draw full pattern as thin lines
-  ctx.beginPath();
-  ctx.strokeStyle='rgba(215,190,145,0.7)';
-  ctx.lineWidth=1.0; ctx.lineCap='round'; ctx.lineJoin='round';
-  var pts=lastPoints;
-  var p0=pts[0];
-  ctx.moveTo(safeV(cx+p0[1]*maxR*Math.cos(p0[0]),cx),safeV(cy+p0[1]*maxR*Math.sin(p0[0]),cy));
-  for(var i=1;i<pts.length;i++){
-    ctx.lineTo(safeV(cx+pts[i][1]*maxR*Math.cos(pts[i][0]),cx),safeV(cy+pts[i][1]*maxR*Math.sin(pts[i][0]),cy));
-  }
-  ctx.stroke();
-  // Overlay mask in purple
-  if(pixelData){
-    var threshold=parseInt(document.getElementById('threshold').value);
-    var scale=parseInt(document.getElementById('scale').value)/100;
-    var rotDeg=parseInt(document.getElementById('rotation').value);
-    var rotRad=rotDeg*Math.PI/180;
-    ctx.fillStyle='rgba(168,85,247,0.25)';
-    var GRID=300;
-    for(var gy=0;gy<GRID;gy++){
-      for(var gx=0;gx<GRID;gx++){
-        var nx=(gx/GRID)*2-1, ny=(gy/GRID)*2-1;
-        var rho=Math.sqrt(nx*nx+ny*ny);
-        if(rho>0.99) continue;
-        var ix=(nx*Math.cos(-rotRad)-ny*Math.sin(-rotRad))/scale;
-        var iy=(nx*Math.sin(-rotRad)+ny*Math.cos(-rotRad))/scale;
-        var bright=sampleBrightness(ix,iy);
-        var isMasked=(bright<threshold)!==invertMode;
-        if(!isMasked) continue;
-        var px=cx+nx*maxR, py=cy+ny*maxR;
-        ctx.fillRect(px-1,py-1,2,2);
-      }
-    }
-  }
-  document.getElementById('canvasLabel').textContent='static preview — purple = blank sand (logo area)';
+  else{document.getElementById('canvasLabel').textContent=pts.length.toLocaleString()+' pts ✓ — outline complete';animFrame=null;}
 }
 
 function downloadTHR(){
   if(!lastPoints) return;
   var name=document.getElementById('patternName').value.trim().replace(/[^a-z0-9_\-]/gi,'_')||'logo';
-  var lines=['# Dune Image Maker','# theta (radians)  rho (0.0 to 1.0)'];
+  var lines=['# Dune Image Maker — contour trace','# theta (radians)  rho (0.0 to 1.0)'];
   for(var i=0;i<lastPoints.length;i++){
     var t=lastPoints[i][0],r=lastPoints[i][1];
     if(isFinite(t)&&isFinite(r)&&r>=0&&r<=1) lines.push(t.toFixed(6)+' '+r.toFixed(6));
