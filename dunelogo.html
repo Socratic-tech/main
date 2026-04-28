@@ -187,8 +187,19 @@ function loadImage(file) {
     var sc = Math.min(SIZE/img.width, SIZE/img.height);
     var sw=img.width*sc, sh=img.height*sc;
     ctx.drawImage(img,(SIZE-sw)/2,(SIZE-sh)/2,sw,sh);
-    pixelData = ctx.getImageData(0,0,SIZE,SIZE).data;
+    var imgData = ctx.getImageData(0,0,SIZE,SIZE);
+    pixelData = imgData.data;
     imgW=SIZE; imgH=SIZE;
+    // Validate: check if canvas is readable (CORS issue gives all zeros)
+    var brightnessSum=0;
+    for(var pi=0;pi<pixelData.length;pi+=4)
+      brightnessSum+=pixelData[pi]+pixelData[pi+1]+pixelData[pi+2];
+    var avgBright=brightnessSum/(pixelData.length/4*3);
+    if(avgBright<5){
+      document.getElementById('warnMsg').textContent='⚠ Image appears all-black — browser security may be blocking pixel access. Try saving as JPG first.';
+    } else {
+      document.getElementById('warnMsg').textContent='Image loaded (avg brightness: '+Math.round(avgBright)+')';
+    }
     var name=file.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
     document.getElementById('patternName').value=name||'logo';
     document.getElementById('genBtn').disabled=false;
@@ -272,11 +283,17 @@ function sampleBrightness(x,y){
   var py=Math.round((y+1)/2*(imgH-1));
   px=Math.max(0,Math.min(imgW-1,px));
   py=Math.max(0,Math.min(imgH-1,py));
-  // If out of image bounds -> treat as white (background)
   if(px<0||px>=imgW||py<0||py>=imgH) return 255;
   var idx=(py*imgW+px)*4;
-  // Weighted luminance: better for coloured logos
-  return 0.299*pixelData[idx] + 0.587*pixelData[idx+1] + 0.114*pixelData[idx+2];
+  var r=pixelData[idx],g=pixelData[idx+1],b=pixelData[idx+2],a=pixelData[idx+3];
+  // Transparent pixels (alpha=0) = treat as WHITE background
+  if(a<10) return 255;
+  // Blend with white background based on alpha
+  var alpha=a/255;
+  r=Math.round(r*alpha+255*(1-alpha));
+  g=Math.round(g*alpha+255*(1-alpha));
+  b=Math.round(b*alpha+255*(1-alpha));
+  return 0.299*r + 0.587*g + 0.114*b;
 }
 
 function generatePoints(threshold,scale,rotDeg,density,invert){
@@ -304,16 +321,22 @@ function generatePoints(threshold,scale,rotDeg,density,invert){
 
   if(!raw.length) return {points:[],pct:100};
 
-  // Bridge gaps with interpolation
+  // Only bridge RHO gaps (not theta gaps - theta gaps ARE the logo shape)
   var smoothed=[raw[0]];
   for(var i=1;i<raw.length;i++){
     var p0=smoothed[smoothed.length-1], p1=raw[i];
-    var dr=Math.abs(p1[1]-p0[1]), dt=Math.abs(p1[0]-p0[0]);
-    var steps=Math.max(1,Math.ceil(dr/MAX_DR),Math.ceil(dt/MAX_DT));
-    for(var s=1;s<=steps;s++){
-      var f=s/steps;
-      smoothed.push([p0[0]+(p1[0]-p0[0])*f, p0[1]+(p1[1]-p0[1])*f]);
+    var dr=Math.abs(p1[1]-p0[1]);
+    var dt=Math.abs(p1[0]-p0[0]);
+    // Only interpolate if BOTH theta and rho are close (consecutive spiral points)
+    // Large theta jumps = logo gaps = keep them as direct jumps
+    if(dt < 0.5 && dr > MAX_DR){
+      var steps=Math.ceil(dr/MAX_DR);
+      for(var s=1;s<steps;s++){
+        var f=s/steps;
+        smoothed.push([p0[0]+(p1[0]-p0[0])*f, p0[1]+(p1[1]-p0[1])*f]);
+      }
     }
+    smoothed.push(p1);
   }
   return {points:smoothed, pct:Math.round(100*masked/total)};
 }
