@@ -122,7 +122,8 @@ canvas{width:100%;height:100%;display:block;}
           <div class="field"><label>Filename</label><input class="name-input" id="patternName" value="my_logo"></div>
           <div class="btn-row">
             <button class="btn btn-download" id="downloadBtn" onclick="downloadTHR()" disabled>Download .thr</button>
-            <button class="btn btn-sm" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Replay</button>
+            <button class="btn btn-sm" onclick="if(lastPoints)startAnimation(lastPoints)">↺ Animate</button>
+            <button class="btn btn-sm" style="border:1px solid var(--purple);color:var(--purple);background:transparent" onclick="staticPreview()">⊙ Static</button>
           </div>
           <div class="help" style="margin-top:10px">
             <strong>Getting good results:</strong><br>
@@ -362,7 +363,7 @@ function animStep(){
   if(animIndex>0){
     oc.beginPath();
     oc.strokeStyle='rgba(215,190,145,0.6)';
-    oc.lineWidth=2.5; oc.lineCap='round'; oc.lineJoin='round';
+    oc.lineWidth=1.2; oc.lineCap='round'; oc.lineJoin='round';
     var p0=pts[animIndex-1];
     oc.moveTo(safeV(cx+p0[1]*maxR*Math.cos(p0[0]),cx),safeV(cy+p0[1]*maxR*Math.sin(p0[0]),cy));
     for(var i=animIndex;i<end;i++)
@@ -386,6 +387,52 @@ function animStep(){
   document.getElementById('canvasLabel').textContent='drawing... '+pct+'%';
   if(animIndex<pts.length) animFrame=requestAnimationFrame(animStep);
   else{document.getElementById('canvasLabel').textContent=pts.length.toLocaleString()+' pts ✓';animFrame=null;}
+}
+
+
+function staticPreview(){
+  if(!lastPoints) return;
+  if(animFrame) cancelAnimationFrame(animFrame);
+  var c=document.getElementById('preview'),ctx=c.getContext('2d');
+  var W=c.width,H=c.height,cx=W/2,cy=H/2,maxR=W*0.44;
+  ctx.fillStyle='#0a0c0f'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1e2530'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,maxR,0,2*Math.PI); ctx.stroke();
+  // Draw full pattern as thin lines
+  ctx.beginPath();
+  ctx.strokeStyle='rgba(215,190,145,0.7)';
+  ctx.lineWidth=1.0; ctx.lineCap='round'; ctx.lineJoin='round';
+  var pts=lastPoints;
+  var p0=pts[0];
+  ctx.moveTo(safeV(cx+p0[1]*maxR*Math.cos(p0[0]),cx),safeV(cy+p0[1]*maxR*Math.sin(p0[0]),cy));
+  for(var i=1;i<pts.length;i++){
+    ctx.lineTo(safeV(cx+pts[i][1]*maxR*Math.cos(pts[i][0]),cx),safeV(cy+pts[i][1]*maxR*Math.sin(pts[i][0]),cy));
+  }
+  ctx.stroke();
+  // Overlay mask in purple
+  if(pixelData){
+    var threshold=parseInt(document.getElementById('threshold').value);
+    var scale=parseInt(document.getElementById('scale').value)/100;
+    var rotDeg=parseInt(document.getElementById('rotation').value);
+    var rotRad=rotDeg*Math.PI/180;
+    ctx.fillStyle='rgba(168,85,247,0.25)';
+    var GRID=300;
+    for(var gy=0;gy<GRID;gy++){
+      for(var gx=0;gx<GRID;gx++){
+        var nx=(gx/GRID)*2-1, ny=(gy/GRID)*2-1;
+        var rho=Math.sqrt(nx*nx+ny*ny);
+        if(rho>0.99) continue;
+        var ix=(nx*Math.cos(-rotRad)-ny*Math.sin(-rotRad))/scale;
+        var iy=(nx*Math.sin(-rotRad)+ny*Math.cos(-rotRad))/scale;
+        var bright=sampleBrightness(ix,iy);
+        var isMasked=(bright<threshold)!==invertMode;
+        if(!isMasked) continue;
+        var px=cx+nx*maxR, py=cy+ny*maxR;
+        ctx.fillRect(px-1,py-1,2,2);
+      }
+    }
+  }
+  document.getElementById('canvasLabel').textContent='static preview — purple = blank sand (logo area)';
 }
 
 function downloadTHR(){
