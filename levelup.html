@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game On! Using Gaming for Learning — MACUL 2026 | John Phillips, Berrien RESA</title>
+<meta name="description" content="Interactive companion site for the MACUL 2026 presentation: Game On! Using Gaming for Learning by John Phillips, Technology and Innovation Consultant at Berrien RESA.">
+<style>
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    background: #1a1a2e;
+    color: #f7c948;
+    padding: 12px 20px;
+    font-family: monospace;
+    font-size: 1rem;
+    z-index: 9999;
+    text-decoration: none;
+    border: 3px solid #f7c948;
+  }
+  .skip-link:focus { top: 0; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #6b88fe;
+    --sky-dark: #2a45b8;
+    --ground: #3d8c3d;
+    --ground-dark: #2a6b2a;
+    --dirt: #8b3e1e;
+    --dirt-dark: #6b2e12;
+    --pixel: #1a1a2e;
+    --gold: #f7c948;
+    --red: #b91c1c;
+    --white: #ffffff;
+    --pipe: #166534;
+    --focus-ring: #f7c948;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    font-family: 'VT323', monospace;
+    background: var(--sky);
+    color: var(--pixel);
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  /* BUTTONS */
+  .pixel-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    padding: 12px 18px;
+    border: 3px solid var(--pixel);
+    box-shadow: 3px 3px 0 var(--pixel);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, box-shadow 0.1s;
+    background: var(--gold);
+    color: var(--pixel);
+    min-height: 44px;
+    min-width: 44px;
+    line-height: 1.4;
+  }
+  .pixel-btn:hover, .pixel-btn:focus-visible { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--pixel); background:#e6b800; }
+  .pixel-btn.red { background:var(--red); color:#fff; }
+  .pixel-btn.red:hover, .pixel-btn.red:focus-visible { background:#991b1b; }
+  .pixel-btn.green { background:var(--pipe); color:#fff; }
+  .pixel-btn.green:hover, .pixel-btn.green:focus-visible { background:#14532d; }
+
+  /* CLOUDS */
+  .clouds-layer {
+    position:fixed; top:0; left:0; width:200%; height:160px;
+    pointer-events:none; z-index:1;
+    animation: cloudScroll 35s linear infinite;
+  }
+  @keyframes cloudScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .cloud { position:absolute; background:white; border-radius:50%; }
+
+  /* GROUND */
+  .ground-strip {
+    width:100%; height:64px;
+    background:repeating-linear-gradient(to right, var(--ground) 0px, var(--ground) 16px, var(--ground-dark) 16px, var(--ground-dark) 32px);
+    border-top:4px solid var(--pixel); border-bottom:4px solid var(--pixel);
+  }
+  .dirt-strip {
+    width:100%; height:28px;
+    background:repeating-linear-gradient(to right, var(--dirt) 0px, var(--dirt) 16px, var(--dirt-dark) 16px, var(--dirt-dark) 32px);
+    border-bottom:4px solid var(--pixel);
+  }
+
+  /* QUESTION BLOCKS */
+  @keyframes blockBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .q-block {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:48px; height:48px;
+    background:var(--gold); border:3px solid var(--pixel); box-shadow:3px 3px 0 var(--pixel);
+    font-family:'Press Start 2P',monospace; font-size:1.1rem;
+    animation:blockBounce 1.4s ease-in-out infinite;
+    cursor:pointer; color:var(--pixel);
+  }
+  .q-block:hover, .q-block:focus-visible { background:#e6b800; }
+
+  /* HERO */
+  #hero {
+    position:relative; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:80px 24px 0; text-align:center; z-index:2; overflow:hidden;
+  }
+  #hero h1 {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(1.1rem,3.5vw,2.2rem);
+    line-height:1.7; color:var(--pixel);
+    text-shadow:4px 4px 0 var(--gold), 8px 8px 0 rgba(0,0,0,0.25);
+    margin-bottom:12px;
+    animation:fadeDown 0.8s ease both;
+  }
+  #hero .subtitle {
+    font-size:clamp(1.2rem,3vw,1.7rem); color:var(--pixel);
+    background:rgba(255,255,255,0.8); padding:4px 16px; border-radius:2px;
+    margin-bottom:32px;
+    animation:fadeDown 1s 0.2s ease both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-24px)} to{opacity:1;transform:translateY(0)} }
+  .hero-ctas { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; animation:fadeDown 1s 0.4s ease both; }
+  .float-blocks { display:flex; gap:12px; justify-content:center; margin:32px 0; flex-wrap:wrap; }
+  .hero-ground { position:absolute; bottom:0; left:0; width:100%; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:var(--pixel); border-bottom:4px solid var(--gold);
+    display:flex; align-items:center; gap:2px; padding:0 16px; height:52px; overflow-x:auto;
+  }
+  .nav-logo { font-family:'Press Start 2P',monospace; font-size:0.55rem; color:var(--gold); white-space:nowrap; margin-right:12px; }
+  nav a {
+    font-family:'Press Start 2P',monospace; font-size:0.42rem; color:var(--white);
+    text-decoration:none; padding:6px 8px; white-space:nowrap;
+    border-bottom:3px solid transparent;
+    min-height:44px; display:inline-flex; align-items:center;
+    transition:color 0.15s, border-color 0.15s;
+  }
+  nav a:hover, nav a:focus-visible { color:var(--gold); border-bottom-color:var(--gold); }
+  .lives { margin-left:auto; font-family:'Press Start 2P',monospace; font-size:0.5rem; color:var(--gold); white-space:nowrap; }
+
+  /* SECTIONS */
+  .section { position:relative; z-index:2; padding:80px 24px; max-width:1100px; margin:0 auto; }
+  .section-heading {
+    font-family:'Press Start 2P',monospace; font-size:clamp(0.75rem,2vw,1.2rem);
+    color:var(--pixel); text-shadow:3px 3px 0 var(--gold);
+    margin-bottom:40px; text-align:center; line-height:1.8;
+  }
+  .bg-dark .section-heading { color:var(--gold); text-shadow:3px 3px 0 var(--sky-dark); }
+  .bg-sky { background:linear-gradient(180deg,var(--sky) 0%,#8aabff 100%); }
+  .bg-dark { background:var(--pixel); }
+  .bg-dark .section { color:var(--white); }
+  .pixel-divider { width:100%; height:16px; background:repeating-linear-gradient(90deg,var(--pixel) 0,var(--pixel) 16px,var(--gold) 16px,var(--gold) 32px); }
+
+  /* TIMELINE */
+  .timeline { display:flex; flex-direction:column; gap:0; position:relative; list-style:none; }
+  .timeline::before {
+    content:''; position:absolute; left:60px; top:0; bottom:0; width:4px;
+    background:repeating-linear-gradient(to bottom,var(--pixel) 0,var(--pixel) 8px,transparent 8px,transparent 16px);
+  }
+  .timeline-item { display:flex; align-items:flex-start; gap:24px; padding:24px 0; opacity:0; transform:translateX(-30px); transition:opacity 0.5s,transform 0.5s; }
+  .timeline-item.visible { opacity:1; transform:translateX(0); }
+  .timeline-year { font-family:'Press Start 2P',monospace; font-size:0.55rem; background:var(--gold); border:3px solid var(--pixel); box-shadow:3px 3px 0 var(--pixel); padding:8px 6px; min-width:90px; text-align:center; line-height:1.5; flex-shrink:0; color:var(--pixel); }
+  .timeline-content { background:rgba(255,255,255,0.93); border:3px solid var(--pixel); box-shadow:4px 4px 0 var(--pixel); padding:16px 20px; flex:1; }
+  .timeline-content h3 { font-family:'Press Start 2P',monospace; font-size:0.6rem; margin-bottom:8px; color:var(--red); line-height:1.8; }
+  .timeline-content p { font-size:1.3rem; line-height:1.5; color:var(--pixel); }
+
+  /* CARDS */
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
+  .card { background:rgba(255,255,255,0.95); border:4px solid var(--pixel); box-shadow:6px 6px 0 var(--pixel); padding:24px; opacity:0; transform:translateY(24px); transition:opacity 0.5s,transform 0.5s; }
+  .card.visible { opacity:1; transform:translateY(0); }
+  .card-icon { font-size:2.5rem; margin-bottom:12px; display:block; }
+  .card h3 { font-family:'Press Start 2P',monospace; font-size:0.5rem; margin-bottom:10px; color:var(--sky-dark); line-height:1.8; }
+  .card p { font-size:1.25rem; line-height:1.5; color:var(--pixel); }
+  .card cite { font-size:1rem; color:#444; display:block; margin-top:8px; }
+
+  /* STANDARDS */
+  .standards-list { display:flex; flex-direction:column; gap:16px; }
+  .standard-item { display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center; background:rgba(255,255,255,0.93); border:3px solid var(--pixel); box-shadow:4px 4px 0 var(--pixel); padding:16px 20px; opacity:0; transform:translateX(30px); transition:opacity 0.5s,transform 0.5s; }
+  .standard-item.visible { opacity:1; transform:translateX(0); }
+  .std-code { font-family:'Press Start 2P',monospace; font-size:0.45rem; background:var(--red); color:#fff; padding:8px; text-align:center; border:2px solid var(--pixel); line-height:1.8; }
+  .std-info h4 { font-family:'Press Start 2P',monospace; font-size:0.5rem; color:var(--pixel); margin-bottom:6px; line-height:1.8; }
+  .std-info p { font-size:1.25rem; line-height:1.5; color:var(--pixel); }
+
+  /* UDL */
+  .udl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; }
+  .udl-card { background:var(--pixel); color:var(--white); border:3px solid var(--gold); box-shadow:4px 4px 0 var(--gold); padding:20px; text-align:center; opacity:0; transform:scale(0.85); transition:opacity 0.5s,transform 0.5s; }
+  .udl-card.visible { opacity:1; transform:scale(1); }
+  .udl-card .icon { font-size:2.5rem; margin-bottom:12px; }
+  .udl-card h3 { font-family:'Press Start 2P',monospace; font-size:0.5rem; color:var(--gold); margin-bottom:8px; line-height:1.7; }
+  .udl-card p { font-size:1.2rem; line-height:1.5; }
+
+  /* GAME TABS */
+  .games-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; justify-content:center; }
+  .tab-btn {
+    font-family:'Press Start 2P',monospace; font-size:0.45rem; padding:10px 14px;
+    border:3px solid var(--pixel); box-shadow:3px 3px 0 var(--pixel);
+    cursor:pointer; background:rgba(255,255,255,0.88); color:var(--pixel);
+    transition:all 0.15s; min-height:44px; min-width:44px; line-height:1.5;
+  }
+  .tab-btn:hover, .tab-btn:focus-visible { background:rgba(247,201,72,0.5); }
+  .tab-btn.active, .tab-btn[aria-selected="true"] { background:var(--gold); box-shadow:0 0 0 var(--pixel); }
+  .game-panel { display:none; }
+  .game-panel.active { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media(max-width:600px) { .game-panel.active { grid-template-columns:1fr; } }
+  .game-info { background:rgba(255,255,255,0.95); border:4px solid var(--pixel); box-shadow:6px 6px 0 var(--pixel); padding:24px; }
+  .game-info h3 { font-family:'Press Start 2P',monospace; font-size:0.7rem; margin-bottom:12px; color:var(--sky-dark); line-height:1.8; }
+  .game-info p { font-size:1.25rem; line-height:1.5; margin-bottom:12px; color:var(--pixel); }
+  .game-info ul { font-size:1.2rem; line-height:1.8; padding-left:20px; color:var(--pixel); }
+  .game-screen { background:var(--pixel); border:4px solid var(--pixel); box-shadow:6px 6px 0 var(--pixel); display:flex; align-items:center; justify-content:center; padding:24px; min-height:200px; }
+  .game-emoji { font-size:4rem; text-align:center; }
+  .game-label { font-family:'Press Start 2P',monospace; font-size:0.5rem; color:var(--gold); text-align:center; margin-top:12px; line-height:2; }
+
+  /* QUOTE */
+  .quote-block { background:var(--pixel); color:var(--white); border:4px solid var(--gold); box-shadow:8px 8px 0 var(--gold); padding:40px; text-align:center; max-width:700px; margin:0 auto; }
+  .quote-block blockquote { font-size:clamp(1.4rem,3vw,1.9rem); line-height:1.6; margin-bottom:16px; font-style:italic; }
+  .quote-block cite { font-family:'Press Start 2P',monospace; font-size:0.5rem; color:var(--gold); }
+
+  /* QUIZ */
+  .quiz-wrap { background:rgba(255,255,255,0.95); border:4px solid var(--pixel); box-shadow:8px 8px 0 var(--pixel); padding:32px; max-width:700px; margin:0 auto; }
+  .quiz-progress { font-family:'Press Start 2P',monospace; font-size:0.45rem; color:#444; margin-bottom:20px; }
+  .quiz-q { font-family:'Press Start 2P',monospace; font-size:clamp(0.5rem,1.5vw,0.65rem); color:var(--pixel); margin-bottom:20px; line-height:1.9; }
+  .quiz-options { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .quiz-opt { font-family:'VT323',monospace; font-size:1.4rem; padding:12px 16px; border:3px solid var(--pixel); box-shadow:3px 3px 0 var(--pixel); cursor:pointer; background:rgba(255,255,255,0.9); color:var(--pixel); text-align:left; transition:background 0.15s; min-height:44px; width:100%; }
+  .quiz-opt:hover, .quiz-opt:focus-visible { background:rgba(247,201,72,0.4); }
+  .quiz-opt.correct { background:#166534; color:#fff; }
+  .quiz-opt.wrong   { background:var(--red); color:#fff; }
+  .quiz-result { font-size:1.2rem; line-height:1.7; min-height:40px; color:var(--pixel); }
+  .quiz-correct-label { color:#166534; font-family:'Press Start 2P',monospace; font-size:0.55rem; }
+  .quiz-wrong-label   { color:var(--red); font-family:'Press Start 2P',monospace; font-size:0.55rem; }
+
+  /* CONTACT */
+  .contact-box { background:var(--pixel); border:4px solid var(--gold); box-shadow:8px 8px 0 var(--gold); padding:40px; max-width:500px; margin:0 auto; text-align:center; }
+  .contact-box h2 { font-family:'Press Start 2P',monospace; font-size:clamp(0.6rem,2vw,0.85rem); color:var(--gold); margin-bottom:12px; line-height:2; }
+  .contact-role { font-family:'Press Start 2P',monospace; font-size:0.42rem; color:var(--gold); margin-bottom:24px; display:block; line-height:2.2; }
+  .contact-box a { color:var(--gold); font-size:1.5rem; display:block; margin:10px 0; text-decoration:underline; text-underline-offset:3px; }
+  .contact-box a:hover, .contact-box a:focus-visible { color:#fff; }
+
+  /* COIN DISPLAY */
+  #coin-display { position:fixed; bottom:20px; right:20px; background:var(--pixel); border:3px solid var(--gold); box-shadow:4px 4px 0 var(--gold); padding:8px 14px; font-family:'Press Start 2P',monospace; font-size:0.5rem; color:var(--gold); z-index:200; display:flex; align-items:center; gap:8px; pointer-events:none; }
+  #progress-bar { position:fixed; top:52px; left:0; height:4px; background:var(--gold); z-index:99; transition:width 0.1s; }
+
+  @media(max-width:700px) {
+    .timeline::before { left:50px; }
+    .timeline-year { min-width:72px; font-size:0.4rem; }
+    nav a { font-size:0.35rem; padding:5px; }
+    #hero h1 { font-size:1rem; }
+    .section { padding:48px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<div id="progress-bar" role="presentation" aria-hidden="true"></div>
+
+<div id="coin-display" aria-live="polite" aria-atomic="true">
+  <span aria-hidden="true">🪙</span>
+  <span>COINS: <span id="coin-count">0</span></span>
+</div>
+
+<nav aria-label="Main navigation">
+  <span class="nav-logo" aria-hidden="true">GAME ON!</span>
+  <a href="#hero">Start</a>
+  <a href="#timeline">History</a>
+  <a href="#why">Research</a>
+  <a href="#udl">UDL</a>
+  <a href="#cs">CS Standards</a>
+  <a href="#games">Games</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#contact">Contact</a>
+  <span class="lives" aria-hidden="true">♥ ♥ ♥</span>
+</nav>
+
+<main id="main-content">
+
+<!-- HERO -->
+<section id="hero" class="bg-sky" aria-labelledby="hero-heading">
+  <div class="clouds-layer" id="clouds" aria-hidden="true"></div>
+  <h1 id="hero-heading">🎮 GAME ON!<br>Using GaminG<br>for Learning</h1>
+  <p class="subtitle">MACUL 2026 &middot; John Phillips &middot; Berrien RESA</p>
+  <div class="float-blocks" role="group" aria-label="Bonus coin blocks — click to collect coins!">
+    <button class="q-block" onclick="addCoin()" aria-label="Question block 1 — click for a coin!">?</button>
+    <button class="q-block" onclick="addCoin()" aria-label="Question block 2 — click for a coin!" style="animation-delay:.3s">?</button>
+    <button class="q-block" onclick="addCoin()" aria-label="Question block 3 — click for a coin!" style="animation-delay:.6s">?</button>
+    <button class="q-block" onclick="addCoin()" aria-label="Question block 4 — click for a coin!" style="animation-delay:.9s">?</button>
+    <button class="q-block" onclick="addCoin()" aria-label="Question block 5 — click for a coin!" style="animation-delay:1.2s">?</button>
+  </div>
+  <div class="hero-ctas">
+    <a href="#timeline" class="pixel-btn">&#9654; Press Start</a>
+    <a href="#quiz" class="pixel-btn red">&#127919; Take Quiz</a>
+    <a href="mailto:john.phillips@berrienresa.org" class="pixel-btn green">&#128231; Contact</a>
+  </div>
+  <div class="hero-ground" aria-hidden="true">
+    <div class="ground-strip"></div>
+    <div class="dirt-strip"></div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<div class="bg-dark" style="padding:60px 24px;">
+  <figure class="quote-block" aria-label="Quote by Albert Einstein">
+    <blockquote>"Play is the highest form of research."</blockquote>
+    <figcaption><cite>&#8212; Albert Einstein</cite></figcaption>
+  </figure>
+</div>
+
+<!-- TIMELINE -->
+<section class="bg-sky" style="padding:60px 0 0;" aria-labelledby="timeline-heading">
+  <div class="section" id="timeline">
+    <h2 id="timeline-heading" class="section-heading">&#128197; The History of Gaming in Education</h2>
+    <ol class="timeline" aria-label="Timeline of gaming in education">
+      <li class="timeline-item">
+        <div class="timeline-year">1974</div>
+        <div class="timeline-content">
+          <h3>&#129409; D&amp;D Created!</h3>
+          <p>Dungeons &amp; Dragons launches — one of the first games recognized for its educational potential in storytelling, math, and social collaboration.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="timeline-year">1985</div>
+        <div class="timeline-content">
+          <h3>&#128002; Oregon Trail</h3>
+          <p>Students learn westward expansion, resource management, and decision-making by guiding pioneer families across America — often while dying of dysentery.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="timeline-year">2003</div>
+        <div class="timeline-content">
+          <h3>&#128218; Gee's Framework</h3>
+          <p>James Paul Gee publishes <em>What Video Games Have to Teach Us About Learning</em>, establishing the academic foundation for game-based learning.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="timeline-year">2009</div>
+        <div class="timeline-content">
+          <h3>&#128300; Annetta Research</h3>
+          <p>Annetta et al. find that students using educational games show significantly higher engagement than those in traditional classrooms.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="timeline-year">2011</div>
+        <div class="timeline-content">
+          <h3>&#9935;&#65039; Minecraft Education</h3>
+          <p>Minecraft begins making inroads in classrooms. By 2016 it becomes an official educational tool used worldwide.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <div class="timeline-year">2016+</div>
+        <div class="timeline-content">
+          <h3>&#128640; Today &amp; Beyond</h3>
+          <p>Minecraft Education, Mission.io, esports programs, and AI integration bring game-based learning to mainstream K&#8211;12 education across Michigan and the nation.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<div class="ground-strip" aria-hidden="true"></div>
+<div class="dirt-strip" aria-hidden="true"></div>
+
+<!-- WHY IT WORKS -->
+<div class="bg-dark" style="padding:80px 0;">
+  <div class="section" id="why">
+    <h2 class="section-heading">&#128300; So Why Does This Work?</h2>
+    <div class="cards-grid">
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">&#127919;</span>
+        <h3>Higher Engagement</h3>
+        <p>Students using educational games demonstrated higher engagement compared to traditional learning methods.</p>
+        <cite>Annetta et al., 2009</cite>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">&#129504;</span>
+        <h3>Critical Thinking</h3>
+        <p>Strategy and puzzle games require students to plan, analyze, and adapt — building genuine critical thinking skills.</p>
+        <cite>Gee, 2003</cite>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">&#128301;</span>
+        <h3>Conceptual Understanding</h3>
+        <p>Simulation-based games in science education lead to better conceptual understanding than textbook methods.</p>
+        <cite>Wouters et al., 2013</cite>
+      </article>
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">&#128170;</span>
+        <h3>Growth Mindset</h3>
+        <p>Games require players to persist through failure — promoting resilience and a growth mindset in every learner.</p>
+        <cite>Dweck, 2006</cite>
+      </article>
+    </div>
+  </div>
+</div>
+
+<div class="pixel-divider" aria-hidden="true"></div>
+
+<!-- UDL -->
+<section class="bg-sky" style="padding:80px 0;" aria-labelledby="udl-heading">
+  <div class="section" id="udl">
+    <h2 id="udl-heading" class="section-heading">&#128682; Gaming Opens Doors for Every Learner</h2>
+    <p style="text-align:center;font-size:1.4rem;margin-bottom:36px;max-width:700px;margin-left:auto;margin-right:auto;color:var(--pixel);line-height:1.6;">
+      Games align powerfully with Universal Design for Learning (UDL) — providing multiple means of engagement, representation, and expression for every student.
+    </p>
+    <div class="udl-grid">
+      <article class="udl-card">
+        <div class="icon" aria-hidden="true">&#128065;&#65039;</div>
+        <h3>Multiple Entry Points</h3>
+        <p>Visual, auditory, and kinesthetic learning all supported simultaneously.</p>
+      </article>
+      <article class="udl-card">
+        <div class="icon" aria-hidden="true">&#127758;</div>
+        <h3>ELL Support</h3>
+        <p>Vocabulary in context, visual cues, and interactive feedback help English language learners thrive.</p>
+      </article>
+      <article class="udl-card">
+        <div class="icon" aria-hidden="true">&#9855;&#65039;</div>
+        <h3>Special Education</h3>
+        <p>Adaptive controllers, built-in accessibility features, and adjustable difficulty levels remove barriers.</p>
+      </article>
+      <article class="udl-card">
+        <div class="icon" aria-hidden="true">&#128214;</div>
+        <h3>Reluctant Readers</h3>
+        <p>Learn by doing rather than only reading text — games meet students where they are.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="ground-strip" aria-hidden="true"></div>
+<div class="dirt-strip" aria-hidden="true"></div>
+
+<!-- CS STANDARDS -->
+<div class="bg-dark" style="padding:80px 0;">
+  <div class="section" id="cs">
+    <h2 class="section-heading">&#128187; How Does This Connect to CS?</h2>
+    <div class="standards-list" aria-label="CSTA computer science standards addressed by gaming">
+      <article class="standard-item">
+        <div class="std-code" aria-label="Standards 1A-CS-01 and 1A-CS-02">1A-CS-01<br>1A-CS-02</div>
+        <div class="std-info">
+          <h4>Computing Systems</h4>
+          <p>Using game interfaces teaches hardware/software interaction — students learn how input devices, displays, and software layers work together.</p>
+        </div>
+      </article>
+      <article class="standard-item">
+        <div class="std-code" aria-label="Standard 2-NI-04">2-NI-04</div>
+        <div class="std-info">
+          <h4>Networks &amp; Internet</h4>
+          <p>Online multiplayer games illustrate network concepts — latency, packet loss, servers, and peer-to-peer communication become tangible.</p>
+        </div>
+      </article>
+      <article class="standard-item">
+        <div class="std-code" aria-label="Standards 1B-DA-06 and 1B-DA-07">1B-DA-06<br>1B-DA-07</div>
+        <div class="std-info">
+          <h4>Data &amp; Analysis</h4>
+          <p>Games like Minecraft teach data collection and analysis through resource management — inventory systems are databases students actually care about.</p>
+        </div>
+      </article>
+      <article class="standard-item">
+        <div class="std-code" aria-label="Standards 2-AP-16 and 2-AP-19">2-AP-16<br>2-AP-19</div>
+        <div class="std-info">
+          <h4>Algorithms &amp; Programming</h4>
+          <p>Game modding introduces programming concepts — from Minecraft command blocks to Scratch remixes, students write real code with real outcomes.</p>
+        </div>
+      </article>
+      <article class="standard-item">
+        <div class="std-code" aria-label="Standards 2-IC-21 and 2-IC-22">2-IC-21<br>2-IC-22</div>
+        <div class="std-info">
+          <h4>Impacts of Computing</h4>
+          <p>Discussions about game design ethics — loot boxes, representation, addiction mechanics — teach students about computing's societal impacts.</p>
+        </div>
+      </article>
+      <article class="standard-item">
+        <div class="std-code" aria-label="Standards 1B-AP-10 and 1B-AP-15">1B-AP-10<br>1B-AP-15</div>
+        <div class="std-info">
+          <h4>Sequences, Events &amp; Debugging</h4>
+          <p>Oregon Trail style games teach algorithmic thinking — sequential decisions with real consequences mirror programming logic perfectly.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<div class="pixel-divider" aria-hidden="true"></div>
+
+<!-- GAMES EXPLORER -->
+<section class="bg-sky" style="padding:80px 0;" aria-labelledby="games-heading">
+  <div class="section" id="games">
+    <h2 id="games-heading" class="section-heading">&#128377;&#65039; Let's Talk Games!</h2>
+    <div class="games-tabs" role="tablist" aria-label="Educational games explorer">
+      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="game-minecraft" id="tab-minecraft" onclick="showGame('minecraft',this)">&#9935;&#65039; Minecraft</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="game-mission"   id="tab-mission"   onclick="showGame('mission',this)">&#128640; Mission.io</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="game-oregon"    id="tab-oregon"    onclick="showGame('oregon',this)">&#128002; Oregon Trail</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="game-dnd"       id="tab-dnd"       onclick="showGame('dnd',this)">&#129409; D&amp;D / RPGs</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="game-esports"   id="tab-esports"   onclick="showGame('esports',this)">&#127942; Esports</button>
+    </div>
+
+    <div id="game-minecraft" class="game-panel active" role="tabpanel" aria-labelledby="tab-minecraft">
+      <div class="game-info">
+        <h3>&#9935;&#65039; Minecraft Education</h3>
+        <p>An open-world tool where creativity is the limit. In classrooms since 2016, Minecraft Education Edition has become one of the most widely used educational games in the world.</p>
+        <ul>
+          <li>Teaches resource management &amp; data analysis</li>
+          <li>Supports coding with command blocks &amp; Python</li>
+          <li>Enables history re-creations and science simulations</li>
+          <li>Collaborative world-building develops teamwork</li>
+          <li>CSTA Standards: 1B-DA-06, 2-AP-16</li>
+        </ul>
+      </div>
+      <div class="game-screen" aria-label="Minecraft Education illustration" role="img">
+        <div>
+          <div class="game-emoji" aria-hidden="true">&#9935;&#65039;&#127758;&#127959;&#65039;</div>
+          <div class="game-label">MINECRAFT EDU<br>CLASSROOM READY<br>SINCE 2016</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-mission" class="game-panel" role="tabpanel" aria-labelledby="tab-mission" hidden>
+      <div class="game-info">
+        <h3>&#128640; Mission.io</h3>
+        <p>A simulation-based game where students become crew members aboard a spacecraft. Available for Michigan educators at mission.io/michigan.</p>
+        <ul>
+          <li>Real-time collaborative problem solving</li>
+          <li>Covers STEM, ELA, and social studies</li>
+          <li>Teacher-controlled pacing and differentiation</li>
+          <li>Builds communication and systems thinking</li>
+          <li>Michigan-specific access available!</li>
+        </ul>
+      </div>
+      <div class="game-screen" aria-label="Mission.io illustration" role="img">
+        <div>
+          <div class="game-emoji" aria-hidden="true">&#128640;&#127756;&#128104;&#8205;&#128640;</div>
+          <div class="game-label">MISSION.IO<br>MICHIGAN<br>ACCESS AVAILABLE</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-oregon" class="game-panel" role="tabpanel" aria-labelledby="tab-oregon" hidden>
+      <div class="game-info">
+        <h3>&#128002; Oregon Trail Style</h3>
+        <p>The classic that started it all. Educational simulation games teach history, decision-making, and systems thinking through authentic choices and consequences.</p>
+        <ul>
+          <li>Westward expansion &amp; pioneer history</li>
+          <li>Resource management and budgeting</li>
+          <li>Decision-making with real consequences</li>
+          <li>Map literacy and American geography</li>
+          <li>CSTA Standards: 1B-AP-10, 1B-AP-15</li>
+        </ul>
+      </div>
+      <div class="game-screen" aria-label="Oregon Trail illustration" role="img">
+        <div>
+          <div class="game-emoji" aria-hidden="true">&#128002;&#129683;&#128506;&#65039;</div>
+          <div class="game-label">YOU HAVE DIED<br>OF DYSENTERY<br>(BUT YOU LEARNED!)</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-dnd" class="game-panel" role="tabpanel" aria-labelledby="tab-dnd" hidden>
+      <div class="game-info">
+        <h3>&#129409; D&amp;D / Tabletop RPGs</h3>
+        <p>Dungeons &amp; Dragons (1974) pioneered game-based learning before anyone called it that. Tabletop RPGs build a remarkable range of skills.</p>
+        <ul>
+          <li>Narrative writing and creative storytelling</li>
+          <li>Math: probability, arithmetic, statistics</li>
+          <li>Social-emotional learning and empathy</li>
+          <li>Strategic planning and problem solving</li>
+          <li>Reading comprehension &amp; vocabulary</li>
+        </ul>
+      </div>
+      <div class="game-screen" aria-label="Dungeons and Dragons illustration" role="img">
+        <div>
+          <div class="game-emoji" aria-hidden="true">&#129409;&#127922;&#9876;&#65039;</div>
+          <div class="game-label">ROLL FOR<br>INITIATIVE<br>SINCE 1974</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-esports" class="game-panel" role="tabpanel" aria-labelledby="tab-esports" hidden>
+      <div class="game-info">
+        <h3>&#127942; Esports in Schools</h3>
+        <p>Esports programs create pathways for students who have never found their niche in traditional extracurriculars — including students with IEPs, ELL students, and reluctant learners.</p>
+        <ul>
+          <li>Teamwork, communication, and sportsmanship</li>
+          <li>Career pathways: design, streaming, coding</li>
+          <li>Inclusion for underrepresented students</li>
+          <li>Connects to CSTA computing standards</li>
+          <li>Michigan MHSAA-recognized activity</li>
+        </ul>
+      </div>
+      <div class="game-screen" aria-label="Esports illustration" role="img">
+        <div>
+          <div class="game-emoji" aria-hidden="true">&#127942;&#127918;&#128126;</div>
+          <div class="game-label">GG EZ<br>ESPORTS IN<br>MICHIGAN K-12</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ground-strip" aria-hidden="true"></div>
+<div class="dirt-strip" aria-hidden="true"></div>
+
+<!-- QUIZ -->
+<div class="bg-dark" style="padding:80px 0;">
+  <div class="section" id="quiz">
+    <h2 class="section-heading">&#127919; Boss Level Quiz</h2>
+    <div class="quiz-wrap">
+      <p class="quiz-progress" id="quiz-progress" aria-live="polite" aria-atomic="true">Question 1 of 6</p>
+      <p class="quiz-q" id="quiz-question" aria-live="polite" aria-atomic="true"></p>
+      <div class="quiz-options" id="quiz-options" role="group" aria-label="Answer choices"></div>
+      <div class="quiz-result" id="quiz-result" role="alert" aria-live="assertive" aria-atomic="true"></div>
+      <div style="text-align:center;margin-top:16px;">
+        <button class="pixel-btn" id="quiz-next" onclick="nextQuestion()" style="display:none;">Next &#9654;</button>
+        <button class="pixel-btn green" id="quiz-restart" onclick="startQuiz()" style="display:none;">&#128260; Play Again</button>
+      </div>
+      <div style="text-align:center;margin-top:20px;">
+        <div id="quiz-score-display" style="font-family:'Press Start 2P',monospace;font-size:0.7rem;color:var(--gold);" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pixel-divider" aria-hidden="true"></div>
+
+<!-- CONTACT -->
+<section class="bg-sky" style="padding:80px 0;" aria-labelledby="contact-heading">
+  <div class="section" id="contact">
+    <h2 id="contact-heading" class="section-heading">&#128225; Contact &amp; Connect</h2>
+    <div class="contact-box">
+      <h2>John Phillips</h2>
+      <span class="contact-role">Technology &amp; Innovation Consultant<br>Berrien RESA</span>
+      <a href="mailto:john.phillips@berrienresa.org" aria-label="Send email to John Phillips">
+        <span aria-hidden="true">&#128231;</span> john.phillips@berrienresa.org
+      </a>
+      <a href="https://www.linkedin.com/in/jphillipsbc" target="_blank" rel="noopener noreferrer" aria-label="John Phillips LinkedIn profile (opens in new tab)">
+        <span aria-hidden="true">&#128279;</span> LinkedIn Profile
+      </a>
+      <a href="https://berrienresa.org" target="_blank" rel="noopener noreferrer" aria-label="Berrien RESA website (opens in new tab)">
+        <span aria-hidden="true">&#127979;</span> Berrien RESA
+      </a>
+      <div style="margin-top:28px;">
+        <a href="mailto:john.phillips@berrienresa.org" class="pixel-btn green" aria-label="Send John an email">&#128236; Send Message</a>
+      </div>
+    </div>
+    <div style="margin-top:60px;text-align:center;">
+      <p style="font-family:'Press Start 2P',monospace;font-size:0.42rem;color:var(--pixel);line-height:3;">
+        Game On! &middot; MACUL 2026<br>
+        &copy; John Phillips &middot; Berrien RESA &middot; All Rights Reserved
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// Clouds
+(function(){
+  const el = document.getElementById('clouds');
+  if (!el) return;
+  const data = [
+    {top:20,left:5,w:120,h:56},{top:40,left:22,w:80,h:40},
+    {top:15,left:40,w:160,h:64},{top:55,left:60,w:96,h:48},
+    {top:25,left:75,w:140,h:56},{top:10,left:88,w:100,h:44},
+    {top:45,left:110,w:120,h:52},{top:20,left:130,w:88,h:40},
+    {top:35,left:155,w:160,h:60},{top:15,left:178,w:96,h:44},
+  ];
+  data.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'cloud';
+    d.setAttribute('aria-hidden','true');
+    d.style.cssText = `top:${c.top}px;left:${c.left}%;width:${c.w}px;height:${c.h}px;border-radius:${Math.round(c.h/2)}px;`;
+    el.appendChild(d);
+  });
+})();
+
+// Scroll progress
+window.addEventListener('scroll', () => {
+  const max = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('progress-bar').style.width = (max > 0 ? (window.scrollY / max * 100) : 0) + '%';
+}, { passive: true });
+
+// Scroll reveal
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.15 });
+document.querySelectorAll('.timeline-item, .card, .standard-item, .udl-card').forEach(el => io.observe(el));
+
+// Coin counter
+let coins = 0;
+function addCoin() {
+  coins++;
+  document.getElementById('coin-count').textContent = coins;
+}
+
+// Game tabs
+function showGame(id, btn) {
+  document.querySelectorAll('.game-panel').forEach(p => { p.classList.remove('active'); p.hidden = true; });
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  const panel = document.getElementById('game-' + id);
+  panel.classList.add('active');
+  panel.hidden = false;
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected','true');
+}
+
+// Arrow key tab navigation
+document.querySelectorAll('.tab-btn').forEach((btn, i, btns) => {
+  btn.addEventListener('keydown', e => {
+    let next;
+    if (e.key === 'ArrowRight') { e.preventDefault(); next = btns[(i+1) % btns.length]; }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); next = btns[(i-1+btns.length) % btns.length]; }
+    if (next) { next.focus(); next.click(); }
+  });
+});
+
+// Quiz
+const questions = [
+  { q:"Which researcher found that students using educational games demonstrated HIGHER ENGAGEMENT than traditional methods?", options:["Gee (2003)","Annetta et al. (2009)","Dweck (2006)","Wouters et al. (2013)"], answer:1, explanation:"Annetta et al. (2009) specifically studied engagement levels and found games significantly outperformed traditional methods." },
+  { q:"According to James Paul Gee (2003), what do strategy and puzzle games primarily develop in students?", options:["Memorization skills","Critical thinking skills","Reading fluency","Mathematical computation"], answer:1, explanation:"Gee's landmark work established that strategy games build critical thinking through planning, analysis, and adaptation." },
+  { q:"Which CSTA standard is directly addressed when students use game modding to learn programming?", options:["1A-CS-01","2-NI-04","2-AP-16","1B-DA-06"], answer:2, explanation:"Standard 2-AP-16 covers algorithms and programming — game modding is a perfect authentic context for this standard." },
+  { q:"Minecraft Education Edition has been in use in classrooms since what year?", options:["2011","2014","2016","2019"], answer:2, explanation:"Minecraft Education Edition officially launched in 2016, though educators were using the base game earlier." },
+  { q:"Which BEST describes how gaming aligns with Universal Design for Learning (UDL)?", options:["Games only help gifted students","Games provide a single consistent pathway","Games offer multiple entry points for visual, auditory, and kinesthetic learners","Games replace all traditional instruction"], answer:2, explanation:"UDL requires multiple means of engagement, representation, and expression — games naturally provide all three simultaneously." },
+  { q:"What was historically significant about Dungeons & Dragons being created in 1974?", options:["It was the first video game","It pioneered game-based learning before the term existed","It was banned in all schools","It was designed specifically for CS education"], answer:1, explanation:"D&D (1974) built skills in storytelling, math, social collaboration, and strategic thinking long before 'game-based learning' was a field." }
+];
+
+let currentQ = 0, score = 0, answered = false;
+
+function startQuiz() {
+  currentQ = 0; score = 0; answered = false;
+  document.getElementById('quiz-restart').style.display = 'none';
+  document.getElementById('quiz-score-display').textContent = '';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('quiz-progress').textContent = `Question ${currentQ+1} of ${questions.length}`;
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-result').innerHTML = '';
+  document.getElementById('quiz-next').style.display = 'none';
+  answered = false;
+  const opts = document.getElementById('quiz-options');
+  opts.innerHTML = '';
+  const labels = ['A','B','C','D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = `${labels[i]}. ${opt}`;
+    btn.setAttribute('aria-label', `Option ${labels[i]}: ${opt}`);
+    btn.onclick = () => selectAnswer(i);
+    opts.appendChild(btn);
+  });
+  setTimeout(() => { const first = opts.querySelector('.quiz-opt'); if (first) first.focus(); }, 80);
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentQ];
+  const btns = document.querySelectorAll('.quiz-opt');
+  btns.forEach(b => { b.disabled = true; });
+  btns[q.answer].classList.add('correct');
+  btns[q.answer].setAttribute('aria-label', btns[q.answer].textContent + ' — Correct answer');
+  if (i !== q.answer) {
+    btns[i].classList.add('wrong');
+    btns[i].setAttribute('aria-label', btns[i].textContent + ' — Incorrect');
+  } else {
+    score++;
+    addCoin();
+  }
+  const resultEl = document.getElementById('quiz-result');
+  const isCorrect = i === q.answer;
+  resultEl.innerHTML = `<span class="${isCorrect ? 'quiz-correct-label' : 'quiz-wrong-label'}">${isCorrect ? '✅ Correct! +1 Coin' : '❌ Not quite!'}</span><br><span style="font-size:1.1rem;color:var(--pixel)">${q.explanation}</span>`;
+  if (currentQ < questions.length - 1) {
+    const nb = document.getElementById('quiz-next');
+    nb.style.display = 'inline-flex';
+    setTimeout(() => nb.focus(), 100);
+  } else {
+    resultEl.innerHTML += `<br><br><strong style="font-family:'Press Start 2P',monospace;font-size:0.6rem;color:var(--pixel)">Final Score: ${score}/${questions.length}</strong>`;
+    document.getElementById('quiz-score-display').textContent = score===6 ? '🏆 Perfect Score! Game Master!' : score>=4 ? '⭐ Great Job! Level Up!' : score>=2 ? '👍 Good Try! Keep Playing!' : '💡 Keep Learning!';
+    const rb = document.getElementById('quiz-restart');
+    rb.style.display = 'inline-flex';
+    setTimeout(() => rb.focus(), 100);
+  }
+}
+
+function nextQuestion() { currentQ++; renderQuestion(); }
+
+startQuiz();
+</script>
+</body>
+</html>
