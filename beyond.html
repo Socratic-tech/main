@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beyond the Answer: Co-Intelligence Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue: #004a99; --green: #155724; --red: #721c24; --yellow: #856404; }
+        body { 
+            background-color: #f8f9fa; 
+            background-image: linear-gradient(#e0e0e0 1px, transparent 1px), linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+            background-size: 30px 30px;
+            font-family: 'Gochi Hand', cursive; padding: 20px; color: #333;
+        }
+        .container { max-width: 900px; margin: auto; background: rgba(255, 255, 255, 0.9); padding: 30px; border: 2px solid #ccc; box-shadow: 10px 10px 0px rgba(0,0,0,0.1); }
+        h1 { font-family: 'Architects Daughter', cursive; text-align: center; font-size: 2.5rem; margin-bottom: 5px; }
+        .subtitle { text-align: center; margin-bottom: 30px; font-size: 1.2rem; color: #666; }
+        
+        /* Step 1: Alien Intern Sticker */
+        .sticker { 
+            background: #d90429; color: white; padding: 20px; border-radius: 15px; 
+            box-shadow: 5px 5px 0px #8d021f; margin-bottom: 30px; position: relative;
+        }
+        .sticker h2 { margin: 0 0 15px 0; font-family: 'Architects Daughter'; text-align: center; font-size: 2rem; border-bottom: 4px solid white; }
+        .sticker-field { margin-bottom: 10px; }
+        .sticker-field label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 10px; border-radius: 5px; border: none; font-family: 'Gochi Hand'; font-size: 1.1rem; }
+        
+        /* Step 2: Frontier Check */
+        .frontier-box { border: 3px dashed var(--red); padding: 20px; margin-bottom: 30px; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        button { 
+            padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; 
+            font-family: 'Architects Daughter'; background: #333; color: white; transition: 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+        #frontier-result { margin-top: 15px; font-weight: bold; min-height: 25px; }
+
+        /* Step 3: Human Checklist */
+        .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff3cd; padding: 20px; border: 2px solid var(--yellow); }
+        .check-item { display: flex; align-items: center; gap: 10px; }
+        input[type="checkbox"] { width: auto; transform: scale(1.5); }
+        
+        #final-msg { display: none; text-align: center; font-size: 2rem; color: var(--green); margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 Beyond the Answer</h1>
+    <p class="subtitle">Turning AI into a Co-Intelligence Partner</p>
+
+    <div class="sticker">
+        <h2>Hello, My Name Is...</h2>
+        <div class="sticker-field">
+            <label>The Alien's Role:</label>
+            <select id="role">
+                <option>Rigorous Debate Coach</option>
+                <option>Socratic Tutor</option>
+                <option>Critical Editor</option>
+                <option>Creative Brainstormer</option>
+            </select>
+        </div>
+        <div class="sticker-field">
+            <label>The Human Context:</label>
+            <input type="text" id="context" placeholder="e.g. I am a student writing an opening statement...">
+        </div>
+        <div class="sticker-field">
+            <label>The Constraints:</label>
+            <input type="text" id="constraints" placeholder="e.g. Do not write it for me. Ask me questions.">
+        </div>
+        <button onclick="buildPrompt()" style="background: white; color: #d90429;">Generate Briefing</button>
+        <div id="output-prompt" style="margin-top:15px; background:rgba(0,0,0,0.1); padding:10px; display:none; white-space: pre-wrap;"></div>
+    </div>
+
+    <div class="frontier-box">
+        <h3>📍 Where is your task on the Jagged Frontier?</h3>
+        <div class="btn-group">
+            <button onclick="checkFrontier('inside')">Writing a Sonnet</button>
+            <button onclick="checkFrontier('inside')">Summarizing Text</button>
+            <button onclick="checkFrontier('outside')">Exactly 25 Words</button>
+            <button onclick="checkFrontier('outside')">Logic Puzzles</button>
+        </div>
+        <div id="frontier-result"></div>
+    </div>
+
+    <div class="checklist">
+        <h3>✅ Human-in-the-Loop Checklist</h3>
+        <div></div>
+        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Context (Specific Community)</span></div>
+        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Judgment (True vs Plausible)</span></div>
+        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Empathy (Outcome matters)</span></div>
+        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Taste (Actually good)</span></div>
+    </div>
+
+    <div id="final-msg">✨ NEW INSIGHT REACHED ✨</div>
+</div>
+
+<script>
+    function buildPrompt() {
+        const r = document.getElementById('role').value;
+        const c = document.getElementById('context').value;
+        const cons = document.getElementById('constraints').value;
+        const out = document.getElementById('output-prompt');
+        out.innerText = `ROLE: ${r}\nCONTEXT: ${c}\nCONSTRAINTS: ${cons}`;
+        out.style.display = 'block';
+    }
+
+    function checkFrontier(side) {
+        const res = document.getElementById('frontier-result');
+        if(side === 'inside') {
+            res.innerHTML = "✅ <span style='color:var(--green)'>INSIDE:</span> High quality expected. Don't fall asleep at the wheel!";
+        } else {
+            res.innerHTML = "⚠️ <span style='color:var(--red)'>OUTSIDE:</span> 19% less likely to be correct. Watch for hallucinations!";
+        }
+    }
+
+    function checkAll() {
+        const checks = document.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(checks).every(c => c.checked);
+        document.getElementById('final-msg').style.display = allChecked ? 'block' : 'none';
+    }
+</script>
+
+</body>
+</html>
