@@ -1,127 +1,298 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beyond the Answer: Co-Intelligence Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&display=swap" rel="stylesheet">
-    <style>
-        :root { --blue: #004a99; --green: #155724; --red: #721c24; --yellow: #856404; }
-        body { 
-            background-color: #f8f9fa; 
-            background-image: linear-gradient(#e0e0e0 1px, transparent 1px), linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
-            background-size: 30px 30px;
-            font-family: 'Gochi Hand', cursive; padding: 20px; color: #333;
-        }
-        .container { max-width: 900px; margin: auto; background: rgba(255, 255, 255, 0.9); padding: 30px; border: 2px solid #ccc; box-shadow: 10px 10px 0px rgba(0,0,0,0.1); }
-        h1 { font-family: 'Architects Daughter', cursive; text-align: center; font-size: 2.5rem; margin-bottom: 5px; }
-        .subtitle { text-align: center; margin-bottom: 30px; font-size: 1.2rem; color: #666; }
-        
-        /* Step 1: Alien Intern Sticker */
-        .sticker { 
-            background: #d90429; color: white; padding: 20px; border-radius: 15px; 
-            box-shadow: 5px 5px 0px #8d021f; margin-bottom: 30px; position: relative;
-        }
-        .sticker h2 { margin: 0 0 15px 0; font-family: 'Architects Daughter'; text-align: center; font-size: 2rem; border-bottom: 4px solid white; }
-        .sticker-field { margin-bottom: 10px; }
-        .sticker-field label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input, textarea, select { width: 100%; padding: 10px; border-radius: 5px; border: none; font-family: 'Gochi Hand'; font-size: 1.1rem; }
-        
-        /* Step 2: Frontier Check */
-        .frontier-box { border: 3px dashed var(--red); padding: 20px; margin-bottom: 30px; }
-        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        button { 
-            padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; 
-            font-family: 'Architects Daughter'; background: #333; color: white; transition: 0.2s;
-        }
-        button:hover { transform: scale(1.05); }
-        #frontier-result { margin-top: 15px; font-weight: bold; min-height: 25px; }
 
-        /* Step 3: Human Checklist */
-        .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff3cd; padding: 20px; border: 2px solid var(--yellow); }
-        .check-item { display: flex; align-items: center; gap: 10px; }
-        input[type="checkbox"] { width: auto; transform: scale(1.5); }
-        
-        #final-msg { display: none; text-align: center; font-size: 2rem; color: var(--green); margin-top: 20px; }
-    </style>
-</head>
-<body>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+.wrap{font-family:var(--font-sans);color:var(--color-text-primary);padding-bottom:2rem}
 
-<div class="container">
-    <h1>🚀 Beyond the Answer</h1>
-    <p class="subtitle">Turning AI into a Co-Intelligence Partner</p>
+.hero{background:var(--color-text-primary);color:var(--color-background-primary);padding:2.5rem 2rem 2rem;position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;opacity:.07;background-image:linear-gradient(var(--color-background-primary) 1px,transparent 1px),linear-gradient(90deg,var(--color-background-primary) 1px,transparent 1px);background-size:32px 32px}
+.hero-content{position:relative}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;opacity:.55;margin-bottom:.5rem}
+.hero-title{font-size:28px;font-weight:500;line-height:1.2;margin-bottom:.4rem}
+.hero-sub{font-size:14px;opacity:.6;margin-bottom:1.5rem}
+.step-pills{display:flex;gap:8px;flex-wrap:wrap}
+.step-pill{padding:5px 14px;border-radius:999px;font-size:12px;border:1px solid rgba(255,255,255,.2);opacity:.45;transition:all .2s;cursor:default}
+.step-pill.done{opacity:.7;border-color:rgba(255,255,255,.4)}
+.step-pill.active{opacity:1;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.6)}
 
-    <div class="sticker">
-        <h2>Hello, My Name Is...</h2>
-        <div class="sticker-field">
-            <label>The Alien's Role:</label>
-            <select id="role">
-                <option>Rigorous Debate Coach</option>
-                <option>Socratic Tutor</option>
-                <option>Critical Editor</option>
-                <option>Creative Brainstormer</option>
-            </select>
-        </div>
-        <div class="sticker-field">
-            <label>The Human Context:</label>
-            <input type="text" id="context" placeholder="e.g. I am a student writing an opening statement...">
-        </div>
-        <div class="sticker-field">
-            <label>The Constraints:</label>
-            <input type="text" id="constraints" placeholder="e.g. Do not write it for me. Ask me questions.">
-        </div>
-        <button onclick="buildPrompt()" style="background: white; color: #d90429;">Generate Briefing</button>
-        <div id="output-prompt" style="margin-top:15px; background:rgba(0,0,0,0.1); padding:10px; display:none; white-space: pre-wrap;"></div>
+.section{padding:1.75rem 2rem;border-bottom:.5px solid var(--color-border-tertiary)}
+.section:last-child{border-bottom:none}
+.sec-num{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:.3rem;display:flex;align-items:center;gap:8px}
+.sec-num::after{content:'';flex:1;height:.5px;background:var(--color-border-tertiary)}
+.sec-head{font-size:18px;font-weight:500;margin-bottom:.3rem}
+.sec-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.6}
+
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:1.25rem}
+.role-card{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;cursor:pointer;background:var(--color-background-primary);transition:border-color .15s,background .15s;position:relative}
+.role-card:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary)}
+.role-card.sel{border-color:#A32D2D;border-width:1.5px;background:#FCEBEB}
+.role-card.sel .rn{color:#791F1F}
+.role-card.sel .rd{color:#A32D2D}
+.role-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:18px;background:var(--color-background-secondary)}
+.role-card.sel .role-icon{background:#F7C1C1}
+.rn{font-size:13px;font-weight:500;line-height:1.3;color:var(--color-text-primary)}
+.rd{font-size:11px;color:var(--color-text-tertiary);margin-top:3px;line-height:1.4}
+.sel-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#E24B4A;display:none}
+.role-card.sel .sel-dot{display:block}
+
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;font-weight:500}
+.field input{width:100%;padding:9px 12px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);font-size:13px;transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--color-border-primary);box-shadow:0 0 0 3px rgba(226,75,74,.1)}
+
+.gen-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);font-size:13px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s}
+.gen-btn:hover{background:var(--color-background-secondary);border-color:var(--color-border-primary)}
+.gen-btn i{font-size:15px;color:#E24B4A}
+
+.output-wrap{display:none;margin-top:14px;border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.output-header{padding:10px 14px;background:var(--color-background-secondary);border-bottom:.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center}
+.output-header span{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary)}
+.copy-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-secondary);font-size:11px;cursor:pointer;transition:all .15s}
+.copy-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.output-body{padding:14px;font-size:13px;line-height:1.7;color:var(--color-text-primary);white-space:pre-wrap;font-family:var(--font-mono)}
+
+.f-legend{display:flex;gap:16px;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.ldot{width:8px;height:8px;border-radius:50%}
+.ldot.inside{background:#3B6D11}
+.ldot.outside{background:#854F0B}
+
+.f-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:7px;margin-bottom:12px}
+.fb{padding:10px 12px;border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);font-size:13px;cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:8px}
+.fb:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary)}
+.fb.inside{border-color:#97C459;background:#EAF3DE}
+.fb.outside{border-color:#EF9F27;background:#FAEEDA}
+.tag{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500;flex-shrink:0;letter-spacing:.03em}
+.tag.inside{background:#3B6D11;color:#EAF3DE}
+.tag.outside{background:#854F0B;color:#FAEEDA}
+
+.f-result{display:none;padding:14px 16px;border-radius:var(--border-radius-md);font-size:13px;line-height:1.65;border:.5px solid}
+.f-result.inside{background:#EAF3DE;border-color:#97C459;color:#27500A}
+.f-result.outside{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+.f-result-head{font-size:14px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+
+.cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cc{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;cursor:pointer;background:var(--color-background-primary);transition:all .15s;user-select:none}
+.cc:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary)}
+.cc.checked{border-color:#97C459;border-width:1.5px;background:#EAF3DE}
+.cc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.cc-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--color-background-secondary);font-size:18px}
+.cc.checked .cc-icon{background:#C0DD97}
+.cc-text{flex:1}
+.cn{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.cc.checked .cn{color:#27500A}
+.cw{font-size:12px;color:var(--color-text-secondary);line-height:1.5;margin-top:3px}
+.cc.checked .cw{color:#3B6D11}
+.cbox{width:18px;height:18px;border:.5px solid var(--color-border-secondary);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .15s}
+.cc.checked .cbox{background:#3B6D11;border-color:#3B6D11;color:#EAF3DE}
+
+.complete{display:none;margin-top:14px;padding:1.5rem;border-radius:var(--border-radius-lg);background:#EAF3DE;border:.5px solid #97C459;text-align:center}
+.complete-icon{width:44px;height:44px;border-radius:50%;background:#3B6D11;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;color:#EAF3DE;font-size:22px}
+.complete-head{font-size:16px;font-weight:500;color:#27500A;margin-bottom:4px}
+.complete-sub{font-size:13px;color:#3B6D11}
+
+.prog-bar{display:flex;align-items:center;gap:6px;padding:1rem 2rem;background:var(--color-background-secondary);border-top:.5px solid var(--color-border-tertiary)}
+.prog-label{font-size:11px;color:var(--color-text-tertiary);font-weight:500;white-space:nowrap}
+.prog-track{flex:1;height:4px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:#3B6D11;border-radius:2px;width:0%;transition:width .4s ease}
+.prog-count{font-size:11px;color:var(--color-text-tertiary);min-width:28px;text-align:right}
+
+.toast{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--color-text-primary);color:var(--color-background-primary);padding:7px 16px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+
+<div class="wrap" style="position:relative">
+
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Workshop tool</div>
+    <div class="hero-title">Beyond the Answer</div>
+    <div class="hero-sub">Turning AI into a co-intelligence partner</div>
+    <div class="step-pills">
+      <div class="step-pill active" id="pill-1"><i class="ti ti-user-star" aria-hidden="true"></i> Configure partner</div>
+      <div class="step-pill" id="pill-2"><i class="ti ti-map-pin" aria-hidden="true"></i> Jagged frontier</div>
+      <div class="step-pill" id="pill-3"><i class="ti ti-checklist" aria-hidden="true"></i> Human in the loop</div>
     </div>
+  </div>
+</div>
 
-    <div class="frontier-box">
-        <h3>📍 Where is your task on the Jagged Frontier?</h3>
-        <div class="btn-group">
-            <button onclick="checkFrontier('inside')">Writing a Sonnet</button>
-            <button onclick="checkFrontier('inside')">Summarizing Text</button>
-            <button onclick="checkFrontier('outside')">Exactly 25 Words</button>
-            <button onclick="checkFrontier('outside')">Logic Puzzles</button>
-        </div>
-        <div id="frontier-result"></div>
+<div class="section">
+  <div class="sec-num">Step 1</div>
+  <div class="sec-head">Hello, my name is…</div>
+  <p class="sec-sub">Pick a role for your AI partner. Each changes how it engages — same underlying model, very different behavior.</p>
+  <div class="roles-grid" id="roles-grid"></div>
+  <div class="field">
+    <label>Your context — who you are and what you're working on</label>
+    <input type="text" id="ctx" placeholder="e.g., I'm a 7th grade ELA teacher drafting a persuasive writing unit…">
+  </div>
+  <div class="field">
+    <label>Constraints — what the AI should NOT do</label>
+    <input type="text" id="cons" placeholder="e.g., Do not write it for me. Ask questions. Push back on weak reasoning.">
+  </div>
+  <button class="gen-btn" onclick="buildPrompt()">
+    <i class="ti ti-sparkles" aria-hidden="true"></i> Generate briefing
+  </button>
+  <div class="output-wrap" id="op">
+    <div class="output-header">
+      <span>Your AI briefing</span>
+      <button class="copy-btn" onclick="copyPrompt()"><i class="ti ti-copy" aria-hidden="true" style="font-size:13px"></i> Copy</button>
     </div>
+    <div class="output-body" id="pt"></div>
+  </div>
+</div>
 
-    <div class="checklist">
-        <h3>✅ Human-in-the-Loop Checklist</h3>
-        <div></div>
-        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Context (Specific Community)</span></div>
-        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Judgment (True vs Plausible)</span></div>
-        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Empathy (Outcome matters)</span></div>
-        <div class="check-item"><input type="checkbox" onchange="checkAll()"> <span>Taste (Actually good)</span></div>
-    </div>
+<div class="section">
+  <div class="sec-num">Step 2</div>
+  <div class="sec-head">The jagged frontier</div>
+  <p class="sec-sub">AI capability isn't a smooth curve — it's jagged. It can write a polished essay but fail to count exactly 25 words. Tap a task to see where it lands.</p>
+  <div class="f-legend">
+    <div class="li"><div class="ldot inside"></div> Inside — AI reliable here</div>
+    <div class="li"><div class="ldot outside"></div> Outside — higher error rate</div>
+  </div>
+  <div class="f-grid" id="f-grid"></div>
+  <div class="f-result" id="f-result"></div>
+</div>
 
-    <div id="final-msg">✨ NEW INSIGHT REACHED ✨</div>
+<div class="section">
+  <div class="sec-num">Step 3</div>
+  <div class="sec-head">Human-in-the-loop checklist</div>
+  <p class="sec-sub">AI generates plausible text. Only you can supply these four things. Tap each dimension you've genuinely applied before using the output.</p>
+  <div class="cl-grid" id="cl-grid"></div>
+  <div class="complete" id="complete">
+    <div class="complete-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div class="complete-head">New insight reached</div>
+    <div class="complete-sub">All four human dimensions applied. This output is ready — and it's yours.</div>
+  </div>
+</div>
+
+<div class="prog-bar">
+  <span class="prog-label">Progress</span>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+  <span class="prog-count" id="prog-count">0 / 7</span>
+</div>
+
+<div class="toast" id="toast">Copied to clipboard</div>
 </div>
 
 <script>
-    function buildPrompt() {
-        const r = document.getElementById('role').value;
-        const c = document.getElementById('context').value;
-        const cons = document.getElementById('constraints').value;
-        const out = document.getElementById('output-prompt');
-        out.innerText = `ROLE: ${r}\nCONTEXT: ${c}\nCONSTRAINTS: ${cons}`;
-        out.style.display = 'block';
-    }
+const roles=[
+  {e:"⚔️",n:"Debate coach",d:"Steelmans your argument, then attacks it hard."},
+  {e:"❓",n:"Socratic tutor",d:"Only responds with questions — makes you excavate the answer."},
+  {e:"✏️",n:"Critical editor",d:"Hunts vague language, logic gaps, weak structure."},
+  {e:"💡",n:"Brainstorm partner",d:"Floods the zone with ideas — quantity before quality."},
+  {e:"😈",n:"Devil's advocate",d:"Argues the opposite to stress-test your thinking."},
+  {e:"🪞",n:"Thought partner",d:"Reflects your thinking back, maps connections."},
+  {e:"📚",n:"Research aide",d:"Surfaces frameworks, examples, and relevant concepts."},
+  {e:"🛡️",n:"Structured skeptic",d:"Evaluates evidence and flags assumptions as facts."},
+];
+const ftasks=[
+  {l:"Writing a polished essay",s:"inside",n:"Drafting, editing, restructuring prose — a consistent AI strength."},
+  {l:"Summarizing long text",s:"inside",n:"Condenses and paraphrases reliably, especially structured docs."},
+  {l:"Generating creative metaphors",s:"inside",n:"Creative language and analogy-making sit well inside the frontier."},
+  {l:"Explaining complex concepts",s:"inside",n:"Breaking down ideas for different audiences — consistently reliable."},
+  {l:"Drafting Socratic questions",s:"inside",n:"Generating question sequences to guide learning works well."},
+  {l:"Producing many examples fast",s:"inside",n:"Wide-ranging idea generation is a consistent strength."},
+  {l:"Counting exactly 25 words",s:"outside",n:"Precise word/character counting is surprisingly error-prone."},
+  {l:"Multi-step logic puzzles",s:"outside",n:"Chained deduction often produces plausible but wrong answers."},
+  {l:"Recalling turn 10 of a conversation",s:"outside",n:"Long-context recall degrades — don't rely on it."},
+  {l:"Knowing when it's wrong",s:"outside",n:"AI doesn't reliably flag its own errors. That's your job."},
+  {l:"Current events after training",s:"outside",n:"No live data. Will generate recent facts confidently — and incorrectly."},
+  {l:"Precise spatial reasoning",s:"outside",n:"Mental rotation and layout tasks fall outside text-model strengths."},
+];
+const checks=[
+  {e:"🗺️",n:"Context",ico:"ti-map-2",w:"Does this fit your school, students, community? AI trained on averages — you know the specifics."},
+  {e:"⚖️",n:"Judgment",ico:"ti-scale",w:"Is this true, or just plausible? AI optimizes for coherence, not accuracy. You verify."},
+  {e:"❤️",n:"Empathy",ico:"ti-heart",w:"Does the outcome affect real people? Did you consider who's impacted and how?"},
+  {e:"⭐",n:"Taste",ico:"ti-star",w:"Is it actually good — not just acceptable? Would you put your name on it?"},
+];
 
-    function checkFrontier(side) {
-        const res = document.getElementById('frontier-result');
-        if(side === 'inside') {
-            res.innerHTML = "✅ <span style='color:var(--green)'>INSIDE:</span> High quality expected. Don't fall asleep at the wheel!";
-        } else {
-            res.innerHTML = "⚠️ <span style='color:var(--red)'>OUTSIDE:</span> 19% less likely to be correct. Watch for hallucinations!";
-        }
-    }
+let selRole=null;
+const checked=new Set();
+let progDone=0;
 
-    function checkAll() {
-        const checks = document.querySelectorAll('input[type="checkbox"]');
-        const allChecked = Array.from(checks).every(c => c.checked);
-        document.getElementById('final-msg').style.display = allChecked ? 'block' : 'none';
-    }
+function updateProg(){
+  const total=7;
+  document.getElementById('prog-fill').style.width=(progDone/total*100)+'%';
+  document.getElementById('prog-count').textContent=progDone+' / '+total;
+  document.getElementById('pill-1').className='step-pill'+(selRole!==null?' done':'');
+  document.getElementById('pill-2').className='step-pill'+(progDone>=3?' done':'');
+  document.getElementById('pill-3').className='step-pill'+(checked.size>0?' done':'');
+  if(selRole!==null&&progDone<3)document.getElementById('pill-2').classList.add('active');
+  if(progDone>=3&&checked.size===0)document.getElementById('pill-3').classList.add('active');
+}
+
+function buildRoles(){
+  const g=document.getElementById('roles-grid');
+  roles.forEach((r,i)=>{
+    const c=document.createElement('div');
+    c.className='role-card';c.id='rc'+i;
+    c.innerHTML=`<div class="sel-dot"></div><div class="role-icon">${r.e}</div><div class="rn">${r.n}</div><div class="rd">${r.d}</div>`;
+    c.onclick=()=>{
+      const was=selRole===i;
+      document.querySelectorAll('.role-card').forEach(x=>x.classList.remove('sel'));
+      if(!was){c.classList.add('sel');selRole=i;if(progDone<1)progDone=1;}
+      else{selRole=null;if(progDone===1)progDone=0;}
+      updateProg();
+    };
+    g.appendChild(c);
+  });
+}
+
+function buildPrompt(){
+  if(selRole===null){alert('Pick a role first!');return;}
+  const r=roles[selRole],ctx=document.getElementById('ctx').value.trim(),cons=document.getElementById('cons').value.trim();
+  const txt=`ROLE: ${r.n}\n→ ${r.d}\n\nCONTEXT:\n${ctx||'(not provided)'}\n\nCONSTRAINTS:\n${cons||'(not provided)'}`;
+  document.getElementById('pt').textContent=txt;
+  document.getElementById('op').style.display='block';
+  if(ctx&&progDone<2)progDone=2;
+  updateProg();
+}
+
+function copyPrompt(){
+  navigator.clipboard.writeText(document.getElementById('pt').textContent).then(()=>{
+    const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);
+  }).catch(()=>{});
+}
+
+function buildFrontier(){
+  const g=document.getElementById('f-grid');
+  ftasks.forEach(t=>{
+    const b=document.createElement('button');b.className='fb';
+    b.innerHTML=`<span class="tag ${t.s}">${t.s==='inside'?'✓':'⚠'}</span>${t.l}`;
+    b.onclick=()=>{
+      document.querySelectorAll('.fb').forEach(x=>x.classList.remove('inside','outside'));
+      b.classList.add(t.s);
+      const r=document.getElementById('f-result');r.style.display='block';r.className='f-result '+t.s;
+      const icon=t.s==='inside'?'ti-circle-check':'ti-alert-triangle';
+      const head=t.s==='inside'?'Inside the frontier':'Outside the frontier';
+      const detail=t.s==='inside'?'High-quality output is likely here. Review before using, but you can lean in.':'Error rate is significantly higher. Treat output as a rough draft and verify carefully.';
+      r.innerHTML=`<div class="f-result-head"><i class="ti ${icon}" aria-hidden="true" style="font-size:16px"></i>${head} — ${t.l}</div>${t.n} ${detail}`;
+      if(progDone<3)progDone=3;
+      updateProg();
+    };
+    g.appendChild(b);
+  });
+}
+
+function buildChecklist(){
+  const g=document.getElementById('cl-grid');
+  checks.forEach((ch,i)=>{
+    const c=document.createElement('div');c.className='cc';c.id='cc'+i;
+    c.innerHTML=`<div class="cc-top"><div class="cc-icon">${ch.e}</div><div class="cc-text"><div class="cn">${ch.n}</div><div class="cw">${ch.w}</div></div><div class="cbox" id="cb${i}"><i class="ti ti-check" aria-hidden="true" style="font-size:12px;display:none" id="cbx${i}"></i></div></div>`;
+    c.onclick=()=>{
+      const box=document.getElementById('cb'+i),chk=document.getElementById('cbx'+i);
+      if(checked.has(i)){checked.delete(i);c.classList.remove('checked');chk.style.display='none';}
+      else{checked.add(i);c.classList.add('checked');chk.style.display='block';}
+      if(3+checked.size>progDone)progDone=3+checked.size;
+      document.getElementById('complete').style.display=checked.size===checks.length?'flex':'none';
+      if(checked.size===checks.length)document.getElementById('complete').style.flexDirection='column';
+      updateProg();
+    };
+    g.appendChild(c);
+  });
+}
+
+buildRoles();buildFrontier();buildChecklist();updateProg();
 </script>
 
-</body>
 </html>
