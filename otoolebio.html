@@ -54,12 +54,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .sim-wrap{border-radius:16px;border:1px solid;overflow:hidden;flex-shrink:0;width:100%;box-shadow:0 18px 70px #00000055}
 .sim-wrap canvas{display:block;width:100%;height:auto;aspect-ratio:16/10}
 .ctrl-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.5}
-.ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.ctrl-row label{font-size:11px;opacity:.8}
-.ctrl-value{font-family:'DM Mono',monospace;font-size:10px;opacity:.75;min-width:42px;text-align:right}
+.ctrl-row{display:grid;grid-template-columns:minmax(112px,150px) minmax(140px,1fr) minmax(54px,auto);align-items:center;gap:10px;background:#061006;border:1px solid #1a3a1a;border-radius:11px;padding:8px 10px}
+.ctrl-row label{font-size:11px;opacity:.9;line-height:1.25}
+.ctrl-value{font-family:'DM Mono',monospace;font-size:10px;opacity:.85;min-width:54px;text-align:right}
 .ctrl-help{font-size:11px;line-height:1.55;color:#789878;background:#061006;border:1px solid #1a3a1a;border-radius:10px;padding:8px 10px}
-input[type=range]{flex:1;height:4px;-webkit-appearance:none;border-radius:2px;cursor:pointer;background:#1a3a1a}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;border:none;cursor:pointer}
+input[type=range]{width:100%;min-width:120px;height:8px;-webkit-appearance:none;appearance:none;border-radius:999px;cursor:pointer;background:#1a3a1a;outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:#173217}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;border:2px solid #071107;background:currentColor;cursor:pointer;margin-top:-5px;box-shadow:0 0 10px currentColor}
+input[type=range]::-moz-range-track{height:8px;border-radius:999px;background:#173217}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;border:2px solid #071107;background:currentColor;cursor:pointer;box-shadow:0 0 10px currentColor}
 .btn-row{display:flex;gap:6px;flex-wrap:wrap}
 .sim-btn{font-size:11px;border-radius:8px;padding:5px 10px;border:1px solid;cursor:pointer;background:none;font-family:'DM Sans',sans-serif;transition:opacity .15s}
 .sim-btn:hover{opacity:.7}
@@ -104,6 +107,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 @media(max-width:640px){
   .sim-wrap{max-height:none}
   .ov-left,.ov-right{padding:12px}
+  .ctrl-row{grid-template-columns:1fr;gap:6px}
+  .ctrl-value{text-align:left}
 }
 </style>
 </head>
@@ -614,6 +619,8 @@ function addSliderControl(leftPanel, cfg) {
   leftPanel.appendChild(row);
   const input = document.getElementById(cfg.id);
   input.style.accentColor = cfg.color;
+  input.style.color = cfg.color;
+  input.setAttribute('aria-label', cfg.label);
   const update = () => {
     const raw = Number(input.value);
     const display = cfg.display ? cfg.display(raw) : `${raw}${cfg.unit || ''}`;
@@ -848,7 +855,7 @@ function buildCell(canvas, color, preview, leftPanel) {
     lbl.className = 'ctrl-label'; lbl.textContent = 'Controls';
     leftPanel.appendChild(lbl);
 
-    addSliderControl(leftPanel, {id:'cell-speed', label:'Cycle Time', min:180, max:900, value:420, color, unit:'f', onInput:v=>phaseDur=v});
+    addSliderControl(leftPanel, {id:'cell-speed', label:'Reaction Speed', min:10, max:150, value:85, color, unit:'%', onInput:v=>phaseDur=Math.round(1040 - v*6)});
     addSliderControl(leftPanel, {id:'cell-damage', label:'DNA Damage', min:0, max:100, value:5, color, unit:'%', onInput:v=>dnaDamage=v/100});
     addSliderControl(leftPanel, {id:'cell-spindle', label:'Spindle Integrity', min:0, max:100, value:100, color, unit:'%', onInput:v=>spindleStrength=v/100});
 
@@ -1046,6 +1053,7 @@ function buildPhoto(canvas, color, preview, leftPanel) {
   let waterLevel = 0.75;
   let temperature = 25;
   let displayedRate = 0.18;
+  let reactionSpeed = 0.35;
   let showLabels = true;
 
   if (!preview && leftPanel) {
@@ -1054,6 +1062,7 @@ function buildPhoto(canvas, color, preview, leftPanel) {
     addSliderControl(leftPanel, {id:'photo-co2', label:'CO₂ Level', min:0, max:100, value:65, color, unit:'%', onInput:v=>co2Level=v/100});
     addSliderControl(leftPanel, {id:'photo-water', label:'Water', min:0, max:100, value:75, color:'#5cb8f5', unit:'%', onInput:v=>waterLevel=v/100});
     addSliderControl(leftPanel, {id:'photo-temp', label:'Temp', min:0, max:45, value:25, color:'#f5a623', unit:'°C', onInput:v=>temperature=v});
+    addSliderControl(leftPanel, {id:'photo-speed', label:'Reaction Speed', min:10, max:150, value:35, color, unit:'%', onInput:v=>reactionSpeed=v/100});
 
     const btnRow = document.createElement('div'); btnRow.className='btn-row';
     const lb = document.createElement('button');
@@ -1085,8 +1094,8 @@ function buildPhoto(canvas, color, preview, leftPanel) {
 
     const tempFactor = clampVal(1 - Math.abs(temperature - 25) / 25, 0, 1);
     const targetRate = lightLevel * co2Level * waterLevel * tempFactor;
-    displayedRate = easeVal(displayedRate, targetRate, preview ? 0.025 : 0.012);
-    const speed = displayedRate * 0.55 + 0.06;
+    displayedRate = easeVal(displayedRate, targetRate, preview ? 0.025 : 0.004 + reactionSpeed * 0.025);
+    const speed = displayedRate * (0.25 + reactionSpeed * 0.9) + 0.03;
     const cx = W*0.5, cy = H*0.52;
 
     // Sky bg gradient
@@ -1179,7 +1188,7 @@ function buildPhoto(canvas, color, preview, leftPanel) {
         {label:'light', value:lightLevel}, {label:'CO₂', value:co2Level}, {label:'water', value:waterLevel}, {label:'temperature', value:tempFactor}
       ]);
       const info=document.getElementById('photo-info');
-      if(info) info.innerHTML=`<strong style="color:${color}">Reaction rate: ${Math.round(displayedRate*100)}%</strong><br>Limiting factor: <strong>${limiting}</strong><br><span style="color:#5a8a5a">Results ease in slowly after each variable change.</span>`;
+      if(info) info.innerHTML=`<strong style="color:${color}">Reaction rate: ${Math.round(displayedRate*100)}%</strong><br>Limiting factor: <strong>${limiting}</strong><br>Reaction speed: ${Math.round(reactionSpeed*100)}%<br><span style="color:#5a8a5a">Results ease in slowly after each variable change.</span>`;
       ctx.fillStyle='#3a6a3a'; ctx.font=`9px 'DM Mono',monospace`; ctx.textAlign='center';
       ctx.fillText(`Rate ${Math.round(displayedRate*100)}% · 6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂`, W/2, H-6);
     }
@@ -1189,7 +1198,7 @@ function buildPhoto(canvas, color, preview, leftPanel) {
   draw();
   return {
     stop: () => { running=false; },
-    getState: () => ({ lightLevel, co2Level, waterLevel, temperature, reactionRate: displayedRate, showLabels })
+    getState: () => ({ lightLevel, co2Level, waterLevel, temperature, reactionRate: displayedRate, reactionSpeed, showLabels })
   };
 }
 
@@ -1205,6 +1214,7 @@ function buildGenetics(canvas, color, preview, leftPanel) {
   let mutationChance = 0.05;
   let revealQueue = false;
   let revealTimer = 0;
+  let revealSpeed = 0.35;
   let revealed = [false,false,false,false];
 
   const crosses = [
@@ -1227,6 +1237,7 @@ function buildGenetics(canvas, color, preview, leftPanel) {
     leftPanel.appendChild(btnRow);
 
     addSliderControl(leftPanel, {id:'gen-mutation', label:'Mutation Chance', min:0, max:50, value:5, color:'#e05c5c', unit:'%', onInput:v=>mutationChance=v/100});
+    addSliderControl(leftPanel, {id:'gen-speed', label:'Reaction Speed', min:10, max:150, value:35, color, unit:'%', onInput:v=>revealSpeed=v/100});
     const revBtn=document.createElement('button');
     revBtn.className='sim-btn'; revBtn.textContent='Reveal All Slowly';
     revBtn.style.cssText=`color:${color};border-color:${color}50;margin-top:6px`;
@@ -1241,7 +1252,7 @@ function buildGenetics(canvas, color, preview, leftPanel) {
   function draw() {
     if (!running) return;
     animFrame++;
-    if(revealQueue){ revealTimer++; if(revealTimer >= 35){ revealTimer=0; const next=revealed.findIndex(v=>!v); if(next>=0) revealed[next]=true; else revealQueue=false; } }
+    if(revealQueue){ revealTimer++; const revealDelay = Math.max(10, Math.round(90 - revealSpeed * 52)); if(revealTimer >= revealDelay){ revealTimer=0; const next=revealed.findIndex(v=>!v); if(next>=0) revealed[next]=true; else revealQueue=false; } }
     ctx.clearRect(0,0,W,H);
     const cross = crosses[crossIdx];
     const pad = preview?10:20;
@@ -1255,7 +1266,7 @@ function buildGenetics(canvas, color, preview, leftPanel) {
       if(info){
         const dom=cross.cells.filter((_,i)=>cross.dominant[i]).length;
         const rec=4-dom;
-        info.innerHTML=`<strong style="color:${color}">${cross.p1} × ${cross.p2}</strong><br>Dominant: ${dom}/4 (${dom*25}%)<br>Recessive: ${rec}/4 (${rec*25}%)<br><span style="color:${mutationChance>0.1?'#e05c5c':'#7ecf3f'}">Mutation chance: ${Math.round(mutationChance*100)}%</span>`;
+        info.innerHTML=`<strong style="color:${color}">${cross.p1} × ${cross.p2}</strong><br>Dominant: ${dom}/4 (${dom*25}%)<br>Recessive: ${rec}/4 (${rec*25}%)<br><span style="color:${mutationChance>0.1?'#e05c5c':'#7ecf3f'}">Mutation chance: ${Math.round(mutationChance*100)}%</span><br><span style="color:#5a8a5a">Reveal speed: ${Math.round(revealSpeed*100)}%</span>`;
       }
     }
 
@@ -1342,7 +1353,8 @@ function buildGenetics(canvas, color, preview, leftPanel) {
       crossLabel: crosses[crossIdx].p1 + ' × ' + crosses[crossIdx].p2,
       revealedCount: revealed.filter(Boolean).length,
       dominantCount: crosses[crossIdx].dominant.filter(Boolean).length,
-      mutationChance
+      mutationChance,
+      revealSpeed
     })
   };
 }
@@ -1409,15 +1421,11 @@ function buildEvolution(canvas, color, preview, leftPanel) {
     });
     leftPanel.appendChild(envBtns);
 
-    const spRow=document.createElement('div'); spRow.className='ctrl-row';
-    spRow.innerHTML=`<label>Selection Pressure</label><input type="range" min="0" max="100" value="70" id="evo-sp">`;
-    leftPanel.appendChild(spRow);
-    document.getElementById('evo-sp').style.accentColor=color;
-    document.getElementById('evo-sp').oninput=e=>selectionPressure=e.target.value/100;
+    addSliderControl(leftPanel, {id:'evo-sp', label:'Selection Pressure', min:0, max:100, value:70, color, unit:'%', onInput:v=>selectionPressure=v/100});
 
     addSliderControl(leftPanel, {id:'evo-pred', label:'Predator Accuracy', min:0, max:100, value:65, color:'#f5a623', unit:'%', onInput:v=>predatorAccuracy=v/100});
     addSliderControl(leftPanel, {id:'evo-start', label:'Starting Dark', min:0, max:100, value:10, color, unit:'%', onInput:v=>{ startingDark=v/100; generation=0; initPop(startingDark); }});
-    addSliderControl(leftPanel, {id:'evo-speed', label:'Generation Pace', min:160, max:700, value:260, color, unit:'f', onInput:v=>genDur=v});
+    addSliderControl(leftPanel, {id:'evo-speed', label:'Reaction Speed', min:10, max:150, value:90, color, unit:'%', onInput:v=>genDur=Math.round(880 - v*5)});
 
     const btnRow=document.createElement('div'); btnRow.className='btn-row';
     ['Next Gen','Pause/Run','Reset'].forEach((lbl2,i)=>{
@@ -1517,6 +1525,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
   let producerHealth = 0.8;
   let decomposerRate = 0.6;
   let ecosystemStability = 0.5;
+  let flowSpeed = 0.35;
 
   const levels=[
     {name:'Producers',icon:'🌿',energy:1000,color:'#7ecf3f',examples:'Grass, algae, trees'},
@@ -1541,6 +1550,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
     addSliderControl(leftPanel, {id:'eco-sun', label:'Sun Energy', min:0, max:100, value:85, color:'#ffd700', unit:'%', onInput:v=>sunEnergy=v/100});
     addSliderControl(leftPanel, {id:'eco-prod', label:'Producer Health', min:0, max:100, value:80, color:'#7ecf3f', unit:'%', onInput:v=>producerHealth=v/100});
     addSliderControl(leftPanel, {id:'eco-decomp', label:'Decomposer Recycling', min:0, max:100, value:60, color:'#c472f5', unit:'%', onInput:v=>decomposerRate=v/100});
+    addSliderControl(leftPanel, {id:'eco-speed', label:'Reaction Speed', min:10, max:150, value:35, color, unit:'%', onInput:v=>flowSpeed=v/100});
 
     const lbl2=document.createElement('div'); lbl2.className='ctrl-label'; lbl2.textContent='Legend'; leftPanel.appendChild(lbl2);
     const keyBox=document.createElement('div'); keyBox.className='key-box';
@@ -1596,7 +1606,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
     const levelH=preview?(H-20)/4:(H-30)/4;
     const maxW=preview?W-16:W-36;
 
-    ecosystemStability = easeVal(ecosystemStability, sunEnergy * producerHealth * (0.55 + decomposerRate * 0.45), preview ? 0.025 : 0.012);
+    ecosystemStability = easeVal(ecosystemStability, sunEnergy * producerHealth * (0.55 + decomposerRate * 0.45), preview ? 0.025 : 0.004 + flowSpeed * 0.025);
 
     ctx.fillStyle='#050e05'; ctx.fillRect(0,0,W,H);
 
@@ -1617,7 +1627,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
 
       // Energy flow animation
       if(showEnergy && i<3){
-        const t=(frame*(0.006+ecosystemStability*0.012)+i*0.3)%1;
+        const t=(frame*(0.002 + flowSpeed*(0.006+ecosystemStability*0.012))+i*0.3)%1;
         const ey=y+levelH/2;
         const ex=x+w/2+Math.sin(frame*0.05+i)*20;
         ctx.save();
@@ -1633,7 +1643,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
         ctx.fillStyle=l.color; ctx.font=`bold 11px 'Playfair Display',serif`; ctx.textAlign='center';
         ctx.fillText(l.name.replace('\n',' '), W/2, y+levelH*0.38);
         ctx.fillStyle=l.color+'99'; ctx.font=`9px 'DM Mono',monospace`;
-        const liveEnergy = Math.max(0.1, l.baseEnergy * Math.pow(ecosystemStability, i+1));
+        const liveEnergy = Math.max(0.1, l.energy * Math.pow(ecosystemStability, i+1));
         ctx.fillText(`${Math.round(liveEnergy).toLocaleString()} kcal`, W/2, y+levelH*0.38+13);
         ctx.fillStyle='#6a9a6a'; ctx.font=`8px 'DM Mono',monospace`;
         ctx.fillText(l.examples, W/2, y+levelH*0.38+24);
@@ -1668,7 +1678,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
       ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y); ctx.stroke();
       // Animated energy dot
-      const t=(frame*(0.004+ecosystemStability*0.008)+a*0.2)%1;
+      const t=(frame*(0.002 + flowSpeed*(0.004+ecosystemStability*0.008))+a*0.2)%1;
       const ex=na.x+(nb.x-na.x)*t, ey=na.y+(nb.y-na.y)*t;
       ctx.fillStyle=`rgba(92,184,245,${pulse*0.8})`;
       ctx.beginPath(); ctx.arc(ex,ey,2,0,Math.PI*2); ctx.fill();
@@ -1695,7 +1705,7 @@ function buildEcology(canvas, color, preview, leftPanel) {
   draw();
   return {
     stop:()=>{ running=false; },
-    getState:()=>({ viewMode, showEnergy, sunEnergy, producerHealth, decomposerRate, ecosystemStability })
+    getState:()=>({ viewMode, showEnergy, sunEnergy, producerHealth, decomposerRate, ecosystemStability, flowSpeed })
   };
 }
 
@@ -1731,11 +1741,7 @@ function buildDNA(canvas, color, preview, leftPanel) {
     });
     leftPanel.appendChild(btnRow);
 
-    const spRow=document.createElement('div'); spRow.className='ctrl-row';
-    spRow.innerHTML=`<label>Speed</label><input type="range" min="10" max="100" value="35" id="dna-speed"><span class="ctrl-value" id="dna-speed-val">35%</span>`;
-    leftPanel.appendChild(spRow);
-    document.getElementById('dna-speed').style.accentColor=color;
-    document.getElementById('dna-speed').oninput=e=>{ speed=e.target.value/100; document.getElementById('dna-speed-val').textContent=e.target.value+'%'; };
+    addSliderControl(leftPanel, {id:'dna-speed', label:'Reaction Speed', min:10, max:150, value:35, color, unit:'%', onInput:v=>speed=v/100});
     addSliderControl(leftPanel, {id:'dna-mutation', label:'Mutation Rate', min:0, max:50, value:5, color:'#e05c5c', unit:'%', onInput:v=>mutationRate=v/100});
     addSliderControl(leftPanel, {id:'dna-accuracy', label:'Enzyme Accuracy', min:50, max:100, value:95, color, unit:'%', onInput:v=>enzymeAccuracy=v/100});
 
@@ -1994,11 +2000,7 @@ function buildRespiration(canvas, color, preview, leftPanel) {
     });
     leftPanel.appendChild(btnRow);
 
-    const spRow = document.createElement('div'); spRow.className = 'ctrl-row';
-    spRow.innerHTML = `<label>Animation Pace</label><input type="range" min="10" max="100" value="35" id="resp-speed"><span class="ctrl-value" id="resp-speed-val">35%</span>`;
-    leftPanel.appendChild(spRow);
-    document.getElementById('resp-speed').style.accentColor = color;
-    document.getElementById('resp-speed').oninput = e => { speed = e.target.value / 100; document.getElementById('resp-speed-val').textContent = e.target.value + '%'; };
+    addSliderControl(leftPanel, {id:'resp-speed', label:'Reaction Speed', min:10, max:150, value:35, color, unit:'%', onInput:v=>speed=v/100});
     addSliderControl(leftPanel, {id:'resp-o2', label:'Oxygen', min:0, max:100, value:80, color:'#5cb8f5', unit:'%', onInput:v=>oxygenLevel=v/100});
     addSliderControl(leftPanel, {id:'resp-glucose', label:'Glucose', min:0, max:100, value:80, color:'#f5a623', unit:'%', onInput:v=>glucoseLevel=v/100});
     addSliderControl(leftPanel, {id:'resp-demand', label:'ATP Demand', min:0, max:100, value:55, color:'#e05c5c', unit:'%', onInput:v=>activityDemand=v/100});
@@ -2372,6 +2374,7 @@ function buildBody(canvas, color, preview, leftPanel) {
   let hydration = 0.75;
   let nerveStimulus = 0.45;
   let filtrationRate = 0.7;
+  let reactionSpeed = 0.6;
   let zoom = 1;
 
   if (!preview && leftPanel) {
@@ -2385,16 +2388,13 @@ function buildBody(canvas, color, preview, leftPanel) {
     });
     leftPanel.appendChild(btnRow);
 
-    const hrRow = document.createElement('div'); hrRow.className = 'ctrl-row';
-    hrRow.innerHTML = `<label>Heart Rate</label><input type="range" min="40" max="180" value="70" id="body-hr">`;
-    leftPanel.appendChild(hrRow);
-    document.getElementById('body-hr').style.accentColor = color;
-    document.getElementById('body-hr').oninput = e => heartRate = +e.target.value;
+    addSliderControl(leftPanel, {id:'body-hr', label:'Heart Rate', min:40, max:180, value:70, color, unit:' bpm', onInput:v=>heartRate=v});
 
     addSliderControl(leftPanel, {id:'body-o2', label:'O₂ Saturation', min:80, max:100, value:98, color:'#5cb8f5', unit:'%', onInput:v=>oxygenSat=v});
     addSliderControl(leftPanel, {id:'body-hydration', label:'Hydration', min:0, max:100, value:75, color:'#40e0c0', unit:'%', onInput:v=>hydration=v/100});
     addSliderControl(leftPanel, {id:'body-nerve', label:'Nerve Stimulus', min:0, max:100, value:45, color:'#ffd700', unit:'%', onInput:v=>nerveStimulus=v/100});
     addSliderControl(leftPanel, {id:'body-filter', label:'Filtration Rate', min:0, max:100, value:70, color, unit:'%', onInput:v=>filtrationRate=v/100});
+    addSliderControl(leftPanel, {id:'body-speed', label:'Reaction Speed', min:10, max:150, value:60, color, unit:'%', onInput:v=>reactionSpeed=v/100});
 
     const info = document.createElement('div'); info.className = 'info-box'; info.id = 'body-info';
     info.style.cssText = `border-color:${color}30`; leftPanel.appendChild(info);
@@ -2414,14 +2414,25 @@ function buildBody(canvas, color, preview, leftPanel) {
   function drawHeart() {
     const cx = W / 2, cy = H * 0.46;
     const bps = heartRate / 60;
-    const beat = Math.sin(frame * 0.035 * bps * Math.PI);
-    const beatScale = 1 + Math.max(0, beat) * 0.08;
+    const beat = Math.sin(frame * 0.035 * bps * Math.PI * reactionSpeed);
+    const beatPulse = Math.max(0, beat);
+    const beatScale = 1 + beatPulse * 0.16;
     const isBeating = beat > 0;
 
     if (!preview) {
       const info = document.getElementById('body-info');
-      if (info) info.innerHTML = `<strong style="color:${color}">Heart Rate: ${heartRate} bpm</strong><br>${heartRate < 60 ? 'Bradycardia (slow)' : heartRate > 100 ? 'Tachycardia (fast)' : 'Normal sinus rhythm'}<br><span style="color:${oxygenSat<94||hydration<0.6?'#e05c5c':'#7ecf3f'}">O₂ ${oxygenSat}% · Hydration ${Math.round(hydration*100)}%</span>`;
+      if (info) info.innerHTML = `<strong style="color:${color}">Heart Rate: ${heartRate} bpm</strong><br>${heartRate < 60 ? 'Bradycardia (slow)' : heartRate > 100 ? 'Tachycardia (fast)' : 'Normal sinus rhythm'}<br><span style="color:${oxygenSat<94||hydration<0.6?'#e05c5c':'#7ecf3f'}">O₂ ${oxygenSat}% · Hydration ${Math.round(hydration*100)}%</span><br><span style="color:#5a8a5a">Reaction speed: ${Math.round(reactionSpeed*100)}%</span>`;
     }
+
+    // Big beat halo so the heart is easy to read from across the room
+    ctx.save();
+    ctx.globalAlpha = 0.18 + beatPulse * 0.28;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(cx, cy - 10, preview ? 38 : 120 + beatPulse * 22, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color + '55'; ctx.lineWidth = preview ? 1 : 3;
+    ctx.beginPath(); ctx.arc(cx, cy - 10, preview ? 44 : 138 + beatPulse * 32, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
 
     // Blood vessels (aorta, pulmonary)
     ctx.save();
@@ -2431,7 +2442,7 @@ function buildBody(canvas, color, preview, leftPanel) {
     ctx.beginPath(); ctx.moveTo(cx - 18, cy - 28); ctx.bezierCurveTo(cx - 50, cy - 65, cx - 85, cy - 35, cx - 80, cy - 5); ctx.stroke(); // pulmonary
 
     // Animated blood flow
-    const flowT = (frame * 0.007 * bps * (oxygenSat/100) * hydration) % 1;
+    const flowT = (frame * 0.007 * bps * reactionSpeed * (oxygenSat/100) * hydration) % 1;
     ctx.globalAlpha = isBeating ? 0.9 : 0.3;
     ctx.fillStyle = '#cc3333';
     ctx.beginPath(); ctx.arc(cx + 18 + flowT * 62, cy - 30 - flowT * 20, 4, 0, Math.PI * 2); ctx.fill();
@@ -2443,7 +2454,8 @@ function buildBody(canvas, color, preview, leftPanel) {
     // Heart body
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.scale(beatScale, beatScale);
+    const heartZoom = preview ? 1 : 2.05;
+    ctx.scale(beatScale * heartZoom, beatScale * heartZoom);
     const heartPath = new Path2D();
     heartPath.moveTo(0, 20);
     heartPath.bezierCurveTo(-50, -10, -50, -50, -20, -50);
@@ -2455,7 +2467,7 @@ function buildBody(canvas, color, preview, leftPanel) {
     grad.addColorStop(1, '#880022');
     ctx.fillStyle = grad;
     ctx.fill(heartPath);
-    ctx.strokeStyle = color + '60'; ctx.lineWidth = 1.5; ctx.stroke(heartPath);
+    ctx.strokeStyle = color; ctx.lineWidth = preview ? 1.5 : 3; ctx.stroke(heartPath);
 
     // Chambers
     ctx.strokeStyle = '#ff446640'; ctx.lineWidth = 1;
@@ -2473,10 +2485,10 @@ function buildBody(canvas, color, preview, leftPanel) {
     // ECG trace at bottom
     if (!preview) {
       const ecgY = H * 0.87;
-      ctx.strokeStyle = color + '80'; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = color; ctx.lineWidth = 3;
       ctx.beginPath();
       for (let x = 0; x < W; x++) {
-        const t = ((x / W) + frame * 0.004 * bps) % 1;
+        const t = ((x / W) + frame * 0.004 * bps * reactionSpeed) % 1;
         let y = 0;
         if (t < 0.1) y = Math.sin(t / 0.1 * Math.PI) * 4; // P wave
         else if (t < 0.35) y = 0;
@@ -2488,14 +2500,15 @@ function buildBody(canvas, color, preview, leftPanel) {
         else ctx.lineTo(x, ecgY - y);
       }
       ctx.stroke();
-      ctx.fillStyle = color + '60'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'left';
-      ctx.fillText('ECG', 5, ecgY - 22);
+      ctx.fillStyle = color; ctx.font = 'bold 10px DM Mono,monospace'; ctx.textAlign = 'left';
+      ctx.fillText('ECG', 8, ecgY - 30);
+      ctx.fillText(`${heartRate} bpm`, 8, ecgY + 36);
     }
   }
 
   function drawNeuron() {
     const cx = W / 2, cy = H / 2;
-    const sigT = (frame * (0.003 + nerveStimulus * 0.008)) % 1;
+    const sigT = (frame * reactionSpeed * (0.003 + nerveStimulus * 0.008)) % 1;
 
     // Dendrites (left)
     const dendrites = [[-0.25, -0.22], [-0.25, 0], [-0.25, 0.22]];
@@ -2627,7 +2640,7 @@ function buildBody(canvas, color, preview, leftPanel) {
   draw();
   return {
     stop: () => { running = false; },
-    getState: () => ({ viewMode, heartRate, oxygenSat, hydration, nerveStimulus, filtrationRate })
+    getState: () => ({ viewMode, heartRate, oxygenSat, hydration, nerveStimulus, filtrationRate, reactionSpeed })
   };
 }
 
@@ -2644,6 +2657,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
   let nutrientLevel = 0.85;
   let incubationTemp = 37;
   let immuneStrength = 0.6;
+  let reactionSpeed = 0.35;
   let bacteria = [];
   let growthData = [];
   let phase = 0; // 0=lag,1=log,2=stationary,3=death
@@ -2685,6 +2699,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
     addSliderControl(leftPanel, {id:'micro-temp', label:'Incubation Temp', min:5, max:50, value:37, color:'#f5a623', unit:'°C', onInput:v=>incubationTemp=v});
     addSliderControl(leftPanel, {id:'micro-dose', label:'Antibiotic Dose', min:0, max:100, value:75, color:'#e05c5c', unit:'%', onInput:v=>antibioticDose=v/100});
     addSliderControl(leftPanel, {id:'micro-immune', label:'Immune Strength', min:0, max:100, value:60, color, unit:'%', onInput:v=>immuneStrength=v/100});
+    addSliderControl(leftPanel, {id:'micro-speed', label:'Reaction Speed', min:10, max:150, value:35, color, unit:'%', onInput:v=>reactionSpeed=v/100});
 
     const info = document.createElement('div'); info.className = 'info-box'; info.id = 'micro-info';
     info.style.cssText = `border-color:${color}30`; leftPanel.appendChild(info);
@@ -2716,16 +2731,16 @@ function buildMicro(canvas, color, preview, leftPanel) {
     // Update phase
     const tempFactor = clampVal(1 - Math.abs(incubationTemp - 37) / 32, 0, 1);
     const growthFactor = nutrientLevel * tempFactor;
-    phaseTimer += preview ? 1 : (0.28 + growthFactor * 0.25);
+    phaseTimer += preview ? 1 : (0.18 + growthFactor * 0.22) * reactionSpeed;
     if (antibioticApplied && antibioticDose > 0.65 && phase < 3 && phaseTimer > phaseDur[phase] * 0.45) { phase = Math.max(phase, 3); phaseTimer = 0; }
     else if (phaseTimer >= phaseDur[phase] && phase < 3) { phase++; phaseTimer = 0; }
 
     // Update bacteria
-    if (phase === 1 && bacteria.length < 40 && frame % Math.max(20, Math.round(90 - nutrientLevel*45 - tempFactor*25)) === 0) {
+    if (phase === 1 && bacteria.length < 40 && frame % Math.max(28, Math.round((120 - nutrientLevel*45 - tempFactor*25) / Math.max(0.25, reactionSpeed))) === 0) {
       const parent = bacteria[Math.floor(Math.random() * bacteria.length)];
       if (parent && !parent.dead) bacteria.push({x: parent.x + (Math.random()-0.5)*20, y: parent.y+(Math.random()-0.5)*20, angle: Math.random()*Math.PI*2, size: 6+Math.random()*4, dividing: false, divT:0, dead:false});
     }
-    if ((phase === 3 || antibioticApplied) && frame % Math.max(10, Math.round(48 - antibioticDose*28)) === 0 && bacteria.length > 1) {
+    if ((phase === 3 || antibioticApplied) && frame % Math.max(12, Math.round((62 - antibioticDose*30) / Math.max(0.25, reactionSpeed))) === 0 && bacteria.length > 1) {
       const idx = Math.floor(Math.random() * bacteria.length);
       bacteria[idx].dead = true;
       if (frame % 96 === 0) bacteria = bacteria.filter(b => !b.dead || Math.random() > antibioticDose*0.35);
@@ -2737,8 +2752,8 @@ function buildMicro(canvas, color, preview, leftPanel) {
     // Draw bacteria
     bacteria.forEach(b => {
       if (b.dead) { ctx.globalAlpha = 0.2; }
-      b.x += Math.cos(b.angle) * 0.3;
-      b.y += Math.sin(b.angle) * 0.2;
+      b.x += Math.cos(b.angle) * 0.3 * reactionSpeed;
+      b.y += Math.sin(b.angle) * 0.2 * reactionSpeed;
       if (b.x < 10 || b.x > W - 10) b.angle = Math.PI - b.angle;
       if (b.y < H * 0.15 || b.y > H * 0.75) b.angle = -b.angle;
 
@@ -2769,7 +2784,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
       ctx.fillText(phaseNames[phase], W / 2, chartY - 4);
 
       const info = document.getElementById('micro-info');
-      if (info) info.innerHTML = `<strong style="color:${phaseColors[phase]}">${phaseNames[phase]}</strong><br>${phaseDesc[phase]}<br><span style="color:#5a8a5a">Population: ${bacteria.filter(b=>!b.dead).length}</span><br><span style="color:${antibioticApplied?'#e05c5c':'#7ecf3f'}">Dose ${Math.round(antibioticDose*100)}% · Nutrients ${Math.round(nutrientLevel*100)}% · Temp ${incubationTemp}°C</span>`;
+      if (info) info.innerHTML = `<strong style="color:${phaseColors[phase]}">${phaseNames[phase]}</strong><br>${phaseDesc[phase]}<br><span style="color:#5a8a5a">Population: ${bacteria.filter(b=>!b.dead).length}</span><br><span style="color:${antibioticApplied?'#e05c5c':'#7ecf3f'}">Dose ${Math.round(antibioticDose*100)}% · Nutrients ${Math.round(nutrientLevel*100)}% · Temp ${incubationTemp}°C</span><br><span style="color:#5a8a5a">Reaction speed: ${Math.round(reactionSpeed*100)}%</span>`;
     } else {
       ctx.fillStyle = phaseColors[phase]; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
       ctx.fillText(phaseNames[phase], W/2, H * 0.9);
@@ -2777,7 +2792,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
   }
 
   function drawLytic() {
-    virusTimer++;
+    virusTimer += preview ? 1 : reactionSpeed;
     if (virusTimer >= virusDur) { virusTimer = 0; virusStep = (virusStep + 1) % 6; }
     const t = virusTimer / virusDur;
 
@@ -2874,7 +2889,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
   }
 
   function drawImmune() {
-    const waveT = (frame * (0.002 + immuneStrength * 0.006)) % 1;
+    const waveT = (frame * reactionSpeed * (0.002 + immuneStrength * 0.006)) % 1;
     const cx = W / 2, cy = H / 2;
 
     // Pathogen (antigen)
@@ -2904,7 +2919,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
     ctx.fillText('B', bcX, bcY+3);
     // Antibodies flying
     for (let a = 0; a < 4; a++) {
-      const at = (frame*(0.004 + immuneStrength*0.01) + a*0.25) % 1;
+      const at = (frame*reactionSpeed*(0.004 + immuneStrength*0.01) + a*0.25) % 1;
       const ax = bcX + at*(pathX - bcX)*0.8, ay = bcY + at*(cy-H*0.1 - bcY)*0.8;
       ctx.strokeStyle = '#5cb8f5'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(ax-5,ay); ctx.lineTo(ax+5,ay);
@@ -2940,7 +2955,7 @@ function buildMicro(canvas, color, preview, leftPanel) {
   draw();
   return {
     stop: () => { running = false; },
-    getState: () => ({ viewMode, antibioticApplied, antibioticDose, nutrientLevel, incubationTemp, immuneStrength, phase, phaseName: phaseNames[phase], virusStep })
+    getState: () => ({ viewMode, antibioticApplied, antibioticDose, nutrientLevel, incubationTemp, immuneStrength, reactionSpeed, phase, phaseName: phaseNames[phase], virusStep })
   };
 }
 
