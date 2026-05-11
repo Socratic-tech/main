@@ -97,7 +97,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="hero">
     <div class="hero-label">Biology Explorer · The Living Lab</div>
     <h1>Explore. Interact.<br><em style="font-style:italic">Understand.</em></h1>
-    <p>Six interactive simulations covering the core topics of biology — built for students, powered by real science.</p>
+    <p>Seven interactive simulations covering the core topics of biology — built for students, powered by real science.</p>
   </div>
   <div class="grid" id="grid"></div>
   <div class="footer">INTERACTIVE BIOLOGY SIMULATIONS · NO LOGIN REQUIRED</div>
@@ -158,6 +158,12 @@ const MODULES = [
     color:'#c472f5', bg:'#0f0018', borderColor:'#c472f530',
     tags:['DNA','mRNA','Codons','Ribosomes'],
     build: buildDNA
+  },
+  {
+    id:'respiration', icon:'⚡', title:'Cellular Respiration', sub:'Glycolysis, Krebs & ETC',
+    color:'#ff7b3f', bg:'#1a0800', borderColor:'#ff7b3f30',
+    tags:['ATP','Glycolysis','Krebs Cycle','Mitochondria'],
+    build: buildRespiration
   }
 ];
 
@@ -200,6 +206,12 @@ const QUIZZES = {
     {q:"What is the central dogma of molecular biology?",opts:["Protein → RNA → DNA","DNA → Protein → RNA","DNA → RNA → Protein","RNA → DNA → Protein"],ans:2,exp:"The central dogma: DNA is transcribed into mRNA, which is translated into protein. DNA → mRNA (transcription in nucleus) → Protein (translation at ribosomes)."},
     {q:"Where does transcription occur in eukaryotic cells?",opts:["Cytoplasm","Ribosome","Nucleus","Mitochondria"],ans:2,exp:"Transcription (DNA → mRNA) occurs in the nucleus, where RNA polymerase reads the DNA template. The mRNA then exits through nuclear pores to be translated at ribosomes in the cytoplasm."},
     {q:"What is a codon?",opts:["A single nitrogen base","A sequence of two bases on tRNA","A sequence of three mRNA bases that codes for one amino acid","The entire mRNA molecule"],ans:3,exp:"A codon is a triplet of three mRNA nucleotides that specifies a particular amino acid (or start/stop signal). There are 64 possible codons for 20 amino acids, making the genetic code redundant."},
+  ],
+  respiration:[
+    {q:"What is the overall equation for cellular respiration?",opts:["C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP","6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂","ATP + O₂ → CO₂ + glucose","C₆H₁₂O₆ → 2 pyruvate + 2 ATP"],ans:0,exp:"Cellular respiration: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ~36–38 ATP. It is the reverse of photosynthesis, releasing the chemical energy stored in glucose as usable ATP."},
+    {q:"Where does glycolysis occur?",opts:["Mitochondrial matrix","Inner mitochondrial membrane","Nucleus","Cytoplasm (cytosol)"],ans:3,exp:"Glycolysis occurs in the cytoplasm (cytosol) — it does NOT require a mitochondrion, which is why even prokaryotes (which lack mitochondria) can perform glycolysis. It splits glucose into 2 pyruvate molecules, producing a net gain of 2 ATP."},
+    {q:"How many ATP molecules does glycolysis produce (net)?",opts:["0","2","10","34"],ans:1,exp:"Glycolysis produces 4 ATP total but uses 2 ATP to start, giving a net gain of 2 ATP. It also produces 2 NADH. The pyruvate products then enter the mitochondria for the Krebs cycle (in aerobic conditions)."},
+    {q:"Where does the Electron Transport Chain (ETC) occur?",opts:["Cytoplasm","Mitochondrial matrix","Inner mitochondrial membrane","Outer mitochondrial membrane"],ans:2,exp:"The ETC is embedded in the inner mitochondrial membrane. Electrons from NADH and FADH₂ pass through protein complexes, pumping H⁺ ions across the membrane. This drives ATP synthase to produce ~32–34 ATP via chemiosmosis."},
   ],
 };
 
@@ -319,6 +331,14 @@ const CONTENT = {
       {title:'DNA Structure', body:'DNA is a double helix made of nucleotides. Each nucleotide has a sugar (deoxyribose), a phosphate group, and a nitrogenous base. Base pairing rules: <strong>A–T</strong> (2 hydrogen bonds) and <strong>G–C</strong> (3 hydrogen bonds). The strands are antiparallel (5′→3′ and 3′→5′).'},
       {title:'Transcription (DNA → mRNA)', body:'Occurs in the nucleus. RNA polymerase unwinds the DNA double helix and reads the template strand 3′→5′, building mRNA 5′→3′. The mRNA sequence is complementary to the template strand (with U replacing T). The mRNA then travels to ribosomes.'},
       {title:'Translation (mRNA → Protein)', body:'At the ribosome, tRNA molecules bring amino acids matching each mRNA codon (3-base sequence). The ribosome moves along the mRNA reading codons. A polypeptide chain builds until a stop codon (UAA, UAG, or UGA) is reached. AUG (methionine) is the universal start codon.'},
+    ]
+  },
+  respiration:{
+    sections:[
+      {title:'Overview', body:'Cellular respiration breaks down glucose to release ATP (usable energy). Overall equation: <strong>C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ~36–38 ATP</strong>. It is the reverse of photosynthesis. Three stages: Glycolysis → Krebs Cycle → Electron Transport Chain.'},
+      {title:'Stage 1 — Glycolysis (Cytoplasm)', body:'<ul><li>Glucose (6C) is split into <strong>2 pyruvate</strong> (3C each)</li><li>Location: <strong>cytoplasm</strong> (no mitochondria needed)</li><li>Net yield: <strong>2 ATP</strong> + 2 NADH</li><li>Occurs in ALL living cells — aerobic and anaerobic</li></ul>'},
+      {title:'Stage 2 — Krebs Cycle (Matrix)', body:'<ul><li>Pyruvate enters the mitochondrial matrix, converted to Acetyl-CoA</li><li>Each turn produces: <strong>1 ATP</strong>, 3 NADH, 1 FADH₂, 2 CO₂</li><li>2 turns per glucose → <strong>2 ATP</strong> total from Krebs</li><li>CO₂ is released as waste — this is what you exhale</li></ul>'},
+      {title:'Stage 3 — Electron Transport Chain (Inner Membrane)', body:'<ul><li>NADH and FADH₂ donate electrons to protein complexes in the <strong>inner mitochondrial membrane</strong></li><li>H⁺ ions are pumped across the membrane, then flow back through <strong>ATP synthase</strong> (chemiosmosis)</li><li>O₂ is the final electron acceptor → forms H₂O</li><li>Yield: <strong>~32–34 ATP</strong> — the big payoff!</li></ul>'},
     ]
   }
 };
@@ -1448,6 +1468,400 @@ function buildDNA(canvas, color, preview, leftPanel) {
 
   draw();
   return { stop:()=>{ running=false; } };
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: CELLULAR RESPIRATION
+// ══════════════════════════════════════════════
+function buildRespiration(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let running = true, frame = 0;
+  let viewMode = 'overview'; // 'overview' | 'glycolysis' | 'krebs' | 'etc'
+  let speed = 1;
+
+  // ATP counter (animated)
+  let atpDisplayed = 0;
+  const atpByStage = { glycolysis: 2, krebs: 2, etc: 34 };
+
+  // Particles for ETC
+  const etcParticles = Array.from({ length: 20 }, (_, i) => ({
+    x: Math.random() * W, y: Math.random() * H * 0.4 + H * 0.3,
+    type: i < 8 ? 'electron' : i < 14 ? 'hplus' : 'atp',
+    vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 0.6,
+    phase: Math.random() * Math.PI * 2, size: 4 + Math.random() * 3
+  }));
+
+  if (!preview && leftPanel) {
+    const lbl = document.createElement('div'); lbl.className = 'ctrl-label'; lbl.textContent = 'View Mode'; leftPanel.appendChild(lbl);
+    const btnRow = document.createElement('div'); btnRow.className = 'btn-row'; btnRow.style.flexDirection = 'column';
+    [
+      { label: '🗺 Overview', val: 'overview' },
+      { label: '⚗️ Glycolysis', val: 'glycolysis' },
+      { label: '🔄 Krebs Cycle', val: 'krebs' },
+      { label: '⚡ Electron Transport', val: 'etc' }
+    ].forEach(({ label, val }) => {
+      const b = document.createElement('button');
+      b.className = 'sim-btn'; b.textContent = label;
+      b.style.cssText = `color:${color};border-color:${color}50;text-align:left`;
+      b.onclick = () => { viewMode = val; frame = 0; atpDisplayed = 0; };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const spRow = document.createElement('div'); spRow.className = 'ctrl-row';
+    spRow.innerHTML = `<label>Speed</label><input type="range" min="30" max="200" value="100" id="resp-speed">`;
+    leftPanel.appendChild(spRow);
+    document.getElementById('resp-speed').style.accentColor = color;
+    document.getElementById('resp-speed').oninput = e => speed = e.target.value / 100;
+
+    const lbl2 = document.createElement('div'); lbl2.className = 'ctrl-label'; lbl2.style.marginTop = '6px'; lbl2.textContent = 'ATP Tally'; leftPanel.appendChild(lbl2);
+    const info = document.createElement('div'); info.className = 'info-box'; info.id = 'resp-info';
+    info.style.cssText = `border-color:${color}30`;
+    leftPanel.appendChild(info);
+  }
+
+  function updateInfo() {
+    const el = document.getElementById('resp-info');
+    if (!el) return;
+    const stage = viewMode === 'overview' ? 'Total' : viewMode === 'glycolysis' ? 'Glycolysis' : viewMode === 'krebs' ? 'Krebs' : 'ETC';
+    const max = viewMode === 'overview' ? 38 : viewMode === 'glycolysis' ? 2 : viewMode === 'krebs' ? 2 : 34;
+    el.innerHTML = `
+      <strong style="color:${color}">${stage} ATP</strong><br>
+      <span style="font-size:20px;font-family:'Playfair Display',serif;color:${color}">${Math.round(atpDisplayed)}</span>
+      <span style="color:#5a7a5a"> / ${max} ATP</span><br>
+      <div style="margin-top:6px;background:#0a0a0a;border-radius:4px;height:6px;overflow:hidden">
+        <div style="width:${Math.min(100, atpDisplayed / max * 100)}%;height:100%;background:${color};border-radius:4px;transition:width 0.1s"></div>
+      </div>`;
+  }
+
+  function draw() {
+    if (!running) return;
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0f0500'; ctx.fillRect(0, 0, W, H);
+
+    if (viewMode === 'overview' || preview) drawOverview();
+    else if (viewMode === 'glycolysis') drawGlycolysis();
+    else if (viewMode === 'krebs') drawKrebs();
+    else drawETC();
+
+    updateInfo();
+    requestAnimationFrame(draw);
+  }
+
+  // ── OVERVIEW: mitochondria cross-section with all 3 stages labelled ──
+  function drawOverview() {
+    const cx = W / 2, cy = H * 0.52;
+    const stage = Math.floor(frame * 0.008 * speed) % 3; // cycle through stages
+    const t = (frame * 0.008 * speed) % 1;
+
+    // Outer membrane
+    const outerRx = W * 0.42, outerRy = H * 0.38;
+    const outerGrd = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerRx);
+    outerGrd.addColorStop(0, '#2a1000'); outerGrd.addColorStop(1, '#180800');
+    ctx.fillStyle = outerGrd;
+    ctx.beginPath(); ctx.ellipse(cx, cy, outerRx, outerRy, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = color + '80'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Inner membrane (cristae)
+    ctx.strokeStyle = color + '50'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 4; i++) {
+      const ang = (i / 4) * Math.PI * 2 + Math.PI * 0.1;
+      const ox = cx + Math.cos(ang) * outerRx * 0.55;
+      const oy = cy + Math.sin(ang) * outerRy * 0.55;
+      ctx.beginPath();
+      ctx.ellipse(ox, oy, outerRx * 0.2, outerRy * 0.15, ang, 0, Math.PI);
+      ctx.stroke();
+    }
+
+    // Matrix label
+    ctx.fillStyle = color + '40'; ctx.font = `${preview ? 7 : 9}px 'DM Mono',monospace`; ctx.textAlign = 'center';
+    ctx.fillText('MATRIX', cx, cy + 4);
+
+    // Cytoplasm label outside (glycolysis)
+    if (!preview) {
+      ctx.fillStyle = '#ff7b3f80'; ctx.font = `8px 'DM Mono',monospace`;
+      ctx.fillText('CYTOPLASM', cx, H * 0.06);
+    }
+
+    // Stage indicators — 3 boxes
+    const stages = [
+      { label: 'Glycolysis', loc: 'Cytoplasm', atp: '2 ATP', y: preview ? H * 0.12 : H * 0.1, x: cx, col: '#ff7b3f' },
+      { label: 'Krebs Cycle', loc: 'Matrix', atp: '2 ATP', y: cy, x: cx, col: '#ffb347' },
+      { label: 'ETC', loc: 'Inner Membrane', atp: '~34 ATP', y: preview ? H * 0.88 : H * 0.9, x: cx, col: '#ff5500' },
+    ];
+
+    if (!preview) {
+      stages.forEach((s, i) => {
+        const active = i === stage;
+        const pulse = active ? Math.sin(frame * 0.1) * 0.15 + 0.85 : 0.5;
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = s.col + '20';
+        ctx.strokeStyle = s.col + (active ? 'cc' : '40');
+        ctx.lineWidth = active ? 1.5 : 1;
+        ctx.beginPath(); ctx.roundRect(s.x - 58, s.y - 13, 116, 26, 6); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = s.col; ctx.font = `bold 9px 'Playfair Display',serif`; ctx.textAlign = 'center';
+        ctx.fillText(s.label, s.x, s.y - 1);
+        ctx.fillStyle = s.col + 'aa'; ctx.font = `8px 'DM Mono',monospace`;
+        ctx.fillText(`${s.loc} · ${s.atp}`, s.x, s.y + 10);
+        ctx.restore();
+      });
+
+      // Animated ATP burst
+      atpDisplayed = Math.min(38, atpDisplayed + 0.18 * speed);
+      const atpAngle = (frame * 0.03 * speed) % (Math.PI * 2);
+      ctx.save(); ctx.globalAlpha = 0.7;
+      ctx.fillStyle = color; ctx.font = `bold 10px 'DM Mono',monospace`; ctx.textAlign = 'center';
+      const ax = cx + Math.cos(atpAngle) * outerRx * 0.65;
+      const ay = cy + Math.sin(atpAngle) * outerRy * 0.65;
+      ctx.fillText('⚡ATP', ax, ay);
+      ctx.restore();
+
+      // Equation at bottom
+      ctx.fillStyle = color + '60'; ctx.font = `8px 'DM Mono',monospace`; ctx.textAlign = 'center';
+      ctx.fillText('C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ~38 ATP', W / 2, H - 6);
+    } else {
+      // Preview: just ATP counter
+      atpDisplayed = Math.min(38, atpDisplayed + 0.3 * speed);
+      ctx.fillStyle = color; ctx.font = `bold ${preview ? 14 : 18}px 'Playfair Display',serif`; ctx.textAlign = 'center';
+      ctx.fillText(`⚡ ${Math.round(atpDisplayed)} ATP`, cx, H * 0.88);
+    }
+  }
+
+  // ── GLYCOLYSIS ──
+  function drawGlycolysis() {
+    atpDisplayed = Math.min(2, atpDisplayed + 0.015 * speed);
+    const steps = [
+      { label: 'Glucose (6C)', col: '#ff9040', y: 0.08 },
+      { label: '+ 2 ATP invested', col: '#e05c5c', y: 0.22, note: '(activation cost)' },
+      { label: 'Fructose-1,6-BP', col: '#ff9040', y: 0.36 },
+      { label: '2× G3P (3C)', col: '#ffb347', y: 0.5 },
+      { label: '4 ATP produced', col: color, y: 0.64, note: '(net: 2 ATP)' },
+      { label: '2 NADH', col: '#c472f5', y: 0.76 },
+      { label: '2× Pyruvate (3C)', col: '#ff7b3f', y: 0.9 },
+    ];
+
+    const progress = Math.min(steps.length - 1, (frame * 0.025 * speed) % steps.length);
+    const activeIdx = Math.floor(progress);
+
+    steps.forEach((s, i) => {
+      const visible = i <= activeIdx;
+      if (!visible) return;
+      const y = s.y * H;
+      const t = i === activeIdx ? (progress - activeIdx) : 1;
+
+      ctx.save();
+      ctx.globalAlpha = t;
+
+      // Arrow connector
+      if (i > 0 && i !== 1) {
+        ctx.strokeStyle = color + '40'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(W / 2, steps[i - 1].y * H + 12); ctx.lineTo(W / 2, y - 12); ctx.stroke();
+        ctx.fillStyle = color + '40'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('▼', W / 2, (steps[i - 1].y + s.y) / 2 * H + 4);
+      }
+
+      // Box
+      const boxW = 160;
+      ctx.fillStyle = s.col + '18';
+      ctx.strokeStyle = s.col + (i === activeIdx ? 'cc' : '50');
+      ctx.lineWidth = i === activeIdx ? 1.5 : 1;
+      ctx.beginPath(); ctx.roundRect(W / 2 - boxW / 2, y - 12, boxW, 24, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = s.col; ctx.font = `bold 10px 'DM Mono',monospace`; ctx.textAlign = 'center';
+      ctx.fillText(s.label, W / 2, y + 2);
+      if (s.note) {
+        ctx.fillStyle = s.col + '80'; ctx.font = `8px 'DM Mono',monospace`;
+        ctx.fillText(s.note, W / 2, y + 14);
+      }
+      ctx.restore();
+    });
+
+    // Reset animation loop
+    if (frame * 0.025 * speed > steps.length + 30) { frame = 0; atpDisplayed = 0; }
+  }
+
+  // ── KREBS CYCLE ──
+  function drawKrebs() {
+    atpDisplayed = Math.min(2, atpDisplayed + 0.01 * speed);
+    const cx = W / 2, cy = H * 0.5;
+    const r = Math.min(W, H) * 0.3;
+    const steps = [
+      { label: 'Acetyl-CoA\n(2C) enters', col: '#ffb347' },
+      { label: 'Citrate\n(6C)', col: '#ff9040' },
+      { label: 'Isocitrate\n(6C)', col: '#ff7b3f' },
+      { label: 'α-Ketoglutarate\n(5C) + CO₂', col: '#e06a20' },
+      { label: 'Succinyl-CoA\n(4C) + CO₂', col: '#ff7b3f' },
+      { label: 'Succinate\n(4C) + ATP', col: color },
+      { label: 'Fumarate\n(4C)', col: '#ffb347' },
+      { label: 'Oxaloacetate\n(4C) + NADH', col: '#ff9040' },
+    ];
+    const n = steps.length;
+    const cycleAngle = (frame * 0.012 * speed) % (Math.PI * 2);
+    const activeIdx = Math.floor((cycleAngle / (Math.PI * 2)) * n);
+
+    // Draw cycle ring
+    ctx.save();
+    ctx.translate(cx, cy);
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+      const nextAng = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2;
+      const isActive = i === activeIdx;
+
+      // Arc segment
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.75, ang, nextAng);
+      ctx.strokeStyle = steps[i].col + (isActive ? 'ff' : '40');
+      ctx.lineWidth = isActive ? 4 : 2;
+      ctx.stroke();
+
+      // Arrow
+      const midAng = (ang + nextAng) / 2;
+      const mx = Math.cos(midAng) * r * 0.75, my = Math.sin(midAng) * r * 0.75;
+      ctx.save();
+      ctx.translate(mx, my); ctx.rotate(midAng + Math.PI / 2);
+      ctx.fillStyle = steps[i].col + (isActive ? 'ff' : '40');
+      ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(3, 2); ctx.lineTo(-3, 2); ctx.closePath(); ctx.fill();
+      ctx.restore();
+
+      // Node
+      const nx = Math.cos(ang) * r * 0.75, ny = Math.sin(ang) * r * 0.75;
+      const pulse = isActive ? Math.sin(frame * 0.1) * 3 : 0;
+      ctx.fillStyle = isActive ? steps[i].col : steps[i].col + '40';
+      ctx.beginPath(); ctx.arc(nx, ny, 6 + pulse, 0, Math.PI * 2); ctx.fill();
+
+      // Label
+      const lx = Math.cos(ang) * (r * 0.75 + 24), ly = Math.sin(ang) * (r * 0.75 + 24);
+      const lines = steps[i].label.split('\n');
+      ctx.fillStyle = isActive ? steps[i].col : steps[i].col + '80';
+      ctx.font = `${isActive ? 'bold ' : ''}8px 'DM Mono',monospace`;
+      ctx.textAlign = lx > 0 ? 'left' : 'right';
+      lines.forEach((l, li) => ctx.fillText(l, lx + (lx > 0 ? 4 : -4), ly - 4 + li * 11));
+    }
+
+    // Center label
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color; ctx.font = `bold 9px 'Playfair Display',serif`;
+    ctx.fillText('KREBS', 0, -5);
+    ctx.fillStyle = color + '80'; ctx.font = `8px 'DM Mono',monospace`;
+    ctx.fillText('CYCLE', 0, 6);
+    ctx.fillStyle = '#c472f580'; ctx.font = `7px 'DM Mono',monospace`;
+    ctx.fillText('×2 per glucose', 0, 18);
+    ctx.restore();
+
+    // Products panel
+    ctx.fillStyle = color + '60'; ctx.font = `8px 'DM Mono',monospace`; ctx.textAlign = 'left';
+    ctx.fillText('Per glucose (2 turns):', 6, H - 46);
+    [{ t: '2 ATP', c: color }, { t: '6 NADH', c: '#c472f5' }, { t: '2 FADH₂', c: '#5cb8f5' }, { t: '4 CO₂', c: '#888' }].forEach((p, i) => {
+      ctx.fillStyle = p.c; ctx.fillText(p.t, 6 + i * 52, H - 34);
+    });
+  }
+
+  // ── ELECTRON TRANSPORT CHAIN ──
+  function drawETC() {
+    atpDisplayed = Math.min(34, atpDisplayed + 0.2 * speed);
+    const memY = H * 0.45;
+    const memH = 28;
+
+    // IMS (top) and matrix (bottom) labels
+    ctx.fillStyle = '#5a3a1a'; ctx.font = `8px 'DM Mono',monospace`; ctx.textAlign = 'left';
+    ctx.fillText('INTERMEMBRANE SPACE (IMS) — high H⁺', 6, memY - 8);
+    ctx.fillText('MATRIX — low H⁺', 6, memY + memH + 14);
+
+    // Inner membrane
+    const memGrd = ctx.createLinearGradient(0, memY, 0, memY + memH);
+    memGrd.addColorStop(0, '#2a1400'); memGrd.addColorStop(0.5, '#3a1e00'); memGrd.addColorStop(1, '#1a0e00');
+    ctx.fillStyle = memGrd;
+    ctx.fillRect(0, memY, W, memH);
+    ctx.strokeStyle = color + '30'; ctx.lineWidth = 1;
+    ctx.strokeRect(0, memY, W, memH);
+
+    // Protein complexes (I, II, III, IV, ATP synthase)
+    const complexes = [
+      { x: W * 0.1, label: 'I', sub: 'NADH\nDehydrogenase', col: '#ff7b3f' },
+      { x: W * 0.28, label: 'II', sub: 'Succinate\nDehydrogenase', col: '#ffb347' },
+      { x: W * 0.46, label: 'III', sub: 'Cytochrome\nbc1', col: '#ff9040' },
+      { x: W * 0.64, label: 'IV', sub: 'Cytochrome\nOxidase', col: '#e06a20' },
+      { x: W * 0.84, label: 'ATP\nSyn', sub: 'ATP\nSynthase', col: color },
+    ];
+
+    complexes.forEach(c => {
+      const pulse = Math.sin(frame * 0.08 + c.x) * 1.5;
+      ctx.fillStyle = c.col + '30';
+      ctx.strokeStyle = c.col + '80';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(c.x - 18, memY - 2 + pulse, 36, memH + 4 - pulse * 2, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = c.col; ctx.font = `bold 8px 'DM Mono',monospace`; ctx.textAlign = 'center';
+      ctx.fillText(c.label.split('\n')[0], c.x, memY + 10 + pulse);
+      if (c.label.includes('\n')) ctx.fillText(c.label.split('\n')[1], c.x, memY + 20 + pulse);
+
+      // Sub-label (above for I-IV, below for ATP syn)
+      const subLines = c.sub.split('\n');
+      const subY = c.x > W * 0.75 ? memY + memH + 22 : memY - 18;
+      ctx.fillStyle = c.col + '80'; ctx.font = `7px 'DM Mono',monospace`;
+      subLines.forEach((l, li) => ctx.fillText(l, c.x, subY + li * 10));
+    });
+
+    // Electron flow arrow (top of membrane)
+    const eFlow = (frame * 0.02 * speed) % 1;
+    const ex = W * 0.1 + eFlow * (W * 0.64 - W * 0.1);
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#ff5500';
+    ctx.beginPath(); ctx.arc(ex, memY - 12, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ff550080'; ctx.font = `7px 'DM Mono',monospace`; ctx.textAlign = 'center';
+    ctx.fillText('e⁻', ex, memY - 9);
+    ctx.restore();
+    ctx.strokeStyle = '#ff550030'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(W * 0.1, memY - 12); ctx.lineTo(W * 0.64, memY - 12); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ff7b3f80'; ctx.font = `7px 'DM Mono',monospace`; ctx.textAlign = 'center';
+    ctx.fillText('electron flow →', W * 0.37, memY - 20);
+
+    // H+ pumping (down arrows between complexes I, III, IV)
+    [W * 0.1, W * 0.46, W * 0.64].forEach((cx2, i) => {
+      const hT = (frame * 0.025 * speed + i * 0.33) % 1;
+      const hy = memY + hT * 28 - 14;
+      ctx.save(); ctx.globalAlpha = 0.7;
+      ctx.fillStyle = '#5cb8f5';
+      ctx.font = `8px 'DM Mono',monospace`; ctx.textAlign = 'center';
+      ctx.fillText('H⁺', cx2, hy < memY ? memY - 6 : hy > memY + memH ? memY + memH + 10 : hy);
+      ctx.restore();
+    });
+
+    // ATP synthase rotor
+    const rotAngle = frame * 0.05 * speed;
+    ctx.save();
+    ctx.translate(W * 0.84, memY + memH + 30);
+    for (let i = 0; i < 6; i++) {
+      const a = rotAngle + (i / 6) * Math.PI * 2;
+      ctx.fillStyle = color + 'aa';
+      ctx.beginPath(); ctx.ellipse(Math.cos(a) * 8, Math.sin(a) * 5, 3, 2, a, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+
+    // O2 + H2O at complex IV
+    ctx.fillStyle = '#88888880'; ctx.font = `7px 'DM Mono',monospace`; ctx.textAlign = 'center';
+    ctx.fillText('O₂ + 4H⁺ → 2H₂O', W * 0.64, memY + memH + 26);
+
+    // ATP output from synthase
+    const atpT = (frame * 0.018 * speed) % 1;
+    ctx.save(); ctx.globalAlpha = atpT * (1 - atpT) * 4;
+    ctx.fillStyle = color; ctx.font = `bold 9px 'DM Mono',monospace`; ctx.textAlign = 'center';
+    ctx.fillText('⚡ATP', W * 0.84, memY + memH + 50 + atpT * 20);
+    ctx.restore();
+
+    // Summary
+    ctx.fillStyle = color + '80'; ctx.font = `8px 'DM Mono',monospace`; ctx.textAlign = 'center';
+    ctx.fillText('NADH + FADH₂ electrons → H⁺ gradient → ATP synthase → ~34 ATP', W / 2, H - 6);
+  }
+
+  draw();
+  return { stop: () => { running = false; } };
 }
 
 // ══════════════════════════════════════════════
