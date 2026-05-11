@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Living Lab · Biology Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#00c896;--green2:#7ecf3f;--blue:#5cb8f5;--amber:#f5a623;
+  --red:#e05c5c;--purple:#c472f5;--bg:#050a08;--text:#e8f5e8;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#0a0f0a}
+::-webkit-scrollbar-thumb{background:#1a3a1a;border-radius:2px}
+
+/* ── HOME ── */
+#home{max-width:960px;margin:0 auto;padding:48px 20px 80px}
+.hero{text-align:center;margin-bottom:52px}
+.hero-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#3a7a3a;margin-bottom:14px}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4rem);font-weight:900;line-height:1.05;
+  background:linear-gradient(135deg,#7ecf3f,#00c896,#5cb8f5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:14px}
+.hero p{color:#5a8a5a;font-size:15px;max-width:500px;margin:0 auto;line-height:1.8}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{border-radius:18px;cursor:pointer;overflow:hidden;border:1px solid;transition:transform .2s,box-shadow .2s;position:relative}
+.card:hover{transform:translateY(-5px)}
+.card-canvas-wrap{height:170px;position:relative;overflow:hidden}
+.card-canvas-wrap canvas{width:100%;height:100%;display:block}
+.card-fade{position:absolute;bottom:0;left:0;right:0;height:50px;pointer-events:none}
+.card-body{padding:14px 18px 20px}
+.card-title-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.card-icon{font-size:20px}
+.card-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.card-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;margin-bottom:10px;opacity:.5}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;border-radius:20px;padding:2px 9px;border:1px solid;opacity:.7;font-family:'DM Sans',sans-serif}
+.footer{text-align:center;margin-top:60px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:#1e3a1e}
+
+/* ── MODULE OVERLAY ── */
+#overlay{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;animation:slideUp .3s ease}
+#overlay.open{display:flex}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.ov-header{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid;backdrop-filter:blur(12px);flex-shrink:0}
+.ov-back{background:none;border:1px solid;border-radius:8px;padding:4px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;transition:opacity .15s}
+.ov-back:hover{opacity:.7}
+.ov-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+.ov-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;opacity:.5;margin-top:1px}
+.ov-body{display:flex;flex:1;overflow:hidden}
+.ov-left{width:240px;flex-shrink:0;border-right:1px solid;display:flex;flex-direction:column;padding:14px;gap:10px;overflow-y:auto}
+.sim-wrap{border-radius:12px;border:1px solid;overflow:hidden;flex-shrink:0}
+.sim-wrap canvas{display:block;width:100%;height:auto}
+.ctrl-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.5}
+.ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ctrl-row label{font-size:11px;opacity:.8}
+input[type=range]{flex:1;height:4px;-webkit-appearance:none;border-radius:2px;cursor:pointer;background:#1a3a1a}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;border:none;cursor:pointer}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.sim-btn{font-size:11px;border-radius:8px;padding:5px 10px;border:1px solid;cursor:pointer;background:none;font-family:'DM Sans',sans-serif;transition:opacity .15s}
+.sim-btn:hover{opacity:.7}
+.info-box{background:#0a120a;border-radius:10px;border:1px solid;padding:10px 12px;font-size:12px;line-height:1.7;color:#b0d0b0}
+.ov-right{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.info-card{background:#0a120a;border-radius:12px;border:1px solid #1a3a1a;padding:16px 18px}
+.info-card h3{font-family:'Playfair Display',serif;font-size:15px;margin-bottom:8px}
+.info-card p,.info-card li{font-size:13px;line-height:1.8;color:#a0c0a0}
+.info-card ul{padding-left:18px}
+.quiz-section{background:#050e05;border-radius:12px;border:1px solid #1a3a1a;padding:16px 18px}
+.quiz-section h3{font-family:'Playfair Display',serif;font-size:15px;margin-bottom:12px}
+.quiz-q{font-size:13px;line-height:1.7;color:#b0d0b0;margin-bottom:10px}
+.quiz-opts{display:flex;flex-direction:column;gap:7px}
+.quiz-opt{background:#0a150a;border:1px solid #1a3a1a;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;text-align:left;color:#a0c0a0;transition:border-color .15s,background .15s;font-family:'DM Sans',sans-serif}
+.quiz-opt:hover{background:#0f1e0f}
+.quiz-opt.correct{background:#0a2a12;border-color:#00c896;color:#00c896}
+.quiz-opt.wrong{background:#2a0a0a;border-color:#e05c5c;color:#e05c5c}
+.quiz-feedback{margin-top:10px;font-size:12px;line-height:1.7;padding:10px 12px;border-radius:8px;display:none}
+.quiz-feedback.show{display:block}
+.quiz-next{margin-top:10px;font-size:12px;border:1px solid;border-radius:8px;padding:6px 14px;cursor:pointer;background:none;font-family:'DM Sans',sans-serif;display:none}
+.quiz-next.show{display:inline-block}
+.key-box{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12px}
+.key-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+/* responsive */
+@media(max-width:640px){
+  .ov-body{flex-direction:column}
+  .ov-left{width:100%;border-right:none;border-bottom:1px solid}
+  .sim-wrap{max-height:200px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="home">
+  <div class="hero">
+    <div class="hero-label">Biology Explorer · The Living Lab</div>
+    <h1>Explore. Interact.<br><em style="font-style:italic">Understand.</em></h1>
+    <p>Six interactive simulations covering the core topics of biology — built for students, powered by real science.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="footer">INTERACTIVE BIOLOGY SIMULATIONS · NO LOGIN REQUIRED</div>
+</div>
+
+<!-- ══════════════ MODULE OVERLAY ══════════════ -->
+<div id="overlay">
+  <div class="ov-header" id="ov-header">
+    <button class="ov-back" id="ov-back" onclick="closeModule()">← Back</button>
+    <div>
+      <div class="ov-title" id="ov-title"></div>
+      <div class="ov-sub" id="ov-sub"></div>
+    </div>
+  </div>
+  <div class="ov-body">
+    <div class="ov-left" id="ov-left"></div>
+    <div class="ov-right" id="ov-right"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  MODULE DEFINITIONS
+// ══════════════════════════════════════════════
+const MODULES = [
+  {
+    id:'cell', icon:'🔬', title:'Cell Division', sub:'Mitosis & Meiosis',
+    color:'#00c896', bg:'#001810', borderColor:'#00c89630',
+    tags:['Mitosis','Meiosis','Chromosomes','Cell Cycle'],
+    build: buildCell
+  },
+  {
+    id:'photosynthesis', icon:'🌿', title:'Photosynthesis', sub:'Light & Calvin Cycle',
+    color:'#7ecf3f', bg:'#0a1600', borderColor:'#7ecf3f30',
+    tags:['Chloroplast','Light Reactions','Calvin Cycle','Glucose'],
+    build: buildPhoto
+  },
+  {
+    id:'genetics', icon:'🧬', title:'Genetics', sub:'Punnett Squares & Heredity',
+    color:'#f5a623', bg:'#1a0e00', borderColor:'#f5a62330',
+    tags:['Punnett Square','Dominant','Recessive','Genotype'],
+    build: buildGenetics
+  },
+  {
+    id:'evolution', icon:'🦕', title:'Natural Selection', sub:'Evolution & Adaptation',
+    color:'#e05c5c', bg:'#1a0505', borderColor:'#e05c5c30',
+    tags:['Adaptation','Fitness','Variation','Selection'],
+    build: buildEvolution
+  },
+  {
+    id:'ecology', icon:'🌍', title:'Ecology', sub:'Ecosystems & Food Webs',
+    color:'#5cb8f5', bg:'#00111a', borderColor:'#5cb8f530',
+    tags:['Food Web','Energy Flow','Population','Biomes'],
+    build: buildEcology
+  },
+  {
+    id:'dna', icon:'🧪', title:'DNA & Protein Synthesis', sub:'Transcription & Translation',
+    color:'#c472f5', bg:'#0f0018', borderColor:'#c472f530',
+    tags:['DNA','mRNA','Codons','Ribosomes'],
+    build: buildDNA
+  }
+];
+
+// ══════════════════════════════════════════════
+//  QUIZ BANKS
+// ══════════════════════════════════════════════
+const QUIZZES = {
+  cell:[
+    {q:"What is the correct order of mitosis phases?",opts:["Prophase → Metaphase → Anaphase → Telophase","Metaphase → Prophase → Telophase → Anaphase","Anaphase → Metaphase → Prophase → Telophase","Telophase → Anaphase → Metaphase → Prophase"],ans:0,exp:"Mitosis follows PMAT: Prophase (chromosomes condense), Metaphase (lineup at equator), Anaphase (chromatids pulled apart), Telophase (new nuclei form)."},
+    {q:"How many daughter cells does mitosis produce?",opts:["1","2","4","8"],ans:1,exp:"Mitosis produces 2 genetically identical daughter cells — used for growth and repair."},
+    {q:"Meiosis produces cells with how many chromosomes compared to the parent?",opts:["Same number (2n)","Double (4n)","Half (n)","Quarter (n/2)"],ans:2,exp:"Meiosis halves the chromosome number, producing haploid (n) gametes. When two gametes fuse, the diploid (2n) number is restored."},
+    {q:"During which phase do chromosomes line up at the cell's equator?",opts:["Prophase","Metaphase","Anaphase","Telophase"],ans:1,exp:"In Metaphase, chromosomes are pulled to the metaphase plate (cell equator) by spindle fibers — this is used in karyotyping."},
+  ],
+  photosynthesis:[
+    {q:"What is the overall equation for photosynthesis?",opts:["6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂","6O₂ + C₆H₁₂O₆ → 6CO₂ + 6H₂O + ATP","6H₂O + 6O₂ → C₆H₁₂O₆ + CO₂","CO₂ + H₂O → O₂ + glucose"],ans:0,exp:"Photosynthesis converts carbon dioxide and water, using light energy, into glucose and oxygen. This stores light energy as chemical energy."},
+    {q:"Where in the chloroplast do light-dependent reactions occur?",opts:["Stroma","Thylakoid membrane","Outer membrane","Matrix"],ans:1,exp:"Light-dependent reactions occur on the thylakoid membranes (granum stacks), where chlorophyll captures light to split water and produce ATP, NADPH, and O₂."},
+    {q:"What does the Calvin Cycle produce?",opts:["ATP and NADPH","Oxygen and water","G3P (which becomes glucose)","Chlorophyll"],ans:2,exp:"The Calvin Cycle (light-independent reactions) uses ATP and NADPH from the light reactions to fix CO₂ into G3P (glyceraldehyde-3-phosphate), which is used to build glucose."},
+    {q:"What pigment captures light energy in photosynthesis?",opts:["Hemoglobin","Melanin","Chlorophyll","Carotenoid"],ans:2,exp:"Chlorophyll is the primary pigment — it absorbs red and blue light and reflects green (hence plants appear green). Carotenoids are accessory pigments."},
+  ],
+  genetics:[
+    {q:"In a Aa × Aa cross, what is the phenotype ratio?",opts:["1:1","1:2:1","3:1","4:0"],ans:2,exp:"The Punnett square gives AA, Aa, Aa, aa (1:2:1 genotype ratio). Since A is dominant, AA and Aa both show the dominant trait — giving a 3 dominant : 1 recessive phenotype ratio."},
+    {q:"What does 'homozygous dominant' mean?",opts:["Two recessive alleles (aa)","One dominant, one recessive (Aa)","Two dominant alleles (AA)","No alleles"],ans:2,exp:"Homozygous means both alleles are the same. Homozygous dominant = AA (two dominant alleles). Homozygous recessive = aa."},
+    {q:"A recessive trait appears in the phenotype when:",opts:["At least one dominant allele is present","The organism is heterozygous","Both alleles are recessive (aa)","The trait is on the X chromosome"],ans:2,exp:"Recessive traits are masked by dominant alleles. They only appear in the phenotype when an organism inherits two recessive alleles (aa) — homozygous recessive."},
+    {q:"What is codominance?",opts:["One allele is completely dominant","Neither allele is dominant — both are masked","Both alleles are fully expressed simultaneously","The dominant allele is on the X chromosome"],ans:2,exp:"In codominance, both alleles are fully expressed in the phenotype — like AB blood type, where both A and B antigens appear, or roan cattle with both red and white hairs."},
+  ],
+  evolution:[
+    {q:"Which of the following is NOT one of Darwin's four principles of natural selection?",opts:["Variation exists in populations","Traits are inherited","All individuals survive equally","Organisms with favorable traits reproduce more"],ans:2,exp:"Darwin's four principles are: Variation (individuals differ), Inheritance (traits pass to offspring), Selection (some traits improve survival/reproduction), and Time (changes accumulate over generations)."},
+    {q:"What does 'fitness' mean in evolutionary biology?",opts:["Physical strength and speed","Resistance to disease","Ability to survive and reproduce in the environment","Intelligence"],ans:2,exp:"Evolutionary fitness is specifically about reproductive success — how well an organism survives AND reproduces in its environment, passing traits to offspring."},
+    {q:"Antibiotic resistance in bacteria is an example of:",opts:["Directed mutation","Lamarckian inheritance","Natural selection acting on existing variation","Random genetic drift only"],ans:2,exp:"Bacteria have natural variation in antibiotic resistance. Antibiotics act as a selection pressure — resistant bacteria survive and reproduce, increasing resistance in the population over generations."},
+    {q:"What is the difference between analogous and homologous structures?",opts:["Analogous = same ancestry; Homologous = same function","Homologous = same ancestry; Analogous = same function","Both terms mean the same thing","Neither relates to evolution"],ans:1,exp:"Homologous structures (like mammal forelimbs) share common ancestry but may differ in function. Analogous structures (like bird and butterfly wings) have similar function but different ancestry — evidence of convergent evolution."},
+  ],
+  ecology:[
+    {q:"According to the 10% rule, how much energy transfers between trophic levels?",opts:["100%","50%","25%","10%"],ans:3,exp:"Only about 10% of energy transfers from one trophic level to the next — the rest is lost as heat. This is why food chains rarely exceed 4-5 levels and why there are always fewer top predators than producers."},
+    {q:"What is carrying capacity?",opts:["The maximum weight an ecosystem can hold","The maximum population size an environment can sustain","The rate at which energy flows through a food web","The number of species in an ecosystem"],ans:1,exp:"Carrying capacity (K) is the maximum population size that an environment can support long-term given available resources (food, water, shelter). Populations fluctuate around K."},
+    {q:"Which symbiotic relationship benefits both organisms?",opts:["Parasitism","Commensalism","Mutualism","Predation"],ans:2,exp:"Mutualism benefits both species (e.g., bees and flowers, clownfish and sea anemones). Commensalism benefits one and is neutral to the other. Parasitism benefits one and harms the other."},
+    {q:"In the nitrogen cycle, which organisms convert N₂ gas into usable ammonia?",opts:["Decomposers","Nitrogen-fixing bacteria","Plants","Denitrifying bacteria"],ans:1,exp:"Nitrogen-fixing bacteria (like Rhizobium in root nodules) convert atmospheric N₂ into ammonia (NH₃), making nitrogen available to plants. Denitrifying bacteria do the opposite, returning N₂ to the atmosphere."},
+  ],
+  dna:[
+    {q:"Which base pairs with Adenine in DNA?",opts:["Cytosine","Guanine","Thymine","Uracil"],ans:2,exp:"In DNA: Adenine (A) pairs with Thymine (T), and Guanine (G) pairs with Cytosine (C). In RNA, Uracil (U) replaces Thymine, so A pairs with U."},
+    {q:"What is the central dogma of molecular biology?",opts:["Protein → RNA → DNA","DNA → Protein → RNA","DNA → RNA → Protein","RNA → DNA → Protein"],ans:2,exp:"The central dogma: DNA is transcribed into mRNA, which is translated into protein. DNA → mRNA (transcription in nucleus) → Protein (translation at ribosomes)."},
+    {q:"Where does transcription occur in eukaryotic cells?",opts:["Cytoplasm","Ribosome","Nucleus","Mitochondria"],ans:2,exp:"Transcription (DNA → mRNA) occurs in the nucleus, where RNA polymerase reads the DNA template. The mRNA then exits through nuclear pores to be translated at ribosomes in the cytoplasm."},
+    {q:"What is a codon?",opts:["A single nitrogen base","A sequence of two bases on tRNA","A sequence of three mRNA bases that codes for one amino acid","The entire mRNA molecule"],ans:3,exp:"A codon is a triplet of three mRNA nucleotides that specifies a particular amino acid (or start/stop signal). There are 64 possible codons for 20 amino acids, making the genetic code redundant."},
+  ],
+};
+
+// ══════════════════════════════════════════════
+//  HOME GRID
+// ══════════════════════════════════════════════
+const grid = document.getElementById('grid');
+MODULES.forEach(m => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.cssText = `background:${m.bg};border-color:${m.borderColor};box-shadow:0 4px 24px ${m.color}18`;
+  card.innerHTML = `
+    <div class="card-canvas-wrap" id="preview-${m.id}">
+      <canvas id="canvas-prev-${m.id}" width="280" height="170"></canvas>
+    </div>
+    <div class="card-fade" style="background:linear-gradient(transparent,${m.bg})"></div>
+    <div class="card-body">
+      <div class="card-title-row">
+        <span class="card-icon">${m.icon}</span>
+        <span class="card-title" style="color:${m.color}">${m.title}</span>
+      </div>
+      <div class="card-sub" style="color:${m.color}">${m.sub}</div>
+      <div class="card-tags">${m.tags.slice(0,3).map(t=>`<span class="tag" style="color:${m.color};border-color:${m.color}40">${t}</span>`).join('')}</div>
+    </div>`;
+  card.onclick = () => openModule(m.id);
+  grid.appendChild(card);
+  // start preview animation
+  m.previewAnim = m.build(document.getElementById(`canvas-prev-${m.id}`), m.color, true);
+});
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+let activeAnim = null;
+let quizState = {};
+
+function openModule(id) {
+  const m = MODULES.find(x=>x.id===id);
+  const ov = document.getElementById('overlay');
+  document.getElementById('ov-title').textContent = `${m.icon} ${m.title}`;
+  document.getElementById('ov-sub').textContent = m.sub;
+  ov.style.background = m.bg;
+  document.getElementById('ov-header').style.borderBottomColor = m.borderColor;
+  document.getElementById('ov-back').style.cssText = `color:${m.color};border-color:${m.color}50`;
+
+  // Build left panel
+  const left = document.getElementById('ov-left');
+  left.innerHTML = '';
+  left.style.borderRightColor = m.borderColor;
+
+  // Sim canvas
+  const simWrap = document.createElement('div');
+  simWrap.className = 'sim-wrap';
+  simWrap.style.cssText = `border-color:${m.borderColor};background:${m.bg}`;
+  const canvas = document.createElement('canvas');
+  canvas.width = 220; canvas.height = 180;
+  simWrap.appendChild(canvas);
+  left.appendChild(simWrap);
+
+  if (activeAnim) { activeAnim.stop(); activeAnim = null; }
+  activeAnim = m.build(canvas, m.color, false, left);
+
+  // Build right panel
+  buildRight(id, m);
+
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModule() {
+  if (activeAnim) { activeAnim.stop(); activeAnim = null; }
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════
+//  RIGHT PANEL CONTENT
+// ══════════════════════════════════════════════
+const CONTENT = {
+  cell:{
+    sections:[
+      {title:'The Cell Cycle', body:'The cell cycle consists of Interphase (G1, S, G2) and Mitotic phase. During Interphase the cell grows and replicates its DNA. Mitosis then divides the nucleus, followed by cytokinesis.'},
+      {title:'Phases of Mitosis (PMAT)', body:'<ul><li><strong>Prophase</strong>: Chromosomes condense; spindle forms; nuclear envelope breaks down.</li><li><strong>Metaphase</strong>: Chromosomes align at the cell equator (metaphase plate).</li><li><strong>Anaphase</strong>: Sister chromatids are pulled to opposite poles.</li><li><strong>Telophase</strong>: Nuclear envelopes reform; chromosomes decondense.</li></ul>'},
+      {title:'Mitosis vs Meiosis', body:'<ul><li><strong>Mitosis</strong>: 1 division → 2 identical diploid (2n) cells. Used for growth and repair.</li><li><strong>Meiosis</strong>: 2 divisions → 4 haploid (n) cells. Used for sexual reproduction; creates genetic variation via crossing over.</li></ul>'},
+    ]
+  },
+  photosynthesis:{
+    sections:[
+      {title:'Overview', body:'Photosynthesis converts light energy into chemical energy stored in glucose. Equation: <strong>6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂</strong>. Occurs in chloroplasts.'},
+      {title:'Light-Dependent Reactions', body:'Occur on thylakoid membranes. Chlorophyll absorbs light → splits water (photolysis) → releases O₂ → generates ATP and NADPH. These energy carriers power the Calvin Cycle.'},
+      {title:'Calvin Cycle (Light-Independent)', body:'Occurs in the stroma. Uses CO₂, ATP, and NADPH to produce G3P (glyceraldehyde-3-phosphate). G3P is used to build glucose and other organic molecules. RuBisCO is the key enzyme.'},
+    ]
+  },
+  genetics:{
+    sections:[
+      {title:'Key Terms', body:'<ul><li><strong>Allele</strong>: Variant of a gene (e.g., B or b)</li><li><strong>Genotype</strong>: Allele combination (BB, Bb, bb)</li><li><strong>Phenotype</strong>: Observable trait</li><li><strong>Dominant</strong>: Allele that masks the other (capital letter)</li><li><strong>Recessive</strong>: Allele masked by dominant (lowercase)</li></ul>'},
+      {title:'Punnett Square Ratios', body:'<ul><li><strong>Aa × Aa</strong>: Genotype 1:2:1 (AA:Aa:aa) · Phenotype 3:1</li><li><strong>AA × aa</strong>: All Aa (100% dominant phenotype)</li><li><strong>Aa × aa</strong>: 1:1 genotype and phenotype ratio</li></ul>'},
+      {title:'Beyond Simple Dominance', body:'<ul><li><strong>Codominance</strong>: Both alleles expressed (AB blood type)</li><li><strong>Incomplete dominance</strong>: Blended phenotype (red × white → pink)</li><li><strong>Multiple alleles</strong>: More than two alleles possible (ABO blood)</li></ul>'},
+    ]
+  },
+  evolution:{
+    sections:[
+      {title:"Darwin's Four Principles", body:'<ul><li><strong>Variation</strong>: Individuals in a population differ in heritable traits.</li><li><strong>Inheritance</strong>: Traits are passed from parents to offspring.</li><li><strong>Selection</strong>: Organisms with favorable traits survive and reproduce more.</li><li><strong>Time</strong>: Small changes accumulate over many generations.</li></ul>'},
+      {title:'Types of Selection', body:'<ul><li><strong>Directional</strong>: Favors one extreme (e.g., antibiotic resistance)</li><li><strong>Stabilizing</strong>: Favors average (e.g., birth weight in humans)</li><li><strong>Disruptive</strong>: Favors both extremes (e.g., beak sizes in some birds)</li></ul>'},
+      {title:'Evidence for Evolution', body:'<ul><li>Fossil record showing gradual change</li><li>Homologous structures (shared ancestry)</li><li>DNA similarities across species</li><li>Observed evolution (bacteria, viruses, Galápagos finches)</li></ul>'},
+    ]
+  },
+  ecology:{
+    sections:[
+      {title:'Trophic Levels & Energy Flow', body:'<ul><li><strong>Producers</strong>: Plants, algae (make own food via photosynthesis)</li><li><strong>Primary consumers</strong>: Herbivores eat producers</li><li><strong>Secondary consumers</strong>: Carnivores eat herbivores</li><li><strong>Tertiary consumers</strong>: Top predators</li></ul>Only ~10% of energy transfers between levels (10% rule).'},
+      {title:'Population Dynamics', body:'Populations grow exponentially when resources are unlimited, then slow as they approach <strong>carrying capacity (K)</strong>. Factors limiting populations include food, water, space, disease, and predation. Keystone species have outsized effects on ecosystem balance.'},
+      {title:'Symbiosis', body:'<ul><li><strong>Mutualism</strong>: Both benefit (bees + flowers)</li><li><strong>Commensalism</strong>: One benefits, one unaffected (barnacles on whales)</li><li><strong>Parasitism</strong>: One benefits, one harmed (tapeworms)</li><li><strong>Predation</strong>: Predator kills prey for energy</li></ul>'},
+    ]
+  },
+  dna:{
+    sections:[
+      {title:'DNA Structure', body:'DNA is a double helix made of nucleotides. Each nucleotide has a sugar (deoxyribose), a phosphate group, and a nitrogenous base. Base pairing rules: <strong>A–T</strong> (2 hydrogen bonds) and <strong>G–C</strong> (3 hydrogen bonds). The strands are antiparallel (5′→3′ and 3′→5′).'},
+      {title:'Transcription (DNA → mRNA)', body:'Occurs in the nucleus. RNA polymerase unwinds the DNA double helix and reads the template strand 3′→5′, building mRNA 5′→3′. The mRNA sequence is complementary to the template strand (with U replacing T). The mRNA then travels to ribosomes.'},
+      {title:'Translation (mRNA → Protein)', body:'At the ribosome, tRNA molecules bring amino acids matching each mRNA codon (3-base sequence). The ribosome moves along the mRNA reading codons. A polypeptide chain builds until a stop codon (UAA, UAG, or UGA) is reached. AUG (methionine) is the universal start codon.'},
+    ]
+  }
+};
+
+function buildRight(id, m) {
+  const right = document.getElementById('ov-right');
+  right.innerHTML = '';
+
+  const content = CONTENT[id];
+  content.sections.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'info-card';
+    card.style.borderColor = m.color + '30';
+    card.innerHTML = `<h3 style="color:${m.color}">${s.title}</h3><div style="font-size:13px;line-height:1.8;color:#a0c0a0">${s.body}</div>`;
+    right.appendChild(card);
+  });
+
+  // Quiz
+  const qs = QUIZZES[id];
+  quizState[id] = { index: 0, answered: false };
+  const qDiv = document.createElement('div');
+  qDiv.className = 'quiz-section';
+  qDiv.style.borderColor = m.color + '30';
+  qDiv.id = `quiz-${id}`;
+  renderQuiz(qDiv, id, m, qs, 0);
+  right.appendChild(qDiv);
+}
+
+function renderQuiz(container, id, m, qs, idx) {
+  const q = qs[idx];
+  container.innerHTML = `
+    <h3 style="color:${m.color}">🎯 Quiz — Question ${idx+1} of ${qs.length}</h3>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts">${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(this,'${id}',${i},${q.ans},'${id}')">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div>
+    <div class="quiz-feedback" id="qfb-${id}" style="background:${m.color}15;border:1px solid ${m.color}40;color:${m.color}"></div>
+    <button class="quiz-next" id="qnxt-${id}" style="color:${m.color};border-color:${m.color}60" onclick="nextQuiz('${id}')">Next Question →</button>
+  `;
+}
+
+window.answerQuiz = function(btn, id, chosen, correct, mid) {
+  const m = MODULES.find(x=>x.id===mid);
+  const qs = QUIZZES[id];
+  const idx = quizState[id].index;
+  if (quizState[id].answered) return;
+  quizState[id].answered = true;
+  const opts = btn.closest('.quiz-opts').querySelectorAll('.quiz-opt');
+  opts.forEach((o,i) => {
+    o.disabled = true;
+    if (i===correct) o.classList.add('correct');
+    else if (i===chosen) o.classList.add('wrong');
+  });
+  const fb = document.getElementById(`qfb-${id}`);
+  fb.textContent = (chosen===correct ? '✓ Correct! ' : '✗ Not quite. ') + qs[idx].exp;
+  fb.classList.add('show');
+  const nxt = document.getElementById(`qnxt-${id}`);
+  if (idx+1 < qs.length) nxt.classList.add('show');
+  else { nxt.textContent = '🔄 Restart Quiz'; nxt.classList.add('show'); nxt.onclick = () => restartQuiz(id, mid); }
+};
+
+window.nextQuiz = function(id) {
+  const m = MODULES.find(x=>x.id===id);
+  quizState[id].index++;
+  quizState[id].answered = false;
+  const container = document.getElementById(`quiz-${id}`);
+  renderQuiz(container, id, m, QUIZZES[id], quizState[id].index);
+};
+
+window.restartQuiz = function(id, mid) {
+  const m = MODULES.find(x=>x.id===mid||x.id===id);
+  quizState[id] = { index: 0, answered: false };
+  const container = document.getElementById(`quiz-${id}`);
+  renderQuiz(container, id, m, QUIZZES[id], 0);
+};
+
+// ══════════════════════════════════════════════
+//  SIMULATION: CELL DIVISION
+// ══════════════════════════════════════════════
+function buildCell(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let frame = 0, running = true;
+
+  const phases = ['Interphase','Prophase','Metaphase','Anaphase','Telophase','Cytokinesis'];
+  let phaseIdx = 0;
+  let phaseDur = preview ? 80 : 120;
+  let phaseTimer = 0;
+
+  // Controls
+  if (!preview && leftPanel) {
+    const lbl = document.createElement('div');
+    lbl.className = 'ctrl-label'; lbl.textContent = 'Controls';
+    leftPanel.appendChild(lbl);
+
+    const speedRow = document.createElement('div');
+    speedRow.className = 'ctrl-row';
+    speedRow.innerHTML = `<label>Speed</label><input type="range" min="40" max="200" value="120" id="cell-speed">`;
+    leftPanel.appendChild(speedRow);
+    document.getElementById('cell-speed').oninput = e => phaseDur = +e.target.value;
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    ['Previous','Next'].forEach((lbl,i) => {
+      const b = document.createElement('button');
+      b.className = 'sim-btn'; b.textContent = lbl;
+      b.style.cssText = `color:${color};border-color:${color}50`;
+      b.onclick = () => { phaseIdx = (phaseIdx + (i?1:-1) + phases.length) % phases.length; phaseTimer = 0; };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const info = document.createElement('div');
+    info.className = 'info-box'; info.id = 'cell-info';
+    info.style.cssText = `border-color:${color}30;margin-top:4px`;
+    leftPanel.appendChild(info);
+
+    const key = document.createElement('div');
+    key.innerHTML = `<div class="ctrl-label" style="margin-bottom:6px">Phase info</div>`;
+    leftPanel.appendChild(key);
+  }
+
+  const phaseInfo = [
+    'Cell grows, replicates DNA, prepares for division. Chromosomes not yet visible.',
+    'Chromosomes condense and become visible. Spindle fibers begin forming.',
+    'Chromosomes line up at the metaphase plate (cell equator).',
+    'Sister chromatids are pulled to opposite poles by spindle fibers.',
+    'Two new nuclei form; chromosomes begin to decondense.',
+    'Cytoplasm divides — producing 2 identical daughter cells.'
+  ];
+
+  function draw() {
+    if (!running) return;
+    frame++;
+    phaseTimer++;
+    if (phaseTimer >= phaseDur) { phaseTimer = 0; phaseIdx = (phaseIdx+1)%phases.length; }
+    const t = phaseTimer / phaseDur; // 0..1
+
+    ctx.clearRect(0,0,W,H);
+    const cx = W/2, cy = H/2;
+
+    if (!preview) {
+      const info = document.getElementById('cell-info');
+      if (info) info.textContent = phaseInfo[phaseIdx];
+    }
+
+    // Background glow
+    const grd = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.6);
+    grd.addColorStop(0, color+'12'); grd.addColorStop(1,'transparent');
+    ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    if (phaseIdx === 5) {
+      // Cytokinesis: two cells separating
+      const sep = t * 28;
+      [-1,1].forEach(side => {
+        ctx.save();
+        ctx.translate(side*sep,0);
+        ctx.beginPath();
+        ctx.ellipse(0,0,W*0.28,H*0.3,0,0,Math.PI*2);
+        ctx.strokeStyle = color+'80'; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(0,0,W*0.12,H*0.12,0,0,Math.PI*2);
+        ctx.strokeStyle = color+'50'; ctx.lineWidth=1; ctx.stroke();
+        // small chromosomes
+        [-8,8].forEach(x => {
+          ctx.fillStyle = color+'cc';
+          ctx.beginPath(); ctx.ellipse(x,0,4,8,0,0,Math.PI*2); ctx.fill();
+        });
+        ctx.restore();
+      });
+    } else {
+      // Cell membrane
+      const scaleX = phaseIdx >= 3 ? 1 + t*0.08 : 1;
+      ctx.beginPath();
+      ctx.ellipse(0,0,W*0.38*scaleX,H*0.38/scaleX,0,0,Math.PI*2);
+      ctx.strokeStyle = color+'70'; ctx.lineWidth=1.5; ctx.stroke();
+
+      // Nucleus
+      if (phaseIdx < 1.5) {
+        ctx.beginPath(); ctx.ellipse(0,0,W*0.15,H*0.15,0,0,Math.PI*2);
+        ctx.strokeStyle = color+'40'; ctx.lineWidth=1; ctx.stroke();
+      }
+
+      // Chromosomes
+      const pairs = preview ? 2 : 3;
+      for (let p=0; p<pairs; p++) {
+        const baseAngle = (p/pairs)*Math.PI*2;
+        let x=0, y=0, scale=1, opacity=1;
+
+        if (phaseIdx === 0) { // interphase — blobs in nucleus
+          x = Math.cos(baseAngle)*W*0.08; y = Math.sin(baseAngle)*H*0.08; scale=0.4; opacity=0.4;
+        } else if (phaseIdx === 1) { // prophase — condensing
+          x = Math.cos(baseAngle)*W*(0.05+t*0.12); y = Math.sin(baseAngle)*H*(0.05+t*0.12);
+          scale = 0.5+t*0.5;
+        } else if (phaseIdx === 2) { // metaphase — equator
+          x = 0; y = (p-1)*H*0.15; scale=1;
+        } else if (phaseIdx === 3) { // anaphase — splitting
+          const off = t*H*0.22;
+          // draw both copies
+          [-1,1].forEach(side => {
+            ctx.save();
+            ctx.translate(0, side*off + (p-1)*H*(0.12*(1-t)));
+            drawChromosome(ctx, color, 8, 14, 1);
+            ctx.restore();
+          });
+          continue;
+        } else if (phaseIdx === 4) { // telophase — in new nuclei
+          const nucY = (p%2===0 ? -1:1)*H*0.22;
+          x = (p-1)*W*0.1; y = nucY;
+        }
+
+        ctx.save();
+        ctx.translate(x,y);
+        ctx.globalAlpha = opacity;
+        drawChromosome(ctx, color, 8*scale, 14*scale, 1);
+        ctx.restore();
+      }
+
+      // Spindle fibers
+      if (phaseIdx === 2 || phaseIdx === 3) {
+        ctx.save(); ctx.globalAlpha = 0.25;
+        ctx.strokeStyle = color; ctx.lineWidth = 0.8;
+        ctx.setLineDash([4,4]);
+        [-H*0.38, H*0.38].forEach(pole => {
+          for (let p=0;p<pairs;p++){
+            ctx.beginPath();
+            ctx.moveTo(0, pole);
+            ctx.lineTo(0, (p-1)*H*0.15);
+            ctx.stroke();
+          }
+        });
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      // Telophase: two nuclei forming
+      if (phaseIdx === 4) {
+        [-1,1].forEach(side => {
+          ctx.beginPath(); ctx.ellipse(0, side*H*0.2, W*0.14, H*0.12, 0, 0, Math.PI*2);
+          ctx.strokeStyle = color+'40'; ctx.lineWidth=1; ctx.stroke();
+        });
+      }
+    }
+    ctx.restore();
+
+    // Phase label
+    ctx.fillStyle = color;
+    ctx.font = `${preview?9:11}px 'DM Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(phases[phaseIdx].toUpperCase(), W/2, H-8);
+
+    // Progress dots
+    phases.forEach((_, i) => {
+      ctx.beginPath();
+      ctx.arc(W/2 - (phases.length-1)*6 + i*12, H-(preview?4:18), 3, 0, Math.PI*2);
+      ctx.fillStyle = i===phaseIdx ? color : color+'30';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+  return { stop: () => { running = false; } };
+}
+
+function drawChromosome(ctx, color, rx, ry, lw) {
+  ctx.fillStyle = color+'dd';
+  ctx.beginPath();
+  ctx.ellipse(-rx*0.3, 0, rx*0.6, ry, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(rx*0.3, 0, rx*0.6, ry, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = color+'ff'; ctx.lineWidth=lw;
+  ctx.beginPath(); ctx.moveTo(0,-ry*0.3); ctx.lineTo(0,ry*0.3); ctx.stroke();
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: PHOTOSYNTHESIS
+// ══════════════════════════════════════════════
+function buildPhoto(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let frame = 0, running = true;
+  let lightLevel = 0.7;
+  let showLabels = true;
+
+  if (!preview && leftPanel) {
+    const lbl = document.createElement('div'); lbl.className='ctrl-label'; lbl.textContent='Controls'; leftPanel.appendChild(lbl);
+    const lr = document.createElement('div'); lr.className='ctrl-row';
+    lr.innerHTML=`<label>Light Intensity</label><input type="range" min="0" max="100" value="70" id="photo-light">`;
+    leftPanel.appendChild(lr);
+    document.getElementById('photo-light').style.accentColor = '#ffd700';
+    document.getElementById('photo-light').oninput = e => lightLevel = e.target.value/100;
+
+    const btnRow = document.createElement('div'); btnRow.className='btn-row';
+    const lb = document.createElement('button');
+    lb.className='sim-btn'; lb.textContent='Toggle Labels';
+    lb.style.cssText=`color:${color};border-color:${color}50`;
+    lb.onclick = () => { showLabels = !showLabels; };
+    btnRow.appendChild(lb); leftPanel.appendChild(btnRow);
+
+    const info = document.createElement('div');
+    info.className='info-box'; info.id='photo-info';
+    info.style.cssText=`border-color:${color}30`;
+    info.innerHTML=`<strong style="color:${color}">Reaction rate</strong> depends on light intensity — try adjusting the slider!`;
+    leftPanel.appendChild(info);
+  }
+
+  // Particles: CO2 in, O2 out, H2O in
+  const particles = [];
+  for (let i=0;i<18;i++) particles.push({
+    x: Math.random()*W, y: Math.random()*H,
+    type: i<8?'co2':i<14?'h2o':'o2',
+    vx: (Math.random()-.5)*0.8, vy: (Math.random()-.5)*0.8,
+    phase: Math.random()*Math.PI*2
+  });
+
+  function draw() {
+    if (!running) return;
+    frame++;
+    ctx.clearRect(0,0,W,H);
+
+    const speed = lightLevel * 1.5 + 0.3;
+    const cx = W*0.5, cy = H*0.52;
+
+    // Sky bg gradient
+    const sky = ctx.createLinearGradient(0,0,0,H*0.4);
+    sky.addColorStop(0, `rgba(255,220,100,${lightLevel*0.15})`);
+    sky.addColorStop(1,'transparent');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.4);
+
+    // Sun
+    const sunX = W*0.82, sunY = H*0.12;
+    const pulse = Math.sin(frame*0.04)*3;
+    ctx.save();
+    ctx.globalAlpha = lightLevel;
+    ctx.fillStyle='#ffd700';
+    ctx.beginPath(); ctx.arc(sunX,sunY,12+pulse,0,Math.PI*2); ctx.fill();
+    for(let a=0;a<8;a++){
+      const ax=Math.cos(a*Math.PI/4)*(16+pulse), ay=Math.sin(a*Math.PI/4)*(16+pulse);
+      ctx.beginPath(); ctx.moveTo(sunX+ax*.8,sunY+ay*.8); ctx.lineTo(sunX+ax*1.5,sunY+ay*1.5);
+      ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5; ctx.stroke();
+    }
+    // Light rays to chloroplast
+    for(let r=0;r<3;r++){
+      ctx.beginPath();
+      ctx.moveTo(sunX-(r*6),sunY+14);
+      const ray = (frame*0.015*speed + r*0.5) % 1;
+      const rx2 = cx + (r-1)*20, ry2 = cy-20;
+      ctx.lineTo(sunX-(r*6)+ray*(rx2-(sunX-(r*6))), sunY+14+ray*(ry2-(sunY+14)));
+      ctx.strokeStyle=`rgba(255,220,0,${lightLevel*0.4})`;
+      ctx.lineWidth=1; ctx.setLineDash([5,5]);
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.restore();
+
+    // Chloroplast body
+    ctx.save();
+    ctx.translate(cx, cy);
+    const outerGrd = ctx.createRadialGradient(0,0,0,0,0,W*0.32);
+    outerGrd.addColorStop(0,'#1a4020'); outerGrd.addColorStop(1,'#0d2510');
+    ctx.fillStyle=outerGrd;
+    ctx.beginPath(); ctx.ellipse(0,0,W*0.32,H*0.26,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=color+'70'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // Stroma
+    ctx.beginPath(); ctx.ellipse(0,0,W*0.2,H*0.16,0,0,Math.PI*2);
+    ctx.fillStyle='#0a1e0a'; ctx.fill();
+
+    // Thylakoid grana stacks
+    const granaX = [-W*0.1, 0, W*0.1];
+    granaX.forEach(gx => {
+      for(let d=0;d<3;d++){
+        const dy = (d-1)*9;
+        const glow = Math.sin(frame*0.06*speed + gx)*0.3+0.7;
+        ctx.fillStyle=`rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},${glow*lightLevel*0.9})`;
+        ctx.beginPath(); ctx.ellipse(gx,dy,W*0.045,5,0,0,Math.PI*2); ctx.fill();
+      }
+    });
+    if(showLabels){
+      ctx.fillStyle=color+'aa'; ctx.font=`${preview?7:9}px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText('CHLOROPLAST',0,H*0.3);
+    }
+    ctx.restore();
+
+    // Move and draw particles
+    particles.forEach(p => {
+      p.x += p.vx * speed;
+      p.y += p.vy * speed;
+      p.phase += 0.04;
+      if(p.x<-20)p.x=W+10; if(p.x>W+20)p.x=-10;
+      if(p.y<-20)p.y=H+10; if(p.y>H+20)p.y=-10;
+
+      // absorption near chloroplast
+      const dx=p.x-cx, dy2=p.y-cy;
+      const dist=Math.sqrt(dx*dx+dy2*dy2);
+      if(p.type!=='o2' && dist<W*0.3) {
+        p.x += (cx-p.x)*0.02*lightLevel;
+        p.y += (cy-p.y)*0.02*lightLevel;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.font=`${preview?8:10}px 'DM Mono',monospace`;
+      ctx.fillStyle = p.type==='co2'?'#888':p.type==='h2o'?'#5cb8f5':'#7ecf3f';
+      ctx.fillText(p.type==='co2'?'CO₂':p.type==='h2o'?'H₂O':'O₂', p.x, p.y);
+      ctx.restore();
+    });
+
+    // equation at bottom
+    if(!preview){
+      ctx.fillStyle='#3a6a3a'; ctx.font=`9px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText('6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂', W/2, H-6);
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop: () => { running=false; } };
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: GENETICS
+// ══════════════════════════════════════════════
+function buildGenetics(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let running = true;
+  let crossIdx = 0;
+  let animFrame = 0;
+  let revealed = [false,false,false,false];
+
+  const crosses = [
+    {p1:'Aa', p2:'Aa', cells:['AA','Aa','Aa','aa'], dominant:[true,true,true,false]},
+    {p1:'AA', p2:'aa', cells:['Aa','Aa','Aa','Aa'], dominant:[true,true,true,true]},
+    {p1:'Aa', p2:'aa', cells:['Aa','aa','Aa','aa'], dominant:[true,false,true,false]},
+    {p1:'AA', p2:'Aa', cells:['AA','Aa','AA','Aa'], dominant:[true,true,true,true]},
+  ];
+
+  if (!preview && leftPanel) {
+    const lbl=document.createElement('div'); lbl.className='ctrl-label'; lbl.textContent='Choose Cross'; leftPanel.appendChild(lbl);
+    const btnRow=document.createElement('div'); btnRow.className='btn-row'; btnRow.style.flexDirection='column';
+    crosses.forEach((c,i)=>{
+      const b=document.createElement('button');
+      b.className='sim-btn'; b.textContent=`${c.p1} × ${c.p2}`;
+      b.style.cssText=`color:${color};border-color:${color}50;text-align:left`;
+      b.onclick=()=>{ crossIdx=i; revealed=[false,false,false,false]; animFrame=0; };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const revBtn=document.createElement('button');
+    revBtn.className='sim-btn'; revBtn.textContent='Reveal All';
+    revBtn.style.cssText=`color:${color};border-color:${color}50;margin-top:6px`;
+    revBtn.onclick=()=>{ revealed=[true,true,true,true]; };
+    leftPanel.appendChild(revBtn);
+
+    const info=document.createElement('div'); info.className='info-box'; info.id='gen-info';
+    info.style.cssText=`border-color:${color}30`;
+    leftPanel.appendChild(info);
+  }
+
+  function draw() {
+    if (!running) return;
+    animFrame++;
+    ctx.clearRect(0,0,W,H);
+    const cross = crosses[crossIdx];
+    const pad = preview?10:20;
+    const gridSize = preview?60:75;
+    const startX = W/2 - gridSize + (preview?0:5);
+    const startY = H/2 - gridSize*0.8;
+
+    // Update info
+    if(!preview){
+      const info=document.getElementById('gen-info');
+      if(info){
+        const dom=cross.cells.filter((_,i)=>cross.dominant[i]).length;
+        const rec=4-dom;
+        info.innerHTML=`<strong style="color:${color}">${cross.p1} × ${cross.p2}</strong><br>Dominant: ${dom}/4 (${dom*25}%)<br>Recessive: ${rec}/4 (${rec*25}%)`;
+      }
+    }
+
+    // Header row (gametes)
+    const g1 = [cross.p1[0], cross.p1[1]]; // e.g. ['A','a']
+    const g2 = [cross.p2[0], cross.p2[1]];
+
+    ctx.fillStyle=color; ctx.textAlign='center'; ctx.font=`bold ${preview?12:15}px 'Playfair Display',serif`;
+    g1.forEach((g,i) => ctx.fillText(g, startX+gridSize*(i+1), startY+18));
+    g2.forEach((g,i) => ctx.fillText(g, startX+14, startY+gridSize*(i+1)+8));
+
+    // Grid lines
+    ctx.strokeStyle=color+'30'; ctx.lineWidth=1;
+    for(let i=0;i<=2;i++){
+      ctx.beginPath(); ctx.moveTo(startX+gridSize,startY+gridSize*i); ctx.lineTo(startX+gridSize*3,startY+gridSize*i); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(startX+gridSize*i,startY); ctx.lineTo(startX+gridSize*i,startY+gridSize*2); ctx.stroke();
+    }
+
+    // Cells
+    const positions=[[0,0],[1,0],[0,1],[1,1]];
+    positions.forEach(([ci,ri],idx)=>{
+      const cx2=startX+gridSize*(ci+1)+gridSize/2;
+      const cy2=startY+gridSize*(ri)+gridSize/2;
+      const isRev = preview ? true : revealed[idx];
+      const revealProg = isRev ? 1 : 0;
+
+      if(revealProg>0){
+        // Background
+        const isDom=cross.dominant[idx];
+        ctx.fillStyle=isDom ? color+'18' : '#1a0a0020';
+        ctx.beginPath(); ctx.roundRect(startX+gridSize*(ci+1)+4, startY+gridSize*ri+4, gridSize-8, gridSize-8, 6);
+        ctx.fill();
+
+        ctx.fillStyle = isDom ? color : '#666';
+        ctx.font=`bold ${preview?12:16}px 'Playfair Display',serif`;
+        ctx.textAlign='center';
+        ctx.fillText(cross.cells[idx], cx2, cy2+6);
+        if(!preview){
+          ctx.fillStyle = isDom ? color+'80' : '#44444480';
+          ctx.font=`9px 'DM Mono',monospace`;
+          ctx.fillText(isDom?'dominant':'recessive', cx2, cy2+20);
+        }
+      } else {
+        // Unrevealed
+        ctx.fillStyle='#1a1a1a';
+        ctx.beginPath(); ctx.roundRect(startX+gridSize*(ci+1)+4,startY+gridSize*ri+4,gridSize-8,gridSize-8,6); ctx.fill();
+        ctx.strokeStyle=color+'30'; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle=color+'30'; ctx.font=`14px sans-serif`; ctx.textAlign='center';
+        ctx.fillText('?', cx2, cy2+6);
+      }
+    });
+
+    // Cross label at top
+    if(!preview){
+      ctx.fillStyle=color+'aa'; ctx.font=`12px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText(`${cross.p1} × ${cross.p2}`, W/2, 18);
+    }
+
+    // Click to reveal (canvas click handled below)
+    requestAnimationFrame(draw);
+  }
+
+  if(!preview){
+    canvas.onclick = e => {
+      const rect = canvas.getBoundingClientRect();
+      const mx=(e.clientX-rect.left)*(canvas.width/rect.width);
+      const my=(e.clientY-rect.top)*(canvas.height/rect.height);
+      const cross=crosses[crossIdx];
+      const pad=20, gridSize=75;
+      const startX=W/2-gridSize+(5);
+      const startY=H/2-gridSize*0.8;
+      [[0,0],[1,0],[0,1],[1,1]].forEach(([ci,ri],idx)=>{
+        const bx=startX+gridSize*(ci+1)+4, by=startY+gridSize*ri+4;
+        if(mx>=bx&&mx<=bx+gridSize-8&&my>=by&&my<=by+gridSize-8) revealed[idx]=!revealed[idx];
+      });
+    };
+  }
+
+  draw();
+  return { stop:()=>{ running=false; } };
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: EVOLUTION (Natural Selection)
+// ══════════════════════════════════════════════
+function buildEvolution(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let running = true, frame = 0;
+  let generation = 0;
+  let selectionPressure = 0.7; // 0=none, 1=strong
+  let envType = 'dark'; // 'dark' or 'light'
+  let autoPlay = true;
+  let genTimer = 0;
+  const genDur = preview ? 60 : 100;
+
+  // Population of moths
+  let population = [];
+  const POP_SIZE = preview ? 20 : 30;
+
+  function initPop(darkFrac=0.1) {
+    population = [];
+    for(let i=0;i<POP_SIZE;i++){
+      population.push({
+        x: Math.random()*W*0.8+W*0.1,
+        y: Math.random()*H*0.65+H*0.15,
+        dark: Math.random()<darkFrac,
+        fitness: 0, size: 7+Math.random()*4
+      });
+    }
+  }
+  initPop(0.1);
+
+  function nextGen() {
+    generation++;
+    const darkCount = population.filter(m=>m.dark).length;
+    const darkFrac = darkCount/POP_SIZE;
+    // selection: if env is dark, dark moths have higher survival
+    let newDarkFrac;
+    if(envType==='dark'){
+      newDarkFrac = Math.min(0.98, darkFrac + selectionPressure*(1-darkFrac)*0.3 + Math.random()*0.02-0.01);
+    } else {
+      newDarkFrac = Math.max(0.02, darkFrac - selectionPressure*darkFrac*0.3 + Math.random()*0.02-0.01);
+    }
+    initPop(newDarkFrac);
+  }
+
+  if(!preview && leftPanel){
+    const lbl=document.createElement('div'); lbl.className='ctrl-label'; lbl.textContent='Controls'; leftPanel.appendChild(lbl);
+
+    const envRow=document.createElement('div'); envRow.className='ctrl-row';
+    envRow.innerHTML=`<label>Environment</label>`;
+    const envBtns=document.createElement('div'); envBtns.className='btn-row';
+    ['Dark','Light'].forEach((e,i)=>{
+      const b=document.createElement('button');
+      b.className='sim-btn'; b.textContent=e+' Env';
+      b.style.cssText=`color:${color};border-color:${color}50`;
+      b.onclick=()=>{ envType=e.toLowerCase(); generation=0; initPop(0.1); };
+      envBtns.appendChild(b);
+    });
+    leftPanel.appendChild(envBtns);
+
+    const spRow=document.createElement('div'); spRow.className='ctrl-row';
+    spRow.innerHTML=`<label>Selection Pressure</label><input type="range" min="0" max="100" value="70" id="evo-sp">`;
+    leftPanel.appendChild(spRow);
+    document.getElementById('evo-sp').style.accentColor=color;
+    document.getElementById('evo-sp').oninput=e=>selectionPressure=e.target.value/100;
+
+    const btnRow=document.createElement('div'); btnRow.className='btn-row';
+    ['Next Gen','Reset'].forEach((lbl2,i)=>{
+      const b=document.createElement('button');
+      b.className='sim-btn'; b.textContent=lbl2;
+      b.style.cssText=`color:${color};border-color:${color}50`;
+      b.onclick=()=>{ if(i===0)nextGen(); else{generation=0;initPop(0.1);} };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const info=document.createElement('div'); info.className='info-box'; info.id='evo-info';
+    info.style.cssText=`border-color:${color}30`;
+    leftPanel.appendChild(info);
+  }
+
+  function draw() {
+    if(!running) return;
+    frame++;
+    if(autoPlay){ genTimer++; if(genTimer>=genDur){ genTimer=0; nextGen(); if(generation>=10) generation=0; } }
+
+    // Background (tree bark texture)
+    const bgColor = envType==='dark' ? '#1a0e05' : '#c8b090';
+    ctx.fillStyle=bgColor; ctx.fillRect(0,0,W,H);
+    // Bark texture lines
+    ctx.strokeStyle=envType==='dark'?'#2a1808':'#b09878';
+    ctx.lineWidth=1;
+    for(let i=0;i<8;i++){
+      ctx.beginPath();
+      ctx.moveTo(i*W/7,0);
+      ctx.bezierCurveTo(i*W/7+10,H/3,i*W/7-8,H*2/3,i*W/7+5,H);
+      ctx.stroke();
+    }
+
+    const darkCount=population.filter(m=>m.dark).length;
+    const lightCount=POP_SIZE-darkCount;
+
+    // Moths
+    population.forEach(m => {
+      m.x += (Math.random()-.5)*0.4;
+      m.y += (Math.random()-.5)*0.3;
+      m.x=Math.max(10,Math.min(W-10,m.x));
+      m.y=Math.max(20,Math.min(H-30,m.y));
+
+      const c = m.dark ? '#222222' : '#cccccc';
+      ctx.save();
+      ctx.translate(m.x,m.y);
+      // Wings
+      const wf = Math.sin(frame*0.1+m.x)*0.15;
+      ctx.fillStyle=c;
+      ctx.beginPath();
+      ctx.ellipse(-m.size*0.7,0,m.size*(1.2+wf),m.size*0.6,Math.PI/6,0,Math.PI*2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(m.size*0.7,0,m.size*(1.2+wf),m.size*0.6,-Math.PI/6,0,Math.PI*2); ctx.fill();
+      // Body
+      ctx.fillStyle=m.dark?'#333':'#ddd';
+      ctx.beginPath(); ctx.ellipse(0,0,m.size*0.2,m.size*0.6,0,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    });
+
+    // Stats
+    if(!preview){
+      const pct=Math.round(darkCount/POP_SIZE*100);
+      const info=document.getElementById('evo-info');
+      if(info) info.innerHTML=`<strong style="color:${color}">Generation ${generation}</strong><br>🦋 Dark moths: ${darkCount} (${pct}%)<br>🤍 Light moths: ${lightCount} (${100-pct}%)<br><em style="font-size:11px;color:#888">Environment: ${envType==='dark'?'Industrial (dark)':'Natural (light)'}</em>`;
+
+      ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(5,5,W-10,36); ctx.beginPath(); ctx.roundRect(5,5,W-10,36,6); ctx.fill();
+      ctx.fillStyle=color; ctx.font=`bold 11px 'DM Mono',monospace`; ctx.textAlign='left';
+      ctx.fillText(`Gen ${generation} · Dark: ${pct}% · Light: ${100-pct}%`,12,18);
+      ctx.fillStyle='#888'; ctx.font=`9px 'DM Mono',monospace`;
+      ctx.fillText(envType==='dark'?'Dark env: dark moths survive better':'Light env: light moths survive better',12,32);
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop:()=>{ running=false; } };
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: ECOLOGY
+// ══════════════════════════════════════════════
+function buildEcology(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  let running=true, frame=0;
+  let showEnergy=true;
+  let viewMode='pyramid'; // 'pyramid' or 'foodweb'
+
+  const levels=[
+    {name:'Producers',icon:'🌿',energy:1000,color:'#7ecf3f',examples:'Grass, algae, trees'},
+    {name:'Primary\nConsumers',icon:'🐛',energy:100,color:'#5cb8f5',examples:'Insects, rabbits, deer'},
+    {name:'Secondary\nConsumers',icon:'🐸',energy:10,color:'#f5a623',examples:'Frogs, small fish, birds'},
+    {name:'Tertiary\nConsumers',icon:'🦅',energy:1,color:'#e05c5c',examples:'Hawks, sharks, lions'},
+  ];
+
+  if(!preview && leftPanel){
+    const lbl=document.createElement('div'); lbl.className='ctrl-label'; lbl.textContent='View Mode'; leftPanel.appendChild(lbl);
+    const btnRow=document.createElement('div'); btnRow.className='btn-row';
+    ['Energy Pyramid','Food Web'].forEach((lbl2,i)=>{
+      const b=document.createElement('button');
+      b.className='sim-btn'; b.textContent=lbl2;
+      b.style.cssText=`color:${color};border-color:${color}50`;
+      b.onclick=()=>viewMode=i===0?'pyramid':'foodweb';
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const lbl2=document.createElement('div'); lbl2.className='ctrl-label'; lbl2.textContent='Legend'; leftPanel.appendChild(lbl2);
+    const keyBox=document.createElement('div'); keyBox.className='key-box';
+    levels.forEach(l=>{
+      const sw=document.createElement('div'); sw.className='key-swatch'; sw.style.background=l.color;
+      const nm=document.createElement('span'); nm.textContent=l.name.replace('\n',' '); nm.style.cssText='font-size:11px;color:#a0c0a0';
+      keyBox.appendChild(sw); keyBox.appendChild(nm);
+    });
+    leftPanel.appendChild(keyBox);
+
+    const info=document.createElement('div'); info.className='info-box';
+    info.style.cssText=`border-color:${color}30;margin-top:6px`;
+    info.innerHTML=`Only <strong style="color:${color}">~10%</strong> of energy transfers between trophic levels — the rest is lost as heat. This is why ecosystems support fewer top predators than producers.`;
+    leftPanel.appendChild(info);
+  }
+
+  // Food web nodes
+  const nodes=[
+    {name:'Sun',x:W*.5,y:H*.06,r:14,col:'#ffd700',icon:'☀️'},
+    {name:'Grass',x:W*.25,y:H*.28,r:11,col:'#7ecf3f',icon:'🌿'},
+    {name:'Tree',x:W*.5,y:H*.22,r:11,col:'#3a8a20',icon:'🌳'},
+    {name:'Algae',x:W*.75,y:H*.28,r:10,col:'#5ecf5f',icon:'🟢'},
+    {name:'Rabbit',x:W*.15,y:H*.5,r:10,col:'#b0b0b0',icon:'🐇'},
+    {name:'Deer',x:W*.38,y:H*.48,r:10,col:'#c8a060',icon:'🦌'},
+    {name:'Fish',x:W*.65,y:H*.5,r:10,col:'#5cb8f5',icon:'🐟'},
+    {name:'Frog',x:W*.85,y:H*.48,r:9,col:'#7ecf3f',icon:'🐸'},
+    {name:'Fox',x:W*.25,y:H*.7,r:10,col:'#e05c5c',icon:'🦊'},
+    {name:'Eagle',x:W*.5,y:H*.75,r:10,col:'#f5a623',icon:'🦅'},
+    {name:'Shark',x:W*.75,y:H*.7,r:10,col:'#4488aa',icon:'🦈'},
+  ];
+  const edges=[
+    [0,1],[0,2],[0,3], // sun->producers
+    [1,4],[1,5],[2,5],[3,6],[3,7], // producers->primary
+    [4,8],[5,8],[6,10],[7,8], // primary->secondary
+    [8,9],[5,9],[6,9], // secondary->tertiary
+  ];
+
+  function draw(){
+    if(!running) return;
+    frame++;
+    ctx.clearRect(0,0,W,H);
+
+    if(viewMode==='pyramid' || preview){
+      drawPyramid();
+    } else {
+      drawFoodWeb();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  function drawPyramid(){
+    const pad=preview?8:18;
+    const levelH=preview?(H-20)/4:(H-30)/4;
+    const maxW=preview?W-16:W-36;
+
+    ctx.fillStyle='#050e05'; ctx.fillRect(0,0,W,H);
+
+    levels.forEach((l,i)=>{
+      const ri=levels.length-1-i; // draw from bottom
+      const w=maxW*(0.25+ri*0.25);
+      const x=(W-w)/2;
+      const y=pad+i*levelH;
+
+      // Gradient bar
+      const grd=ctx.createLinearGradient(x,0,x+w,0);
+      grd.addColorStop(0,l.color+'20');
+      grd.addColorStop(0.5,l.color+'50');
+      grd.addColorStop(1,l.color+'20');
+      ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.roundRect(x,y,w,levelH-4,4); ctx.fill();
+      ctx.strokeStyle=l.color+'60'; ctx.lineWidth=1; ctx.stroke();
+
+      // Energy flow animation
+      if(showEnergy && i<3){
+        const t=(frame*0.02+i*0.3)%1;
+        const ey=y+levelH/2;
+        const ex=x+w/2+Math.sin(frame*0.05+i)*20;
+        ctx.save();
+        ctx.globalAlpha=t*(1-t)*4*0.8;
+        ctx.fillStyle=l.color;
+        ctx.font='10px sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText('⚡',(x+w)/2+15,y+levelH+t*levelH*0.7-levelH*0.3);
+        ctx.restore();
+      }
+
+      if(!preview){
+        ctx.fillStyle=l.color; ctx.font=`bold 11px 'Playfair Display',serif`; ctx.textAlign='center';
+        ctx.fillText(l.name.replace('\n',' '), W/2, y+levelH*0.38);
+        ctx.fillStyle=l.color+'99'; ctx.font=`9px 'DM Mono',monospace`;
+        ctx.fillText(`${l.energy.toLocaleString()} kcal`, W/2, y+levelH*0.38+13);
+        ctx.fillStyle='#6a9a6a'; ctx.font=`8px 'DM Mono',monospace`;
+        ctx.fillText(l.examples, W/2, y+levelH*0.38+24);
+      } else {
+        ctx.fillStyle=l.color; ctx.font=`bold 9px 'DM Mono',monospace`; ctx.textAlign='center';
+        ctx.fillText(l.name.split('\n')[0], W/2, y+levelH*0.5+3);
+      }
+
+      // 10% arrows on right
+      if(!preview && i<levels.length-1){
+        ctx.save();
+        ctx.strokeStyle='#3a6a3a'; ctx.lineWidth=0.8; ctx.setLineDash([3,3]);
+        ctx.beginPath();
+        ctx.moveTo(W-10, y+levelH);
+        ctx.lineTo(W-10, y+levelH+levelH*0.5);
+        ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='#3a6a3a'; ctx.font=`8px 'DM Mono',monospace`; ctx.textAlign='right';
+        ctx.fillText('10%→', W-2, y+levelH+levelH*0.25+4);
+        ctx.restore();
+      }
+    });
+  }
+
+  function drawFoodWeb(){
+    ctx.fillStyle='#020908'; ctx.fillRect(0,0,W,H);
+    // Draw edges
+    edges.forEach(([a,b])=>{
+      const na=nodes[a], nb=nodes[b];
+      const pulse=(Math.sin(frame*0.04+a*0.5)+1)/2;
+      ctx.save();
+      ctx.strokeStyle=`rgba(92,184,245,${0.15+pulse*0.15})`;
+      ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y); ctx.stroke();
+      // Animated energy dot
+      const t=(frame*0.01+a*0.2)%1;
+      const ex=na.x+(nb.x-na.x)*t, ey=na.y+(nb.y-na.y)*t;
+      ctx.fillStyle=`rgba(92,184,245,${pulse*0.8})`;
+      ctx.beginPath(); ctx.arc(ex,ey,2,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    });
+    // Draw nodes
+    nodes.forEach(n=>{
+      ctx.save();
+      const pulse=Math.sin(frame*0.05+n.x*0.1)*2;
+      ctx.fillStyle=n.col+'30';
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r+4+pulse,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=n.col+'60';
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+      ctx.font=`${n.r}px sans-serif`; ctx.textAlign='center';
+      ctx.fillText(n.icon,n.x,n.y+n.r*0.35);
+      if(!preview){
+        ctx.fillStyle=n.col; ctx.font=`8px 'DM Mono',monospace`;
+        ctx.fillText(n.name,n.x,n.y+n.r+10);
+      }
+      ctx.restore();
+    });
+  }
+
+  draw();
+  return { stop:()=>{ running=false; } };
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: DNA & PROTEIN SYNTHESIS
+// ══════════════════════════════════════════════
+function buildDNA(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  let running=true, frame=0;
+  let viewMode='helix'; // 'helix','transcription','translation'
+  let speed=1;
+
+  const bases={A:'#c472f5',T:'#8844cc',G:'#7744ee',C:'#aa55ff',U:'#e07030'};
+  const dnaSeq=['A','T','G','C','A','T','G','C','A','T','G','C','A','T','G','C'];
+  const complement={A:'T',T:'A',G:'C',C:'G'};
+  const mRNAcomp={A:'U',T:'A',G:'C',C:'G'}; // mRNA complement of template
+
+  // Codon table (subset)
+  const codonTable={'AUG':'Met-Start','UUU':'Phe','UUC':'Phe','UUA':'Leu','GAA':'Glu','GAG':'Glu','GGG':'Gly','UAA':'STOP','UAG':'STOP','UGA':'STOP','GCU':'Ala','GCA':'Ala','AAA':'Lys','AAG':'Lys','CAU':'His','CGU':'Arg'};
+
+  if(!preview && leftPanel){
+    const lbl=document.createElement('div'); lbl.className='ctrl-label'; lbl.textContent='View Mode'; leftPanel.appendChild(lbl);
+    const btnRow=document.createElement('div'); btnRow.className='btn-row'; btnRow.style.flexDirection='column';
+    [{label:'🧬 DNA Helix',val:'helix'},{label:'📋 Transcription',val:'transcription'},{label:'🏭 Translation',val:'translation'}].forEach(({label,val})=>{
+      const b=document.createElement('button');
+      b.className='sim-btn'; b.textContent=label;
+      b.style.cssText=`color:${color};border-color:${color}50;text-align:left`;
+      b.onclick=()=>{ viewMode=val; frame=0; };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const spRow=document.createElement('div'); spRow.className='ctrl-row';
+    spRow.innerHTML=`<label>Speed</label><input type="range" min="30" max="200" value="100" id="dna-speed">`;
+    leftPanel.appendChild(spRow);
+    document.getElementById('dna-speed').style.accentColor=color;
+    document.getElementById('dna-speed').oninput=e=>speed=e.target.value/100;
+
+    const lbl2=document.createElement('div'); lbl2.className='ctrl-label'; lbl2.style.marginTop='8px'; lbl2.textContent='Base Colors'; leftPanel.appendChild(lbl2);
+    const keyBox=document.createElement('div'); keyBox.className='key-box';
+    Object.entries(bases).filter(([b])=>b!=='U'||true).forEach(([b,c])=>{
+      const sw=document.createElement('div'); sw.className='key-swatch'; sw.style.background=c;
+      const nm=document.createElement('span'); nm.textContent=b+(b==='A'?'/U (RNA)':''); nm.style.cssText='font-size:10px;color:#a0c0a0';
+      keyBox.appendChild(sw); keyBox.appendChild(nm);
+    });
+    leftPanel.appendChild(keyBox);
+  }
+
+  function draw(){
+    if(!running) return;
+    frame++;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0a0014'; ctx.fillRect(0,0,W,H);
+
+    if(viewMode==='helix'||preview) drawHelix();
+    else if(viewMode==='transcription') drawTranscription();
+    else drawTranslation();
+
+    requestAnimationFrame(draw);
+  }
+
+  function drawHelix(){
+    const n=preview?8:14;
+    const rowH=H/(n+1);
+    const cx=W/2;
+    const scroll=(frame*0.015*speed)%1;
+
+    for(let i=0;i<n;i++){
+      const y=(i+scroll)*rowH;
+      if(y<0||y>H+rowH) continue;
+      const wave=Math.sin((i+scroll)*Math.PI*0.55)*W*0.28;
+      const x1=cx-wave, x2=cx+wave;
+      const b1=dnaSeq[i%dnaSeq.length];
+      const b2=complement[b1];
+
+      // Backbone
+      if(i>0){
+        const py=y-rowH;
+        const pw=Math.sin((i-1+scroll)*Math.PI*0.55)*W*0.28;
+        ctx.beginPath();
+        ctx.moveTo(cx-pw,py); ctx.lineTo(x1,y);
+        ctx.strokeStyle=color+'40'; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx+pw,py); ctx.lineTo(x2,y);
+        ctx.strokeStyle=color+'40'; ctx.lineWidth=1.5; ctx.stroke();
+      }
+
+      // H-bond
+      ctx.beginPath(); ctx.moveTo(x1+6,y); ctx.lineTo(x2-6,y);
+      ctx.strokeStyle='#ffffff15'; ctx.lineWidth=1; ctx.stroke();
+
+      // Base circles
+      [x1,x2].forEach((bx,si)=>{
+        const bname=si===0?b1:b2;
+        const bc=bases[bname];
+        ctx.beginPath(); ctx.arc(bx,y,preview?4:6,0,Math.PI*2);
+        ctx.fillStyle=bc; ctx.fill();
+        if(!preview){
+          ctx.fillStyle='#000'; ctx.font=`bold 7px 'DM Mono',monospace`; ctx.textAlign='center';
+          ctx.fillText(bname,bx,y+2.5);
+        }
+      });
+    }
+
+    // Labels
+    if(!preview){
+      ctx.fillStyle=color+'80'; ctx.font=`10px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText("5'─── DNA Double Helix ───3'", W/2, H-6);
+    }
+  }
+
+  function drawTranscription(){
+    const mRNA=dnaSeq.map(b=>mRNAcomp[b]);
+    const n=preview?6:10;
+    const rowH=H/(n+2);
+    const cx=W/2;
+    const scroll=(frame*0.012*speed)%(dnaSeq.length);
+    const unzipAt=Math.floor(scroll+3)%dnaSeq.length;
+
+    // Label
+    ctx.fillStyle=color; ctx.font=`bold 10px 'Playfair Display',serif`; ctx.textAlign='center';
+    ctx.fillText('TRANSCRIPTION: DNA → mRNA',W/2,14);
+
+    for(let i=0;i<n;i++){
+      const y=(i+1.5)*rowH;
+      const idx=(i+Math.floor(scroll))%dnaSeq.length;
+      const isOpen=i<4;
+      const wave=isOpen?W*0.12:Math.sin(i*0.5)*W*0.22;
+      const x1=cx-W*0.22, x2=cx+W*0.22;
+
+      // DNA strand
+      [x1,x2].forEach((bx,si)=>{
+        const b=si===0?dnaSeq[idx]:complement[dnaSeq[idx]];
+        ctx.beginPath(); ctx.arc(bx,y,5,0,Math.PI*2);
+        ctx.fillStyle=bases[b]+(isOpen?'cc':'77');
+        ctx.fill();
+        if(!preview){
+          ctx.fillStyle='#000'; ctx.font=`bold 7px 'DM Mono',monospace`; ctx.textAlign='center';
+          ctx.fillText(b,bx,y+2.5);
+        }
+      });
+
+      if(isOpen){
+        // H-bond broken — show opening
+        ctx.strokeStyle='#ffffff10'; ctx.lineWidth=1; ctx.setLineDash([3,5]);
+        ctx.beginPath(); ctx.moveTo(x1+6,y); ctx.lineTo(x2-6,y); ctx.stroke();
+        ctx.setLineDash([]);
+        // mRNA nucleotide coming in
+        const mrnaB=mRNA[idx];
+        const my=y+18;
+        ctx.beginPath(); ctx.arc(cx,my,6,0,Math.PI*2);
+        ctx.fillStyle=bases[mrnaB];
+        ctx.fill();
+        ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5; ctx.stroke();
+        if(!preview){
+          ctx.fillStyle='#000'; ctx.font=`bold 7px 'DM Mono',monospace`; ctx.textAlign='center';
+          ctx.fillText(mrnaB,cx,my+2.5);
+        }
+        // RNA pol
+        if(i===2){
+          ctx.fillStyle='#ffd70040';
+          ctx.beginPath(); ctx.ellipse(cx,y,18,14,0,0,Math.PI*2); ctx.fill();
+          ctx.strokeStyle='#ffd70080'; ctx.lineWidth=1; ctx.stroke();
+          if(!preview){
+            ctx.fillStyle='#ffd700'; ctx.font=`7px 'DM Mono',monospace`; ctx.textAlign='center';
+            ctx.fillText('RNA Pol',cx,y+2.5);
+          }
+        }
+      } else {
+        // H-bond
+        ctx.strokeStyle='#ffffff15'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(x1+6,y); ctx.lineTo(x2-6,y); ctx.stroke();
+      }
+    }
+
+    if(!preview){
+      ctx.fillStyle='#ffd70080'; ctx.font=`8px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText('★ mRNA reads the template strand (yellow outline)',W/2,H-6);
+    }
+  }
+
+  function drawTranslation(){
+    ctx.fillStyle=color; ctx.font=`bold 10px 'Playfair Display',serif`; ctx.textAlign='center';
+    ctx.fillText('TRANSLATION: mRNA → Protein',W/2,14);
+
+    const mSeq=['A','U','G','G','A','A','G','C','U','U','U','U','G','A','A'];
+    const codons=['AUG','GAA','GCU','UUU','GAA'];
+    const offset=Math.floor((frame*0.015*speed))%3;
+    const ribX=W/2, ribY=H*0.38;
+
+    // mRNA strip
+    const bw=preview?12:15;
+    const total=mSeq.length;
+    const startX=W/2-total*bw/2;
+    mSeq.forEach((b,i)=>{
+      const bx=startX+i*bw;
+      const by=H*0.6;
+      ctx.fillStyle=bases[b]+'aa';
+      ctx.fillRect(bx,by,bw-1,preview?10:12);
+      if(!preview){
+        ctx.fillStyle='#fff'; ctx.font=`bold 7px 'DM Mono',monospace`; ctx.textAlign='center';
+        ctx.fillText(b,bx+bw/2,by+8.5);
+      }
+    });
+
+    // Ribosome
+    const shift=((frame*0.008*speed)%codons.length);
+    const ribShift=Math.floor(shift)*bw*3;
+    ctx.save();
+    ctx.translate(startX+ribShift,0);
+    ctx.fillStyle='#333355cc';
+    ctx.beginPath(); ctx.ellipse(bw*1.5,H*0.6-8,bw*2.2,10,0,0,Math.PI*2); ctx.fill(); // small
+    ctx.beginPath(); ctx.ellipse(bw*1.5,H*0.6+14,bw*2.2,10,0,0,Math.PI*2); ctx.fill(); // large
+    ctx.strokeStyle=color+'60'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(bw*1.5,H*0.6-8,bw*2.2,10,0,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(bw*1.5,H*0.6+14,bw*2.2,10,0,0,Math.PI*2); ctx.stroke();
+    if(!preview){
+      ctx.fillStyle=color+'99'; ctx.font=`7px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText('ribosome',bw*1.5,H*0.6-14);
+    }
+    // tRNA above ribosome
+    const codonIdx=Math.floor(shift)%codons.length;
+    const aminoAcid=codonTable[codons[codonIdx]]||'???';
+    ctx.fillStyle='#ffd70040';
+    ctx.beginPath(); ctx.ellipse(bw*1.5,H*0.6-28,bw*1.5,12,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#ffd70080'; ctx.lineWidth=1; ctx.stroke();
+    if(!preview){
+      ctx.fillStyle='#ffd700'; ctx.font=`7px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText(aminoAcid,bw*1.5,H*0.6-26);
+    }
+    ctx.restore();
+
+    // Polypeptide chain growing
+    if(!preview){
+      const chainLen=Math.floor(shift);
+      ctx.fillStyle=color; ctx.font=`9px 'DM Mono',monospace`; ctx.textAlign='left';
+      const chain=codons.slice(0,chainLen+1).map(c=>codonTable[c]?.split('-')[0]||'?').join(' — ');
+      ctx.fillText('Protein: '+chain, 10, H*0.22);
+      ctx.fillStyle='#5a6a5a'; ctx.font=`8px 'DM Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText('Codons: AUG=Start · UAA/UAG/UGA=Stop', W/2, H-6);
+    }
+  }
+
+  draw();
+  return { stop:()=>{ running=false; } };
+}
+
+// ══════════════════════════════════════════════
+//  KEYBOARD NAV
+// ══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') closeModule();
+});
+</script>
+</body>
+</html>
