@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vitals: The Teaching Hospital</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg2: #111827;
+      --panel: rgba(255,255,255,0.08);
+      --panel2: rgba(255,255,255,0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --line: rgba(255,255,255,0.14);
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --purple: #a78bfa;
+      --card: #172033;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,0.20), transparent 34rem),
+        radial-gradient(circle at bottom right, rgba(167,139,250,0.16), transparent 32rem),
+        linear-gradient(135deg, var(--bg), var(--bg2));
+      color: var(--text);
+    }
+
+    button, select, input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 0.72rem 0.95rem;
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease, border .12s ease;
+      border: 1px solid rgba(255,255,255,0.10);
+      text-align: left;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.16);
+    }
+
+    button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0ea5e9, #22c55e);
+      color: #06131b;
+      font-weight: 800;
+      border: 0;
+      text-align: center;
+    }
+
+    .btn-danger {
+      background: rgba(239,68,68,0.18);
+      border-color: rgba(239,68,68,0.35);
+    }
+
+    .btn-warn {
+      background: rgba(245,158,11,0.16);
+      border-color: rgba(245,158,11,0.34);
+    }
+
+    .btn-good {
+      background: rgba(34,197,94,0.16);
+      border-color: rgba(34,197,94,0.34);
+    }
+
+    .app {
+      width: min(1500px, calc(100vw - 2rem));
+      margin: 0 auto;
+      padding: 1.25rem 0 2rem;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 2fr minmax(280px, 1fr);
+      gap: 1rem;
+      align-items: stretch;
+      margin-bottom: 1rem;
+    }
+
+    .brand, .monitor, .case-status {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      padding: 1rem;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-size: clamp(1.45rem, 2vw, 2.1rem);
+      margin-bottom: 0.35rem;
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 0;
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .monitor {
+      padding: 0.8rem 1rem;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    #ecgCanvas {
+      width: 100%;
+      height: 118px;
+      background: rgba(2,6,23,0.65);
+      border: 1px solid rgba(56,189,248,0.18);
+      border-radius: 18px;
+    }
+
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .55rem;
+    }
+
+    .vital {
+      padding: .58rem .65rem;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .vital span {
+      display: block;
+      color: var(--muted);
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: .22rem;
+    }
+
+    .vital strong {
+      font-size: 1.04rem;
+    }
+
+    .case-status {
+      padding: 1rem;
+      display: grid;
+      gap: .75rem;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: .82rem;
+      margin-bottom: .35rem;
+    }
+
+    .meter {
+      height: 13px;
+      background: rgba(255,255,255,0.10);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 50%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--danger), var(--warn), var(--accent2));
+      transition: width .35s ease;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .55rem;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: .55rem .65rem;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: .72rem;
+    }
+
+    .stat strong {
+      font-size: 1rem;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr) 330px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .panel-header h2, .panel-header h3 {
+      margin: 0;
+    }
+
+    .panel-body {
+      padding: 1rem;
+    }
+
+    .nav-stack {
+      display: grid;
+      gap: .55rem;
+    }
+
+    .nav-step {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: .65rem;
+      align-items: center;
+      padding: .75rem;
+      border-radius: 16px;
+    }
+
+    .nav-step.active {
+      outline: 2px solid rgba(56,189,248,0.65);
+      background: rgba(56,189,248,0.14);
+    }
+
+    .nav-step.done {
+      border-color: rgba(34,197,94,0.35);
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      font-weight: 800;
+      font-size: .8rem;
+    }
+
+    .nav-step.done .step-dot {
+      background: rgba(34,197,94,0.25);
+      color: #bbf7d0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.38;
+    }
+
+    .main-card {
+      min-height: 650px;
+    }
+
+    .stage-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .stage-title h2 {
+      margin-bottom: .35rem;
+      font-size: clamp(1.45rem, 2vw, 2.25rem);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .32rem .55rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.13);
+      border: 1px solid rgba(56,189,248,0.25);
+      color: #bae6fd;
+      font-size: .76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .patient-card, .teaching-card, .choice-card, .result-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .patient-card h3, .teaching-card h3, .choice-card h3, .result-card h3 {
+      margin-bottom: .5rem;
+    }
+
+    .patient-summary {
+      display: grid;
+      gap: .7rem;
+      margin: 1rem 0;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: .75rem;
+      padding-bottom: .6rem;
+      border-bottom: 1px dashed rgba(255,255,255,0.14);
+    }
+
+    .summary-row span {
+      color: var(--muted);
+      font-size: .82rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .7rem;
+      margin-top: 1rem;
+    }
+
+    .wide-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .7rem;
+      margin-top: 1rem;
+    }
+
+    .body-exam {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .body-map {
+      position: relative;
+      height: 500px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(56,189,248,0.18), transparent 4rem),
+        radial-gradient(circle at 50% 48%, rgba(34,197,94,0.10), transparent 8rem),
+        rgba(2,6,23,0.45);
+      border: 1px solid rgba(255,255,255,0.12);
+      overflow: hidden;
+    }
+
+    .body-figure {
+      position: absolute;
+      inset: 38px 58px;
+      border-radius: 90px 90px 50px 50px;
+      background: linear-gradient(180deg, rgba(148,163,184,0.24), rgba(148,163,184,0.08));
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .body-head {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(148,163,184,0.24);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .exam-point {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(56,189,248,0.22);
+      border: 1px solid rgba(56,189,248,0.55);
+      color: #dff7ff;
+      font-weight: 900;
+      box-shadow: 0 0 0 0 rgba(56,189,248,0.35);
+      animation: pulse 1.8s infinite;
+      text-align: center;
+      padding: 0;
+    }
+
+    .exam-point.checked {
+      background: rgba(34,197,94,0.22);
+      border-color: rgba(34,197,94,0.6);
+      animation: none;
+    }
+
+    .exam-point.danger-point {
+      background: rgba(239,68,68,0.22);
+      border-color: rgba(239,68,68,0.65);
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56,189,248,0.35); }
+      70% { box-shadow: 0 0 0 12px rgba(56,189,248,0); }
+      100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); }
+    }
+
+    .findings-list {
+      display: grid;
+      gap: .7rem;
+    }
+
+    .finding {
+      border: 1px solid rgba(255,255,255,0.11);
+      background: rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: .8rem;
+    }
+
+    .finding strong {
+      display: block;
+      margin-bottom: .25rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .8rem;
+    }
+
+    .option-card {
+      min-height: 138px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: .75rem;
+    }
+
+    .option-card .meta {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: .55rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: .18rem .45rem;
+      font-size: .72rem;
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .evidence-board {
+      display: grid;
+      gap: .65rem;
+      max-height: 330px;
+      overflow: auto;
+      padding-right: .25rem;
+    }
+
+    .evidence {
+      background: rgba(56,189,248,0.11);
+      border: 1px solid rgba(56,189,248,0.20);
+      border-radius: 14px;
+      padding: .7rem;
+      font-size: .86rem;
+      line-height: 1.35;
+    }
+
+    .evidence.critical {
+      background: rgba(239,68,68,0.13);
+      border-color: rgba(239,68,68,0.24);
+    }
+
+    .evidence.supportive {
+      background: rgba(34,197,94,0.13);
+      border-color: rgba(34,197,94,0.24);
+    }
+
+    .log {
+      display: grid;
+      gap: .6rem;
+      max-height: 300px;
+      overflow: auto;
+      padding-right: .25rem;
+    }
+
+    .log-entry {
+      font-size: .82rem;
+      color: #cbd5e1;
+      border-left: 3px solid rgba(255,255,255,0.18);
+      padding-left: .65rem;
+      line-height: 1.35;
+    }
+
+    .log-entry.bad { border-left-color: var(--danger); }
+    .log-entry.good { border-left-color: var(--accent2); }
+    .log-entry.warn { border-left-color: var(--warn); }
+
+    .procedure-layout {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 1rem;
+    }
+
+    .procedure-table {
+      position: relative;
+      min-height: 430px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 50% 52%, rgba(239,68,68,0.16), transparent 6rem),
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.12);
+      overflow: hidden;
+      padding: 1rem;
+    }
+
+    .patient-shape {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      transform: translate(-50%, -50%);
+      width: min(360px, 70%);
+      height: 260px;
+      border-radius: 44% 44% 36% 36%;
+      background: rgba(148,163,184,0.16);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .abdomen-zone {
+      position: absolute;
+      left: 56%;
+      top: 57%;
+      width: 92px;
+      height: 92px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: rgba(239,68,68,0.20);
+      border: 1px dashed rgba(239,68,68,0.6);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #fecaca;
+    }
+
+    .procedure-readout {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: .75rem;
+      max-width: 380px;
+    }
+
+    .tool-grid {
+      display: grid;
+      gap: .55rem;
+    }
+
+    .complication-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .55rem;
+      margin-top: .8rem;
+    }
+
+    .complication {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: .55rem;
+    }
+
+    .complication span {
+      color: var(--muted);
+      font-size: .72rem;
+      display: block;
+      margin-bottom: .2rem;
+    }
+
+    .debrief-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .score-ring {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 1rem;
+      background: conic-gradient(var(--accent2) 0deg, var(--accent2) 250deg, rgba(255,255,255,0.10) 250deg);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .score-ring strong {
+      font-size: 2.3rem;
+    }
+
+    .diagnosis-board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .dx-option {
+      min-height: 180px;
+    }
+
+    .dx-option.selected {
+      outline: 2px solid rgba(56,189,248,0.65);
+      background: rgba(56,189,248,0.12);
+    }
+
+    .footer-note {
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.4;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      padding-top: .8rem;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1200px) {
+      .topbar, .game-layout {
+        grid-template-columns: 1fr;
+      }
+      .monitor { grid-template-columns: 1fr; }
+      .body-exam, .procedure-layout, .hero, .debrief-grid, .diagnosis-board {
+        grid-template-columns: 1fr;
+      }
+      .body-map { height: 420px; }
+      .wide-grid, .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="topbar">
+      <div class="brand">
+        <div class="eyebrow">Prototype 0.1</div>
+        <h1>Vitals: The Teaching Hospital</h1>
+        <p class="subtitle">A classroom-friendly medical reasoning game. Diagnose carefully, treat logically, and keep the patient stable.</p>
+      </div>
+
+      <div class="monitor">
+        <canvas id="ecgCanvas" width="720" height="160" aria-label="Animated patient monitor"></canvas>
+        <div class="vitals-grid" id="vitalsGrid"></div>
+      </div>
+
+      <div class="case-status">
+        <div>
+          <div class="bar-label"><span>Patient Stability</span><strong id="stabilityLabel">--</strong></div>
+          <div class="meter"><div class="meter-fill" id="stabilityFill"></div></div>
+        </div>
+        <div class="stats-row">
+          <div class="stat"><span>Time</span><strong id="timeLabel">0m</strong></div>
+          <div class="stat"><span>Budget</span><strong id="budgetLabel">$0</strong></div>
+          <div class="stat"><span>Score</span><strong id="scoreLabel">0</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-layout">
+      <aside class="panel">
+        <div class="panel-header">
+          <h3>Case Flow</h3>
+        </div>
+        <div class="panel-body">
+          <div class="nav-stack" id="phaseNav"></div>
+          <div class="footer-note">
+            Educational simulation only. This is not medical advice and should not be used for real diagnosis or treatment.
+          </div>
+        </div>
+      </aside>
+
+      <main class="panel main-card">
+        <div class="panel-body" id="main"></div>
+      </main>
+
+      <aside class="panel">
+        <div class="panel-header">
+          <h3>Evidence Board</h3>
+        </div>
+        <div class="panel-body">
+          <div class="evidence-board" id="evidenceBoard"></div>
+        </div>
+        <div class="panel-header">
+          <h3>Event Log</h3>
+        </div>
+        <div class="panel-body">
+          <div class="log" id="log"></div>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <script>
+    const phases = [
+      { id: 'intake', label: 'Intake' },
+      { id: 'exam', label: 'Exam' },
+      { id: 'tests', label: 'Tests' },
+      { id: 'diagnosis', label: 'Diagnosis' },
+      { id: 'treatment', label: 'Treatment' },
+      { id: 'procedure', label: 'Procedure' },
+      { id: 'debrief', label: 'Debrief' }
+    ];
+
+    const caseData = {
+      id: 'case-appendix-001',
+      title: 'Case 01: Pain That Moved',
+      difficultyLabel: 'Resident Warm-Up',
+      correctDiagnosis: 'appendicitis',
+      patient: {
+        name: 'Jordan M.',
+        age: 14,
+        pronouns: 'they/them',
+        chiefComplaint: 'Stomach pain, nausea, and fever',
+        history: 'Pain began near the belly button this morning, then shifted lower and to the right. Patient feels nauseated and says bumps in the car made the pain worse.',
+        allergies: 'No known drug allergies',
+        lastMeal: 'Toast, 8 hours ago'
+      },
+      startingVitals: {
+        hr: 104,
+        temp: 101.3,
+        bpSys: 112,
+        bpDia: 72,
+        spo2: 98,
+        pain: 7,
+        stability: 78
+      },
+      talkEvidence: [
+        { id: 'painMoved', text: 'Pain started near the belly button and shifted to the lower right abdomen.', type: 'critical' },
+        { id: 'nauseaFever', text: 'Nausea with low-grade fever.', type: 'supportive' },
+        { id: 'bumpsHurt', text: 'Movement and bumps in the car made the abdominal pain worse.', type: 'supportive' }
+      ],
+      examPoints: [
+        {
+          id: 'head', label: 'Head / Neuro', x: 50, y: 13,
+          result: 'Patient is alert and oriented. No headache, no neck stiffness.',
+          evidence: { id: 'neuroClear', text: 'Neurologic exam is normal.', type: 'neutral' },
+          time: 2, score: 3
+        },
+        {
+          id: 'chest', label: 'Chest / Lungs', x: 50, y: 31,
+          result: 'Breathing is clear. No wheezing, no cough, oxygen level is normal.',
+          evidence: { id: 'lungsClear', text: 'Lungs clear; oxygen level stays normal.', type: 'neutral' },
+          time: 2, score: 3
+        },
+        {
+          id: 'upperAbdomen', label: 'Upper Abdomen', x: 50, y: 48,
+          result: 'Mild nausea, but no strong upper abdominal tenderness.',
+          evidence: { id: 'upperMild', text: 'Upper abdomen is only mildly uncomfortable.', type: 'neutral' },
+          time: 3, score: 4
+        },
+        {
+          id: 'llq', label: 'Left Lower Abdomen', x: 39, y: 62,
+          result: 'Mild discomfort on the left, but pain is much worse on the right.',
+          evidence: { id: 'leftMild', text: 'Left lower abdomen: mild discomfort only.', type: 'neutral' },
+          time: 3, score: 4
+        },
+        {
+          id: 'rlq', label: 'Right Lower Abdomen', x: 61, y: 62,
+          result: 'Sharp tenderness in the right lower abdomen. Patient guards when you press.',
+          evidence: { id: 'rlqTender', text: 'Sharp right-lower-quadrant tenderness with guarding.', type: 'critical' },
+          time: 4, score: 14,
+          stress: 2
+        },
+        {
+          id: 'rebound', label: 'Rebound Check', x: 63, y: 72,
+          result: 'Pain worsens when pressure is released. This suggests irritation of the abdominal lining.',
+          evidence: { id: 'reboundPain', text: 'Rebound tenderness suggests peritoneal irritation.', type: 'critical' },
+          time: 4, score: 16,
+          stress: 4
+        },
+        {
+          id: 'back', label: 'Back / Flank', x: 50, y: 82,
+          result: 'No flank tenderness. Kidney stone becomes less likely.',
+          evidence: { id: 'noFlank', text: 'No flank tenderness; kidney stone is less supported.', type: 'supportive' },
+          time: 3, score: 6
+        }
+      ],
+      tests: [
+        {
+          id: 'cbc', name: 'CBC Bloodwork',
+          desc: 'Checks white blood cells and general signs of infection.',
+          time: 12, cost: 90, score: 14,
+          result: 'White blood cell count is elevated.',
+          evidence: { id: 'wbcHigh', text: 'CBC: elevated white blood cell count.', type: 'supportive' }
+        },
+        {
+          id: 'urinalysis', name: 'Urinalysis',
+          desc: 'Looks for blood, infection, or signs of kidney/urinary causes.',
+          time: 10, cost: 60, score: 8,
+          result: 'No blood in urine and no clear urinary infection.',
+          evidence: { id: 'uaClear', text: 'Urinalysis: no blood, no clear urinary infection.', type: 'supportive' }
+        },
+        {
+          id: 'ultrasound', name: 'Abdominal Ultrasound',
+          desc: 'Fast, non-radiation imaging. Good first look for suspected appendix inflammation.',
+          time: 18, cost: 220, score: 18,
+          result: 'Appendix appears enlarged and inflamed. Findings are consistent with appendicitis.',
+          evidence: { id: 'usAppendix', text: 'Ultrasound: enlarged inflamed appendix suspected.', type: 'critical' }
+        },
+        {
+          id: 'ct', name: 'CT Abdomen',
+          desc: 'More definitive imaging, but slower and more expensive in this classroom model.',
+          time: 35, cost: 850, score: 10,
+          result: 'CT strongly confirms acute appendicitis with no rupture yet.',
+          evidence: { id: 'ctConfirm', text: 'CT: acute appendicitis confirmed; no rupture yet.', type: 'critical' }
+        },
+        {
+          id: 'ecg', name: 'ECG',
+          desc: 'Checks heart rhythm. Useful for chest pain; less useful for this presentation.',
+          time: 8, cost: 75, score: -3,
+          result: 'Sinus tachycardia only. No cardiac cause is suggested.',
+          evidence: { id: 'ecgSinus', text: 'ECG: sinus tachycardia; no cardiac cause suggested.', type: 'neutral' },
+          wrong: true
+        },
+        {
+          id: 'observe', name: 'Wait and Observe',
+          desc: 'Sometimes observation is right. Sometimes it lets the patient worsen.',
+          time: 20, cost: 0, score: -8,
+          result: 'Pain increases and fever rises. Waiting did not help.',
+          evidence: { id: 'worseWaiting', text: 'Observation: pain and fever worsen over time.', type: 'critical' },
+          worsen: 9,
+          wrong: true
+        }
+      ],
+      diagnoses: [
+        {
+          id: 'gastroenteritis', name: 'Gastroenteritis',
+          desc: 'A stomach/intestinal infection can cause nausea, cramps, and fever.',
+          whyWrong: 'This does not explain the localized right-lower-quadrant tenderness and rebound pain well.',
+          score: -18
+        },
+        {
+          id: 'appendicitis', name: 'Appendicitis',
+          desc: 'Inflammation of the appendix, often with pain migration, nausea, fever, and RLQ tenderness.',
+          whyRight: 'The pain migration, fever, elevated WBC, RLQ tenderness, rebound pain, and imaging all point here.',
+          score: 30
+        },
+        {
+          id: 'kidneyStone', name: 'Kidney Stone',
+          desc: 'Can cause severe flank pain, urinary symptoms, and blood in urine.',
+          whyWrong: 'The urinalysis is clear and there is no flank tenderness.',
+          score: -15
+        },
+        {
+          id: 'constipation', name: 'Constipation',
+          desc: 'Can cause abdominal pain, but usually does not cause fever or rebound tenderness.',
+          whyWrong: 'Fever, elevated WBC, and rebound tenderness are red flags beyond constipation.',
+          score: -20
+        }
+      ],
+      treatments: [
+        {
+          id: 'ivFluids', name: 'Start IV Fluids',
+          desc: 'Supports circulation and hydration before definitive treatment.',
+          time: 8, cost: 60, score: 12,
+          effect: { stability: 5, hr: -6, pain: -1 },
+          evidence: { id: 'fluidsGiven', text: 'Treatment: IV fluids started.', type: 'supportive' }
+        },
+        {
+          id: 'antibiotics', name: 'Give Antibiotics',
+          desc: 'Reduces infection risk before surgery.',
+          time: 6, cost: 120, score: 14,
+          effect: { stability: 4, temp: -0.3 },
+          evidence: { id: 'abxGiven', text: 'Treatment: antibiotics given before procedure.', type: 'supportive' }
+        },
+        {
+          id: 'painControl', name: 'Pain Control',
+          desc: 'Appropriate pain control helps the patient without hiding the diagnosis at this stage.',
+          time: 5, cost: 45, score: 8,
+          effect: { pain: -2, hr: -4, stability: 2 },
+          evidence: { id: 'painControlled', text: 'Treatment: pain control provided.', type: 'neutral' }
+        },
+        {
+          id: 'surgeryConsult', name: 'Call Surgery Team',
+          desc: 'Definitive management for appendicitis is procedural evaluation and removal when appropriate.',
+          time: 10, cost: 250, score: 18,
+          effect: { stability: 2 },
+          evidence: { id: 'surgeryCalled', text: 'Treatment: surgery team consulted.', type: 'critical' }
+        },
+        {
+          id: 'oralFluids', name: 'Oral Fluids and Discharge',
+          desc: 'Too casual for a patient with localized tenderness, fever, and rebound pain.',
+          time: 15, cost: 20, score: -25,
+          effect: { stability: -14, pain: 1, temp: 0.4 },
+          bad: true,
+          evidence: { id: 'badDischarge', text: 'Unsafe choice: discharge worsened risk because red flags were present.', type: 'critical' }
+        },
+        {
+          id: 'laxative', name: 'Give Laxative',
+          desc: 'Wrong direction for suspected surgical abdomen.',
+          time: 10, cost: 30, score: -20,
+          effect: { stability: -10, pain: 1 },
+          bad: true,
+          evidence: { id: 'laxativeBad', text: 'Unsafe choice: laxative does not address suspected appendicitis.', type: 'critical' }
+        }
+      ],
+      procedureSteps: [
+        {
+          id: 'sterilePrep', prompt: 'Prepare the field and reduce infection risk.', correctTool: 'prep',
+          success: 'Sterile prep completed. Infection risk drops.',
+          fail: 'Skipping prep increases infection risk.'
+        },
+        {
+          id: 'anesthesia', prompt: 'Confirm anesthesia before incision.', correctTool: 'anesthesia',
+          success: 'Anesthesia check complete. Patient is ready.',
+          fail: 'You tried to move forward without confirming anesthesia. Stress response increases.'
+        },
+        {
+          id: 'monitor', prompt: 'Confirm live monitoring before the procedure continues.', correctTool: 'monitor',
+          success: 'Monitor is active. Vitals are being watched.',
+          fail: 'You failed to verify monitoring. Small changes could be missed.'
+        },
+        {
+          id: 'incision', prompt: 'Make a careful, small incision near the target area.', correctTool: 'scalpel',
+          success: 'Incision made cleanly with minimal bleeding.',
+          fail: 'Wrong tool choice causes tissue trauma and bleeding.'
+        },
+        {
+          id: 'locate', prompt: 'Gently locate and isolate the inflamed appendix.', correctTool: 'clamp',
+          success: 'Appendix isolated carefully.',
+          fail: 'Rough handling increases bleeding and inflammation.'
+        },
+        {
+          id: 'remove', prompt: 'Remove the inflamed appendix after securing it.', correctTool: 'remove',
+          success: 'Appendix removed. The source of the problem is controlled.',
+          fail: 'The source was not controlled. Patient stability drops.'
+        },
+        {
+          id: 'irrigate', prompt: 'Clean the area before closure.', correctTool: 'irrigate',
+          success: 'Area irrigated. Infection risk decreases.',
+          fail: 'Area was not cleaned well. Infection risk increases.'
+        },
+        {
+          id: 'close', prompt: 'Close the incision safely.', correctTool: 'suture',
+          success: 'Incision closed. Patient moves to recovery.',
+          fail: 'Poor closure increases bleeding and recovery risk.'
+        }
+      ],
+      tools: [
+        { id: 'prep', name: 'Sterile Prep Kit', icon: '🧼' },
+        { id: 'anesthesia', name: 'Anesthesia Check', icon: '😴' },
+        { id: 'monitor', name: 'Vitals Monitor', icon: '📈' },
+        { id: 'scalpel', name: 'Scalpel', icon: '🔪' },
+        { id: 'clamp', name: 'Clamp', icon: '🩺' },
+        { id: 'remove', name: 'Remove Appendix', icon: '🎯' },
+        { id: 'irrigate', name: 'Irrigate / Sponge', icon: '💧' },
+        { id: 'suture', name: 'Suture', icon: '🪡' }
+      ]
+    };
+
+    const defaultState = () => ({
+      started: false,
+      phase: 'intake',
+      completedPhases: [],
+      evidence: [],
+      log: [],
+      examined: [],
+      testsOrdered: [],
+      treatmentsGiven: [],
+      diagnosis: null,
+      diagnosisAttempts: 0,
+      procedureIndex: 0,
+      procedureMistakes: 0,
+      complications: { bleeding: 0, infection: 6, stress: 8 },
+      vitals: structuredClone(caseData.startingVitals),
+      time: 0,
+      budget: 1500,
+      score: 0,
+      failed: false,
+      success: false,
+      difficulty: 'intern',
+      hintLevel: true
+    });
+
+    let state = defaultState();
+    let ecgTick = 0;
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function addLog(text, type = '') {
+      state.log.unshift({ text, type, minute: state.time });
+      state.log = state.log.slice(0, 16);
+    }
+
+    function addEvidence(item) {
+      if (!item || state.evidence.some(e => e.id === item.id)) return;
+      state.evidence.unshift(item);
+    }
+
+    function addScore(points) {
+      state.score += points;
+      if (state.score < -100) state.score = -100;
+    }
+
+    function applyEffect(effect = {}) {
+      if ('stability' in effect) state.vitals.stability = clamp(state.vitals.stability + effect.stability, 0, 100);
+      if ('hr' in effect) state.vitals.hr = clamp(state.vitals.hr + effect.hr, 40, 180);
+      if ('temp' in effect) state.vitals.temp = Math.round((state.vitals.temp + effect.temp) * 10) / 10;
+      if ('pain' in effect) state.vitals.pain = clamp(state.vitals.pain + effect.pain, 0, 10);
+      if ('spo2' in effect) state.vitals.spo2 = clamp(state.vitals.spo2 + effect.spo2, 70, 100);
+    }
+
+    function advanceTime(minutes, reason = 'time passes') {
+      state.time += minutes;
+
+      const untreated = !state.treatmentsGiven.includes('surgeryConsult');
+      const fluids = state.treatmentsGiven.includes('ivFluids');
+      const antibiotics = state.treatmentsGiven.includes('antibiotics');
+      const painControl = state.treatmentsGiven.includes('painControl');
+
+      let decay = Math.ceil(minutes / 10);
+      if (untreated) decay += Math.ceil(minutes / 18);
+      if (fluids) decay -= 1;
+      if (antibiotics) decay -= 1;
+      decay = clamp(decay, 0, 8);
+
+      state.vitals.stability = clamp(state.vitals.stability - decay, 0, 100);
+      state.vitals.hr = clamp(state.vitals.hr + Math.max(0, decay - 1), 40, 180);
+      if (!antibiotics && minutes >= 10) state.vitals.temp = Math.round((state.vitals.temp + 0.1) * 10) / 10;
+      if (!painControl && minutes >= 10) state.vitals.pain = clamp(state.vitals.pain + 1, 0, 10);
+
+      if (state.vitals.stability <= 0) {
+        state.failed = true;
+        state.phase = 'debrief';
+        addLog('Patient became unstable. Case ended for debrief.', 'bad');
+      }
+    }
+
+    function completePhase(phase) {
+      if (!state.completedPhases.includes(phase)) state.completedPhases.push(phase);
+    }
+
+    function setPhase(phase) {
+      if (state.failed && phase !== 'debrief') return;
+      state.phase = phase;
+      render();
+    }
+
+    function startGame(difficulty = 'intern') {
+      state = defaultState();
+      state.started = true;
+      state.difficulty = difficulty;
+      state.hintLevel = difficulty !== 'attending';
+      if (difficulty === 'resident') {
+        state.vitals.stability = 74;
+        state.budget = 1300;
+      }
+      if (difficulty === 'attending') {
+        state.vitals.stability = 70;
+        state.budget = 1000;
+      }
+      addLog('Case opened in the emergency department.', 'warn');
+      render();
+    }
+
+    function interviewPatient() {
+      caseData.talkEvidence.forEach(addEvidence);
+      addScore(12);
+      advanceTime(5, 'patient interview');
+      addLog('You interviewed the patient and gathered key history.', 'good');
+      completePhase('intake');
+      setPhase('exam');
+    }
+
+    function examine(pointId) {
+      const point = caseData.examPoints.find(p => p.id === pointId);
+      if (!point || state.examined.includes(pointId)) return;
+      state.examined.push(pointId);
+      addEvidence(point.evidence);
+      addScore(point.score);
+      if (point.stress) {
+        state.complications.stress += point.stress;
+        state.vitals.hr += point.stress;
+      }
+      advanceTime(point.time, 'exam');
+      addLog(point.result, point.evidence.type === 'critical' ? 'warn' : 'good');
+      render();
+    }
+
+    function orderTest(testId) {
+      const test = caseData.tests.find(t => t.id === testId);
+      if (!test || state.testsOrdered.includes(testId)) return;
+      state.testsOrdered.push(testId);
+      state.budget -= test.cost;
+      addScore(test.score);
+      addEvidence(test.evidence);
+      advanceTime(test.time, 'test');
+      if (test.worsen) state.vitals.stability = clamp(state.vitals.stability - test.worsen, 0, 100);
+      addLog(`${test.name}: ${test.result}`, test.wrong ? 'bad' : 'good');
+      if (state.budget < 0) {
+        addScore(-12);
+        addLog('You exceeded the available resource budget. This will affect the score.', 'warn');
+      }
+      render();
+    }
+
+    function chooseDiagnosis(dxId) {
+      const dx = caseData.diagnoses.find(d => d.id === dxId);
+      if (!dx) return;
+      state.diagnosis = dxId;
+      state.diagnosisAttempts += 1;
+      addScore(dx.score);
+      advanceTime(4, 'diagnosis review');
+      if (dxId === caseData.correctDiagnosis) {
+        addLog(`Diagnosis selected: ${dx.name}. Correct diagnosis.`, 'good');
+        completePhase('diagnosis');
+      } else {
+        state.vitals.stability = clamp(state.vitals.stability - 10, 0, 100);
+        addLog(`Diagnosis selected: ${dx.name}. That diagnosis misses important red flags.`, 'bad');
+      }
+      render();
+    }
+
+    function giveTreatment(treatmentId) {
+      const treatment = caseData.treatments.find(t => t.id === treatmentId);
+      if (!treatment || state.treatmentsGiven.includes(treatmentId)) return;
+      state.treatmentsGiven.push(treatmentId);
+      state.budget -= treatment.cost;
+      addScore(treatment.score);
+      addEvidence(treatment.evidence);
+      applyEffect(treatment.effect);
+      advanceTime(treatment.time, 'treatment');
+      addLog(`${treatment.name}: ${treatment.desc}`, treatment.bad ? 'bad' : 'good');
+      if (treatment.bad && state.vitals.stability <= 25) {
+        state.failed = true;
+        state.phase = 'debrief';
+        addLog('Unsafe treatment caused the patient to crash. Case ended for debrief.', 'bad');
+      }
+      render();
+    }
+
+    function canProceedToProcedure() {
+      return state.diagnosis === 'appendicitis' && state.treatmentsGiven.includes('surgeryConsult');
+    }
+
+    function useProcedureTool(toolId) {
+      if (state.failed || state.procedureIndex >= caseData.procedureSteps.length) return;
+      const step = caseData.procedureSteps[state.procedureIndex];
+      const tool = caseData.tools.find(t => t.id === toolId);
+      if (toolId === step.correctTool) {
+        addScore(12);
+        state.procedureIndex += 1;
+        state.vitals.stability = clamp(state.vitals.stability + 3, 0, 100);
+        state.complications.stress = clamp(state.complications.stress - 2, 0, 100);
+        if (toolId === 'prep' || toolId === 'irrigate') state.complications.infection = clamp(state.complications.infection - 3, 0, 100);
+        if (toolId === 'close') state.complications.bleeding = clamp(state.complications.bleeding - 4, 0, 100);
+        addLog(step.success, 'good');
+      } else {
+        state.procedureMistakes += 1;
+        addScore(-10);
+        state.vitals.stability = clamp(state.vitals.stability - 8, 0, 100);
+        state.complications.bleeding = clamp(state.complications.bleeding + 8, 0, 100);
+        state.complications.infection = clamp(state.complications.infection + 5, 0, 100);
+        state.complications.stress = clamp(state.complications.stress + 6, 0, 100);
+        state.vitals.hr = clamp(state.vitals.hr + 5, 40, 180);
+        state.vitals.pain = clamp(state.vitals.pain + 1, 0, 10);
+        addLog(`${tool ? tool.name : 'Tool'} was not the right choice. ${step.fail}`, 'bad');
+      }
+
+      advanceTime(4, 'procedure');
+
+      if (state.vitals.stability <= 0 || state.procedureMistakes >= 5) {
+        state.failed = true;
+        state.phase = 'debrief';
+        addLog('Too many procedural complications. Case ended for debrief.', 'bad');
+      } else if (state.procedureIndex >= caseData.procedureSteps.length) {
+        state.success = true;
+        state.vitals.stability = clamp(state.vitals.stability + 18, 0, 100);
+        state.vitals.hr = clamp(state.vitals.hr - 18, 40, 180);
+        state.vitals.temp = Math.round((state.vitals.temp - 0.6) * 10) / 10;
+        state.vitals.pain = clamp(state.vitals.pain - 3, 0, 10);
+        addScore(40);
+        addEvidence({ id: 'appendixRemoved', text: 'Procedure complete: inflamed appendix removed and patient stabilized.', type: 'supportive' });
+        completePhase('procedure');
+        state.phase = 'debrief';
+        addLog('Procedure complete. Patient is recovering.', 'good');
+      }
+      render();
+    }
+
+    function resetCase() {
+      state = defaultState();
+      render();
+    }
+
+    function getVitalsHTML() {
+      const v = state.vitals;
+      const tempClass = v.temp >= 102 ? 'style="color:#fecaca"' : '';
+      const hrClass = v.hr >= 120 ? 'style="color:#fecaca"' : '';
+      const painClass = v.pain >= 8 ? 'style="color:#fed7aa"' : '';
+      return `
+        <div class="vital"><span>HR</span><strong ${hrClass}>${Math.round(v.hr)} bpm</strong></div>
+        <div class="vital"><span>BP</span><strong>${v.bpSys}/${v.bpDia}</strong></div>
+        <div class="vital"><span>Temp</span><strong ${tempClass}>${v.temp.toFixed(1)}°F</strong></div>
+        <div class="vital"><span>SpO₂</span><strong>${Math.round(v.spo2)}%</strong></div>
+        <div class="vital"><span>Pain</span><strong ${painClass}>${v.pain}/10</strong></div>
+        <div class="vital"><span>Status</span><strong>${state.failed ? 'Critical' : state.success ? 'Recovering' : 'Active'}</strong></div>
+      `;
+    }
+
+    function renderNav() {
+      const currentIndex = phases.findIndex(p => p.id === state.phase);
+      return phases.map((p, index) => {
+        const done = state.completedPhases.includes(p.id) || index < currentIndex && p.id !== 'procedure';
+        const active = p.id === state.phase;
+        return `
+          <button class="nav-step ${active ? 'active' : ''} ${done ? 'done' : ''}" onclick="setPhase('${p.id}')" ${!state.started ? 'disabled' : ''}>
+            <span class="step-dot">${done ? '✓' : index + 1}</span>
+            <span><strong>${p.label}</strong><br><span class="small">${phaseHint(p.id)}</span></span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function phaseHint(id) {
+      const hints = {
+        intake: 'History & vitals',
+        exam: 'Find clues',
+        tests: 'Order evidence',
+        diagnosis: 'Make the call',
+        treatment: 'Stabilize patient',
+        procedure: 'Step order matters',
+        debrief: 'Learn from results'
+      };
+      return hints[id];
+    }
+
+    function renderEvidence() {
+      if (!state.evidence.length) return '<p class="small">Evidence appears here as students interview, examine, and order tests.</p>';
+      return state.evidence.map(e => `<div class="evidence ${e.type || ''}">${e.text}</div>`).join('');
+    }
+
+    function renderLog() {
+      if (!state.log.length) return '<p class="small">Your choices and patient responses will appear here.</p>';
+      return state.log.map(l => `<div class="log-entry ${l.type}"><strong>${l.minute}m</strong> — ${l.text}</div>`).join('');
+    }
+
+    function renderMain() {
+      if (!state.started) return renderStart();
+      if (state.phase === 'intake') return renderIntake();
+      if (state.phase === 'exam') return renderExam();
+      if (state.phase === 'tests') return renderTests();
+      if (state.phase === 'diagnosis') return renderDiagnosis();
+      if (state.phase === 'treatment') return renderTreatment();
+      if (state.phase === 'procedure') return renderProcedure();
+      if (state.phase === 'debrief') return renderDebrief();
+    }
+
+    function renderStart() {
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Original classroom prototype</span>
+            <h2>Welcome to the Teaching Hospital</h2>
+            <p class="subtitle">Students must gather evidence before acting. Rushing, guessing, or using the wrong procedure steps can harm the patient and lower the score.</p>
+          </div>
+        </div>
+        <div class="hero">
+          <div class="patient-card">
+            <h3>First playable case</h3>
+            <div class="patient-summary">
+              <div class="summary-row"><span>Case</span><strong>${caseData.title}</strong></div>
+              <div class="summary-row"><span>Complaint</span><strong>${caseData.patient.chiefComplaint}</strong></div>
+              <div class="summary-row"><span>Goal</span><strong>Use history, exam, and tests to diagnose and treat the patient.</strong></div>
+            </div>
+            <div class="action-grid">
+              <button class="btn-primary" onclick="startGame('intern')">Start: Intern Mode<br><span class="small">Hints on, forgiving vitals</span></button>
+              <button onclick="startGame('resident')">Start: Resident Mode<br><span class="small">Fewer resources, faster decline</span></button>
+              <button onclick="startGame('attending')">Start: Attending Mode<br><span class="small">No hints, tight budget</span></button>
+            </div>
+          </div>
+          <div class="teaching-card">
+            <h3>What this prototype tests</h3>
+            <p class="small">This is not a trivia game. It is a decision system: student actions change vitals, stability, time, cost, complications, evidence, and final debrief.</p>
+            <div class="finding"><strong>Failure is possible</strong><span class="small">Unsafe treatment, excessive waiting, or repeated procedure mistakes can crash the case.</span></div>
+            <div class="finding"><strong>Evidence matters</strong><span class="small">The best score comes from connecting symptoms, physical exam findings, and tests.</span></div>
+            <div class="finding"><strong>Procedure order matters</strong><span class="small">The surgery scene uses simplified, non-graphic steps appropriate for school use.</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderIntake() {
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">${caseData.difficultyLabel}</span>
+            <h2>${caseData.title}</h2>
+            <p class="subtitle">Begin with the patient story. Good clinicians do not start with surgery; they start with evidence.</p>
+          </div>
+          <button onclick="resetCase()">Reset Case</button>
+        </div>
+        <div class="hero">
+          <div class="patient-card">
+            <h3>Patient Intake</h3>
+            <div class="patient-summary">
+              <div class="summary-row"><span>Name</span><strong>${caseData.patient.name}</strong></div>
+              <div class="summary-row"><span>Age</span><strong>${caseData.patient.age}</strong></div>
+              <div class="summary-row"><span>Complaint</span><strong>${caseData.patient.chiefComplaint}</strong></div>
+              <div class="summary-row"><span>History</span><strong>${caseData.patient.history}</strong></div>
+              <div class="summary-row"><span>Allergies</span><strong>${caseData.patient.allergies}</strong></div>
+              <div class="summary-row"><span>Last meal</span><strong>${caseData.patient.lastMeal}</strong></div>
+            </div>
+            <button class="btn-primary" onclick="interviewPatient()">Interview Patient and Continue to Exam</button>
+          </div>
+          <div class="teaching-card">
+            <h3>Teaching Prompt</h3>
+            <p>Before clicking forward, ask students: <strong>What information already feels important?</strong></p>
+            <p class="small">Look for pain location, movement of pain, fever, nausea, and whether the story sounds like a stomach bug or something localized.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderExam() {
+      const findings = state.examined.map(id => {
+        const point = caseData.examPoints.find(p => p.id === id);
+        return `<div class="finding"><strong>${point.label}</strong><span class="small">${point.result}</span></div>`;
+      }).join('') || '<p class="small">Click body regions to perform focused exams.</p>';
+
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Physical Exam</span>
+            <h2>Find the pattern</h2>
+            <p class="subtitle">Click the exam points. Some findings are distracting; some are decisive.</p>
+          </div>
+          <button class="btn-primary" onclick="completePhase('exam'); setPhase('tests')" ${state.examined.length < 3 ? 'disabled' : ''}>Continue to Tests</button>
+        </div>
+        <div class="body-exam">
+          <div class="body-map">
+            <div class="body-head"></div>
+            <div class="body-figure"></div>
+            ${caseData.examPoints.map(p => `
+              <button title="${p.label}" class="exam-point ${state.examined.includes(p.id) ? 'checked' : ''} ${p.evidence.type === 'critical' ? 'danger-point' : ''}" style="left:${p.x}%;top:${p.y}%;" onclick="examine('${p.id}')">
+                ${state.examined.includes(p.id) ? '✓' : '+'}
+              </button>
+            `).join('')}
+          </div>
+          <div>
+            <div class="choice-card">
+              <h3>Exam Findings</h3>
+              <div class="findings-list">${findings}</div>
+            </div>
+            ${state.hintLevel ? `<div class="choice-card" style="margin-top:1rem;"><h3>Hint</h3><p class="small">For abdominal pain, compare different regions. Localized right-lower pain and rebound tenderness should get your attention.</p></div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTests() {
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Diagnostics</span>
+            <h2>Order tests, but do not order everything blindly</h2>
+            <p class="subtitle">Tests cost time and resources. Choose evidence that helps confirm or rule out serious causes.</p>
+          </div>
+          <button class="btn-primary" onclick="completePhase('tests'); setPhase('diagnosis')" ${state.testsOrdered.length < 2 ? 'disabled' : ''}>Make Diagnosis</button>
+        </div>
+        <div class="card-grid">
+          ${caseData.tests.map(t => `
+            <button class="option-card ${state.testsOrdered.includes(t.id) ? 'btn-good' : ''}" onclick="orderTest('${t.id}')" ${state.testsOrdered.includes(t.id) ? 'disabled' : ''}>
+              <span>
+                <strong>${t.name}</strong><br>
+                <span class="small">${t.desc}</span>
+              </span>
+              <span class="meta">
+                <span class="pill">${t.time} min</span>
+                <span class="pill">$${t.cost}</span>
+                ${state.testsOrdered.includes(t.id) ? '<span class="pill">Ordered</span>' : ''}
+              </span>
+            </button>
+          `).join('')}
+        </div>
+        ${state.hintLevel ? `<div class="footer-note">Hint: You usually want a low-cost lab and a targeted imaging choice before committing to a diagnosis.</div>` : ''}
+      `;
+    }
+
+    function renderDiagnosis() {
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Clinical Reasoning</span>
+            <h2>What diagnosis best explains the evidence?</h2>
+            <p class="subtitle">Wrong diagnoses are allowed, but the patient worsens while the team loses time.</p>
+          </div>
+          <button class="btn-primary" onclick="setPhase('treatment')" ${state.diagnosis !== 'appendicitis' ? 'disabled' : ''}>Continue to Treatment</button>
+        </div>
+        <div class="diagnosis-board">
+          ${caseData.diagnoses.map(dx => `
+            <button class="dx-option ${state.diagnosis === dx.id ? 'selected' : ''}" onclick="chooseDiagnosis('${dx.id}')">
+              <strong>${dx.name}</strong>
+              <p class="small">${dx.desc}</p>
+              ${state.diagnosis === dx.id ? `<div class="finding"><span class="small">${dx.id === caseData.correctDiagnosis ? dx.whyRight : dx.whyWrong}</span></div>` : ''}
+            </button>
+          `).join('')}
+        </div>
+        ${state.hintLevel ? `<div class="footer-note">Hint: Strong diagnoses explain the full pattern, not just one symptom.</div>` : ''}
+      `;
+    }
+
+    function renderTreatment() {
+      const ready = canProceedToProcedure();
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Treatment Plan</span>
+            <h2>Stabilize before definitive care</h2>
+            <p class="subtitle">Choose the safest treatment bundle. Some options look simple but are dangerous for this case.</p>
+          </div>
+          <button class="btn-primary" onclick="completePhase('treatment'); setPhase('procedure')" ${!ready ? 'disabled' : ''}>Proceed to Procedure</button>
+        </div>
+        <div class="card-grid">
+          ${caseData.treatments.map(t => `
+            <button class="option-card ${state.treatmentsGiven.includes(t.id) ? 'btn-good' : t.bad ? 'btn-danger' : ''}" onclick="giveTreatment('${t.id}')" ${state.treatmentsGiven.includes(t.id) ? 'disabled' : ''}>
+              <span>
+                <strong>${t.name}</strong><br>
+                <span class="small">${t.desc}</span>
+              </span>
+              <span class="meta">
+                <span class="pill">${t.time} min</span>
+                <span class="pill">$${t.cost}</span>
+                ${state.treatmentsGiven.includes(t.id) ? '<span class="pill">Given</span>' : ''}
+              </span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="footer-note">
+          Procedure unlock requires the correct diagnosis and surgery consult. Best practice also includes fluids, antibiotics, and pain control before moving on.
+        </div>
+      `;
+    }
+
+    function renderProcedure() {
+      if (!canProceedToProcedure()) {
+        return `
+          <div class="stage-title"><div><span class="badge">Procedure Locked</span><h2>You are not ready for the procedure.</h2><p class="subtitle">You need the correct diagnosis and a surgery consult first.</p></div></div>
+          <button class="btn-primary" onclick="setPhase('treatment')">Return to Treatment</button>
+        `;
+      }
+
+      const step = caseData.procedureSteps[state.procedureIndex];
+      const prepMissing = !state.treatmentsGiven.includes('ivFluids') || !state.treatmentsGiven.includes('antibiotics');
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Non-graphic Procedure Simulation</span>
+            <h2>Appendectomy: Step ${state.procedureIndex + 1} of ${caseData.procedureSteps.length}</h2>
+            <p class="subtitle">Choose the right tool for the current task. Wrong tools create complications.</p>
+          </div>
+          <button onclick="setPhase('debrief')">End Case Early</button>
+        </div>
+        ${prepMissing ? `<div class="finding" style="margin-bottom:1rem;border-color:rgba(245,158,11,.45);"><strong>Preparation warning</strong><span class="small">You proceeded without the strongest prep bundle. The case is still playable, but infection/stability risks are higher.</span></div>` : ''}
+        <div class="procedure-layout">
+          <div class="procedure-table">
+            <div class="patient-shape"></div>
+            <div class="abdomen-zone">RLQ</div>
+            <div class="procedure-readout">
+              <div class="choice-card">
+                <h3>Current Objective</h3>
+                <p>${step ? step.prompt : 'Procedure complete.'}</p>
+                ${state.hintLevel && step ? `<p class="small">Hint: Match the tool to the objective, not to the most dramatic-looking option.</p>` : ''}
+              </div>
+              <div class="complication-grid">
+                <div class="complication"><span>Bleeding</span><strong>${state.complications.bleeding}%</strong></div>
+                <div class="complication"><span>Infection</span><strong>${state.complications.infection}%</strong></div>
+                <div class="complication"><span>Stress</span><strong>${state.complications.stress}%</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="choice-card">
+            <h3>Tool Tray</h3>
+            <div class="tool-grid">
+              ${caseData.tools.map(t => `
+                <button onclick="useProcedureTool('${t.id}')"><strong>${t.icon} ${t.name}</strong></button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function calculateGrade() {
+      let grade = 60 + state.score;
+      grade -= Math.max(0, state.time - 70) * 0.4;
+      grade -= Math.max(0, -state.budget) * 0.02;
+      grade -= state.procedureMistakes * 6;
+      if (state.success) grade += 15;
+      if (state.failed) grade -= 35;
+      return Math.round(clamp(grade, 0, 100));
+    }
+
+    function getDebriefBullets() {
+      const bullets = [];
+      if (state.evidence.some(e => e.id === 'painMoved')) bullets.push('You identified pain migration, one of the most important history clues.');
+      else bullets.push('You missed the pain migration clue from the patient history.');
+
+      if (state.evidence.some(e => e.id === 'rlqTender')) bullets.push('You found right-lower-quadrant tenderness, which strongly supported appendicitis.');
+      else bullets.push('You did not document right-lower-quadrant tenderness before deciding.');
+
+      if (state.evidence.some(e => e.id === 'reboundPain')) bullets.push('You checked rebound tenderness, a red flag for peritoneal irritation.');
+      else bullets.push('You skipped rebound assessment, which would have helped separate simple stomach pain from a surgical abdomen.');
+
+      if (state.testsOrdered.includes('ultrasound') || state.testsOrdered.includes('ct')) bullets.push('You used imaging to support the diagnosis.');
+      else bullets.push('You reached the end without targeted imaging evidence.');
+
+      if (state.treatmentsGiven.includes('ivFluids') && state.treatmentsGiven.includes('antibiotics')) bullets.push('You used a strong pre-procedure stabilization bundle.');
+      else bullets.push('Your pre-procedure preparation was incomplete. Fluids and antibiotics matter here.');
+
+      if (state.procedureMistakes === 0 && state.success) bullets.push('Your procedure sequence was clean with no tool mistakes.');
+      else if (state.procedureMistakes > 0) bullets.push(`You made ${state.procedureMistakes} procedure mistake(s), which increased complications.`);
+
+      return bullets;
+    }
+
+    function renderDebrief() {
+      const grade = calculateGrade();
+      const bullets = getDebriefBullets();
+      const ringDegrees = Math.round(grade / 100 * 360);
+      const dx = caseData.diagnoses.find(d => d.id === state.diagnosis);
+      return `
+        <div class="stage-title">
+          <div>
+            <span class="badge">Debrief</span>
+            <h2>${state.success ? 'Patient Recovering' : state.failed ? 'Case Failed Safely' : 'Case Ended'}</h2>
+            <p class="subtitle">The point is not just the score. The point is seeing how each choice changed the patient.</p>
+          </div>
+          <button class="btn-primary" onclick="resetCase()">Play Again</button>
+        </div>
+        <div class="debrief-grid">
+          <div class="result-card">
+            <div class="score-ring" style="background: conic-gradient(var(--accent2) 0deg, var(--accent2) ${ringDegrees}deg, rgba(255,255,255,0.10) ${ringDegrees}deg);"><strong>${grade}</strong></div>
+            <h3>Performance Summary</h3>
+            <div class="patient-summary">
+              <div class="summary-row"><span>Diagnosis</span><strong>${dx ? dx.name : 'No final diagnosis'}</strong></div>
+              <div class="summary-row"><span>Time</span><strong>${state.time} minutes</strong></div>
+              <div class="summary-row"><span>Budget</span><strong>$${state.budget} remaining</strong></div>
+              <div class="summary-row"><span>Mistakes</span><strong>${state.procedureMistakes} procedure mistake(s)</strong></div>
+              <div class="summary-row"><span>Final stability</span><strong>${Math.round(state.vitals.stability)}%</strong></div>
+            </div>
+          </div>
+          <div class="result-card">
+            <h3>Clinical Reasoning Feedback</h3>
+            <div class="findings-list">
+              ${bullets.map(b => `<div class="finding"><span class="small">${b}</span></div>`).join('')}
+            </div>
+            <div class="footer-note">
+              Biology connection: the appendix can become blocked and inflamed. As inflammation worsens, the immune response can raise temperature and white blood cell count. Localized pain and rebound tenderness suggest the abdominal lining is irritated, which is why delay becomes risky.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      document.getElementById('vitalsGrid').innerHTML = getVitalsHTML();
+      document.getElementById('phaseNav').innerHTML = renderNav();
+      document.getElementById('evidenceBoard').innerHTML = renderEvidence();
+      document.getElementById('log').innerHTML = renderLog();
+      document.getElementById('main').innerHTML = renderMain();
+      document.getElementById('stabilityLabel').textContent = `${Math.round(state.vitals.stability)}%`;
+      document.getElementById('stabilityFill').style.width = `${state.vitals.stability}%`;
+      document.getElementById('timeLabel').textContent = `${state.time}m`;
+      document.getElementById('budgetLabel').textContent = `$${state.budget}`;
+      document.getElementById('scoreLabel').textContent = state.score;
+      saveTinyProgress();
+    }
+
+    function drawECG() {
+      const canvas = document.getElementById('ecgCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(2,6,23,0.74)';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(56,189,248,0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 28) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 24) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      const hr = state.vitals.hr || 78;
+      const stability = state.vitals.stability || 80;
+      const pain = state.vitals.pain || 0;
+      const speed = clamp(hr / 95, 0.65, 1.8);
+      const amp = clamp(30 + pain * 2 - (100 - stability) * 0.08, 18, 48);
+      const baseline = h * 0.55;
+      const period = 95 / speed;
+      ecgTick += 2.3 * speed;
+
+      function waveAt(x) {
+        const t = (x + ecgTick) % period;
+        let y = baseline + Math.sin((x + ecgTick) * 0.035) * 2;
+        if (t > 10 && t < 18) y -= 8 * Math.sin((t - 10) / 8 * Math.PI);
+        if (t > 26 && t < 31) y += 16 * Math.sin((t - 26) / 5 * Math.PI);
+        if (t > 31 && t < 36) y -= amp * Math.sin((t - 31) / 5 * Math.PI);
+        if (t > 36 && t < 44) y += 13 * Math.sin((t - 36) / 8 * Math.PI);
+        if (t > 58 && t < 78) y -= 9 * Math.sin((t - 58) / 20 * Math.PI);
+        if (stability < 35) y += (Math.random() - 0.5) * 8;
+        return y;
+      }
+
+      ctx.strokeStyle = stability < 35 ? '#fecaca' : '#7dd3fc';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = stability < 35 ? 'rgba(239,68,68,0.7)' : 'rgba(56,189,248,0.7)';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += 3) {
+        const y = waveAt(x);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = 'rgba(226,232,240,0.85)';
+      ctx.font = '700 16px ui-sans-serif, system-ui';
+      ctx.fillText(`HR ${Math.round(hr)}   SpO₂ ${Math.round(state.vitals.spo2 || 98)}%   Stability ${Math.round(stability)}%`, 18, 28);
+      requestAnimationFrame(drawECG);
+    }
+
+    function saveTinyProgress() {
+      const tiny = {
+        bestScore: Math.max(Number(localStorage.getItem('vitalsBestScore') || 0), calculateGrade ? calculateGrade() : 0),
+        lastPlayed: new Date().toISOString()
+      };
+      localStorage.setItem('vitalsBestScore', String(tiny.bestScore));
+      localStorage.setItem('vitalsLastPlayed', tiny.lastPlayed);
+    }
+
+    render();
+    requestAnimationFrame(drawECG);
+  </script>
+</body>
+</html>
