@@ -81,6 +81,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .quiz-next.show{display:inline-block}
 .key-box{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12px}
 .key-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.qr-card-btn{position:absolute;top:8px;right:8px;z-index:10;background:#00000060;border:1px solid #ffffff20;border-radius:6px;color:#ffffff80;font-size:10px;padding:3px 7px;cursor:pointer;backdrop-filter:blur(4px);transition:opacity .15s;font-family:'DM Mono',monospace}
+.qr-card-btn:hover{opacity:.7}
+.note-dot{width:7px;height:7px;border-radius:50%;background:#7ecf3f;display:inline-block;margin-left:4px;vertical-align:middle}
 
 /* responsive */
 @media(max-width:640px){
@@ -97,13 +100,61 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="hero">
     <div class="hero-label">Biology Explorer · The Living Lab</div>
     <h1>Explore. Interact.<br><em style="font-style:italic">Understand.</em></h1>
-    <p>Seven interactive simulations covering the core topics of biology — built for students, powered by real science.</p>
+    <p>Nine interactive simulations covering the core topics of biology — built for students, powered by real science.</p>
+    <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <div style="position:relative;max-width:340px;width:100%">
+        <input id="search-input" type="text" placeholder="🔍  Search modules, topics, tags…"
+          oninput="filterModules(this.value)"
+          style="width:100%;background:#0a150a;border:1px solid #1a3a1a;border-radius:10px;padding:9px 14px 9px 14px;color:#e8f5e8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+      </div>
+      <button onclick="openNotebook()" style="background:#0a150a;border:1px solid #1a3a1a;border-radius:10px;padding:9px 16px;color:#7ecf3f;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">📝 My Notes</button>
+    </div>
   </div>
   <div class="grid" id="grid"></div>
-  <div class="footer">INTERACTIVE BIOLOGY SIMULATIONS · NO LOGIN REQUIRED</div>
+  <div id="no-results" style="display:none;text-align:center;color:#3a6a3a;font-family:'DM Mono',monospace;font-size:12px;padding:40px">No modules match your search.</div>
+  <div class="footer">INTERACTIVE BIOLOGY SIMULATIONS · NO LOGIN REQUIRED · 9 MODULES</div>
 </div>
 
-<!-- ══════════════ MODULE OVERLAY ══════════════ -->
+<!-- ══════════════ NOTEBOOK MODAL ══════════════ -->
+<div id="notebook-modal" style="display:none;position:fixed;inset:0;z-index:300;background:#000000cc;align-items:center;justify-content:center">
+  <div style="background:#080f08;border:1px solid #1a3a1a;border-radius:16px;width:min(600px,94vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #1a3a1a">
+      <span style="font-family:'Playfair Display',serif;font-size:17px;color:#7ecf3f">📝 My Biology Notes</span>
+      <button onclick="closeNotebook()" style="background:none;border:1px solid #1a3a1a;border-radius:8px;color:#7ecf3f;padding:3px 10px;cursor:pointer;font-size:13px">✕ Close</button>
+    </div>
+    <div id="notebook-tabs" style="display:flex;gap:4px;padding:10px 16px;border-bottom:1px solid #1a3a1a;flex-wrap:wrap;overflow-y:auto;max-height:80px"></div>
+    <div style="padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden">
+      <textarea id="notebook-area" placeholder="Type your notes for this module here…"
+        oninput="saveNote()"
+        style="flex:1;min-height:200px;background:#050e05;border:1px solid #1a3a1a;border-radius:8px;padding:12px;color:#d0ead0;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.8;resize:none;outline:none"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span id="notebook-saved" style="font-family:'DM Mono',monospace;font-size:10px;color:#3a6a3a">Auto-saved to browser</span>
+        <button onclick="clearNote()" style="background:none;border:1px solid #3a1a1a;border-radius:8px;color:#e05c5c80;padding:4px 10px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif">Clear this note</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ QR MODAL ══════════════ -->
+<div id="qr-modal" style="display:none;position:fixed;inset:0;z-index:300;background:#000000cc;align-items:center;justify-content:center">
+  <div style="background:#080f08;border:1px solid #1a3a1a;border-radius:16px;width:min(360px,92vw);padding:24px;text-align:center">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;color:#7ecf3f;margin-bottom:4px" id="qr-title">QR Code</div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:#3a6a3a;margin-bottom:16px" id="qr-url-label"></div>
+    <canvas id="qr-canvas" width="200" height="200" style="border-radius:8px;background:#fff;padding:8px;margin:0 auto;display:block"></canvas>
+    <div style="margin-top:14px;font-size:11px;color:#5a8a5a;font-family:'DM Sans',sans-serif">Scan to open this module directly</div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
+      <button onclick="downloadQR()" style="background:#0a180a;border:1px solid #1a3a1a;border-radius:8px;color:#7ecf3f;padding:6px 14px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">⬇ Download PNG</button>
+      <button onclick="closeQR()" style="background:none;border:1px solid #1a3a1a;border-radius:8px;color:#5a8a5a;padding:6px 14px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FOCUS BANNER ══════════════ -->
+<div id="focus-banner" style="display:none;background:#0a1a0a;border-bottom:1px solid #1a3a1a;padding:8px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#3a7a3a;letter-spacing:1px">
+  🎯 FOCUS MODE — <span id="focus-label"></span> &nbsp;·&nbsp; <a href="?" style="color:#5a9a5a;text-decoration:none">Exit focus mode</a>
+</div>
+
+
 <div id="overlay">
   <div class="ov-header" id="ov-header">
     <button class="ov-back" id="ov-back" onclick="closeModule()">← Back</button>
@@ -164,6 +215,18 @@ const MODULES = [
     color:'#ff7b3f', bg:'#1a0800', borderColor:'#ff7b3f30',
     tags:['ATP','Glycolysis','Krebs Cycle','Mitochondria'],
     build: buildRespiration
+  },
+  {
+    id:'body', icon:'🫀', title:'Human Body Systems', sub:'Heart, Neurons & Kidneys',
+    color:'#f06090', bg:'#1a0510', borderColor:'#f0609030',
+    tags:['Circulatory','Nervous System','Kidney','Homeostasis'],
+    build: buildBody
+  },
+  {
+    id:'micro', icon:'🦠', title:'Microbiology', sub:'Bacteria, Viruses & Immunity',
+    color:'#40e0c0', bg:'#001814', borderColor:'#40e0c030',
+    tags:['Bacteria','Viral Replication','Immune Response','Lytic Cycle'],
+    build: buildMicro
   }
 ];
 
@@ -213,6 +276,18 @@ const QUIZZES = {
     {q:"How many ATP molecules does glycolysis produce (net)?",opts:["0","2","10","34"],ans:1,exp:"Glycolysis produces 4 ATP total but uses 2 ATP to start, giving a net gain of 2 ATP. It also produces 2 NADH. The pyruvate products then enter the mitochondria for the Krebs cycle (in aerobic conditions)."},
     {q:"Where does the Electron Transport Chain (ETC) occur?",opts:["Cytoplasm","Mitochondrial matrix","Inner mitochondrial membrane","Outer mitochondrial membrane"],ans:2,exp:"The ETC is embedded in the inner mitochondrial membrane. Electrons from NADH and FADH₂ pass through protein complexes, pumping H⁺ ions across the membrane. This drives ATP synthase to produce ~32–34 ATP via chemiosmosis."},
   ],
+  body:[
+    {q:"What is the correct path of blood through the heart?",opts:["Left atrium → Left ventricle → Lungs → Right side","Right atrium → Right ventricle → Lungs → Left atrium → Left ventricle → Body","Body → Left side → Lungs → Right side → Body","Ventricles → Atria → Lungs → Atria → Ventricles"],ans:1,exp:"Deoxygenated blood from the body enters the right atrium, goes to the right ventricle, pumped to the lungs (pulmonary circulation), returns oxygenated to the left atrium, left ventricle, then pumped to the body (systemic circulation)."},
+    {q:"What is the function of nephrons in the kidney?",opts:["Produce insulin","Filter blood and regulate water/salt balance","Generate nerve impulses","Carry oxygen in the blood"],ans:1,exp:"Nephrons are the functional units of the kidney. They filter blood under pressure (glomerular filtration), reabsorb needed substances (glucose, water, ions), and secrete waste products, producing urine."},
+    {q:"Which part of the neuron receives incoming signals?",opts:["Axon","Myelin sheath","Dendrites","Cell body only"],ans:2,exp:"Dendrites are branching extensions that receive incoming signals from other neurons. The signal travels through the cell body and down the axon to the axon terminals, which release neurotransmitters to the next neuron."},
+    {q:"What does the sinoatrial (SA) node do?",opts:["Produces red blood cells","Regulates blood pressure in veins","Acts as the heart's natural pacemaker, initiating each heartbeat","Filters waste from the blood"],ans:2,exp:"The SA node in the right atrium generates electrical signals that cause the atria to contract first, then the signal travels to the AV node and ventricles. It sets the normal resting heart rate of ~60–100 bpm."},
+  ],
+  micro:[
+    {q:"What is the key difference between bacteria and viruses?",opts:["Bacteria are larger and have no DNA","Viruses are living cells; bacteria are not","Bacteria are living cells with their own metabolism; viruses are non-living particles requiring a host","Viruses can be treated with antibiotics; bacteria cannot"],ans:2,exp:"Bacteria are single-celled prokaryotes — they are alive, reproduce independently, have ribosomes, and can be killed by antibiotics. Viruses are non-living particles (protein + nucleic acid) that must hijack a host cell's machinery to replicate — antibiotics don't work on viruses."},
+    {q:"In the lytic cycle, what happens to the host cell?",opts:["It survives and incorporates viral DNA permanently","It is lysed (burst) and destroyed as new viruses are released","It becomes dormant until triggered","It produces antibodies against the virus"],ans:1,exp:"In the lytic cycle: virus injects DNA → hijacks cell machinery → replicates viral components → assembles new viruses → lyses (bursts) the host cell, releasing hundreds of new viruses. This is distinct from the lysogenic cycle, where viral DNA integrates and stays dormant."},
+    {q:"Which type of white blood cell produces antibodies?",opts:["Neutrophils","T-cells","Red blood cells","B-cells (plasma cells)"],ans:3,exp:"B-cells differentiate into plasma cells that produce specific antibodies matching the antigen. T-cells are responsible for cell-mediated immunity (killing infected cells). Neutrophils are phagocytes that engulf pathogens non-specifically."},
+    {q:"What is binary fission?",opts:["Sexual reproduction in bacteria using two parent cells","The splitting of the nucleus during meiosis","Asexual reproduction in bacteria — one cell divides into two identical cells","Viral replication inside a host cell"],ans:2,exp:"Binary fission is how bacteria reproduce asexually: the circular chromosome replicates, the cell elongates, and it splits into two identical daughter cells. Under ideal conditions bacteria can divide every 20 minutes, leading to exponential growth."},
+  ],
 };
 
 // ══════════════════════════════════════════════
@@ -222,40 +297,84 @@ const grid = document.getElementById('grid');
 MODULES.forEach(m => {
   const card = document.createElement('div');
   card.className = 'card';
+  card.dataset.tags = [m.title, m.sub, ...m.tags].join(' ').toLowerCase();
   card.style.cssText = `background:${m.bg};border-color:${m.borderColor};box-shadow:0 4px 24px ${m.color}18`;
   card.innerHTML = `
     <div class="card-canvas-wrap" id="preview-${m.id}">
       <canvas id="canvas-prev-${m.id}" width="280" height="170"></canvas>
+      <button class="qr-card-btn" onclick="event.stopPropagation();showQR('${m.id}')" title="Get QR code">⬡ QR</button>
     </div>
     <div class="card-fade" style="background:linear-gradient(transparent,${m.bg})"></div>
     <div class="card-body">
       <div class="card-title-row">
         <span class="card-icon">${m.icon}</span>
         <span class="card-title" style="color:${m.color}">${m.title}</span>
+        <span class="note-dot" id="note-dot-${m.id}" style="display:none" title="You have notes for this module"></span>
       </div>
       <div class="card-sub" style="color:${m.color}">${m.sub}</div>
       <div class="card-tags">${m.tags.slice(0,3).map(t=>`<span class="tag" style="color:${m.color};border-color:${m.color}40">${t}</span>`).join('')}</div>
     </div>`;
   card.onclick = () => openModule(m.id);
   grid.appendChild(card);
-  // start preview animation
   m.previewAnim = m.build(document.getElementById(`canvas-prev-${m.id}`), m.color, true);
 });
+
+// Refresh note dots on load
+refreshNoteDots();
+
+function filterModules(q) {
+  const term = q.toLowerCase().trim();
+  let any = false;
+  document.querySelectorAll('.card').forEach(c => {
+    const match = !term || c.dataset.tags.includes(term);
+    c.style.display = match ? '' : 'none';
+    if (match) any = true;
+  });
+  document.getElementById('no-results').style.display = any ? 'none' : 'block';
+}
 
 // ══════════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════════
 let activeAnim = null;
 let quizState = {};
+let currentModuleId = null;
+
+// ── Focus mode via URL param ──
+(function initFocusMode() {
+  const params = new URLSearchParams(location.search);
+  const focusId = params.get('module');
+  if (focusId && MODULES.find(m => m.id === focusId)) {
+    const m = MODULES.find(m => m.id === focusId);
+    document.getElementById('focus-banner').style.display = 'block';
+    document.getElementById('focus-label').textContent = `${m.icon} ${m.title}`;
+    // Hide home, auto-open module
+    setTimeout(() => openModule(focusId), 100);
+  }
+})();
 
 function openModule(id) {
   const m = MODULES.find(x=>x.id===id);
+  currentModuleId = id;
   const ov = document.getElementById('overlay');
   document.getElementById('ov-title').textContent = `${m.icon} ${m.title}`;
   document.getElementById('ov-sub').textContent = m.sub;
   ov.style.background = m.bg;
   document.getElementById('ov-header').style.borderBottomColor = m.borderColor;
   document.getElementById('ov-back').style.cssText = `color:${m.color};border-color:${m.color}50`;
+
+  // Inject QR + Notebook buttons into header
+  let headerExtra = document.getElementById('ov-header-extra');
+  if (!headerExtra) {
+    headerExtra = document.createElement('div');
+    headerExtra.id = 'ov-header-extra';
+    headerExtra.style.cssText = 'display:flex;gap:8px;margin-left:auto';
+    document.getElementById('ov-header').appendChild(headerExtra);
+  }
+  headerExtra.innerHTML = `
+    <button onclick="openNotebook('${id}')" style="background:none;border:1px solid ${m.color}40;border-radius:8px;color:${m.color};padding:4px 10px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif">📝 Notes</button>
+    <button onclick="showQR('${id}')" style="background:none;border:1px solid ${m.color}40;border-radius:8px;color:${m.color};padding:4px 10px;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace">⬡ QR</button>
+  `;
 
   // Build left panel
   const left = document.getElementById('ov-left');
@@ -274,9 +393,7 @@ function openModule(id) {
   if (activeAnim) { activeAnim.stop(); activeAnim = null; }
   activeAnim = m.build(canvas, m.color, false, left);
 
-  // Build right panel
   buildRight(id, m);
-
   ov.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -285,6 +402,7 @@ function closeModule() {
   if (activeAnim) { activeAnim.stop(); activeAnim = null; }
   document.getElementById('overlay').classList.remove('open');
   document.body.style.overflow = '';
+  currentModuleId = null;
 }
 
 // ══════════════════════════════════════════════
@@ -339,6 +457,22 @@ const CONTENT = {
       {title:'Stage 1 — Glycolysis (Cytoplasm)', body:'<ul><li>Glucose (6C) is split into <strong>2 pyruvate</strong> (3C each)</li><li>Location: <strong>cytoplasm</strong> (no mitochondria needed)</li><li>Net yield: <strong>2 ATP</strong> + 2 NADH</li><li>Occurs in ALL living cells — aerobic and anaerobic</li></ul>'},
       {title:'Stage 2 — Krebs Cycle (Matrix)', body:'<ul><li>Pyruvate enters the mitochondrial matrix, converted to Acetyl-CoA</li><li>Each turn produces: <strong>1 ATP</strong>, 3 NADH, 1 FADH₂, 2 CO₂</li><li>2 turns per glucose → <strong>2 ATP</strong> total from Krebs</li><li>CO₂ is released as waste — this is what you exhale</li></ul>'},
       {title:'Stage 3 — Electron Transport Chain (Inner Membrane)', body:'<ul><li>NADH and FADH₂ donate electrons to protein complexes in the <strong>inner mitochondrial membrane</strong></li><li>H⁺ ions are pumped across the membrane, then flow back through <strong>ATP synthase</strong> (chemiosmosis)</li><li>O₂ is the final electron acceptor → forms H₂O</li><li>Yield: <strong>~32–34 ATP</strong> — the big payoff!</li></ul>'},
+    ]
+  },
+  body:{
+    sections:[
+      {title:'Circulatory System', body:'The heart pumps blood through two loops. <strong>Pulmonary circulation</strong>: right side of heart → lungs (for gas exchange) → left side. <strong>Systemic circulation</strong>: left side → body → right side. The SA node triggers each heartbeat. Arteries carry blood away from the heart; veins return it.'},
+      {title:'Nervous System', body:'Neurons transmit electrical signals. Structure: <strong>dendrites</strong> (receive) → <strong>cell body</strong> → <strong>axon</strong> → <strong>axon terminals</strong> (release neurotransmitters). The synapse is the gap between neurons. Myelin sheath speeds conduction. CNS = brain + spinal cord; PNS = all other nerves.'},
+      {title:'Excretory System (Kidneys)', body:'<strong>Nephrons</strong> are the filtering units. Three steps: <ul><li><strong>Filtration</strong>: blood pressure forces water/solutes into Bowman\'s capsule</li><li><strong>Reabsorption</strong>: glucose, water, ions reabsorbed back into blood</li><li><strong>Secretion</strong>: additional waste secreted into filtrate → urine</li></ul>'},
+      {title:'Homeostasis', body:'Body systems maintain internal balance via <strong>negative feedback</strong>. Example: body temperature rises → sweating cools the body → temperature drops → sweating stops. Blood glucose: rises → insulin released → cells take up glucose → levels drop. These loops prevent dangerous extremes.'},
+    ]
+  },
+  micro:{
+    sections:[
+      {title:'Bacteria', body:'Prokaryotes — no membrane-bound nucleus. Reproduce via <strong>binary fission</strong> (asexual). Can grow exponentially: 1 cell → millions in hours. Gram staining classifies bacteria by cell wall (Gram+ purple / Gram- pink). Antibiotics target bacterial structures (cell wall, ribosomes) not found in human cells.'},
+      {title:'Viral Replication', body:'Viruses are non-living — protein coat (capsid) + nucleic acid (DNA or RNA). Two cycles: <ul><li><strong>Lytic cycle</strong>: infect → replicate → lyse host cell → release virions. Fast, destructive.</li><li><strong>Lysogenic cycle</strong>: viral DNA integrates into host genome (provirus), replicates quietly until triggered into the lytic cycle.</li></ul>'},
+      {title:'Immune Response', body:'<ul><li><strong>Innate immunity</strong>: non-specific, immediate. Skin, mucus, fever, phagocytes (neutrophils, macrophages).</li><li><strong>Adaptive immunity</strong>: specific, slower but lasting. B-cells produce antibodies. T-cells kill infected cells (cytotoxic T) or coordinate the response (helper T).</li><li><strong>Memory cells</strong>: persist after infection → faster response on re-exposure (basis of vaccination).</li></ul>'},
+      {title:'Bacterial Growth Curve', body:'Four phases: <ul><li><strong>Lag phase</strong>: bacteria adapt to new environment, no growth</li><li><strong>Log (exponential) phase</strong>: rapid doubling; antibiotics most effective here</li><li><strong>Stationary phase</strong>: growth = death rate; resources depleted</li><li><strong>Death phase</strong>: death rate exceeds growth; population declines</li></ul>'},
     ]
   }
 };
@@ -412,6 +546,134 @@ window.restartQuiz = function(id, mid) {
   const container = document.getElementById(`quiz-${id}`);
   renderQuiz(container, id, m, QUIZZES[id], 0);
 };
+
+// ══════════════════════════════════════════════
+//  NOTEBOOK (localStorage)
+// ══════════════════════════════════════════════
+let notebookActiveId = null;
+
+function openNotebook(id) {
+  notebookActiveId = id || currentModuleId || MODULES[0].id;
+  const modal = document.getElementById('notebook-modal');
+  modal.style.display = 'flex';
+
+  // Build tabs
+  const tabs = document.getElementById('notebook-tabs');
+  tabs.innerHTML = '';
+  MODULES.forEach(m => {
+    const hasNote = !!(localStorage.getItem(`bio-note-${m.id}`) || '').trim();
+    const btn = document.createElement('button');
+    btn.textContent = `${m.icon} ${m.title.split(' ')[0]}`;
+    if (hasNote) btn.textContent += ' •';
+    btn.style.cssText = `background:${m.id===notebookActiveId?m.color+'25':'#0a150a'};border:1px solid ${m.color}${m.id===notebookActiveId?'80':'30'};border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;color:${m.color};font-family:'DM Sans',sans-serif`;
+    btn.onclick = () => switchNoteTab(m.id);
+    tabs.appendChild(btn);
+  });
+
+  // Load note
+  document.getElementById('notebook-area').value = localStorage.getItem(`bio-note-${notebookActiveId}`) || '';
+}
+
+function switchNoteTab(id) {
+  notebookActiveId = id;
+  openNotebook(id);
+}
+
+function saveNote() {
+  const val = document.getElementById('notebook-area').value;
+  localStorage.setItem(`bio-note-${notebookActiveId}`, val);
+  document.getElementById('notebook-saved').textContent = '✓ Saved ' + new Date().toLocaleTimeString();
+  refreshNoteDots();
+}
+
+function clearNote() {
+  if (!confirm('Clear notes for this module?')) return;
+  localStorage.removeItem(`bio-note-${notebookActiveId}`);
+  document.getElementById('notebook-area').value = '';
+  refreshNoteDots();
+  openNotebook(notebookActiveId);
+}
+
+function closeNotebook() {
+  document.getElementById('notebook-modal').style.display = 'none';
+}
+
+function refreshNoteDots() {
+  MODULES.forEach(m => {
+    const dot = document.getElementById(`note-dot-${m.id}`);
+    if (dot) dot.style.display = (localStorage.getItem(`bio-note-${m.id}`) || '').trim() ? 'inline-block' : 'none';
+  });
+}
+
+// ══════════════════════════════════════════════
+//  QR CODE GENERATOR (pure JS, no library)
+// ══════════════════════════════════════════════
+let qrCurrentId = null;
+
+function showQR(id) {
+  qrCurrentId = id;
+  const m = MODULES.find(x => x.id === id);
+  const url = `${location.origin}${location.pathname}?module=${id}`;
+  document.getElementById('qr-title').textContent = `${m.icon} ${m.title} — QR Code`;
+  document.getElementById('qr-url-label').textContent = url;
+  document.getElementById('qr-modal').style.display = 'flex';
+  drawQR(url);
+}
+
+function closeQR() {
+  document.getElementById('qr-modal').style.display = 'none';
+}
+
+function downloadQR() {
+  const canvas = document.getElementById('qr-canvas');
+  const a = document.createElement('a');
+  a.download = `biology-${qrCurrentId}-qr.png`;
+  a.href = canvas.toDataURL();
+  a.click();
+}
+
+// Minimal QR code generator using a simple URL-to-QR approach via Google Charts API
+function drawQR(url) {
+  const canvas = document.getElementById('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  const size = 200;
+  canvas.width = size; canvas.height = size;
+
+  // Use Google Charts QR API (works offline-ish via fetch, but we'll draw a visual placeholder too)
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(img, 0, 0, size, size);
+  };
+  img.onerror = () => drawQRFallback(url, canvas, ctx, size);
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+}
+
+function drawQRFallback(url, canvas, ctx, size) {
+  // Draw a stylized placeholder with URL text
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  // Border squares (QR corner markers)
+  [[8,8],[8,size-36],[size-36,8]].forEach(([x,y]) => {
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, 28, 28);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x+7, y+7, 14, 14);
+  });
+  // Dots
+  ctx.fillStyle = '#000';
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+    if (Math.random() > 0.5) ctx.fillRect(48 + i*18, 48 + j*18, 10, 10);
+  }
+  // URL
+  ctx.fillStyle = '#333'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+  const words = url.replace('https://', '').split('?');
+  ctx.fillText(words[0], size/2, size - 18);
+  ctx.fillText('?' + (words[1]||''), size/2, size - 8);
+}
 
 // ══════════════════════════════════════════════
 //  SIMULATION: CELL DIVISION
@@ -1865,11 +2127,591 @@ function buildRespiration(canvas, color, preview, leftPanel) {
 }
 
 // ══════════════════════════════════════════════
-//  KEYBOARD NAV
+//  SIMULATION: HUMAN BODY SYSTEMS
+// ══════════════════════════════════════════════
+function buildBody(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let running = true, frame = 0;
+  let viewMode = 'heart';
+  let heartRate = 70; // bpm
+  let zoom = 1;
+
+  if (!preview && leftPanel) {
+    const lbl = document.createElement('div'); lbl.className = 'ctrl-label'; lbl.textContent = 'System'; leftPanel.appendChild(lbl);
+    const btnRow = document.createElement('div'); btnRow.className = 'btn-row'; btnRow.style.flexDirection = 'column';
+    [{label:'🫀 Circulatory', val:'heart'},{label:'🧠 Nervous System', val:'neuron'},{label:'🫘 Kidney', val:'kidney'}].forEach(({label,val}) => {
+      const b = document.createElement('button'); b.className = 'sim-btn'; b.textContent = label;
+      b.style.cssText = `color:${color};border-color:${color}50;text-align:left`;
+      b.onclick = () => { viewMode = val; frame = 0; };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const hrRow = document.createElement('div'); hrRow.className = 'ctrl-row';
+    hrRow.innerHTML = `<label>Heart Rate</label><input type="range" min="40" max="180" value="70" id="body-hr">`;
+    leftPanel.appendChild(hrRow);
+    document.getElementById('body-hr').style.accentColor = color;
+    document.getElementById('body-hr').oninput = e => heartRate = +e.target.value;
+
+    const info = document.createElement('div'); info.className = 'info-box'; info.id = 'body-info';
+    info.style.cssText = `border-color:${color}30`; leftPanel.appendChild(info);
+  }
+
+  function draw() {
+    if (!running) return;
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#12030a'; ctx.fillRect(0, 0, W, H);
+    if (viewMode === 'heart' || preview) drawHeart();
+    else if (viewMode === 'neuron') drawNeuron();
+    else drawKidney();
+    requestAnimationFrame(draw);
+  }
+
+  function drawHeart() {
+    const cx = W / 2, cy = H * 0.46;
+    const bps = heartRate / 60;
+    const beat = Math.sin(frame * 0.06 * bps * Math.PI);
+    const beatScale = 1 + Math.max(0, beat) * 0.08;
+    const isBeating = beat > 0;
+
+    if (!preview) {
+      const info = document.getElementById('body-info');
+      if (info) info.innerHTML = `<strong style="color:${color}">Heart Rate: ${heartRate} bpm</strong><br>${heartRate < 60 ? 'Bradycardia (slow)' : heartRate > 100 ? 'Tachycardia (fast)' : 'Normal sinus rhythm'}`;
+    }
+
+    // Blood vessels (aorta, pulmonary)
+    ctx.save();
+    ctx.strokeStyle = '#cc3333'; ctx.lineWidth = preview ? 3 : 5;
+    ctx.beginPath(); ctx.moveTo(cx + 18, cy - 30); ctx.bezierCurveTo(cx + 50, cy - 70, cx + 80, cy - 40, cx + 80, cy - 10); ctx.stroke(); // aorta
+    ctx.strokeStyle = '#4466cc'; ctx.lineWidth = preview ? 2 : 4;
+    ctx.beginPath(); ctx.moveTo(cx - 18, cy - 28); ctx.bezierCurveTo(cx - 50, cy - 65, cx - 85, cy - 35, cx - 80, cy - 5); ctx.stroke(); // pulmonary
+
+    // Animated blood flow
+    const flowT = (frame * 0.02 * bps) % 1;
+    ctx.globalAlpha = isBeating ? 0.9 : 0.3;
+    ctx.fillStyle = '#cc3333';
+    ctx.beginPath(); ctx.arc(cx + 18 + flowT * 62, cy - 30 - flowT * 20, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#4466cc';
+    ctx.beginPath(); ctx.arc(cx - 18 - flowT * 62, cy - 28 - flowT * 17, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // Heart body
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(beatScale, beatScale);
+    const heartPath = new Path2D();
+    heartPath.moveTo(0, 20);
+    heartPath.bezierCurveTo(-50, -10, -50, -50, -20, -50);
+    heartPath.bezierCurveTo(-5, -50, 0, -35, 0, -35);
+    heartPath.bezierCurveTo(0, -35, 5, -50, 20, -50);
+    heartPath.bezierCurveTo(50, -50, 50, -10, 0, 20);
+    const grad = ctx.createRadialGradient(-10, -15, 5, 0, 0, 50);
+    grad.addColorStop(0, isBeating ? '#ff4466' : '#cc2244');
+    grad.addColorStop(1, '#880022');
+    ctx.fillStyle = grad;
+    ctx.fill(heartPath);
+    ctx.strokeStyle = color + '60'; ctx.lineWidth = 1.5; ctx.stroke(heartPath);
+
+    // Chambers
+    ctx.strokeStyle = '#ff446640'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-2, -35); ctx.lineTo(-2, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-25, -10); ctx.bezierCurveTo(-20, 0, 20, 0, 25, -10); ctx.stroke();
+
+    // Labels
+    if (!preview) {
+      ctx.fillStyle = '#ffffff60'; ctx.font = '7px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText('RA', -20, 5); ctx.fillText('LA', 18, 5);
+      ctx.fillText('RV', -15, 16); ctx.fillText('LV', 12, 16);
+    }
+    ctx.restore();
+
+    // ECG trace at bottom
+    if (!preview) {
+      const ecgY = H * 0.87;
+      ctx.strokeStyle = color + '80'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let x = 0; x < W; x++) {
+        const t = ((x / W) + frame * 0.01 * bps) % 1;
+        let y = 0;
+        if (t < 0.1) y = Math.sin(t / 0.1 * Math.PI) * 4; // P wave
+        else if (t < 0.35) y = 0;
+        else if (t < 0.38) y = -Math.sin((t - 0.35) / 0.03 * Math.PI) * 8; // Q
+        else if (t < 0.42) y = Math.sin((t - 0.38) / 0.04 * Math.PI) * 30; // R
+        else if (t < 0.46) y = -Math.sin((t - 0.42) / 0.04 * Math.PI) * 6; // S
+        else if (t < 0.7) y = Math.sin((t - 0.46) / 0.24 * Math.PI) * 6; // T wave
+        if (x === 0) ctx.moveTo(x, ecgY - y);
+        else ctx.lineTo(x, ecgY - y);
+      }
+      ctx.stroke();
+      ctx.fillStyle = color + '60'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'left';
+      ctx.fillText('ECG', 5, ecgY - 22);
+    }
+  }
+
+  function drawNeuron() {
+    const cx = W / 2, cy = H / 2;
+    const sigT = (frame * 0.012) % 1;
+
+    // Dendrites (left)
+    const dendrites = [[-0.25, -0.22], [-0.25, 0], [-0.25, 0.22]];
+    ctx.strokeStyle = color + '50'; ctx.lineWidth = 1.5;
+    dendrites.forEach(([dx, dy]) => {
+      ctx.beginPath();
+      ctx.moveTo(cx + dx * W - W * 0.18, cy + dy * H);
+      ctx.bezierCurveTo(cx + dx * W - W * 0.05, cy + dy * H, cx - W * 0.12, cy + dy * H * 0.3, cx - W * 0.12, cy);
+      ctx.stroke();
+      // Animated signal
+      const t2 = (sigT + dendrites.indexOf([dx,dy]) * 0.2) % 1;
+      const bx = cx + dx * W - W * 0.18 + t2 * (W * 0.06);
+      const by = cy + dy * H * (1 - t2 * 0.7);
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(bx, by, 4, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Cell body
+    const bodyGrd = ctx.createRadialGradient(cx - W * 0.06, cy, 0, cx - W * 0.06, cy, 30);
+    bodyGrd.addColorStop(0, color + '60'); bodyGrd.addColorStop(1, color + '20');
+    ctx.fillStyle = bodyGrd;
+    ctx.beginPath(); ctx.arc(cx - W * 0.06, cy, 28, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = color + '80'; ctx.lineWidth = 1.5; ctx.stroke();
+    // Nucleus
+    ctx.fillStyle = '#ff9090'; ctx.beginPath(); ctx.arc(cx - W * 0.06, cy, 10, 0, Math.PI * 2); ctx.fill();
+    if (!preview) {
+      ctx.fillStyle = color; ctx.font = '7px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText('nucleus', cx - W * 0.06, cy + 22);
+    }
+
+    // Axon with myelin
+    const axonStart = cx + W * 0.04, axonEnd = cx + W * 0.42;
+    ctx.strokeStyle = color + '30'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(axonStart, cy); ctx.lineTo(axonEnd, cy); ctx.stroke();
+    // Myelin segments
+    const segCount = 5;
+    for (let s = 0; s < segCount; s++) {
+      const sx = axonStart + (s / segCount) * (axonEnd - axonStart) + 10;
+      ctx.strokeStyle = '#4488cc'; ctx.lineWidth = 10;
+      ctx.beginPath(); ctx.moveTo(sx, cy); ctx.lineTo(sx + (axonEnd - axonStart) / segCount - 15, cy); ctx.stroke();
+    }
+    // Ranvier nodes
+    for (let s = 1; s <= segCount; s++) {
+      ctx.fillStyle = color + '60';
+      ctx.beginPath(); ctx.arc(axonStart + (s / segCount) * (axonEnd - axonStart) - 5, cy, 4, 0, Math.PI * 2); ctx.fill();
+    }
+    // Action potential signal
+    const sx = axonStart + sigT * (axonEnd - axonStart);
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath(); ctx.arc(sx, cy, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath(); ctx.arc(sx, cy, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // Axon terminals
+    for (let t = -1; t <= 1; t++) {
+      ctx.strokeStyle = color + '60'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(axonEnd, cy); ctx.lineTo(axonEnd + 18, cy + t * 20); ctx.stroke();
+      // Synaptic vesicles
+      const vT = (frame * 0.02 + t * 0.3) % 1;
+      ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(axonEnd + 10 + vT * 8, cy + t * 16, 3, 0, Math.PI * 2); ctx.fill();
+    }
+
+    if (!preview) {
+      ctx.fillStyle = color + '60'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText('dendrites', cx - W * 0.3, H * 0.9);
+      ctx.fillText('cell body', cx - W * 0.06, H * 0.9);
+      ctx.fillText('axon (myelinated)', cx + W * 0.2, H * 0.9);
+      ctx.fillText('terminals', cx + W * 0.44, H * 0.9);
+    }
+
+    const info = document.getElementById('body-info');
+    if (info && !preview) info.innerHTML = `<strong style="color:${color}">Action Potential</strong><br>Signal travels down axon at up to <strong>120 m/s</strong> in myelinated neurons. Myelin sheath speeds conduction via saltatory (jumping) propagation at Nodes of Ranvier.`;
+  }
+
+  function drawKidney() {
+    const cx = W / 2, cy = H * 0.46;
+    // Kidney outline
+    const kGrd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 70);
+    kGrd.addColorStop(0, '#3a1020'); kGrd.addColorStop(1, '#1a0810');
+    ctx.fillStyle = kGrd;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 55, 75, Math.PI * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = color + '70'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Cortex
+    ctx.strokeStyle = color + '30'; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 48, 68, Math.PI * 0.1, 0, Math.PI * 2); ctx.stroke();
+
+    // Medulla pyramids
+    const pyramids = [[-20, -30], [0, -40], [20, -30], [30, 0], [20, 30], [0, 40], [-20, 30], [-30, 0]];
+    pyramids.forEach(([px, py]) => {
+      ctx.fillStyle = '#cc4466' + '50';
+      ctx.beginPath(); ctx.ellipse(cx + px * 0.7, cy + py * 0.7, 12, 16, Math.atan2(py, px), 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Renal pelvis
+    ctx.fillStyle = '#ffaa00' + '30';
+    ctx.beginPath(); ctx.ellipse(cx - 8, cy, 18, 28, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ffaa0060'; ctx.lineWidth = 1; ctx.stroke();
+
+    // Ureter
+    ctx.strokeStyle = '#ffaa0080'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx - 25, cy + 35); ctx.bezierCurveTo(cx - 35, cy + 55, cx - 30, H * 0.85, cx - 20, H * 0.9); ctx.stroke();
+
+    // Animated filtration particles
+    const nephronCount = preview ? 3 : 6;
+    for (let n = 0; n < nephronCount; n++) {
+      const angle = (n / nephronCount) * Math.PI * 2;
+      const rx = cx + Math.cos(angle) * 35, ry = cy + Math.sin(angle) * 50;
+      const t = (frame * 0.015 + n * 0.2) % 1;
+      ctx.fillStyle = t < 0.5 ? '#5cb8f5' : '#ffaa00';
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.arc(rx + Math.cos(angle + t * Math.PI) * 12 * t, ry + Math.sin(angle + t * Math.PI) * 8 * t, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    if (!preview) {
+      ctx.fillStyle = color + '70'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText('KIDNEY', cx, H * 0.9);
+      ctx.fillText('cortex · medulla · pelvis · ureter', cx, H * 0.96);
+      const info = document.getElementById('body-info');
+      if (info) info.innerHTML = `<strong style="color:${color}">Nephron filtration</strong><br>Each kidney has ~1 million nephrons. Together they filter ~180L of blood per day, producing ~1.5L of urine. Key hormone: ADH controls water reabsorption.`;
+    }
+  }
+
+  draw();
+  return { stop: () => { running = false; } };
+}
+
+// ══════════════════════════════════════════════
+//  SIMULATION: MICROBIOLOGY
+// ══════════════════════════════════════════════
+function buildMicro(canvas, color, preview, leftPanel) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let running = true, frame = 0;
+  let viewMode = 'growth';
+  let antibioticApplied = false;
+  let bacteria = [];
+  let growthData = [];
+  let phase = 0; // 0=lag,1=log,2=stationary,3=death
+  let phaseTimer = 0;
+  const phaseDur = [40, 120, 80, 999];
+  let virusStep = 0;
+  let virusTimer = 0;
+  const virusDur = 80;
+
+  function initBacteria(n) {
+    bacteria = Array.from({length: n}, (_,i) => ({
+      x: W * 0.1 + Math.random() * W * 0.8,
+      y: H * 0.2 + Math.random() * H * 0.6,
+      angle: Math.random() * Math.PI * 2,
+      size: 6 + Math.random() * 4,
+      dividing: false, divT: 0, dead: false
+    }));
+  }
+  initBacteria(3);
+
+  if (!preview && leftPanel) {
+    const lbl = document.createElement('div'); lbl.className = 'ctrl-label'; lbl.textContent = 'View Mode'; leftPanel.appendChild(lbl);
+    const btnRow = document.createElement('div'); btnRow.className = 'btn-row'; btnRow.style.flexDirection = 'column';
+    [{label:'📈 Bacterial Growth', val:'growth'},{label:'🦠 Lytic Cycle', val:'lytic'},{label:'🛡️ Immune Response', val:'immune'}].forEach(({label,val}) => {
+      const b = document.createElement('button'); b.className = 'sim-btn'; b.textContent = label;
+      b.style.cssText = `color:${color};border-color:${color}50;text-align:left`;
+      b.onclick = () => { viewMode = val; frame = 0; if(val==='growth'){phase=0;phaseTimer=0;initBacteria(3);antibioticApplied=false;growthData=[];} if(val==='lytic'){virusStep=0;virusTimer=0;} };
+      btnRow.appendChild(b);
+    });
+    leftPanel.appendChild(btnRow);
+
+    const abBtn = document.createElement('button'); abBtn.className = 'sim-btn';
+    abBtn.textContent = '💊 Apply Antibiotic'; abBtn.id = 'ab-btn';
+    abBtn.style.cssText = `color:#e05c5c;border-color:#e05c5c50;margin-top:4px`;
+    abBtn.onclick = () => { if(viewMode==='growth'){ antibioticApplied=true; phase=3; phaseTimer=0; } };
+    leftPanel.appendChild(abBtn);
+
+    const info = document.createElement('div'); info.className = 'info-box'; info.id = 'micro-info';
+    info.style.cssText = `border-color:${color}30`; leftPanel.appendChild(info);
+  }
+
+  const phaseNames = ['Lag Phase','Log Phase','Stationary','Death Phase'];
+  const phaseColors = [color, '#7ecf3f', '#f5a623', '#e05c5c'];
+  const phaseDesc = [
+    'Bacteria adapt to environment. No growth yet.',
+    'Rapid exponential growth. Doubling every ~20 min.',
+    'Growth = death rate. Resources depleted.',
+    'Death exceeds growth. Population declines.'
+  ];
+
+  function draw() {
+    if (!running) return;
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#010f0a'; ctx.fillRect(0, 0, W, H);
+
+    if (viewMode === 'growth' || preview) drawGrowth();
+    else if (viewMode === 'lytic') drawLytic();
+    else drawImmune();
+
+    requestAnimationFrame(draw);
+  }
+
+  function drawGrowth() {
+    // Update phase
+    phaseTimer++;
+    if (phaseTimer >= phaseDur[phase] && phase < 3) { phase++; phaseTimer = 0; }
+
+    // Update bacteria
+    if (phase === 1 && bacteria.length < 40 && frame % Math.max(4, 20 - bacteria.length/2) === 0) {
+      const parent = bacteria[Math.floor(Math.random() * bacteria.length)];
+      if (parent && !parent.dead) bacteria.push({x: parent.x + (Math.random()-0.5)*20, y: parent.y+(Math.random()-0.5)*20, angle: Math.random()*Math.PI*2, size: 6+Math.random()*4, dividing: false, divT:0, dead:false});
+    }
+    if ((phase === 3 || antibioticApplied) && frame % 8 === 0 && bacteria.length > 1) {
+      const idx = Math.floor(Math.random() * bacteria.length);
+      bacteria[idx].dead = true;
+      if (frame % 24 === 0) bacteria = bacteria.filter(b => !b.dead || Math.random() > 0.3);
+    }
+
+    growthData.push(bacteria.filter(b=>!b.dead).length);
+    if (growthData.length > W * 0.7) growthData.shift();
+
+    // Draw bacteria
+    bacteria.forEach(b => {
+      if (b.dead) { ctx.globalAlpha = 0.2; }
+      b.x += Math.cos(b.angle) * 0.3;
+      b.y += Math.sin(b.angle) * 0.2;
+      if (b.x < 10 || b.x > W - 10) b.angle = Math.PI - b.angle;
+      if (b.y < H * 0.15 || b.y > H * 0.75) b.angle = -b.angle;
+
+      ctx.fillStyle = b.dead ? '#333' : phaseColors[phase];
+      ctx.beginPath(); ctx.ellipse(b.x, b.y, b.size, b.size * 0.45, b.angle, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+
+    // Growth curve chart
+    if (!preview) {
+      const chartY = H * 0.8, chartH = H * 0.16;
+      ctx.fillStyle = '#0a0f0a'; ctx.fillRect(0, chartY, W, chartH + H * 0.04);
+      ctx.strokeStyle = color + '30'; ctx.lineWidth = 1;
+      ctx.strokeRect(5, chartY, W - 10, chartH);
+
+      if (growthData.length > 1) {
+        const maxPop = Math.max(...growthData, 1);
+        ctx.beginPath();
+        growthData.forEach((v, i) => {
+          const x = 5 + (i / growthData.length) * (W - 10);
+          const y = chartY + chartH - (v / maxPop) * chartH;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = phaseColors[phase]; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+
+      ctx.fillStyle = phaseColors[phase]; ctx.font = 'bold 9px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText(phaseNames[phase], W / 2, chartY - 4);
+
+      const info = document.getElementById('micro-info');
+      if (info) info.innerHTML = `<strong style="color:${phaseColors[phase]}">${phaseNames[phase]}</strong><br>${phaseDesc[phase]}<br><span style="color:#5a8a5a">Population: ${bacteria.filter(b=>!b.dead).length}</span>`;
+    } else {
+      ctx.fillStyle = phaseColors[phase]; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText(phaseNames[phase], W/2, H * 0.9);
+    }
+  }
+
+  function drawLytic() {
+    virusTimer++;
+    if (virusTimer >= virusDur) { virusTimer = 0; virusStep = (virusStep + 1) % 6; }
+    const t = virusTimer / virusDur;
+
+    const steps = ['Attachment','Injection','Replication','Assembly','Lysis','Release'];
+    const stepDesc = [
+      'Virus binds to host cell surface receptors (lock-and-key specificity).',
+      'Viral DNA injected into host cell cytoplasm.',
+      'Host ribosomes used to copy viral DNA and synthesize capsid proteins.',
+      'New viral particles assembled inside the host cell.',
+      'Host cell membrane ruptures (lysis). Cell is destroyed.',
+      'New virions released — each can infect new host cells.'
+    ];
+
+    const cx = W / 2, cy = H * 0.45;
+
+    // Host cell
+    const cellAlive = virusStep < 4;
+    ctx.fillStyle = cellAlive ? '#1a3a1a60' : '#3a0a0a60';
+    ctx.strokeStyle = cellAlive ? color + '60' : '#e05c5c60';
+    ctx.lineWidth = virusStep === 4 ? 1 + t * 3 : 2;
+    if (virusStep === 4) ctx.setLineDash([5 * t, 5 * t]);
+    ctx.beginPath(); ctx.ellipse(cx, cy, W * 0.28, H * 0.3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Nucleus inside
+    if (virusStep < 4) {
+      ctx.fillStyle = '#2a5a2a60'; ctx.strokeStyle = color + '30'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(cx, cy, W * 0.1, H * 0.1, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+
+    // Virus particle (approach phase 0, inject 1-3, release 5)
+    function drawVirus(vx, vy, sz, opacity) {
+      ctx.save(); ctx.globalAlpha = opacity;
+      ctx.fillStyle = '#e05c5c'; ctx.beginPath(); ctx.arc(vx, vy, sz, 0, Math.PI * 2); ctx.fill();
+      for (let s = 0; s < 6; s++) {
+        const sa = (s / 6) * Math.PI * 2;
+        ctx.strokeStyle = '#e05c5c'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(vx + Math.cos(sa) * sz, vy + Math.sin(sa) * sz);
+        ctx.lineTo(vx + Math.cos(sa) * (sz + 6), vy + Math.sin(sa) * (sz + 6)); ctx.stroke();
+        ctx.fillStyle = '#e05c5c'; ctx.beginPath(); ctx.arc(vx + Math.cos(sa) * (sz + 8), vy + Math.sin(sa) * (sz + 8), 2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    if (virusStep === 0) {
+      const vx = cx - W * 0.38 + t * W * 0.1; drawVirus(vx, cy - H * 0.15, 8, 1);
+    } else if (virusStep === 1) {
+      drawVirus(cx - W * 0.28, cy - H * 0.15, 8, 1);
+      // DNA injection
+      ctx.strokeStyle = '#e05c5c'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(cx - W * 0.28, cy - H * 0.05);
+      ctx.lineTo(cx - W * 0.28 + t * W * 0.15, cy + t * H * 0.1); ctx.stroke(); ctx.setLineDash([]);
+    } else if (virusStep === 2) {
+      // DNA replicating inside cell
+      for (let r = 0; r < Math.floor(t * 6); r++) {
+        ctx.fillStyle = '#e05c5c' + '80';
+        ctx.beginPath(); ctx.arc(cx + (Math.random() - 0.5) * W * 0.3, cy + (Math.random() - 0.5) * H * 0.2, 3, 0, Math.PI * 2); ctx.fill();
+      }
+    } else if (virusStep === 3) {
+      for (let a = 0; a < 8; a++) {
+        const ang = (a / 8) * Math.PI * 2;
+        drawVirus(cx + Math.cos(ang) * W * 0.15 * t, cy + Math.sin(ang) * H * 0.15 * t, 5, 0.8);
+      }
+    } else if (virusStep === 4) {
+      // Lysis effect
+      for (let a = 0; a < 12; a++) {
+        const ang = (a / 12) * Math.PI * 2;
+        ctx.strokeStyle = '#e05c5c'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(ang) * W * 0.28, cy + Math.sin(ang) * H * 0.3);
+        ctx.lineTo(cx + Math.cos(ang) * (W * 0.28 + t * 20), cy + Math.sin(ang) * (H * 0.3 + t * 20)); ctx.stroke();
+      }
+    } else {
+      for (let a = 0; a < 8; a++) {
+        const ang = (a / 8) * Math.PI * 2;
+        drawVirus(cx + Math.cos(ang) * (W * 0.28 + t * W * 0.15), cy + Math.sin(ang) * (H * 0.3 + t * H * 0.1), 5, 1 - t * 0.3);
+      }
+    }
+
+    // Step label
+    ctx.fillStyle = '#e05c5c'; ctx.font = `bold ${preview?8:10}px DM Mono,monospace`; ctx.textAlign = 'center';
+    ctx.fillText(`Step ${virusStep+1}/6: ${steps[virusStep]}`, W / 2, preview ? H*0.9 : H * 0.84);
+    if (!preview) {
+      ctx.fillStyle = '#5a8a5a'; ctx.font = '8px DM Sans,sans-serif';
+      ctx.fillText(stepDesc[virusStep], W / 2, H * 0.92);
+      const info = document.getElementById('micro-info');
+      if (info) info.innerHTML = `<strong style="color:#e05c5c">${steps[virusStep]}</strong><br>${stepDesc[virusStep]}`;
+    }
+
+    // Progress dots
+    steps.forEach((_, i) => {
+      ctx.fillStyle = i <= virusStep ? '#e05c5c' : '#2a0a0a';
+      ctx.beginPath(); ctx.arc(W / 2 - (steps.length - 1) * 7 + i * 14, H * (preview?0.95:0.97), 4, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  function drawImmune() {
+    const waveT = (frame * 0.008) % 1;
+    const cx = W / 2, cy = H / 2;
+
+    // Pathogen (antigen)
+    const pathX = W * 0.15 + waveT * W * 0.5;
+    ctx.fillStyle = '#e05c5c'; ctx.strokeStyle = '#e05c5c80'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(pathX, cy - H * 0.1, 10, 0, Math.PI * 2); ctx.fill();
+    for (let s = 0; s < 8; s++) {
+      const sa = (s/8)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(pathX+Math.cos(sa)*10, cy-H*0.1+Math.sin(sa)*10);
+      ctx.lineTo(pathX+Math.cos(sa)*16, cy-H*0.1+Math.sin(sa)*16); ctx.stroke();
+    }
+
+    // Macrophage (innate)
+    const macX = W * 0.4, macY = cy + H * 0.1;
+    const macPulse = Math.sin(frame*0.06)*4;
+    ctx.fillStyle = '#f5a62340'; ctx.strokeStyle = '#f5a62380'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(macX, macY, 20+macPulse, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f5a623'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('🍴', macX, macY+3); // phagocyte eating
+    if (!preview) { ctx.fillStyle = '#f5a623'; ctx.font = '7px DM Mono,monospace'; ctx.fillText('macrophage', macX, macY+22); }
+
+    // B-cell (antibody production)
+    const bcX = W * 0.62, bcY = cy - H * 0.15;
+    ctx.fillStyle = '#5cb8f540'; ctx.strokeStyle = '#5cb8f580'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(bcX, bcY, 16, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#5cb8f5'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('B', bcX, bcY+3);
+    // Antibodies flying
+    for (let a = 0; a < 4; a++) {
+      const at = (frame*0.015 + a*0.25) % 1;
+      const ax = bcX + at*(pathX - bcX)*0.8, ay = bcY + at*(cy-H*0.1 - bcY)*0.8;
+      ctx.strokeStyle = '#5cb8f5'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(ax-5,ay); ctx.lineTo(ax+5,ay);
+      ctx.moveTo(ax,ay-5); ctx.lineTo(ax,ay+5); ctx.stroke();
+    }
+
+    // T-cell (killer)
+    const tcX = W * 0.75, tcY = cy + H * 0.05;
+    ctx.fillStyle = '#c472f540'; ctx.strokeStyle = '#c472f580'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(tcX, tcY, 15, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c472f5'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('T', tcX, tcY+3);
+
+    // Memory cells
+    const memY = cy + H * 0.25;
+    ctx.fillStyle = color+'30'; ctx.strokeStyle = color+'60'; ctx.lineWidth = 1;
+    for (let m = 0; m < 5; m++) {
+      const mx = W*0.2 + m*(W*0.6/5);
+      ctx.beginPath(); ctx.arc(mx, memY, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = color; ctx.font = '7px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText('M', mx, memY+2.5);
+    }
+
+    if (!preview) {
+      ctx.fillStyle = color+'60'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
+      ctx.fillText('pathogen', pathX, cy - H*0.1 + 22);
+      ctx.fillText('memory cells (long-term immunity)', W/2, memY+18);
+      const info = document.getElementById('micro-info');
+      if (info) info.innerHTML = `<strong style="color:${color}">Immune Response</strong><br>🍴 Macrophages engulf pathogens (innate). B-cells produce antibodies. T-cells kill infected cells. Memory cells remain for rapid re-exposure response — the basis of <strong>vaccination</strong>.`;
+    }
+  }
+
+  draw();
+  return { stop: () => { running = false; } };
+}
+
+// ══════════════════════════════════════════════
+//  KEYBOARD NAV & MODAL BACKDROP
 // ══════════════════════════════════════════════
 document.addEventListener('keydown', e => {
-  if(e.key==='Escape') closeModule();
+  if (e.key === 'Escape') {
+    closeModule();
+    closeNotebook();
+    closeQR();
+  }
 });
+
+// Click outside modals to close
+document.getElementById('notebook-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeNotebook();
+});
+document.getElementById('qr-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeQR();
+});
+
+// Make functions global for onclick attrs
+window.openNotebook = openNotebook;
+window.closeNotebook = closeNotebook;
+window.saveNote = saveNote;
+window.clearNote = clearNote;
+window.showQR = showQR;
+window.closeQR = closeQR;
+window.downloadQR = downloadQR;
+window.filterModules = filterModules;
 </script>
 </body>
 </html>
