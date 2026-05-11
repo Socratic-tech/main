@@ -5,106 +5,435 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vitals: The Teaching Hospital</title>
 <style>
-:root{
-  --bg:#06111f;
-  --panel:#0a2035;
-  --panel-dark:#04111f;
-  --line:rgba(92,201,255,.24);
-  --text:#ecf8ff;
-  --muted:#8fb6cd;
-  --cyan:#20d9ff;
-  --green:#52f27a;
-  --red:#ff4d4d;
-  --orange:#ff9d35;
-  --yellow:#ffd84d;
-  --purple:#bb7cff;
-  --shadow:0 18px 50px rgba(0,0,0,.42);
-  --radius:14px;
-}
-*{box-sizing:border-box}
-html,body{min-height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
-button,select{font:inherit;color:inherit;border:1px solid var(--line);background:linear-gradient(180deg,rgba(20,58,92,.88),rgba(5,21,37,.92));border-radius:10px;cursor:pointer;transition:.12s ease;min-width:0}
-button:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 18px rgba(32,217,255,.22);transform:translateY(-1px)}
-button:disabled{opacity:.45;cursor:not-allowed}
-.screen{width:100%;min-height:100vh;padding:10px;display:grid;grid-template-columns:410px minmax(780px,1fr);grid-template-rows:136px minmax(650px,auto) 168px;gap:10px;background:radial-gradient(circle at 16% 18%,rgba(32,217,255,.12),transparent 32rem),radial-gradient(circle at 80% 8%,rgba(82,242,122,.08),transparent 26rem),linear-gradient(135deg,#030914,#06111f 48%,#031827)}
-.card{background:linear-gradient(180deg,rgba(12,39,65,.96),rgba(4,17,31,.96));border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05);border-radius:var(--radius);overflow:hidden;min-width:0;min-height:0}
-.header{height:46px;padding:0 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(25,75,114,.55),rgba(8,29,49,.25))}
-.header h2,.header h3{margin:0;color:#bfefff;font-size:15px;text-transform:uppercase;letter-spacing:.05em}.header button{padding:7px 10px;font-size:12px;font-weight:900;text-transform:uppercase}
-.titleCard{grid-column:1;grid-row:1;padding:14px 16px;display:flex;gap:12px;align-items:center}.logo{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;border:1px solid rgba(92,201,255,.65);background:radial-gradient(circle,rgba(32,217,255,.22),rgba(5,21,37,.9));font-size:30px;box-shadow:0 0 20px rgba(32,217,255,.2)}h1{font-size:28px;line-height:.98;margin:0 0 7px;letter-spacing:-.04em}.caseName{color:var(--cyan);font-size:15px;font-weight:800}.muted{color:var(--muted)}
-.monitor{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(320px,1fr) 92px 116px 92px 92px 76px 132px;gap:0}.ecgBox{padding:10px 12px;position:relative;border-right:1px solid var(--line)}#ecg{width:100%;height:100%;display:block;border-radius:10px;background:rgba(0,0,0,.18)}.live{position:absolute;right:18px;top:12px;color:var(--green);font-size:12px;font-weight:900;letter-spacing:.05em}.vital{display:grid;place-items:center;text-align:center;border-right:1px solid var(--line);padding:8px 4px}.vital small{display:block;text-transform:uppercase;font-size:12px;font-weight:900;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}.vital b{font-size:29px;line-height:1;display:block}.vital span{font-size:11px;color:var(--muted)}.hr small,.hr b{color:var(--green)}.bp small,.bp b{color:var(--red)}.temp small,.temp b{color:var(--orange)}.o2 small,.o2 b{color:#4cc9ff}.pain small,.pain b{color:var(--purple)}.stability{display:grid;place-items:center;padding:8px;text-align:center}.arc{width:105px;height:56px;border-radius:105px 105px 0 0;background:conic-gradient(from 270deg at 50% 100%,var(--green) 0 80deg,var(--yellow) 81deg 112deg,var(--red) 113deg 145deg,rgba(255,255,255,.12) 146deg 180deg);-webkit-mask:radial-gradient(circle at 50% 100%,transparent 0 37px,#000 38px);mask:radial-gradient(circle at 50% 100%,transparent 0 37px,#000 38px);margin-bottom:-2px}.stabValue{font-size:26px;font-weight:950;color:var(--green);line-height:1}.stabLabel{font-size:12px;color:var(--green);font-weight:900}
-.left{grid-column:1;grid-row:2/4;display:grid;grid-template-rows:46px 1fr 180px}.stage{position:relative;overflow:hidden;background:radial-gradient(circle at 55% 48%,rgba(32,217,255,.1),transparent 14rem),radial-gradient(circle at 55% 53%,rgba(255,77,77,.11),transparent 11rem)}.toolBar{position:absolute;left:14px;top:18px;z-index:20;display:grid;gap:8px;width:64px}.tool{height:58px;padding:4px;display:grid;place-items:center;text-align:center;font-size:9px;font-weight:900;text-transform:uppercase;color:#c8eefc}.tool .ico{font-size:22px;line-height:1}.tool.active{border-color:var(--cyan);background:rgba(32,217,255,.18);box-shadow:0 0 20px rgba(32,217,255,.28)}
-.svgWrap{position:absolute;left:78px;right:6px;top:2px;bottom:0;display:grid;place-items:center;z-index:1;pointer-events:none}svg#patientSvg{height:100%;max-height:690px;width:100%;max-width:310px;overflow:visible;filter:drop-shadow(0 18px 24px rgba(0,0,0,.46))}.skin{fill:#c48767}.skin2{fill:#b77658}.gown{fill:#8eacb7}.gown2{fill:#7595a1}.hair{fill:#4a251b}.line{stroke:rgba(255,255,255,.24);stroke-width:1.2;fill:none}.face{fill:#1d2936}
-.abdomenLayer{position:absolute;left:78px;right:6px;top:2px;bottom:0;display:grid;place-items:center;z-index:30;pointer-events:none}.abdomenPad{position:relative;width:205px;height:178px;transform:translateY(35px);pointer-events:none}.abdomenBtn{position:absolute;width:64px;height:44px;padding:0;display:grid;place-items:center;text-align:center;font-size:11px;font-weight:950;letter-spacing:.03em;border-radius:14px;border:1px solid rgba(159,241,255,.65);background:rgba(4,23,39,.86);box-shadow:0 0 16px rgba(32,217,255,.18);pointer-events:auto}.abdomenBtn:hover{background:rgba(32,217,255,.24)}.abdomenBtn.checked{border-color:rgba(82,242,122,.9);background:rgba(82,242,122,.2);color:#d9ffe3}.abdomenBtn.pain{border-color:rgba(255,177,95,.95);background:rgba(255,77,77,.25);box-shadow:0 0 22px rgba(255,77,77,.35)}.abdomenBtn.ruq{left:22px;top:22px}.abdomenBtn.luq{right:22px;top:22px}.abdomenBtn.umb{left:70px;top:66px}.abdomenBtn.rlq{left:22px;bottom:32px}.abdomenBtn.llq{right:22px;bottom:32px}.abdomenBtn.rebound{left:66px;bottom:-18px;width:72px;background:rgba(255,157,53,.18)}
-.tip{position:absolute;left:16px;bottom:16px;width:190px;border:1px solid var(--line);background:rgba(1,12,23,.58);border-radius:12px;padding:10px 12px;color:#c7e9f9;font-size:13px;display:flex;gap:10px;align-items:center;z-index:35}.assistantBox{border-top:1px solid var(--line);display:grid;grid-template-rows:38px 1fr;background:rgba(3,16,29,.52)}.assistantMsg{padding:9px 12px;overflow:auto;font-size:13px;line-height:1.35;color:#d8f1ff;max-height:130px}.assistantMsg b{color:var(--green)}
-.mainTop{grid-column:2;grid-row:2;display:grid;grid-template-columns:46% 54%;grid-template-rows:1fr 1fr;gap:10px;min-width:0;min-height:0}.patientRoom{display:grid;grid-template-rows:auto 1fr;min-height:0}.roomBody{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}.sectionTitle{font-size:14px;text-transform:uppercase;letter-spacing:.06em;font-weight:950;color:#bfefff;margin:0 0 9px}.data{font-size:13px;line-height:1.45}.data b{color:#fff}.quote{font-size:13px;line-height:1.35;color:#e9f8ff}.roomSelect{display:flex;align-items:center;gap:8px}.roomSelect select{height:30px;background:#07192b;border-color:var(--line);border-radius:8px;color:var(--text);font-size:12px}.objective{padding:13px;display:flex;gap:12px;align-items:center}.target{width:48px;height:48px;border-radius:99px;border:1px solid rgba(32,217,255,.42);background:rgba(32,217,255,.11);display:grid;place-items:center;color:var(--cyan);font-size:30px;flex:0 0 auto}.objective small{color:var(--green);font-weight:950;text-transform:uppercase}.objective h2{font-size:19px;margin:2px 0}.objective p{font-size:13px;margin:0;color:var(--muted)}
-.diagnostics{grid-column:2;grid-row:1/3;padding:13px;display:grid;grid-template-rows:auto 1fr auto}.testsTop{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.budget{color:#7bdfff;font-size:13px;font-weight:900}.diagGrid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:10px}.diagCard{padding:10px 6px;text-align:center;display:grid;grid-template-rows:auto 1fr auto;min-height:115px}.diagCard h3{font-size:13px;margin:0}.diagIcon{font-size:32px;display:grid;place-items:center}.diagMeta{font-size:12px;color:#c6e7f8;display:grid;gap:3px}.diagCard.done,.diagCard.selected{border-color:var(--cyan);box-shadow:0 0 18px rgba(32,217,255,.35),inset 0 0 16px rgba(32,217,255,.08)}.resultBox{font-size:13px;color:var(--muted);text-align:center;margin:9px 0 0;min-height:34px}.mainBottom{grid-column:2;grid-row:3;display:grid;grid-template-columns:28% 28% 22% 22%;gap:10px;min-height:0}.body{padding:10px;min-height:0}.evidenceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ev{height:104px;border-radius:10px;border:1px solid rgba(255,255,255,.13);display:grid;grid-template-rows:auto 1fr auto;text-align:center;padding:7px 5px;min-width:0}.evIcon{font-size:24px}.evText{font-size:11px;line-height:1.15;font-weight:850}.tag{justify-self:center;font-size:9px;border:1px solid currentColor;border-radius:5px;padding:2px 4px;font-weight:950}.critical{background:rgba(255,77,77,.14);color:#ffd8d8}.supportive{background:rgba(255,216,77,.13);color:#fff2a8}.lab{background:rgba(187,124,255,.15);color:#e9d9ff}.neutral{background:rgba(32,217,255,.11);color:#cdf7ff}.empty{margin-top:8px;border:1px dashed rgba(255,255,255,.18);border-radius:10px;padding:10px;color:var(--muted);font-size:12.5px;text-align:center}.clipGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.clip{min-height:78px;padding:9px;text-align:left}.clip b{font-size:13px;display:block}.clip span{font-size:11px;color:var(--muted)}.clip.good{border-color:rgba(82,242,122,.65);background:rgba(82,242,122,.08)}.actionGrid{display:grid;gap:8px}.actionBtn{height:44px;padding:8px 10px;text-align:left;font-size:13px}.actionBtn b{display:block}.actionBtn span{font-size:11px;color:var(--muted)}.tray{width:100%;height:92px;border-radius:20px;border:5px solid rgba(255,255,255,.24);background:linear-gradient(180deg,#536270,#1e3142);display:flex;align-items:center;justify-content:space-around;padding:10px;margin:5px 0 8px;box-shadow:inset 0 0 24px rgba(0,0,0,.38)}.inst{width:18px;height:58px;border-radius:14px;border:2px solid rgba(255,255,255,.55);background:linear-gradient(90deg,#8fa0ab,#d5dde1,#7f909b);position:relative}.inst.ready::after{content:'✓';position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);width:16px;height:16px;border-radius:99px;background:var(--green);color:#06351b;font-size:10px;font-weight:950;display:grid;place-items:center}.sterile{font-size:12px;color:var(--muted);text-align:center;margin-bottom:8px}.bar{height:7px;border-radius:99px;background:rgba(255,255,255,.13);overflow:hidden;margin:4px 0}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--green),#b7ffcb);width:80%}.prep{width:100%;padding:9px;font-weight:950}.progressCard{grid-column:1/2;grid-row:3;padding:13px 18px;display:grid;grid-template-rows:auto 1fr}.progressBar{display:grid;grid-template-columns:repeat(7,1fr);align-items:start;gap:0}.step{text-align:center;position:relative;color:#718da3}.step:not(:last-child)::after{content:'';position:absolute;left:58%;right:-42%;top:35px;height:3px;background:rgba(255,255,255,.17)}.step.done:not(:last-child)::after{background:var(--green);box-shadow:0 0 10px rgba(82,242,122,.5)}.circle{width:64px;height:64px;border-radius:99px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);margin:0 auto 8px;display:grid;place-items:center;font-size:28px;position:relative;z-index:2}.step.done .circle{border-color:var(--green);color:var(--green);box-shadow:0 0 18px rgba(82,242,122,.45)}.step.current .circle{border-color:var(--cyan);color:#fff;box-shadow:0 0 22px rgba(32,217,255,.65);background:rgba(32,217,255,.15)}.stepLabel{font-size:12px;text-transform:uppercase;font-weight:950;letter-spacing:.04em}.timeCard{grid-column:2;grid-row:3;display:grid;grid-template-rows:72px 1fr;gap:10px;background:transparent;border:0;box-shadow:none}.timeStats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.timeBox{display:flex;align-items:center;gap:10px;padding:12px}.timeIcon{width:38px;height:38px;border-radius:99px;border:1px solid rgba(32,217,255,.25);background:rgba(32,217,255,.1);display:grid;place-items:center;font-size:22px}.timeBox small{display:block;color:var(--muted)}.timeBox b{font-size:20px}.endTurn{font-size:29px;font-weight:950;color:#d4ffe0;border-color:rgba(82,242,122,.75);background:linear-gradient(180deg,rgba(82,242,122,.28),rgba(8,92,42,.94));box-shadow:0 0 24px rgba(82,242,122,.22);text-align:center}.modalBack{position:fixed;inset:0;background:rgba(0,0,0,.64);display:none;place-items:center;padding:20px;z-index:100}.modalBack.open{display:grid}.modal{width:min(820px,96vw);max-height:92vh;background:linear-gradient(180deg,#102f4c,#061421);border:1px solid rgba(32,217,255,.42);border-radius:18px;box-shadow:0 28px 80px rgba(0,0,0,.62);overflow:auto}.modalHead{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modalHead h2{font-size:22px;margin:0}.modalBody{padding:16px;line-height:1.5;color:#d9eef9}.modalActions{padding:0 16px 16px;display:flex;justify-content:flex-end;gap:10px}.primary{border-color:rgba(32,217,255,.75);background:linear-gradient(180deg,rgba(32,217,255,.32),rgba(10,76,108,.94));font-weight:950}.danger{border-color:rgba(255,77,77,.5);background:linear-gradient(180deg,rgba(255,77,77,.24),rgba(80,18,23,.9))}
-@media(max-width:1180px){html,body{overflow:auto;height:auto}.screen{width:100%;height:auto;min-height:100vh;grid-template-columns:1fr;grid-template-rows:auto;overflow:visible}.titleCard,.monitor,.left,.mainTop,.mainBottom,.progressCard,.timeCard{grid-column:auto;grid-row:auto}.monitor{grid-template-columns:1fr 1fr 1fr}.ecgBox{grid-column:1/-1;height:120px}.mainTop,.mainBottom{grid-template-columns:1fr;min-height:auto}.diagGrid{grid-template-columns:repeat(2,1fr)}.evidenceGrid{grid-template-columns:repeat(2,1fr)}.left{height:auto;min-height:820px;grid-template-rows:46px 590px 184px}.timeCard{grid-template-rows:auto 70px;min-height:150px}.screen{padding:8px}.monitor .vital,.stability{min-height:90px}}
+  :root{
+    --bg:#06111f;
+    --bg2:#092033;
+    --panel:#0b2339;
+    --panel2:#102f4d;
+    --line:rgba(109,213,255,.24);
+    --lineStrong:rgba(32,217,255,.68);
+    --text:#ecf8ff;
+    --muted:#91b9ce;
+    --cyan:#20d9ff;
+    --green:#52f27a;
+    --red:#ff4d4d;
+    --orange:#ff9d35;
+    --yellow:#ffd84d;
+    --purple:#bb7cff;
+    --shadow:0 22px 70px rgba(0,0,0,.42);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
+  button,select,input{font:inherit;color:inherit}
+  button{border:1px solid var(--line);background:linear-gradient(180deg,rgba(26,72,109,.94),rgba(6,24,42,.94));border-radius:14px;cursor:pointer;transition:.14s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  button:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 20px rgba(32,217,255,.22),inset 0 1px 0 rgba(255,255,255,.08);transform:translateY(-1px)}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .app{min-height:100vh;padding:14px;background:radial-gradient(circle at 10% 0%,rgba(32,217,255,.16),transparent 34rem),radial-gradient(circle at 90% 8%,rgba(82,242,122,.10),transparent 30rem),linear-gradient(135deg,#020812,#06111f 54%,#031827)}
+  .shell{width:min(1500px,100%);margin:0 auto;display:grid;gap:14px}
+  .topbar{display:grid;grid-template-columns:370px 1fr;gap:14px;align-items:stretch}
+  .card{background:linear-gradient(180deg,rgba(13,42,68,.96),rgba(4,17,31,.96));border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05);border-radius:var(--radius);overflow:hidden;min-width:0}
+  .brand{padding:16px;display:flex;gap:13px;align-items:center}.logo{width:58px;height:58px;border-radius:16px;border:1px solid rgba(109,213,255,.62);display:grid;place-items:center;font-size:31px;background:radial-gradient(circle,rgba(32,217,255,.24),rgba(6,24,42,.9));box-shadow:0 0 24px rgba(32,217,255,.22)}
+  h1{margin:0 0 6px;font-size:29px;line-height:1;letter-spacing:-.04em}.subtitle{color:var(--cyan);font-weight:850;font-size:14px}
+  .monitor{display:grid;grid-template-columns:minmax(320px,1fr) repeat(5,92px) 138px}.ecgWrap{position:relative;padding:10px 12px;border-right:1px solid var(--line)}#ecg{display:block;width:100%;height:95px;border-radius:13px;background:rgba(0,0,0,.22)}.live{position:absolute;right:18px;top:13px;color:var(--green);font-size:12px;font-weight:900;letter-spacing:.05em}.vital{display:grid;place-items:center;text-align:center;border-right:1px solid var(--line);padding:8px 4px}.vital small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:11px;font-weight:900;margin-bottom:5px}.vital b{font-size:27px;line-height:1}.vital span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.hr small,.hr b{color:var(--green)}.bp small,.bp b{color:var(--red)}.temp small,.temp b{color:var(--orange)}.o2 small,.o2 b{color:#4cc9ff}.pain small,.pain b{color:var(--purple)}.stab{display:grid;place-items:center;text-align:center}.stab .meter{width:106px;height:54px;border-radius:106px 106px 0 0;background:conic-gradient(from 270deg at 50% 100%,var(--green) 0 80deg,var(--yellow) 80deg 112deg,var(--red) 112deg 145deg,rgba(255,255,255,.12) 145deg 180deg);-webkit-mask:radial-gradient(circle at 50% 100%,transparent 0 36px,#000 37px);mask:radial-gradient(circle at 50% 100%,transparent 0 36px,#000 37px);margin-bottom:-2px}.stab b{color:var(--green);font-size:27px;display:block}.stab span{font-size:12px;color:var(--green);font-weight:900;letter-spacing:.05em}
+
+  .sceneGrid{display:grid;grid-template-columns:300px minmax(0,1fr) 330px;gap:14px;align-items:start}.side{display:grid;gap:14px}.panelHead{height:46px;padding:0 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(29,84,126,.48),rgba(7,26,44,.22))}.panelHead h2,.panelHead h3{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#bfefff}.panelBody{padding:14px}.stepList{display:grid;gap:8px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.045)}.stepIcon{width:38px;height:38px;border-radius:999px;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-size:20px}.step.active{border-color:var(--lineStrong);background:rgba(32,217,255,.11);box-shadow:0 0 22px rgba(32,217,255,.12)}.step.done{border-color:rgba(82,242,122,.48);background:rgba(82,242,122,.07)}.step.done .stepIcon{color:var(--green);border-color:rgba(82,242,122,.45);background:rgba(82,242,122,.1)}.stepTitle{font-weight:900;font-size:13px}.stepCopy{font-size:12px;color:var(--muted);line-height:1.25;margin-top:2px}
+  .log{display:grid;gap:8px;max-height:250px;overflow:auto}.logRow{display:grid;grid-template-columns:26px 1fr;gap:8px;font-size:13px;color:#d0e9f7;line-height:1.3}.logRow time{display:block;color:var(--muted);font-size:11px}.evidenceStack{display:grid;gap:8px;max-height:420px;overflow:auto}.ev{display:grid;grid-template-columns:34px 1fr;gap:9px;padding:9px;border-radius:13px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);align-items:center}.evIcon{font-size:23px;text-align:center}.ev strong{display:block;font-size:12px}.ev span{font-size:11px;color:var(--muted);line-height:1.25}.ev.critical{background:rgba(255,77,77,.12);border-color:rgba(255,77,77,.24)}.ev.supportive{background:rgba(255,216,77,.10);border-color:rgba(255,216,77,.22)}.ev.neutral{background:rgba(32,217,255,.08);border-color:rgba(32,217,255,.16)}.ev.lab{background:rgba(187,124,255,.10);border-color:rgba(187,124,255,.2)}
+
+  .stageCard{min-height:640px}.stageHeader{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.badge{display:inline-flex;gap:6px;align-items:center;padding:5px 8px;border:1px solid rgba(32,217,255,.32);border-radius:99px;background:rgba(32,217,255,.11);color:#bff2ff;font-size:11px;text-transform:uppercase;font-weight:950;letter-spacing:.06em}.stageHeader h2{margin:9px 0 5px;font-size:30px;line-height:1.05;letter-spacing:-.035em}.stageHeader p{margin:0;color:var(--muted);line-height:1.42}.stageBody{padding:18px}.actions{display:flex;gap:10px;flex-wrap:wrap}.primary{border-color:rgba(32,217,255,.78);background:linear-gradient(180deg,rgba(32,217,255,.34),rgba(10,78,111,.96));font-weight:950}.good{border-color:rgba(82,242,122,.65);background:linear-gradient(180deg,rgba(82,242,122,.22),rgba(10,84,42,.92))}.warn{border-color:rgba(255,157,53,.62);background:linear-gradient(180deg,rgba(255,157,53,.22),rgba(97,51,10,.92))}.danger{border-color:rgba(255,77,77,.58);background:linear-gradient(180deg,rgba(255,77,77,.22),rgba(93,22,28,.92))}.bigBtn{padding:14px 16px;text-align:left;min-height:58px}.bigBtn b{display:block}.bigBtn span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+
+  .roomLayout{display:grid;grid-template-columns:290px 1fr;gap:18px}.patientPortrait{position:relative;min-height:430px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(circle at 50% 48%,rgba(32,217,255,.12),transparent 14rem),rgba(0,0,0,.18);overflow:hidden;display:grid;place-items:center}.person{position:relative;width:170px;height:390px}.headShape{position:absolute;left:50%;top:0;transform:translateX(-50%);width:75px;height:90px;background:linear-gradient(180deg,#d8a37e,#b97658);border-radius:44% 44% 48% 48%;z-index:4}.headShape:before{content:'';position:absolute;left:-6px;right:-6px;top:-10px;height:28px;background:#4b281d;border-radius:50%}.bodyShape{position:absolute;left:50%;top:92px;transform:translateX(-50%);width:150px;height:230px;border-radius:32px 32px 48px 48px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.25)}.armShape{position:absolute;top:112px;width:36px;height:185px;border-radius:30px;background:linear-gradient(180deg,#c98b68,#a96749)}.armL{left:0;transform:rotate(8deg)}.armR{right:0;transform:rotate(-8deg)}.legShape{position:absolute;top:315px;width:44px;height:74px;border-radius:24px;background:#b97658}.legL{left:48px}.legR{right:48px}.faceDot{position:absolute;top:42px;width:5px;height:5px;background:#102033;border-radius:50%}.faceL{left:25px}.faceR{right:25px}.painGlow{position:absolute;left:50%;top:210px;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95) 0 7px,rgba(255,77,77,.66) 8px 26px,rgba(255,157,53,.28) 28px 52px,transparent 55px);box-shadow:0 0 40px rgba(255,77,77,.35);animation:pulse 1.8s infinite}.painGlow.soft{opacity:.45}.painGlow.hidden{display:none}@keyframes pulse{0%{transform:translate(-50%,-50%) scale(.9);opacity:.9}80%{transform:translate(-50%,-50%) scale(1.18);opacity:.36}100%{transform:translate(-50%,-50%) scale(.9);opacity:.9}}
+  .chart{display:grid;gap:12px}.infoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.info{padding:12px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1)}.info small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:900;margin-bottom:4px}.info b{font-size:15px}.callout{padding:14px;border-radius:16px;background:rgba(32,217,255,.09);border:1px solid rgba(32,217,255,.19);line-height:1.45}.callout b{color:#dff9ff}.teacherNote{font-size:12px;color:var(--muted);line-height:1.4;margin-top:12px}
+
+  .questionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.question{padding:14px;text-align:left;min-height:86px}.question.asked{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}.question.lowValue{border-color:rgba(255,157,53,.55)}.question b{display:block}.question span{display:block;color:var(--muted);font-size:12px;line-height:1.35;margin-top:5px}.slots{display:flex;gap:8px;align-items:center;margin-bottom:14px;color:var(--muted);font-weight:850}.slot{width:32px;height:12px;border-radius:99px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.1)}.slot.used{background:var(--cyan);box-shadow:0 0 12px rgba(32,217,255,.45)}
+
+  .palpationScene{display:grid;grid-template-columns:minmax(300px,450px) 1fr;gap:18px;align-items:start}.abdomenBoard{position:relative;border:1px solid var(--line);border-radius:20px;min-height:500px;background:radial-gradient(circle at 50% 46%,rgba(32,217,255,.12),transparent 14rem),rgba(0,0,0,.18);overflow:hidden}.torsoGraphic{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:260px;height:430px}.torsoHead{position:absolute;left:50%;top:0;transform:translateX(-50%);width:70px;height:80px;border-radius:50%;background:#c98b68}.torsoBody{position:absolute;left:50%;top:82px;transform:translateX(-50%);width:200px;height:315px;border-radius:44px 44px 70px 70px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.22)}.abdomenGrid{position:absolute;left:50%;top:235px;transform:translate(-50%,-50%);width:245px;height:210px;z-index:5}.abdomenButton{position:absolute;width:84px;height:58px;border-radius:18px;display:grid;place-items:center;text-align:center;font-weight:950;font-size:14px;background:rgba(2,15,28,.84);border:1px solid rgba(159,241,255,.65);box-shadow:0 0 16px rgba(32,217,255,.18)}.abdomenButton.checked{border-color:rgba(82,242,122,.9);background:rgba(82,242,122,.18);color:#d9ffe3}.abdomenButton.pain{border-color:rgba(255,177,95,.95);background:rgba(255,77,77,.25);box-shadow:0 0 22px rgba(255,77,77,.35)}.abdomenButton.ruq{left:20px;top:22px}.abdomenButton.luq{right:20px;top:22px}.abdomenButton.umb{left:80px;top:76px}.abdomenButton.rlq{left:20px;bottom:30px}.abdomenButton.llq{right:20px;bottom:30px}.abdomenButton.rebound{left:76px;bottom:-30px;width:94px;background:rgba(255,157,53,.18)}.examFeedback{display:grid;gap:12px}.feedbackBox{border:1px solid var(--line);border-radius:18px;background:rgba(0,0,0,.17);padding:14px}.reaction{font-size:52px;margin-bottom:4px}.quadrantChecklist{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.checkItem{padding:10px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);font-size:13px}.checkItem.done{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}
+
+  .clipboardGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.clipboardBtn{padding:18px;text-align:left;min-height:130px;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start}.clipboardIcon{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:30px;border:1px solid rgba(255,255,255,.1)}.clipboardBtn h3{margin:0 0 5px}.clipboardBtn p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}.requirements{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.req{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.req.done{background:rgba(82,242,122,.08);border-color:rgba(82,242,122,.55)}.req b{font-size:13px}.req span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+
+  .debrief{display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:start}.scoreCircle{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;border:3px solid var(--green);box-shadow:0 0 32px rgba(82,242,122,.23);font-size:52px;font-weight:950}.debriefList{display:grid;gap:10px}.debriefItem{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.debriefItem strong{display:block;margin-bottom:4px}.debriefItem span{color:var(--muted);line-height:1.35;font-size:13px}
+
+  .footerActions{padding:15px 18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(0,0,0,.14)}.footerActions .leftActions,.footerActions .rightActions{display:flex;gap:10px;flex-wrap:wrap}.footerActions button{padding:11px 14px;font-weight:900}.statusText{color:var(--muted);font-size:13px;line-height:1.35}
+
+  @media(max-width:1100px){.topbar,.sceneGrid,.roomLayout,.palpationScene,.debrief{grid-template-columns:1fr}.monitor{grid-template-columns:repeat(3,1fr)}.ecgWrap{grid-column:1/-1;height:116px}.questionGrid,.clipboardGrid,.requirements{grid-template-columns:1fr}.stageCard{min-height:auto}.app{padding:8px}.stageHeader{display:block}.sceneGrid{gap:10px}.side{display:none}.side.showMobile{display:grid}}
 </style>
 </head>
 <body>
-<div class="screen">
-  <section class="card titleCard"><div class="logo">⌁</div><div><h1>Vitals: The Teaching Hospital</h1><div class="caseName">Original-Inspired Hospital Workflow</div></div></section>
-  <section class="card monitor"><div class="ecgBox"><canvas id="ecg" width="720" height="116"></canvas><div class="live">● LIVE</div></div><div class="vital hr"><div><small>HR</small><b id="hr">102</b><span>bpm ♥</span></div></div><div class="vital bp"><div><small>BP</small><b id="bp">124/78</b><span>mmHg</span></div></div><div class="vital temp"><div><small>Temp</small><b id="temp">38.2</b><span>°C</span></div></div><div class="vital o2"><div><small>SpO₂</small><b id="o2">97</b><span>%</span></div></div><div class="vital pain"><div><small>Pain</small><b id="pain">6</b><span>/10</span></div></div><div class="stability"><div><div class="arc"></div><div class="stabValue" id="stab">72%</div><div class="stabLabel" id="stabLabel">STABLE</div></div></div></section>
-  <section class="card left"><div class="header"><h2>Patient Exam <span class="muted">?</span></h2><button onclick="resetExamView()">Reset View</button></div><div class="stage"><div class="toolBar" id="toolBar"></div><div class="svgWrap"><svg id="patientSvg" viewBox="0 0 300 700"><ellipse class="hair" cx="150" cy="52" rx="31" ry="25"/><ellipse class="hair" cx="150" cy="32" rx="24" ry="18"/><path class="skin" d="M115 54c0-34 70-34 70 0v24c0 38-70 38-70 0z"/><path class="hair" d="M111 54c5-35 73-42 78 2-17-12-52-16-78-2z"/><circle class="face" cx="136" cy="82" r="3"/><circle class="face" cx="164" cy="82" r="3"/><path class="line" d="M139 103c9 5 15 5 24 0"/><path class="skin2" d="M137 115h26v38h-26z"/><path class="gown" d="M73 158c11-29 34-41 77-41s66 12 77 41l-24 250H97z"/><path class="gown2" d="M97 408h106l-10 86H107z"/><path class="line" d="M150 122v275M88 242h124M98 318h104"/><path class="skin" d="M78 165c-23 53-34 112-34 181 0 33 29 34 34 1 8-51 17-105 32-160z"/><path class="skin" d="M222 165c23 53 34 112 34 181 0 33-29 34-34 1-8-51-17-105-32-160z"/><path class="skin2" d="M111 492h34v140c0 28-35 28-35 0zM155 492h34v140c0 28-35 28-35 0z"/><ellipse class="skin2" cx="124" cy="653" rx="22" ry="11"/><ellipse class="skin2" cx="176" cy="653" rx="22" ry="11"/></svg></div><div class="abdomenLayer"><div class="abdomenPad" id="abdomenPad"></div></div><div class="tip"><span style="font-size:26px">◉</span><span>Click labeled abdomen buttons. Green means checked.</span></div></div><div class="assistantBox"><div class="header"><h3>Assistant / Lecture</h3><button onclick="openLecture()">Notes</button></div><div class="assistantMsg" id="assistantMsg"></div></div></section>
-  <section class="mainTop"><div style="display:grid;grid-template-rows:1fr 84px;gap:10px;min-height:0"><div class="card patientRoom"><div class="header"><h3>Patient Room</h3><div class="roomSelect"><span class="muted" style="font-size:12px">Room</span><select id="roomSelect" onchange="changeRoom(this.value)"></select></div></div><div class="roomBody"><div><h3 class="sectionTitle">Chart</h3><div class="data" id="chartData"></div></div><div><h3 class="sectionTitle">Complaint</h3><div class="quote" id="complaint"></div><h3 class="sectionTitle" style="margin-top:12px">Clipboard Status</h3><div class="data" id="clipStatus"></div></div></div></div><div class="card objective"><div class="target">◎</div><div><small>Current Objective</small><h2 id="objectiveTitle">Examine the abdomen.</h2><p id="objectiveCopy">Palpate each quadrant before ordering tests or choosing treatment.</p></div></div></div><div class="card diagnostics"><div class="testsTop"><h3 class="sectionTitle" style="margin:0">⚗ Hospital Departments</h3><div class="budget">Budget: $<span id="budget">2,450</span></div></div><div class="diagGrid" id="diagGrid"></div><p class="resultBox" id="testResult">Original-inspired rule: tests help only after you do the right exam.</p></div></section>
-  <section class="mainBottom"><div class="card"><div class="header"><h3>Evidence Board</h3><div class="budget"><span id="evCount">0</span> / 12</div></div><div class="body"><div class="evidenceGrid" id="evidenceGrid"></div><div class="empty" id="emptyEvidence">Palpate abdomen and run targeted tests.</div></div></div><div class="card"><div class="header"><h3>Clipboard Actions</h3></div><div class="body"><div class="actionGrid" id="clipboardActions"></div></div></div><div class="card"><div class="header"><h3>Decision Rules</h3></div><div class="body"><div class="clipGrid" id="rulesGrid"></div></div></div><div class="card"><div class="header"><h3>OR Prep</h3></div><div class="body"><b id="orTitle">Locked</b><div class="tray" id="tray"></div><div class="sterile">Sterile Field <div class="bar"><span id="sterileBar"></span></div><b id="sterileText">0%</b></div><button class="prep primary" onclick="openOR()">Enter OR</button></div></div></section>
-  <section class="card progressCard"><h3 class="sectionTitle">Case Progress</h3><div class="progressBar" id="progressBar"></div></section>
-  <section class="timeCard"><div class="timeStats"><div class="card timeBox"><div class="timeIcon">◷</div><div><small>Sim Time</small><b id="simTime">09:12</b></div></div><div class="card timeBox"><div class="timeIcon">↻</div><div><small>Patients Seen</small><b><span id="seen">0</span> / 6</b></div></div></div><button class="endTurn" onclick="nextPatient()">NEXT PATIENT ▶</button></section>
+<div class="app">
+  <div class="shell">
+    <section class="topbar">
+      <div class="card brand">
+        <div class="logo">⌁</div>
+        <div>
+          <h1>Vitals: The Teaching Hospital</h1>
+          <div class="subtitle">Scene-Based Medical Reasoning Prototype</div>
+        </div>
+      </div>
+      <div class="card monitor">
+        <div class="ecgWrap"><canvas id="ecg" width="720" height="110"></canvas><div class="live">● LIVE</div></div>
+        <div class="vital hr"><div><small>HR</small><b id="vHR">--</b><span>bpm</span></div></div>
+        <div class="vital bp"><div><small>BP</small><b id="vBP">--</b><span>mmHg</span></div></div>
+        <div class="vital temp"><div><small>Temp</small><b id="vTemp">--</b><span>°C</span></div></div>
+        <div class="vital o2"><div><small>SpO₂</small><b id="vO2">--</b><span>%</span></div></div>
+        <div class="vital pain"><div><small>Pain</small><b id="vPain">--</b><span>/10</span></div></div>
+        <div class="stab"><div><div class="meter"></div><b id="vStability">--</b><span id="stabLabel">STABLE</span></div></div>
+      </div>
+    </section>
+
+    <section class="sceneGrid">
+      <aside class="side">
+        <div class="card">
+          <div class="panelHead"><h3>Case Flow</h3></div>
+          <div class="panelBody"><div class="stepList" id="stepList"></div></div>
+        </div>
+        <div class="card">
+          <div class="panelHead"><h3>Event Log</h3><button onclick="clearLog()">Clear</button></div>
+          <div class="panelBody"><div class="log" id="eventLog"></div></div>
+        </div>
+      </aside>
+
+      <main class="card stageCard">
+        <div id="stage"></div>
+      </main>
+
+      <aside class="side showMobile">
+        <div class="card">
+          <div class="panelHead"><h3>Evidence</h3><span class="muted" id="evidenceCount">0</span></div>
+          <div class="panelBody"><div class="evidenceStack" id="evidenceStack"></div></div>
+        </div>
+      </aside>
+    </section>
+  </div>
 </div>
-<div class="modalBack" id="modalBack"><div class="modal"><div class="modalHead"><h2 id="modalTitle">Notes</h2><button onclick="closeModal()">Close</button></div><div class="modalBody" id="modalBody"></div><div class="modalActions" id="modalActions"></div></div></div>
+
 <script>
-const patients=[
-{id:'gas',room:1,name:'Avery N.',age:31,complaint:'Crampy bloating. No fever. Pain does not localize.',truth:'gas',correct:'observe',v:{hr:82,bpS:118,bpD:76,temp:37.0,o2:99,pain:3,stability:92},pain:{},history:[{id:'noFever',text:'No fever or focal pain',tag:'HISTORY',icon:'✅',type:'neutral'}]},
-{id:'infection',room:2,name:'Mason R.',age:19,complaint:'Generalized abdominal soreness with fever and nausea.',truth:'infection',correct:'medicate',v:{hr:104,bpS:116,bpD:74,temp:38.5,o2:98,pain:6,stability:78},pain:{ruq:1,luq:1,rlq:1,llq:1},history:[{id:'diffusePain',text:'Pain response all over abdomen',tag:'EXAM',icon:'⚠️',type:'supportive'}]},
-{id:'stones',room:3,name:'Jordan S.',age:42,complaint:'Sharp side pain that comes in waves. Nausea. No rebound pain.',truth:'stones',correct:'refer',v:{hr:96,bpS:126,bpD:80,temp:37.2,o2:99,pain:7,stability:84},pain:{rlq:1,llq:1},xray:'stones',history:[{id:'colicky',text:'Colicky side pain',tag:'HISTORY',icon:'🌊',type:'supportive'}]},
-{id:'appendix',room:4,name:'Emily Carter',age:24,complaint:'Pain started near the belly button and moved to the right lower abdomen.',truth:'appendix',correct:'operate',v:{hr:102,bpS:124,bpD:78,temp:38.2,o2:97,pain:6,stability:72},pain:{rlq:1,rebound:1},xray:'clear',history:[{id:'migrated',text:'Pain migrated to lower right abdomen',tag:'HISTORY',icon:'🏃',type:'critical'},{id:'nausea',text:'Nausea + fever',tag:'HISTORY',icon:'🌡️',type:'supportive'}]},
-{id:'aneurysmSmall',room:5,name:'Samir T.',age:67,complaint:'Deep central abdominal discomfort. Patient says, “That feels like a lump.”',truth:'small aneurysm',correct:'observe',v:{hr:88,bpS:138,bpD:84,temp:37.1,o2:97,pain:4,stability:80},pain:{umb:1},ultra:4.2,history:[{id:'lump',text:'Pulsing/lump sensation below navel',tag:'EXAM',icon:'⭕',type:'critical'}]},
-{id:'aneurysmLarge',room:6,name:'Dana V.',age:71,complaint:'Severe central abdominal pain with a pulsating lump.',truth:'large aneurysm',correct:'operate',v:{hr:118,bpS:102,bpD:66,temp:37.4,o2:96,pain:8,stability:58},pain:{umb:1},ultra:6.1,history:[{id:'bigLump',text:'Pulsing lump below navel',tag:'EXAM',icon:'⭕',type:'critical'}]}
+const scenes = [
+  {id:'patientRoom', label:'Patient Room', icon:'🏥', copy:'Chart and complaint'},
+  {id:'interview', label:'Interview', icon:'💬', copy:'Ask useful questions'},
+  {id:'palpation', label:'Palpation', icon:'🖐️', copy:'Map the abdomen'},
+  {id:'clipboard', label:'Clipboard', icon:'📋', copy:'Choose action'},
+  {id:'debrief', label:'Debrief', icon:'✅', copy:'Review outcome'}
 ];
-const tools=[['inspect','👁️','Inspect'],['palpate','🖐️','Palpate'],['xray','🩻','X-Ray'],['ultra','🌀','Ultrasound'],['lecture','🎓','Lecture']];
-const spots=[{id:'ruq',label:'RUQ'},{id:'luq',label:'LUQ'},{id:'rlq',label:'RLQ'},{id:'llq',label:'LLQ'},{id:'umb',label:'Navel'},{id:'rebound',label:'Rebound'}];
-const state={i:0,seen:0,tool:'palpate',phase:'room',ev:[],examined:[],tests:[],assistant:'Start with the abdomen. Check every quadrant before trusting your clipboard.',score:1250,budget:2450,time:0,sterile:0,orStep:0,orMistakes:0,complication:null};
-function p(){return patients[state.i]}
-function simTime(){const m=12+state.time;return `${String(9+Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
-function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
-function fmt(n){return Number(n).toLocaleString()}
-function addEv(ev){if(ev&&!state.ev.some(e=>e.id===ev.id))state.ev.push(ev)}
-function resetCase(){state.ev=[...p().history];state.examined=[];state.tests=[];state.phase='room';state.sterile=0;state.orStep=0;state.orMistakes=0;state.complication=null;state.assistant='Start with the abdomen. Check every quadrant before trusting your clipboard.'}
-function setTool(id){state.tool=id;if(id==='lecture')openLecture();render()}
-function resetExamView(){state.tool='palpate';state.assistant='Exam view reset. Palpation is active.';render()}
-function changeRoom(v){state.i=Number(v);resetCase();render()}
-function examinedAllQuadrants(){return ['ruq','luq','rlq','llq'].every(q=>state.examined.includes(q))}
-function spend(t=1){state.time+=t*5;const pat=p();pat.v.stability=clamp(pat.v.stability-(pat.correct==='operate'?2*t:t),0,100);pat.v.hr=clamp(pat.v.hr+t,50,170);if(pat.v.stability<=0)debrief(true)}
-function examine(id){const pat=p();const spot=spots.find(x=>x.id===id);if(!spot||state.examined.includes(id))return;if(state.tool!=='palpate'&&state.tool!=='inspect'){state.assistant='Wrong context. Use palpation for abdominal diagnosis first.';state.score-=8;spend(1);render();return}state.examined.push(id);const hurts=!!pat.pain[id];const text=hurts?`${spot.label}: pain response`:`${spot.label}: no strong pain`;addEv({id:'exam_'+id,text,tag:'PALPATE',icon:hurts?'⚠️':'✅',type:hurts?'supportive':'neutral'});if(id==='rebound'&&hurts)addEv({id:'rebound',text:'Rebound tenderness present',tag:'EXAM',icon:'🚨',type:'critical'});if(id==='umb'&&hurts)addEv({id:'lumpCheck',text:'Possible lump below navel',tag:'EXAM',icon:'⭕',type:'critical'});state.assistant=hurts?`Patient reports pain at ${spot.label}. Keep mapping the abdomen.`:`No focal pain at ${spot.label}. Do not jump yet.`;state.score+=hurts?12:5;spend(1);updatePhase();render()}
-function runTest(id){const pat=p();if(state.tests.includes(id)){state.assistant='That department has already reported back.';render();return}if(id==='xray'){state.tests.push('xray');state.budget-=120;spend(2);if(pat.xray==='stones'){addEv({id:'stonesSeen',text:'X-ray: stones visible above pelvis',tag:'X-RAY',icon:'🩻',type:'critical'});state.assistant='X-ray shows stones. This is a referral, not your surgery.'}else if(pat.xray==='clear'){addEv({id:'xrayClear',text:'X-ray: no stones seen',tag:'X-RAY',icon:'🩻',type:'neutral'});state.assistant='No stones. If RLQ pain is present, appendicitis moves up the list.'}else{addEv({id:'xrayNoHelp',text:'X-ray not useful for this pattern',tag:'X-RAY',icon:'🩻',type:'neutral'});state.assistant='That X-ray did not clarify much.'}}
-if(id==='ultra'){state.tests.push('ultra');state.budget-=220;spend(3);if(pat.ultra){addEv({id:'ultraSize',text:`Ultrasound: aorta measures ${pat.ultra.toFixed(1)} cm`,tag:'ULTRA',icon:'🌀',type:pat.ultra>=5?'critical':'supportive'});state.assistant=pat.ultra>=5?'Aneurysm is at/above surgical threshold. Prepare OR.':'Under 5 cm. Observe, do not operate.'}else{addEv({id:'ultraNoMass',text:'Ultrasound: no aneurysm measured',tag:'ULTRA',icon:'🌀',type:'neutral'});state.assistant='Ultrasound did not show an aneurysm.'}}updatePhase();render()}
-function takeAction(action){const pat=p();const safe=action===pat.correct;const needsXray=(pat.truth==='stones'||pat.truth==='appendix');const needsUltra=pat.truth.includes('aneurysm');let lecture='';if(!examinedAllQuadrants())lecture='Incomplete abdomen exam. The original-style rule is unforgiving: check every quadrant.';else if(needsXray&&!state.tests.includes('xray'))lecture='You needed an X-ray to separate kidney stones from appendicitis.';else if(needsUltra&&!state.tests.includes('ultra'))lecture='You needed ultrasound measurement before deciding on an aneurysm.';else if(!safe)lecture=`Wrong clipboard action. Correct action was ${pat.correct.toUpperCase()}.`;if(lecture){state.score-=120;state.assistant=lecture;modal('Chief Resident Lecture',`<p>${lecture}</p><p>The patient survives the lesson, but your evaluation drops. Try following the diagnostic pathway before the clipboard action.</p>`,'<button class="primary" onclick="closeModal()">Back to Room</button>');render();return}state.score+=action==='operate'?140:80;state.assistant='Correct clipboard decision.';if(action==='operate'){state.phase='or';state.sterile=0;openOR()}else{state.seen++;nextPatient(false)}}
-function nextPatient(advance=true){if(advance)state.seen++;state.i=(state.i+1)%patients.length;resetCase();render()}
-function updatePhase(){if(state.phase==='or')return;if(state.tests.length)state.phase='tests';else if(state.examined.length)state.phase='exam';else state.phase='room'}
-const orSteps=[['wash','Wash hands','🧼'],['gloves','Put on gloves','🧤'],['antiseptic','Apply antiseptic','🧴'],['drape','Set sterile drape','🟦'],['gas','Turn on anesthesia gas','😴'],['antibiotic','Inject antibiotic','💉'],['blood','Hang blood on IV','🩸'],['incision','Make correct incision','🔪'],['clamp','Clamp bleeders','🩺'],['cauterize','Cauterize/ligate','⚡'],['suction','Suction/wipe field','🧽'],['close','Close layers','🪡']];
-function openOR(){if(state.phase!=='or'){modal('OR Locked','<p>The OR opens only after a correct OPERATE clipboard decision.</p>','<button class="primary" onclick="closeModal()">Back</button>');return}renderOR()}
-function renderOR(){const step=orSteps[state.orStep];if(!step){debrief(false);return}const buttons=orSteps.map(s=>`<button onclick="orTool('${s[0]}')" style="padding:10px;text-align:center"><div style="font-size:28px">${s[2]}</div><b>${s[1]}</b></button>`).join('');const complication=state.complication?`<p style="color:var(--orange)"><b>Complication:</b> ${state.complication.text}</p>`:'';modal('Operating Room',`<p><b>Current step:</b> ${step[1]}</p>${complication}<p class="muted">Strict original-style prep: wash, gloves, antiseptic, drape, gas, antibiotic, IV blood before incision.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">${buttons}</div><hr style="border-color:rgba(255,255,255,.12)"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px"><button onclick="treatComplication('lidocaine')">Lidocaine<br><span class="muted">PVC</span></button><button onclick="treatComplication('atropine')">Atropine<br><span class="muted">Bradycardia</span></button><button onclick="treatComplication('dopamine')">Dopamine/Blood<br><span class="muted">BP drop</span></button></div>`,'<button onclick="closeModal()">Pause OR</button>');render()}
-function maybeComplication(){if(state.orStep<7||state.complication)return;if(Math.random()<.24){const list=[{kind:'lidocaine',text:'PVC on monitor. Treat with Lidocaine.'},{kind:'atropine',text:'Bradycardia. Treat with Atropine.'},{kind:'dopamine',text:'Blood pressure dropping. Start blood/Dopamine.'}];state.complication=list[Math.floor(Math.random()*list.length)];state.assistant=state.complication.text}}
-function orTool(tool){const step=orSteps[state.orStep];if(state.complication){state.score-=40;p().v.stability=clamp(p().v.stability-8,0,100);state.assistant='You ignored the monitor complication before continuing.';renderOR();return}if(tool===step[0]){state.orStep++;state.score+=35;state.sterile=clamp(state.sterile+8,0,100);p().v.stability=clamp(p().v.stability+2,0,100);state.assistant=`${step[1]} complete.`;maybeComplication();state.time+=5;state.orStep>=orSteps.length?debrief(false):renderOR()}else{state.orMistakes++;state.score-=60;p().v.stability=clamp(p().v.stability-8,0,100);state.assistant='Wrong OR step. Chief resident is not amused.';if(state.orMistakes>=4)debrief(true);else renderOR()}}
-function treatComplication(kind){if(!state.complication){state.assistant='No active complication to treat.';renderOR();return}if(kind===state.complication.kind){state.score+=45;p().v.stability=clamp(p().v.stability+8,0,100);state.assistant='Complication treated correctly.';state.complication=null;renderOR()}else{state.score-=80;p().v.stability=clamp(p().v.stability-12,0,100);state.assistant='Wrong emergency drug. That hurt the patient.';if(p().v.stability<=0)debrief(true);else renderOR()}}
-function openLecture(){modal('Medical School Notes',`<p><b>Original-inspired diagnostic pathway:</b></p><ol><li>Palpate all abdominal quadrants.</li><li>No pain → observe.</li><li>Diffuse pain → medicate.</li><li>Partial/focal pain → X-ray to rule out stones before appendicitis.</li><li>Lump below navel → ultrasound and measure. Under 5 cm observe; 5 cm or larger operate.</li><li>In the OR, prep matters before incision. Monitor complications interrupt everything.</li></ol>`,'<button class="primary" onclick="closeModal()">Back</button>')}
-function debrief(failed){state.phase='debrief';const final=Math.max(0,Math.min(100,Math.round(state.score/22+p().v.stability/2-state.orMistakes*8)));modal(failed?'Case Failed Safely':'Case Complete',`<div style="display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center"><div style="width:112px;height:112px;border-radius:99px;border:2px solid var(--green);display:grid;place-items:center;font-size:38px;font-weight:950">${final}</div><div><p><b>True condition:</b> ${p().truth}</p><p><b>Correct action:</b> ${p().correct.toUpperCase()}</p><p><b>OR mistakes:</b> ${state.orMistakes}</p><p><b>Final stability:</b> ${Math.round(p().v.stability)}%</p></div></div><p>The point is procedural reasoning: exam path, correct department, clipboard decision, and exact OR order.</p>`,'<button onclick="nextPatient()">Next Patient</button><button class="primary" onclick="closeModal()">Keep Exploring</button>');render()}
-function modal(t,b,a=''){document.getElementById('modalTitle').innerHTML=t;document.getElementById('modalBody').innerHTML=b;document.getElementById('modalActions').innerHTML=a;document.getElementById('modalBack').classList.add('open')}
-function closeModal(){document.getElementById('modalBack').classList.remove('open')}
-function render(){renderTools();renderPatient();renderHud();renderDepartments();renderEvidence();renderClipboard();renderRules();renderTray();renderProgress()}
-function renderTools(){document.getElementById('toolBar').innerHTML=tools.map(t=>`<button class="tool ${state.tool===t[0]?'active':''}" onclick="setTool('${t[0]}')"><span class="ico">${t[1]}</span><span>${t[2]}</span></button>`).join('')}
-function renderPatient(){const pat=p();const pad=document.getElementById('abdomenPad');pad.innerHTML=spots.map(s=>{const hurts=!!pat.pain[s.id];const checked=state.examined.includes(s.id);return`<button type="button" class="abdomenBtn ${s.id} ${hurts?'pain':''} ${checked?'checked':''}" onclick="examine('${s.id}')">${checked?'✓ ':''}${s.label}</button>`}).join('');document.getElementById('chartData').innerHTML=`Name: <b>${pat.name}</b><br>Age: <b>${pat.age}</b><br>Room: <b>${pat.room}</b><br>On-call service: <b>Abdominal</b><br><span class="muted">Entertainment/education simulation only.</span>`;document.getElementById('complaint').textContent=pat.complaint;document.getElementById('clipStatus').innerHTML=`Quadrants checked: <b>${['ruq','luq','rlq','llq'].filter(q=>state.examined.includes(q)).length}/4</b><br>X-ray: <b>${state.tests.includes('xray')?'done':'not done'}</b><br>Ultrasound: <b>${state.tests.includes('ultra')?'done':'not done'}</b>`;document.getElementById('assistantMsg').innerHTML=`<b>Assistant:</b> ${state.assistant}`;document.getElementById('roomSelect').innerHTML=patients.map((x,i)=>`<option value="${i}" ${i===state.i?'selected':''}>Room ${x.room}: ${x.name}</option>`).join('');const obj=objective();document.getElementById('objectiveTitle').textContent=obj.t;document.getElementById('objectiveCopy').textContent=obj.c}
-function objective(){if(state.phase==='or')return{t:'Follow exact OR protocol.',c:'Prep first. Treat monitor complications immediately.'};if(!examinedAllQuadrants())return{t:'Palpate every quadrant.',c:'The clipboard will reject decisions from an incomplete abdominal exam.'};if((p().truth==='stones'||p().truth==='appendix')&&!state.tests.includes('xray'))return{t:'Use X-ray for focal pain.',c:'Rule out stones before deciding referral versus appendectomy.'};if(p().truth.includes('aneurysm')&&!state.tests.includes('ultra'))return{t:'Measure with ultrasound.',c:'Under 5 cm observe; 5 cm or greater operate.'};return{t:'Choose clipboard action.',c:'Observe, medicate, refer, or operate based on the pathway.'}}
-function renderHud(){const v=p().v;document.getElementById('hr').textContent=Math.round(v.hr);document.getElementById('bp').textContent=`${v.bpS}/${v.bpD}`;document.getElementById('temp').textContent=v.temp.toFixed(1);document.getElementById('o2').textContent=Math.round(v.o2);document.getElementById('pain').textContent=Math.round(v.pain);document.getElementById('stab').textContent=`${Math.round(v.stability)}%`;document.getElementById('stabLabel').textContent=v.stability<35?'CRITICAL':v.stability<60?'WATCH':'STABLE';document.getElementById('budget').textContent=fmt(state.budget);document.getElementById('simTime').textContent=simTime();document.getElementById('seen').textContent=state.seen}
-function renderDepartments(){document.getElementById('diagGrid').innerHTML=`<button class="diagCard ${state.tests.includes('xray')?'done':''}" onclick="runTest('xray')"><h3>X-Ray</h3><div class="diagIcon">🩻</div><div class="diagMeta"><span>Checks stones</span><span>$120</span></div></button><button class="diagCard ${state.tests.includes('ultra')?'done':''}" onclick="runTest('ultra')"><h3>Ultrasound</h3><div class="diagIcon">🌀</div><div class="diagMeta"><span>Measures aorta</span><span>$220</span></div></button><button class="diagCard" onclick="openLecture()"><h3>Medical School</h3><div class="diagIcon">🎓</div><div class="diagMeta"><span>Get scolded/helped</span><span>free</span></div></button><button class="diagCard" onclick="takeAction('observe')"><h3>Observe</h3><div class="diagIcon">👀</div><div class="diagMeta"><span>No treatment</span></div></button><button class="diagCard" onclick="takeAction('medicate')"><h3>Medicate</h3><div class="diagIcon">💊</div><div class="diagMeta"><span>Non-surgical</span></div></button><button class="diagCard" onclick="takeAction('refer')"><h3>Refer</h3><div class="diagIcon">📨</div><div class="diagMeta"><span>Other service</span></div></button>`;document.getElementById('testResult').textContent=state.tests.includes('ultra')&&p().ultra?`Ultrasound result: ${p().ultra.toFixed(1)} cm.`:state.tests.includes('xray')?(p().xray==='stones'?'X-ray result: stones visible above pelvis.':p().xray==='clear'?'X-ray result: no stones visible.':'X-ray result: no useful finding.'):'Original-inspired rule: tests help only after you do the right exam.'}
-function renderEvidence(){document.getElementById('evidenceGrid').innerHTML=state.ev.slice(0,9).map(e=>`<div class="ev ${e.type}"><div class="evIcon">${e.icon}</div><div class="evText">${e.text}</div><div class="tag">${e.tag}</div></div>`).join('');document.getElementById('evCount').textContent=state.ev.length;document.getElementById('emptyEvidence').style.display=state.ev.length?'none':'block'}
-function renderClipboard(){document.getElementById('clipboardActions').innerHTML=`<button class="actionBtn" onclick="takeAction('observe')"><b>Observe</b><span>Gas or small aneurysm</span></button><button class="actionBtn" onclick="takeAction('medicate')"><b>Medicate</b><span>Diffuse infection pattern</span></button><button class="actionBtn" onclick="takeAction('refer')"><b>Referral</b><span>Kidney stone pathway</span></button><button class="actionBtn" onclick="takeAction('operate')"><b>Operate</b><span>Appendix or large aneurysm</span></button>`}
-function renderRules(){document.getElementById('rulesGrid').innerHTML=[['All quadrants',examinedAllQuadrants(),'Do not skip exam mapping.'],['X-ray pathway',state.tests.includes('xray'),'Needed for focal pain.'],['Ultrasound measure',state.tests.includes('ultra'),'Needed for aneurysm.'],['Correct clipboard',false,'Decision after evidence.']].map(r=>`<div class="clip ${r[1]?'good':''}"><b>${r[1]?'✓':'•'} ${r[0]}</b><span>${r[2]}</span></div>`).join('')}
-function renderTray(){const ready=Math.min(6,Math.floor(state.sterile/16));document.getElementById('tray').innerHTML=Array.from({length:6},(_,i)=>`<div class="inst ${i<ready?'ready':''}"></div>`).join('');document.getElementById('sterileBar').style.width=state.sterile+'%';document.getElementById('sterileText').textContent=state.sterile+'%';document.getElementById('orTitle').textContent=state.phase==='or'?'OR Active':'Locked until OPERATE'}
-function renderProgress(){const labels=['Room','Exam','Tests','Decision','OR','Recovery','Debrief'];const icons=['🏥','🖐️','⚗','📋','🔪','✅','💬'];const idx=state.phase==='room'?0:state.phase==='exam'?1:state.phase==='tests'?2:state.phase==='or'?4:state.phase==='debrief'?6:3;document.getElementById('progressBar').innerHTML=labels.map((label,i)=>`<div class="step ${i<idx?'done':''} ${i===idx?'current':''}"><div class="circle">${i<idx?'✓':icons[i]}</div><div class="stepLabel">${label}</div></div>`).join('')}
-let tick=0;function drawECG(){const c=document.getElementById('ecg');const ctx=c.getContext('2d');const w=c.width,h=c.height,v=p().v;ctx.clearRect(0,0,w,h);ctx.fillStyle='rgba(0,10,16,.55)';ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(82,242,122,.09)';ctx.lineWidth=1;for(let x=0;x<w;x+=34){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}const period=95/clamp(v.hr/100,.7,1.8);const base=h*.58;tick+=2.3*clamp(v.hr/100,.7,1.8);function yAt(x){const t=(x+tick)%period;let y=base+Math.sin((x+tick)*.025)*2;if(t>8&&t<17)y-=6*Math.sin((t-8)/9*Math.PI);if(t>27&&t<31)y+=15*Math.sin((t-27)/4*Math.PI);if(t>31&&t<36)y-=38*Math.sin((t-31)/5*Math.PI);if(t>36&&t<43)y+=12*Math.sin((t-36)/7*Math.PI);if(t>58&&t<77)y-=9*Math.sin((t-58)/19*Math.PI);if(state.complication)y+=(Math.random()-.5)*9;return y}ctx.strokeStyle=v.stability<35?'#ff9b9b':'#52f27a';ctx.lineWidth=3;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=10;ctx.beginPath();for(let x=0;x<w;x+=3){const y=yAt(x);x?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#52f27a';ctx.font='800 13px system-ui';ctx.fillText('II',15,22);ctx.fillText('1 mV',15,100);ctx.fillText('25 mm/s',90,100);ctx.fillText('Filter: ON',177,100);requestAnimationFrame(drawECG)}
-resetCase();render();requestAnimationFrame(drawECG);
+
+const patients = [
+  {
+    id:'appendicitis', name:'Emily Carter', age:24, room:'4A', sex:'Female',
+    complaint:'Pain started near the belly button and moved to the right lower abdomen.',
+    diagnosis:'Appendicitis', correctAction:'operate',
+    vitals:{hr:102,bp:'124/78',temp:38.2,spo2:97,pain:6,stability:72},
+    chart:'No major medical history. No known drug allergies. Last meal: toast eight hours ago.',
+    interview:[
+      {id:'location', q:'Where is the pain now?', result:'Patient points to the right lower abdomen.', value:'key', evidence:{id:'painLocation', icon:'📍', title:'Pain localized to RLQ', type:'critical', source:'Interview'}},
+      {id:'migration', q:'Did the pain move?', result:'It started near the belly button and moved right lower.', value:'key', evidence:{id:'painMigration', icon:'🏃', title:'Pain migrated from navel to RLQ', type:'critical', source:'Interview'}},
+      {id:'nausea', q:'Any nausea or appetite change?', result:'Patient reports nausea and decreased appetite.', value:'key', evidence:{id:'nausea', icon:'🤢', title:'Nausea and low appetite', type:'supportive', source:'Interview'}},
+      {id:'fever', q:'Any fever or chills?', result:'Fever began earlier today.', value:'key', evidence:{id:'fever', icon:'🌡️', title:'Fever present', type:'supportive', source:'Interview'}},
+      {id:'urinary', q:'Any burning urination or flank pain?', result:'No urinary symptoms or flank pain.', value:'support', evidence:{id:'noUrinary', icon:'✅', title:'No urinary symptoms', type:'neutral', source:'Interview'}},
+      {id:'diet', q:'What did you eat yesterday?', result:'Nothing unusual. This does not narrow the case much.', value:'low'},
+      {id:'sleep', q:'How did you sleep?', result:'Poorly because of pain. Low diagnostic value.', value:'low'},
+      {id:'family', q:'Any family history of stomach problems?', result:'No relevant family history.', value:'low'}
+    ],
+    palpation:{painful:['rlq','rebound'], required:['ruq','luq','rlq','llq'], findings:{ruq:'No strong pain in right upper quadrant.', luq:'No strong pain in left upper quadrant.', rlq:'Sharp right lower quadrant tenderness with guarding.', llq:'Mild discomfort only.', navel:'Mild central tenderness.', rebound:'Rebound tenderness: pain worsens after release.'}},
+    actionRequirements:{operate:['interviewKey3','allQuadrants','rlqPain','rebound']},
+    debrief:{best:'Appendicitis usually needs prompt surgical evaluation after a focused history and abdominal exam.', teacher:'Ask students why pain migration and rebound tenderness matter.'}
+  },
+  {
+    id:'kidneyStone', name:'Jordan S.', age:42, room:'3B', sex:'Male',
+    complaint:'Sharp side pain that comes in waves. Nausea. No fever.', diagnosis:'Kidney stone', correctAction:'refer',
+    vitals:{hr:96,bp:'126/80',temp:37.2,spo2:99,pain:7,stability:84},
+    chart:'No known drug allergies. History of dehydration during long work shifts.',
+    interview:[
+      {id:'location', q:'Where is the pain?', result:'Pain starts near the flank and waves toward the groin.', value:'key', evidence:{id:'flankGroin', icon:'📍', title:'Flank-to-groin pain', type:'critical', source:'Interview'}},
+      {id:'wave', q:'Is the pain constant or wave-like?', result:'It comes in intense waves.', value:'key', evidence:{id:'colicky', icon:'🌊', title:'Colicky wave-like pain', type:'critical', source:'Interview'}},
+      {id:'urinary', q:'Any urinary symptoms?', result:'Some urgency and discomfort with urination.', value:'key', evidence:{id:'urinarySymptoms', icon:'🚻', title:'Urinary symptoms present', type:'supportive', source:'Interview'}},
+      {id:'fever', q:'Any fever?', result:'No fever reported.', value:'support', evidence:{id:'noFever', icon:'✅', title:'No fever', type:'neutral', source:'Interview'}},
+      {id:'nausea', q:'Any nausea?', result:'Nausea is present during pain waves.', value:'support', evidence:{id:'stoneNausea', icon:'🤢', title:'Nausea with pain waves', type:'supportive', source:'Interview'}},
+      {id:'diet', q:'What did you eat?', result:'No unusual food exposure.', value:'low'},
+      {id:'cough', q:'Any cough?', result:'No cough. Low diagnostic value.', value:'low'}
+    ],
+    palpation:{painful:['rlq','llq'], required:['ruq','luq','rlq','llq'], findings:{ruq:'No upper abdominal pain.', luq:'No upper abdominal pain.', rlq:'Lower abdominal discomfort, not rebound.', llq:'Lower abdominal discomfort, not rebound.', navel:'No central mass.', rebound:'No rebound tenderness.'}},
+    actionRequirements:{refer:['interviewKey2','allQuadrants','noRebound']},
+    debrief:{best:'Kidney stone pattern should be referred rather than taken to abdominal surgery.', teacher:'Ask how colicky pain differs from peritoneal irritation.'}
+  },
+  {
+    id:'diffuseInfection', name:'Mason R.', age:19, room:'2C', sex:'Male',
+    complaint:'Generalized abdominal soreness with fever and nausea.', diagnosis:'Diffuse intestinal infection', correctAction:'medicate',
+    vitals:{hr:104,bp:'116/74',temp:38.5,spo2:98,pain:6,stability:78},
+    chart:'No surgical history. Several classmates recently had stomach illness.',
+    interview:[
+      {id:'spread', q:'Is the pain in one spot or all over?', result:'Patient says it hurts all over.', value:'key', evidence:{id:'diffusePain', icon:'↔️', title:'Diffuse abdominal pain', type:'critical', source:'Interview'}},
+      {id:'fever', q:'Any fever?', result:'Fever and chills began last night.', value:'key', evidence:{id:'infectionFever', icon:'🌡️', title:'Fever with chills', type:'supportive', source:'Interview'}},
+      {id:'sick', q:'Any sick contacts?', result:'Several classmates have similar symptoms.', value:'key', evidence:{id:'sickContacts', icon:'👥', title:'Sick contacts', type:'supportive', source:'Interview'}},
+      {id:'migration', q:'Did pain move to the right lower abdomen?', result:'No. It stayed generalized.', value:'support', evidence:{id:'noMigration', icon:'✅', title:'No pain migration', type:'neutral', source:'Interview'}},
+      {id:'urinary', q:'Any urinary symptoms?', result:'No urinary symptoms.', value:'support', evidence:{id:'noUrinary', icon:'✅', title:'No urinary symptoms', type:'neutral', source:'Interview'}},
+      {id:'family', q:'Family history?', result:'Not relevant here.', value:'low'},
+      {id:'sleep', q:'How did you sleep?', result:'Poorly. Low diagnostic value.', value:'low'}
+    ],
+    palpation:{painful:['ruq','luq','rlq','llq'], required:['ruq','luq','rlq','llq'], findings:{ruq:'Tenderness present.', luq:'Tenderness present.', rlq:'Tenderness present but not focal.', llq:'Tenderness present but not focal.', navel:'General discomfort.', rebound:'No clear rebound tenderness.'}},
+    actionRequirements:{medicate:['interviewKey2','allQuadrants','diffusePain']},
+    debrief:{best:'Diffuse tenderness plus fever and exposure history supports medication/supportive care, not surgery.', teacher:'Ask students what makes pain “localized” versus “diffuse.”'}
+  }
+];
+
+const game = {
+  scene:'patientRoom', patientIndex:0, score:0, time:0, budget:2500,
+  evidence:[], log:[], asked:[], questionSlots:5, palpated:[], selectedAction:null, outcome:null,
+  mistakes:[], completed:{patientRoom:false, interview:false, palpation:false, clipboard:false, debrief:false}
+};
+
+const abdomenRegions = [
+  {id:'ruq', label:'RUQ'}, {id:'luq', label:'LUQ'}, {id:'navel', label:'Navel'},
+  {id:'rlq', label:'RLQ'}, {id:'llq', label:'LLQ'}, {id:'rebound', label:'Rebound'}
+];
+
+function patient(){ return patients[game.patientIndex]; }
+function vitals(){ return patient().vitals; }
+function addLog(icon,text){ game.log.unshift({icon,text,time:formatTime()}); game.log=game.log.slice(0,12); }
+function clearLog(){ game.log=[]; render(); }
+function formatTime(){ const m=12+game.time; const h=9+Math.floor(m/60); return `${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
+function spend(minutes,scoreDelta=0){ game.time+=minutes; game.score+=scoreDelta; const v=vitals(); if(!game.outcome){ v.stability=Math.max(0, v.stability-Math.ceil(minutes/10)); if(v.stability<35) addLog('⚠️','Patient stability is getting low.'); } }
+function addEvidence(ev){ if(!ev) return; if(game.evidence.some(e=>e.id===ev.id)) return; game.evidence.push(ev); }
+function hasEvidence(id){ return game.evidence.some(e=>e.id===id); }
+function setScene(scene){ game.scene=scene; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function resetCase(index=game.patientIndex){
+  game.scene='patientRoom'; game.patientIndex=index; game.score=0; game.time=0; game.budget=2500; game.evidence=[]; game.log=[]; game.asked=[]; game.palpated=[]; game.selectedAction=null; game.outcome=null; game.mistakes=[];
+  game.completed={patientRoom:false,interview:false,palpation:false,clipboard:false,debrief:false};
+  patients.forEach(p=>p.vitals={...initialVitals[p.id]});
+  addLog('🏥',`Admitted ${patient().name} to Room ${patient().room}.`);
+  render();
+}
+const initialVitals = Object.fromEntries(patients.map(p=>[p.id,{...p.vitals}]));
+
+function sceneComplete(scene){
+  if(scene==='patientRoom') return game.completed.patientRoom;
+  if(scene==='interview') return game.asked.length>=3 || game.completed.interview;
+  if(scene==='palpation') return patient().palpation.required.every(id=>game.palpated.includes(id));
+  if(scene==='clipboard') return !!game.selectedAction;
+  if(scene==='debrief') return !!game.outcome;
+  return false;
+}
+
+function render(){
+  renderVitals(); renderSteps(); renderEvidence(); renderLog();
+  const stage=document.getElementById('stage');
+  if(game.scene==='patientRoom') stage.innerHTML=renderPatientRoom();
+  if(game.scene==='interview') stage.innerHTML=renderInterview();
+  if(game.scene==='palpation') stage.innerHTML=renderPalpation();
+  if(game.scene==='clipboard') stage.innerHTML=renderClipboard();
+  if(game.scene==='debrief') stage.innerHTML=renderDebrief();
+}
+
+function renderVitals(){
+  const v=vitals();
+  document.getElementById('vHR').textContent=Math.round(v.hr);
+  document.getElementById('vBP').textContent=v.bp;
+  document.getElementById('vTemp').textContent=v.temp.toFixed(1);
+  document.getElementById('vO2').textContent=Math.round(v.spo2);
+  document.getElementById('vPain').textContent=Math.round(v.pain);
+  document.getElementById('vStability').textContent=`${Math.round(v.stability)}%`;
+  document.getElementById('stabLabel').textContent=v.stability<35?'CRITICAL':v.stability<60?'WATCH':'STABLE';
+}
+
+function renderSteps(){
+  document.getElementById('stepList').innerHTML=scenes.map(s=>`<div class="step ${game.scene===s.id?'active':''} ${sceneComplete(s.id)?'done':''}"><div class="stepIcon">${sceneComplete(s.id)?'✓':s.icon}</div><div><div class="stepTitle">${s.label}</div><div class="stepCopy">${s.copy}</div></div></div>`).join('');
+}
+function renderEvidence(){
+  document.getElementById('evidenceCount').textContent=`${game.evidence.length} cards`;
+  document.getElementById('evidenceStack').innerHTML=game.evidence.length?game.evidence.map(e=>`<div class="ev ${e.type||'neutral'}"><div class="evIcon">${e.icon||'•'}</div><div><strong>${e.title}</strong><span>${e.source}</span></div></div>`).join(''):`<div class="ev neutral"><div class="evIcon">🔎</div><div><strong>No evidence yet</strong><span>Interview and exam findings appear here.</span></div></div>`;
+}
+function renderLog(){
+  document.getElementById('eventLog').innerHTML=game.log.length?game.log.map(l=>`<div class="logRow"><div>${l.icon}</div><div><time>${l.time}</time>${l.text}</div></div>`).join(''):`<div class="logRow"><div>•</div><div>No events yet.</div></div>`;
+}
+
+function sceneHeader(badge,title,copy,right=''){
+  return `<div class="stageHeader"><div><span class="badge">${badge}</span><h2>${title}</h2><p>${copy}</p></div><div class="actions">${right}</div></div>`;
+}
+function footer(left='',right=''){
+  return `<div class="footerActions"><div class="leftActions">${left}</div><div class="rightActions">${right}</div></div>`;
+}
+
+function renderPatientRoom(){
+  const p=patient(); const v=vitals();
+  const right=`<button onclick="resetCase((game.patientIndex+1)%patients.length)">Next Case</button>`;
+  return `${sceneHeader('Scene 1','Patient Room','Review the complaint and chart before starting the interview.',right)}
+  <div class="stageBody">
+    <div class="roomLayout">
+      <div class="patientPortrait">
+        <div class="person"><div class="painGlow ${v.pain>4?'':'hidden'}"></div><div class="headShape"><span class="faceDot faceL"></span><span class="faceDot faceR"></span></div><div class="armShape armL"></div><div class="armShape armR"></div><div class="bodyShape"></div><div class="legShape legL"></div><div class="legShape legR"></div></div>
+      </div>
+      <div class="chart">
+        <div class="infoGrid">
+          <div class="info"><small>Name</small><b>${p.name}</b></div>
+          <div class="info"><small>Age / Sex</small><b>${p.age} / ${p.sex}</b></div>
+          <div class="info"><small>Room</small><b>${p.room}</b></div>
+          <div class="info"><small>Stability</small><b>${v.stability}%</b></div>
+        </div>
+        <div class="callout"><b>Chief complaint:</b><br>${p.complaint}</div>
+        <div class="callout"><b>Chart:</b><br>${p.chart}</div>
+        <p class="teacherNote">Design note: this build is scene-based. Each clinical step becomes a playable mini-interaction rather than another dashboard button.</p>
+      </div>
+    </div>
+  </div>
+  ${footer(`<span class="statusText">Score: ${game.score} · Time: ${formatTime()} · Budget: $${game.budget}</span>`,`<button class="primary" onclick="startInterview()">Start Interview ▶</button>`)}`;
+}
+function startInterview(){ game.completed.patientRoom=true; spend(2,5); addLog('💬','Interview started.'); setScene('interview'); }
+
+function renderInterview(){
+  const p=patient(); const used=game.asked.length;
+  const slots=Array.from({length:game.questionSlots},(_,i)=>`<span class="slot ${i<used?'used':''}"></span>`).join('');
+  const qs=p.interview.map(q=>`<button class="question ${game.asked.includes(q.id)?'asked':''} ${q.value==='low'?'lowValue':''}" onclick="askQuestion('${q.id}')" ${game.asked.includes(q.id)||used>=game.questionSlots?'disabled':''}><b>${q.q}</b><span>${game.asked.includes(q.id)?q.result:(q.value==='low'?'May waste time':'May reveal useful evidence')}</span></button>`).join('');
+  const keyCount=countKeyInterview();
+  return `${sceneHeader('Scene 2','Interview Mini-Game','Choose questions carefully. You only get five question slots before the patient gets tired.')}
+  <div class="stageBody">
+    <div class="slots"><span>Question slots:</span>${slots}<span>${used}/${game.questionSlots}</span></div>
+    <div class="callout"><b>Goal:</b> uncover at least 3 useful clues. Current key clues: <b>${keyCount}</b></div>
+    <br>
+    <div class="questionGrid">${qs}</div>
+  </div>
+  ${footer(`<button onclick="setScene('patientRoom')">◀ Back to Room</button>`,`<button class="primary" onclick="finishInterview()" ${keyCount<2?'disabled':''}>Continue to Palpation ▶</button>`)}`;
+}
+function askQuestion(id){
+  const q=patient().interview.find(x=>x.id===id); if(!q||game.asked.includes(id)||game.asked.length>=game.questionSlots) return;
+  game.asked.push(id); spend(q.value==='low'?8:4,q.value==='low'?-5:10); addEvidence(q.evidence);
+  addLog(q.value==='low'?'🟧':'💬',q.result);
+  render();
+}
+function countKeyInterview(){ return game.asked.map(id=>patient().interview.find(q=>q.id===id)).filter(q=>q&&(q.value==='key'||q.value==='support')).length; }
+function finishInterview(){ game.completed.interview=true; addLog('🖐️','Moved to physical exam.'); setScene('palpation'); }
+
+function renderPalpation(){
+  const p=patient(); const checkedRequired=p.palpation.required.filter(id=>game.palpated.includes(id)).length;
+  const buttons=abdomenRegions.map(r=>{
+    const painful=p.palpation.painful.includes(r.id); const checked=game.palpated.includes(r.id);
+    return `<button class="abdomenButton ${r.id} ${painful?'pain':''} ${checked?'checked':''}" onclick="palpate('${r.id}')">${checked?'✓ ':''}${r.label}</button>`;
+  }).join('');
+  const checklist=p.palpation.required.map(id=>`<div class="checkItem ${game.palpated.includes(id)?'done':''}">${game.palpated.includes(id)?'✓':'•'} ${id.toUpperCase()}</div>`).join('');
+  const last=game.log[0]?.text || 'Click an abdomen region to start palpation.';
+  return `${sceneHeader('Scene 3','Palpation Mini-Game','Map the abdomen. The clipboard will reject your decision if you skip quadrants.')}
+  <div class="stageBody">
+    <div class="palpationScene">
+      <div class="abdomenBoard">
+        <div class="torsoGraphic"><div class="torsoHead"></div><div class="torsoBody"></div></div>
+        <div class="abdomenGrid">${buttons}</div>
+      </div>
+      <div class="examFeedback">
+        <div class="feedbackBox"><div class="reaction">${reactionEmoji()}</div><b>Latest response</b><p>${last}</p></div>
+        <div class="feedbackBox"><b>Required quadrants</b><div class="quadrantChecklist">${checklist}</div><p class="teacherNote">Required: RUQ, LUQ, RLQ, and LLQ. Navel and rebound add diagnostic power.</p></div>
+        <div class="callout"><b>Progress:</b> ${checkedRequired}/4 required quadrants checked.</div>
+      </div>
+    </div>
+  </div>
+  ${footer(`<button onclick="setScene('interview')">◀ Back to Interview</button>`,`<button class="primary" onclick="finishPalpation()" ${checkedRequired<4?'disabled':''}>Review Clipboard ▶</button>`)}`;
+}
+function reactionEmoji(){
+  const p=patient(); const last=game.palpated[game.palpated.length-1];
+  if(!last) return '😐';
+  if(p.palpation.painful.includes(last)) return last==='rebound'?'😫':'😣';
+  return '😐';
+}
+function palpate(id){
+  if(game.palpated.includes(id)) return;
+  const p=patient(); const finding=p.palpation.findings[id]||'No notable finding.'; const painful=p.palpation.painful.includes(id);
+  game.palpated.push(id);
+  spend(3,painful?12:6);
+  if(painful){ vitals().pain=Math.min(10,vitals().pain+1); vitals().hr+=2; }
+  addEvidence({id:'palp_'+id, icon:painful?'⚠️':'✅', title:finding, type:painful?'critical':'neutral', source:'Palpation'});
+  addLog(painful?'⚠️':'✅',finding);
+  render();
+}
+function finishPalpation(){ game.completed.palpation=true; addLog('📋','Physical exam completed. Clipboard available.'); setScene('clipboard'); }
+
+function renderClipboard(){
+  const reqs=renderRequirements();
+  const actions=[
+    {id:'observe', icon:'👀', title:'Observe', copy:'Safe for benign gas pain or small measured aneurysm.'},
+    {id:'medicate', icon:'💊', title:'Medicate', copy:'Use for diffuse infection/supportive-care pattern.'},
+    {id:'refer', icon:'📨', title:'Refer', copy:'Use when another service is appropriate, such as kidney stone.'},
+    {id:'operate', icon:'🔪', title:'Operate', copy:'Use for appendicitis or large aneurysm after enough evidence.'}
+  ].map(a=>`<button class="clipboardBtn" onclick="chooseAction('${a.id}')"><div class="clipboardIcon">${a.icon}</div><div><h3>${a.title}</h3><p>${a.copy}</p></div></button>`).join('');
+  return `${sceneHeader('Scene 4','Clipboard Decision','Make the clinical decision. Wrong or premature action triggers a chief resident lecture.')}
+  <div class="stageBody">
+    <div class="clipboardGrid">${actions}</div>
+    <div class="requirements">${reqs}</div>
+  </div>
+  ${footer(`<button onclick="setScene('palpation')">◀ Back to Exam</button>`,`<button onclick="openMedicalSchool()">Medical School Notes</button>`)}`;
+}
+function renderRequirements(){
+  const allQ=patient().palpation.required.every(id=>game.palpated.includes(id));
+  const key=countKeyInterview();
+  const focal=game.palpated.some(id=>patient().palpation.painful.includes(id));
+  return [
+    ['Interview clues',key>=2,`${key} useful clue(s) found`],
+    ['All quadrants',allQ,allQ?'Complete':'RUQ/LUQ/RLQ/LLQ required'],
+    ['Pain pattern',focal, focal?'Pain pattern mapped':'No focal response yet']
+  ].map(r=>`<div class="req ${r[1]?'done':''}"><b>${r[1]?'✓':'•'} ${r[0]}</b><span>${r[2]}</span></div>`).join('');
+}
+function chooseAction(action){
+  const p=patient(); game.selectedAction=action;
+  const allQ=p.palpation.required.every(id=>game.palpated.includes(id));
+  const key=countKeyInterview();
+  let lecture='';
+  if(key<2) lecture='You did not gather enough interview evidence before acting.';
+  else if(!allQ) lecture='You did not complete the abdominal exam. Check all four quadrants.';
+  else if(action!==p.correctAction) lecture=`Wrong clipboard action. Correct action was ${p.correctAction.toUpperCase()}.`;
+  if(lecture){
+    game.mistakes.push(lecture); spend(8,-30); vitals().stability=Math.max(0,vitals().stability-8); addLog('⚠️',lecture);
+    showLecture(lecture);
+    render();
+    return;
+  }
+  game.completed.clipboard=true; game.outcome='success'; spend(5,60); addLog('✅',`Correct action: ${action.toUpperCase()}.`); setScene('debrief');
+}
+function showLecture(msg){
+  const stage=document.getElementById('stage');
+  stage.innerHTML=`${sceneHeader('Chief Resident Lecture','Decision Rejected','The patient survives the lesson, but your evaluation drops.')}
+  <div class="stageBody"><div class="callout"><b>${msg}</b><br><br>Go back, gather the missing evidence, and try again.</div></div>
+  ${footer(`<button class="primary" onclick="setScene('clipboard')">Back to Clipboard</button>`,`<button onclick="openMedicalSchool()">Review Notes</button>`)}`;
+}
+function openMedicalSchool(){
+  const html=`${sceneHeader('Reference','Medical School Notes','Use these rules to guide the clipboard decision.')}
+  <div class="stageBody"><div class="callout"><ol><li>Interview first. Pain location, movement, fever, nausea, urinary symptoms, and sick contacts matter.</li><li>Palpate all four quadrants before making a decision.</li><li>No pain pattern can support observation.</li><li>Diffuse pain with infection clues supports medication/supportive care.</li><li>Colicky flank-to-groin pain supports referral.</li><li>RLQ pain plus rebound supports surgical evaluation.</li></ol></div></div>
+  ${footer(`<button class="primary" onclick="setScene('clipboard')">Back to Clipboard</button>`,'')}`;
+  document.getElementById('stage').innerHTML=html;
+}
+
+function renderDebrief(){
+  const p=patient(); const correct=game.selectedAction===p.correctAction; const base=correct?80:45; const penalty=game.mistakes.length*10; const score=Math.max(0,Math.min(100,base+Math.round(vitals().stability/5)+countKeyInterview()*2-penalty));
+  game.completed.debrief=true;
+  return `${sceneHeader('Scene 5','Debrief','Review the clinical reasoning and prepare for the next patient.')}
+  <div class="stageBody">
+    <div class="debrief">
+      <div class="scoreCircle">${score}</div>
+      <div class="debriefList">
+        <div class="debriefItem"><strong>Final diagnosis</strong><span>${p.diagnosis}</span></div>
+        <div class="debriefItem"><strong>Correct action</strong><span>${p.correctAction.toUpperCase()}</span></div>
+        <div class="debriefItem"><strong>Your action</strong><span>${(game.selectedAction||'none').toUpperCase()}</span></div>
+        <div class="debriefItem"><strong>Clinical takeaway</strong><span>${p.debrief.best}</span></div>
+        <div class="debriefItem"><strong>Teacher prompt</strong><span>${p.debrief.teacher}</span></div>
+        <div class="debriefItem"><strong>Mistakes</strong><span>${game.mistakes.length?game.mistakes.join(' '):'No major reasoning errors.'}</span></div>
+      </div>
+    </div>
+  </div>
+  ${footer(`<button onclick="resetCase(game.patientIndex)">Replay Case</button>`,`<button class="primary" onclick="resetCase((game.patientIndex+1)%patients.length)">Next Patient ▶</button>`)}`;
+}
+
+let ecgTick=0;
+function drawECG(){
+  const c=document.getElementById('ecg'); if(!c){requestAnimationFrame(drawECG);return;}
+  const ctx=c.getContext('2d'),w=c.width,h=c.height,v=vitals();
+  ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(0,10,16,.58)'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='rgba(82,242,122,.09)'; ctx.lineWidth=1;
+  for(let x=0;x<w;x+=34){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=0;y<h;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  const speed=Math.max(.7,Math.min(1.8,v.hr/100)); const period=95/speed; const base=h*.58; ecgTick+=2.25*speed;
+  function yAt(x){const t=(x+ecgTick)%period;let y=base+Math.sin((x+ecgTick)*.025)*2;if(t>8&&t<17)y-=6*Math.sin((t-8)/9*Math.PI);if(t>27&&t<31)y+=15*Math.sin((t-27)/4*Math.PI);if(t>31&&t<36)y-=38*Math.sin((t-31)/5*Math.PI);if(t>36&&t<43)y+=12*Math.sin((t-36)/7*Math.PI);if(t>58&&t<77)y-=9*Math.sin((t-58)/19*Math.PI);if(v.stability<35)y+=(Math.random()-.5)*7;return y;}
+  ctx.strokeStyle=v.stability<35?'#ff9b9b':'#52f27a';ctx.lineWidth=3;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=10;ctx.beginPath();for(let x=0;x<w;x+=3){const y=yAt(x);x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.shadowBlur=0;
+  ctx.fillStyle='#52f27a';ctx.font='800 13px system-ui';ctx.fillText('II',15,22);ctx.fillText('25 mm/s',88,95);ctx.fillText('Filter: ON',176,95);
+  requestAnimationFrame(drawECG);
+}
+
+resetCase(0);
+requestAnimationFrame(drawECG);
 </script>
 </body>
 </html>
-
