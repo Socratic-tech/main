@@ -636,6 +636,41 @@ function limitingFactorLabel(items) {
   return sorted[0].label;
 }
 
+
+function drawOutcomePanel(ctx, W, H, cfg) {
+  const value = clampVal(Number(cfg.value || 0), 0, 1);
+  const danger = cfg.danger || value < 0.35;
+  const label = cfg.label || 'Live Result';
+  const detail = cfg.detail || '';
+  const base = danger ? '#e05c5c' : (value > 0.7 ? '#7ecf3f' : (cfg.color || '#f5a623'));
+  const x = 12, y = 12, w = Math.min(300, W - 24), h = detail ? 58 : 46;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.62)';
+  ctx.strokeStyle = base + '90';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 9); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = base;
+  ctx.font = "bold 10px 'DM Mono',monospace";
+  ctx.textAlign = 'left';
+  ctx.fillText(`${label}: ${Math.round(value * 100)}%`, x + 10, y + 16);
+  ctx.fillStyle = '#102010';
+  ctx.beginPath(); ctx.roundRect(x + 10, y + 24, w - 20, 8, 99); ctx.fill();
+  ctx.fillStyle = base;
+  ctx.beginPath(); ctx.roundRect(x + 10, y + 24, (w - 20) * value, 8, 99); ctx.fill();
+  if (detail) {
+    ctx.fillStyle = danger ? '#ff9a9a' : '#a7d7a7';
+    ctx.font = "9px 'DM Sans',sans-serif";
+    ctx.fillText(detail, x + 10, y + 47);
+  }
+  ctx.restore();
+}
+
+function statusWord(value, low='failing', mid='limited', high='strong') {
+  if (value < 0.35) return low;
+  if (value < 0.7) return mid;
+  return high;
+}
+
 function buildRight(id, m) {
   const right = document.getElementById('ov-right');
   right.innerHTML = '';
@@ -910,6 +945,12 @@ function buildCell(canvas, color, preview, leftPanel) {
     grd.addColorStop(0, color+'12'); grd.addColorStop(1,'transparent');
     ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
 
+    if (!preview) {
+      const divisionSuccess = clampVal((1 - dnaDamage) * Math.max(0.05, spindleStrength), 0, 1);
+      const cellDetail = dnaDamage > 0.7 ? 'DNA checkpoint blocks division' : spindleStrength < 0.55 ? 'Spindle failure causes bad separation' : `${phases[phaseIdx]} progressing`;
+      drawOutcomePanel(ctx, W, H, { label:'Division Result', value:divisionSuccess, color, detail:cellDetail, danger:divisionSuccess < 0.55 });
+    }
+
     ctx.save();
     ctx.translate(cx, cy);
 
@@ -1097,6 +1138,9 @@ function buildPhoto(canvas, color, preview, leftPanel) {
     displayedRate = easeVal(displayedRate, targetRate, preview ? 0.025 : 0.004 + reactionSpeed * 0.025);
     const speed = displayedRate * (0.25 + reactionSpeed * 0.9) + 0.03;
     const cx = W*0.5, cy = H*0.52;
+    const limitingNow = limitingFactorLabel([
+      {label:'light', value:lightLevel}, {label:'CO₂', value:co2Level}, {label:'water', value:waterLevel}, {label:'temperature', value:tempFactor}
+    ]);
 
     // Sky bg gradient
     const sky = ctx.createLinearGradient(0,0,0,H*0.4);
@@ -1128,6 +1172,10 @@ function buildPhoto(canvas, color, preview, leftPanel) {
       ctx.stroke(); ctx.setLineDash([]);
     }
     ctx.restore();
+
+    if (!preview) {
+      drawOutcomePanel(ctx, W, H, { label:'Glucose/O₂ Output', value:displayedRate, color, detail:`limiting factor: ${limitingNow}`, danger:displayedRate < 0.35 });
+    }
 
     // Chloroplast body
     ctx.save();
@@ -1184,9 +1232,7 @@ function buildPhoto(canvas, color, preview, leftPanel) {
 
     // equation and live rate at bottom
     if(!preview){
-      const limiting = limitingFactorLabel([
-        {label:'light', value:lightLevel}, {label:'CO₂', value:co2Level}, {label:'water', value:waterLevel}, {label:'temperature', value:tempFactor}
-      ]);
+      const limiting = limitingNow;
       const info=document.getElementById('photo-info');
       if(info) info.innerHTML=`<strong style="color:${color}">Reaction rate: ${Math.round(displayedRate*100)}%</strong><br>Limiting factor: <strong>${limiting}</strong><br>Reaction speed: ${Math.round(reactionSpeed*100)}%<br><span style="color:#5a8a5a">Results ease in slowly after each variable change.</span>`;
       ctx.fillStyle='#3a6a3a'; ctx.font=`9px 'DM Mono',monospace`; ctx.textAlign='center';
@@ -1255,6 +1301,10 @@ function buildGenetics(canvas, color, preview, leftPanel) {
     if(revealQueue){ revealTimer++; const revealDelay = Math.max(10, Math.round(90 - revealSpeed * 52)); if(revealTimer >= revealDelay){ revealTimer=0; const next=revealed.findIndex(v=>!v); if(next>=0) revealed[next]=true; else revealQueue=false; } }
     ctx.clearRect(0,0,W,H);
     const cross = crosses[crossIdx];
+    if (!preview) {
+      const reliability = clampVal(1 - mutationChance, 0, 1);
+      drawOutcomePanel(ctx, W, H, { label:'Inheritance Reliability', value:reliability, color, detail:mutationChance > 0.2 ? 'high mutation risk changes offspring results' : 'offspring outcomes match the cross', danger:reliability < 0.75 });
+    }
     const pad = preview?10:20;
     const gridSize = preview?60:75;
     const startX = W/2 - gridSize + (preview?0:5);
@@ -1296,18 +1346,19 @@ function buildGenetics(canvas, color, preview, leftPanel) {
       if(revealProg>0){
         // Background
         const isDom=cross.dominant[idx];
-        ctx.fillStyle=isDom ? color+'18' : '#1a0a0020';
+        const mutatedCell = !preview && mutationChance > 0.12 && idx < Math.ceil(mutationChance * 4);
+        ctx.fillStyle=mutatedCell ? '#3a080830' : (isDom ? color+'18' : '#1a0a0020');
         ctx.beginPath(); ctx.roundRect(startX+gridSize*(ci+1)+4, startY+gridSize*ri+4, gridSize-8, gridSize-8, 6);
         ctx.fill();
 
-        ctx.fillStyle = isDom ? color : '#666';
+        ctx.fillStyle = mutatedCell ? '#e05c5c' : (isDom ? color : '#666');
         ctx.font=`bold ${preview?12:16}px 'Playfair Display',serif`;
         ctx.textAlign='center';
-        ctx.fillText(mutationChance > 0.25 && idx === 3 ? cross.cells[idx] + '*' : cross.cells[idx], cx2, cy2+6);
+        ctx.fillText(mutatedCell ? cross.cells[idx] + '*' : cross.cells[idx], cx2, cy2+6);
         if(!preview){
-          ctx.fillStyle = isDom ? color+'80' : '#44444480';
+          ctx.fillStyle = mutatedCell ? '#e05c5c99' : (isDom ? color+'80' : '#44444480');
           ctx.font=`9px 'DM Mono',monospace`;
-          ctx.fillText(isDom?'dominant':'recessive', cx2, cy2+20);
+          ctx.fillText(mutatedCell ? 'mutation' : (isDom?'dominant':'recessive'), cx2, cy2+20);
         }
       } else {
         // Unrevealed
@@ -1462,6 +1513,11 @@ function buildEvolution(canvas, color, preview, leftPanel) {
 
     const darkCount=population.filter(m=>m.dark).length;
     const lightCount=POP_SIZE-darkCount;
+    if (!preview) {
+      const adapted = envType === 'dark' ? darkCount / POP_SIZE : lightCount / POP_SIZE;
+      const projectedShift = Math.round(selectionPressure * predatorAccuracy * 18);
+      drawOutcomePanel(ctx, W, H, { label:'Population Fit', value:adapted, color, detail:`next gen pressure: ~${projectedShift}% trait shift`, danger:adapted < 0.35 });
+    }
 
     // Moths
     population.forEach(m => {
@@ -1592,11 +1648,16 @@ function buildEcology(canvas, color, preview, leftPanel) {
     if(!running) return;
     frame++;
     ctx.clearRect(0,0,W,H);
+    ecosystemStability = easeVal(ecosystemStability, sunEnergy * producerHealth * (0.55 + decomposerRate * 0.45), preview ? 0.025 : 0.004 + flowSpeed * 0.025);
 
     if(viewMode==='pyramid' || preview){
       drawPyramid();
     } else {
       drawFoodWeb();
+    }
+    if (!preview) {
+      const ecoDetail = ecosystemStability < 0.35 ? 'collapse risk: not enough usable energy' : ecosystemStability < 0.7 ? 'limited energy flow' : 'stable energy flow';
+      drawOutcomePanel(ctx, W, H, { label:'Ecosystem Stability', value:ecosystemStability, color, detail:ecoDetail, danger:ecosystemStability < 0.4 });
     }
     requestAnimationFrame(draw);
   }
@@ -1760,10 +1821,15 @@ function buildDNA(canvas, color, preview, leftPanel) {
     frame++;
     ctx.clearRect(0,0,W,H);
     ctx.fillStyle='#0a0014'; ctx.fillRect(0,0,W,H);
+    const proteinQuality = clampVal(enzymeAccuracy * (1 - mutationRate), 0, 1);
 
     if(viewMode==='helix'||preview) drawHelix();
     else if(viewMode==='transcription') drawTranscription();
     else drawTranslation();
+
+    if (!preview) {
+      drawOutcomePanel(ctx, W, H, { label:'Protein Quality', value:proteinQuality, color, detail:proteinQuality < 0.55 ? 'mutation/low accuracy causes faulty protein' : 'usable protein likely', danger:proteinQuality < 0.6 });
+    }
 
     requestAnimationFrame(draw);
   }
@@ -1929,7 +1995,7 @@ function buildDNA(canvas, color, preview, leftPanel) {
     }
     // tRNA above ribosome
     const codonIdx=Math.floor(shift)%codons.length;
-    const mutationActive = mutationRate > 0.2 && Math.floor(frame/80)%4===0;
+    const mutationActive = mutationRate > 0.08 && (codonIdx < Math.ceil(mutationRate * codons.length) || Math.floor(frame/100)%5===0);
     const aminoAcid=mutationActive ? 'ERROR' : (codonTable[codons[codonIdx]]||'???');
     ctx.fillStyle='#ffd70040';
     ctx.beginPath(); ctx.ellipse(bw*1.5,H*0.6-28,bw*1.5,12,0,0,Math.PI*2); ctx.fill();
@@ -2040,6 +2106,14 @@ function buildRespiration(canvas, color, preview, leftPanel) {
     else if (viewMode === 'krebs') drawKrebs();
     else drawETC();
 
+    if (!preview) {
+      const base = viewMode === 'overview' ? 38 : viewMode === 'glycolysis' ? 2 : viewMode === 'krebs' ? 2 : 34;
+      const oxygenFactor = viewMode === 'etc' || viewMode === 'overview' ? oxygenLevel : 1;
+      const targetATP = base * Math.min(oxygenFactor, glucoseLevel);
+      const demandATP = Math.max(1, base * activityDemand);
+      const energyBalance = clampVal(targetATP / demandATP, 0, 1);
+      drawOutcomePanel(ctx, W, H, { label:'Energy Result', value:energyBalance, color, detail:energyBalance < 0.55 ? 'ATP demand is not being met' : 'ATP supply meets demand', danger:energyBalance < 0.55 });
+    }
     updateInfo();
     requestAnimationFrame(draw);
   }
@@ -2104,7 +2178,7 @@ function buildRespiration(canvas, color, preview, leftPanel) {
       });
 
       // Animated ATP burst
-      atpDisplayed = Math.min(38 * Math.min(oxygenLevel, glucoseLevel), atpDisplayed + 0.045 * speed * Math.min(oxygenLevel, glucoseLevel));
+      atpDisplayed = easeVal(atpDisplayed, 38 * Math.min(oxygenLevel, glucoseLevel), 0.006 + speed * 0.035);
       const atpAngle = (frame * 0.03 * speed) % (Math.PI * 2);
       ctx.save(); ctx.globalAlpha = 0.7;
       ctx.fillStyle = color; ctx.font = `bold 10px 'DM Mono',monospace`; ctx.textAlign = 'center';
@@ -2118,7 +2192,7 @@ function buildRespiration(canvas, color, preview, leftPanel) {
       ctx.fillText('C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ~38 ATP', W / 2, H - 6);
     } else {
       // Preview: just ATP counter
-      atpDisplayed = Math.min(38 * Math.min(oxygenLevel, glucoseLevel), atpDisplayed + 0.06 * speed * Math.min(oxygenLevel, glucoseLevel));
+      atpDisplayed = easeVal(atpDisplayed, 38 * Math.min(oxygenLevel, glucoseLevel), 0.006 + speed * 0.035);
       ctx.fillStyle = color; ctx.font = `bold ${preview ? 14 : 18}px 'Playfair Display',serif`; ctx.textAlign = 'center';
       ctx.fillText(`⚡ ${Math.round(atpDisplayed)} ATP`, cx, H * 0.88);
     }
@@ -2126,7 +2200,7 @@ function buildRespiration(canvas, color, preview, leftPanel) {
 
   // ── GLYCOLYSIS ──
   function drawGlycolysis() {
-    atpDisplayed = Math.min(2 * glucoseLevel, atpDisplayed + 0.006 * speed * glucoseLevel);
+    atpDisplayed = easeVal(atpDisplayed, 2 * glucoseLevel, 0.006 + speed * 0.025);
     const steps = [
       { label: 'Glucose (6C)', col: '#ff9040', y: 0.08 },
       { label: '+ 2 ATP invested', col: '#e05c5c', y: 0.22, note: '(activation cost)' },
@@ -2173,12 +2247,12 @@ function buildRespiration(canvas, color, preview, leftPanel) {
     });
 
     // Reset animation loop
-    if (frame * 0.025 * speed > steps.length + 30) { frame = 0; atpDisplayed = 0; }
+    if (frame * 0.025 * speed > steps.length + 30) { frame = 0; }
   }
 
   // ── KREBS CYCLE ──
   function drawKrebs() {
-    atpDisplayed = Math.min(2 * glucoseLevel, atpDisplayed + 0.004 * speed * glucoseLevel);
+    atpDisplayed = easeVal(atpDisplayed, 2 * glucoseLevel, 0.006 + speed * 0.025);
     const cx = W / 2, cy = H * 0.5;
     const r = Math.min(W, H) * 0.3;
     const steps = [
@@ -2254,7 +2328,7 @@ function buildRespiration(canvas, color, preview, leftPanel) {
 
   // ── ELECTRON TRANSPORT CHAIN ──
   function drawETC() {
-    atpDisplayed = Math.min(34 * Math.min(oxygenLevel, glucoseLevel), atpDisplayed + 0.05 * speed * Math.min(oxygenLevel, glucoseLevel));
+    atpDisplayed = easeVal(atpDisplayed, 34 * Math.min(oxygenLevel, glucoseLevel), 0.006 + speed * 0.035);
     const memY = H * 0.45;
     const memH = 28;
 
@@ -2418,10 +2492,13 @@ function buildBody(canvas, color, preview, leftPanel) {
     const beatPulse = Math.max(0, beat);
     const beatScale = 1 + beatPulse * 0.16;
     const isBeating = beat > 0;
+    const rateFactor = clampVal(1 - Math.abs(heartRate - 80) / 90, 0, 1);
+    const perfusion = clampVal((oxygenSat / 100) * hydration * rateFactor, 0, 1);
 
     if (!preview) {
       const info = document.getElementById('body-info');
-      if (info) info.innerHTML = `<strong style="color:${color}">Heart Rate: ${heartRate} bpm</strong><br>${heartRate < 60 ? 'Bradycardia (slow)' : heartRate > 100 ? 'Tachycardia (fast)' : 'Normal sinus rhythm'}<br><span style="color:${oxygenSat<94||hydration<0.6?'#e05c5c':'#7ecf3f'}">O₂ ${oxygenSat}% · Hydration ${Math.round(hydration*100)}%</span><br><span style="color:#5a8a5a">Reaction speed: ${Math.round(reactionSpeed*100)}%</span>`;
+      if (info) info.innerHTML = `<strong style="color:${color}">Heart Rate: ${heartRate} bpm</strong><br>${heartRate < 60 ? 'Bradycardia (slow)' : heartRate > 100 ? 'Tachycardia (fast)' : 'Normal sinus rhythm'}<br><span style="color:${perfusion<0.55?'#e05c5c':'#7ecf3f'}">O₂ ${oxygenSat}% · Hydration ${Math.round(hydration*100)}% · Perfusion ${Math.round(perfusion*100)}%</span><br><span style="color:#5a8a5a">Reaction speed: ${Math.round(reactionSpeed*100)}%</span>`;
+      drawOutcomePanel(ctx, W, H, { label:'Circulation Result', value:perfusion, color, detail:perfusion < 0.55 ? 'poor tissue oxygen delivery' : 'stable tissue oxygen delivery', danger:perfusion < 0.55 });
     }
 
     // Big beat halo so the heart is easy to read from across the room
@@ -2443,7 +2520,7 @@ function buildBody(canvas, color, preview, leftPanel) {
 
     // Animated blood flow
     const flowT = (frame * 0.007 * bps * reactionSpeed * (oxygenSat/100) * hydration) % 1;
-    ctx.globalAlpha = isBeating ? 0.9 : 0.3;
+    ctx.globalAlpha = isBeating ? (0.25 + perfusion * 0.75) : 0.15;
     ctx.fillStyle = '#cc3333';
     ctx.beginPath(); ctx.arc(cx + 18 + flowT * 62, cy - 30 - flowT * 20, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#4466cc';
@@ -2519,6 +2596,7 @@ function buildBody(canvas, color, preview, leftPanel) {
         else if (t < 0.44) y = -Math.sin((t - 0.39) / 0.05 * Math.PI) * 8; // S
         else if (t < 0.70) y = Math.sin((t - 0.44) / 0.26 * Math.PI) * 7; // T wave
         if (oxygenSat < 90) y *= 0.65; // low oxygen visibly weakens the trace
+        y *= 0.55 + perfusion * 0.65; // poor hydration/rate lowers electrical/mechanical output
         if (x === 0) ctx.moveTo(x, ecgY - y);
         else ctx.lineTo(x, ecgY - y);
       }
@@ -2618,7 +2696,10 @@ function buildBody(canvas, color, preview, leftPanel) {
     }
 
     const info = document.getElementById('body-info');
-    if (info && !preview) info.innerHTML = `<strong style="color:${color}">Action Potential</strong><br>Nerve stimulus: ${Math.round(nerveStimulus*100)}%. Higher stimulus increases signal frequency, but the animation eases slowly so students can follow the path.`;
+    if (info && !preview) {
+      drawOutcomePanel(ctx, W, H, { label:'Signal Result', value:nerveStimulus, color, detail:nerveStimulus < 0.25 ? 'weak stimulus may not fire reliably' : 'action potentials fire down the axon', danger:nerveStimulus < 0.25 });
+      info.innerHTML = `<strong style="color:${color}">Action Potential</strong><br>Nerve stimulus: ${Math.round(nerveStimulus*100)}%. Higher stimulus increases signal frequency, but the animation eases slowly so students can follow the path.`;
+    }
   }
 
   function drawKidney() {
@@ -2668,6 +2749,8 @@ function buildBody(canvas, color, preview, leftPanel) {
       ctx.fillStyle = color + '70'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
       ctx.fillText('KIDNEY', cx, H * 0.9);
       ctx.fillText('cortex · medulla · pelvis · ureter', cx, H * 0.96);
+      const kidneyResult = clampVal(filtrationRate * (0.35 + hydration * 0.65), 0, 1);
+      drawOutcomePanel(ctx, W, H, { label:'Filtration Result', value:kidneyResult, color, detail:kidneyResult < 0.45 ? 'waste removal is limited' : 'filtration and reabsorption are balanced', danger:kidneyResult < 0.45 });
       const info = document.getElementById('body-info');
       if (info) info.innerHTML = `<strong style="color:${color}">Nephron filtration</strong><br>Filtration rate: ${Math.round(filtrationRate*100)}% · Hydration: ${Math.round(hydration*100)}%. Low hydration slows filtrate movement and increases water reabsorption.`;
     }
@@ -2767,16 +2850,19 @@ function buildMicro(canvas, color, preview, leftPanel) {
     // Update phase
     const tempFactor = clampVal(1 - Math.abs(incubationTemp - 37) / 32, 0, 1);
     const growthFactor = nutrientLevel * tempFactor;
-    phaseTimer += preview ? 1 : (0.18 + growthFactor * 0.22) * reactionSpeed;
-    if (antibioticApplied && antibioticDose > 0.65 && phase < 3 && phaseTimer > phaseDur[phase] * 0.45) { phase = Math.max(phase, 3); phaseTimer = 0; }
+    const antibioticPressure = antibioticApplied ? antibioticDose : 0;
+    const stress = clampVal((1 - growthFactor) * 0.65 + antibioticPressure * 0.9, 0, 1);
+    phaseTimer += preview ? 1 : (0.08 + growthFactor * 0.18 + stress * 0.10) * reactionSpeed;
+    if (stress > 0.68 && phase < 3) { phase = 3; phaseTimer = 0; }
+    else if (growthFactor < 0.22 && phase !== 3) { phase = 0; }
     else if (phaseTimer >= phaseDur[phase] && phase < 3) { phase++; phaseTimer = 0; }
 
     // Update bacteria
-    if (phase === 1 && bacteria.length < 40 && frame % Math.max(28, Math.round((120 - nutrientLevel*45 - tempFactor*25) / Math.max(0.25, reactionSpeed))) === 0) {
+    if (phase === 1 && growthFactor > 0.35 && antibioticPressure < 0.35 && bacteria.length < 40 && frame % Math.max(28, Math.round((120 - nutrientLevel*45 - tempFactor*25) / Math.max(0.25, reactionSpeed))) === 0) {
       const parent = bacteria[Math.floor(Math.random() * bacteria.length)];
       if (parent && !parent.dead) bacteria.push({x: parent.x + (Math.random()-0.5)*20, y: parent.y+(Math.random()-0.5)*20, angle: Math.random()*Math.PI*2, size: 6+Math.random()*4, dividing: false, divT:0, dead:false});
     }
-    if ((phase === 3 || antibioticApplied) && frame % Math.max(12, Math.round((62 - antibioticDose*30) / Math.max(0.25, reactionSpeed))) === 0 && bacteria.length > 1) {
+    if ((phase === 3 || stress > 0.42) && frame % Math.max(12, Math.round((70 - stress*45) / Math.max(0.25, reactionSpeed))) === 0 && bacteria.length > 1) {
       const idx = Math.floor(Math.random() * bacteria.length);
       bacteria[idx].dead = true;
       if (frame % 96 === 0) bacteria = bacteria.filter(b => !b.dead || Math.random() > antibioticDose*0.35);
@@ -2819,8 +2905,10 @@ function buildMicro(canvas, color, preview, leftPanel) {
       ctx.fillStyle = phaseColors[phase]; ctx.font = 'bold 9px DM Mono,monospace'; ctx.textAlign = 'center';
       ctx.fillText(phaseNames[phase], W / 2, chartY - 4);
 
+      const populationFitness = clampVal(growthFactor * (1 - antibioticPressure), 0, 1);
+      drawOutcomePanel(ctx, W, H, { label:'Population Result', value:populationFitness, color, detail:stress > 0.6 ? 'death pressure exceeds growth' : growthFactor < 0.35 ? 'poor growth conditions' : 'growth conditions support division', danger:populationFitness < 0.4 });
       const info = document.getElementById('micro-info');
-      if (info) info.innerHTML = `<strong style="color:${phaseColors[phase]}">${phaseNames[phase]}</strong><br>${phaseDesc[phase]}<br><span style="color:#5a8a5a">Population: ${bacteria.filter(b=>!b.dead).length}</span><br><span style="color:${antibioticApplied?'#e05c5c':'#7ecf3f'}">Dose ${Math.round(antibioticDose*100)}% · Nutrients ${Math.round(nutrientLevel*100)}% · Temp ${incubationTemp}°C</span><br><span style="color:#5a8a5a">Reaction speed: ${Math.round(reactionSpeed*100)}%</span>`;
+      if (info) info.innerHTML = `<strong style="color:${phaseColors[phase]}">${phaseNames[phase]}</strong><br>${phaseDesc[phase]}<br><span style="color:#5a8a5a">Population: ${bacteria.filter(b=>!b.dead).length}</span><br><span style="color:${antibioticApplied?'#e05c5c':'#7ecf3f'}">Dose ${Math.round(antibioticDose*100)}% · Nutrients ${Math.round(nutrientLevel*100)}% · Temp ${incubationTemp}°C</span><br><span style="color:${stress>0.6?'#e05c5c':'#5a8a5a'}">Stress ${Math.round(stress*100)}% · Reaction speed: ${Math.round(reactionSpeed*100)}%</span>`;
     } else {
       ctx.fillStyle = phaseColors[phase]; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
       ctx.fillText(phaseNames[phase], W/2, H * 0.9);
