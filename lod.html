@@ -5,435 +5,112 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vitals: The Teaching Hospital</title>
 <style>
-  :root{
-    --bg:#06111f;
-    --bg2:#092033;
-    --panel:#0b2339;
-    --panel2:#102f4d;
-    --line:rgba(109,213,255,.24);
-    --lineStrong:rgba(32,217,255,.68);
-    --text:#ecf8ff;
-    --muted:#91b9ce;
-    --cyan:#20d9ff;
-    --green:#52f27a;
-    --red:#ff4d4d;
-    --orange:#ff9d35;
-    --yellow:#ffd84d;
-    --purple:#bb7cff;
-    --shadow:0 22px 70px rgba(0,0,0,.42);
-    --radius:20px;
-  }
-
-  *{box-sizing:border-box}
-  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
-  button,select,input{font:inherit;color:inherit}
-  button{border:1px solid var(--line);background:linear-gradient(180deg,rgba(26,72,109,.94),rgba(6,24,42,.94));border-radius:14px;cursor:pointer;transition:.14s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
-  button:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 20px rgba(32,217,255,.22),inset 0 1px 0 rgba(255,255,255,.08);transform:translateY(-1px)}
-  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
-  .app{min-height:100vh;padding:14px;background:radial-gradient(circle at 10% 0%,rgba(32,217,255,.16),transparent 34rem),radial-gradient(circle at 90% 8%,rgba(82,242,122,.10),transparent 30rem),linear-gradient(135deg,#020812,#06111f 54%,#031827)}
-  .shell{width:min(1500px,100%);margin:0 auto;display:grid;gap:14px}
-  .topbar{display:grid;grid-template-columns:370px 1fr;gap:14px;align-items:stretch}
-  .card{background:linear-gradient(180deg,rgba(13,42,68,.96),rgba(4,17,31,.96));border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05);border-radius:var(--radius);overflow:hidden;min-width:0}
-  .brand{padding:16px;display:flex;gap:13px;align-items:center}.logo{width:58px;height:58px;border-radius:16px;border:1px solid rgba(109,213,255,.62);display:grid;place-items:center;font-size:31px;background:radial-gradient(circle,rgba(32,217,255,.24),rgba(6,24,42,.9));box-shadow:0 0 24px rgba(32,217,255,.22)}
-  h1{margin:0 0 6px;font-size:29px;line-height:1;letter-spacing:-.04em}.subtitle{color:var(--cyan);font-weight:850;font-size:14px}
-  .monitor{display:grid;grid-template-columns:minmax(320px,1fr) repeat(5,92px) 138px}.ecgWrap{position:relative;padding:10px 12px;border-right:1px solid var(--line)}#ecg{display:block;width:100%;height:95px;border-radius:13px;background:rgba(0,0,0,.22)}.live{position:absolute;right:18px;top:13px;color:var(--green);font-size:12px;font-weight:900;letter-spacing:.05em}.vital{display:grid;place-items:center;text-align:center;border-right:1px solid var(--line);padding:8px 4px}.vital small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:11px;font-weight:900;margin-bottom:5px}.vital b{font-size:27px;line-height:1}.vital span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.hr small,.hr b{color:var(--green)}.bp small,.bp b{color:var(--red)}.temp small,.temp b{color:var(--orange)}.o2 small,.o2 b{color:#4cc9ff}.pain small,.pain b{color:var(--purple)}.stab{display:grid;place-items:center;text-align:center}.stab .meter{width:106px;height:54px;border-radius:106px 106px 0 0;background:conic-gradient(from 270deg at 50% 100%,var(--green) 0 80deg,var(--yellow) 80deg 112deg,var(--red) 112deg 145deg,rgba(255,255,255,.12) 145deg 180deg);-webkit-mask:radial-gradient(circle at 50% 100%,transparent 0 36px,#000 37px);mask:radial-gradient(circle at 50% 100%,transparent 0 36px,#000 37px);margin-bottom:-2px}.stab b{color:var(--green);font-size:27px;display:block}.stab span{font-size:12px;color:var(--green);font-weight:900;letter-spacing:.05em}
-
-  .sceneGrid{display:grid;grid-template-columns:300px minmax(0,1fr) 330px;gap:14px;align-items:start}.side{display:grid;gap:14px}.panelHead{height:46px;padding:0 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(29,84,126,.48),rgba(7,26,44,.22))}.panelHead h2,.panelHead h3{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#bfefff}.panelBody{padding:14px}.stepList{display:grid;gap:8px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.045)}.stepIcon{width:38px;height:38px;border-radius:999px;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-size:20px}.step.active{border-color:var(--lineStrong);background:rgba(32,217,255,.11);box-shadow:0 0 22px rgba(32,217,255,.12)}.step.done{border-color:rgba(82,242,122,.48);background:rgba(82,242,122,.07)}.step.done .stepIcon{color:var(--green);border-color:rgba(82,242,122,.45);background:rgba(82,242,122,.1)}.stepTitle{font-weight:900;font-size:13px}.stepCopy{font-size:12px;color:var(--muted);line-height:1.25;margin-top:2px}
-  .log{display:grid;gap:8px;max-height:250px;overflow:auto}.logRow{display:grid;grid-template-columns:26px 1fr;gap:8px;font-size:13px;color:#d0e9f7;line-height:1.3}.logRow time{display:block;color:var(--muted);font-size:11px}.evidenceStack{display:grid;gap:8px;max-height:420px;overflow:auto}.ev{display:grid;grid-template-columns:34px 1fr;gap:9px;padding:9px;border-radius:13px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);align-items:center}.evIcon{font-size:23px;text-align:center}.ev strong{display:block;font-size:12px}.ev span{font-size:11px;color:var(--muted);line-height:1.25}.ev.critical{background:rgba(255,77,77,.12);border-color:rgba(255,77,77,.24)}.ev.supportive{background:rgba(255,216,77,.10);border-color:rgba(255,216,77,.22)}.ev.neutral{background:rgba(32,217,255,.08);border-color:rgba(32,217,255,.16)}.ev.lab{background:rgba(187,124,255,.10);border-color:rgba(187,124,255,.2)}
-
-  .stageCard{min-height:640px}.stageHeader{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.badge{display:inline-flex;gap:6px;align-items:center;padding:5px 8px;border:1px solid rgba(32,217,255,.32);border-radius:99px;background:rgba(32,217,255,.11);color:#bff2ff;font-size:11px;text-transform:uppercase;font-weight:950;letter-spacing:.06em}.stageHeader h2{margin:9px 0 5px;font-size:30px;line-height:1.05;letter-spacing:-.035em}.stageHeader p{margin:0;color:var(--muted);line-height:1.42}.stageBody{padding:18px}.actions{display:flex;gap:10px;flex-wrap:wrap}.primary{border-color:rgba(32,217,255,.78);background:linear-gradient(180deg,rgba(32,217,255,.34),rgba(10,78,111,.96));font-weight:950}.good{border-color:rgba(82,242,122,.65);background:linear-gradient(180deg,rgba(82,242,122,.22),rgba(10,84,42,.92))}.warn{border-color:rgba(255,157,53,.62);background:linear-gradient(180deg,rgba(255,157,53,.22),rgba(97,51,10,.92))}.danger{border-color:rgba(255,77,77,.58);background:linear-gradient(180deg,rgba(255,77,77,.22),rgba(93,22,28,.92))}.bigBtn{padding:14px 16px;text-align:left;min-height:58px}.bigBtn b{display:block}.bigBtn span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-
-  .roomLayout{display:grid;grid-template-columns:290px 1fr;gap:18px}.patientPortrait{position:relative;min-height:430px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(circle at 50% 48%,rgba(32,217,255,.12),transparent 14rem),rgba(0,0,0,.18);overflow:hidden;display:grid;place-items:center}.person{position:relative;width:170px;height:390px}.headShape{position:absolute;left:50%;top:0;transform:translateX(-50%);width:75px;height:90px;background:linear-gradient(180deg,#d8a37e,#b97658);border-radius:44% 44% 48% 48%;z-index:4}.headShape:before{content:'';position:absolute;left:-6px;right:-6px;top:-10px;height:28px;background:#4b281d;border-radius:50%}.bodyShape{position:absolute;left:50%;top:92px;transform:translateX(-50%);width:150px;height:230px;border-radius:32px 32px 48px 48px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.25)}.armShape{position:absolute;top:112px;width:36px;height:185px;border-radius:30px;background:linear-gradient(180deg,#c98b68,#a96749)}.armL{left:0;transform:rotate(8deg)}.armR{right:0;transform:rotate(-8deg)}.legShape{position:absolute;top:315px;width:44px;height:74px;border-radius:24px;background:#b97658}.legL{left:48px}.legR{right:48px}.faceDot{position:absolute;top:42px;width:5px;height:5px;background:#102033;border-radius:50%}.faceL{left:25px}.faceR{right:25px}.painGlow{position:absolute;left:50%;top:210px;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95) 0 7px,rgba(255,77,77,.66) 8px 26px,rgba(255,157,53,.28) 28px 52px,transparent 55px);box-shadow:0 0 40px rgba(255,77,77,.35);animation:pulse 1.8s infinite}.painGlow.soft{opacity:.45}.painGlow.hidden{display:none}@keyframes pulse{0%{transform:translate(-50%,-50%) scale(.9);opacity:.9}80%{transform:translate(-50%,-50%) scale(1.18);opacity:.36}100%{transform:translate(-50%,-50%) scale(.9);opacity:.9}}
-  .chart{display:grid;gap:12px}.infoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.info{padding:12px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1)}.info small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:900;margin-bottom:4px}.info b{font-size:15px}.callout{padding:14px;border-radius:16px;background:rgba(32,217,255,.09);border:1px solid rgba(32,217,255,.19);line-height:1.45}.callout b{color:#dff9ff}.teacherNote{font-size:12px;color:var(--muted);line-height:1.4;margin-top:12px}
-
-  .questionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.question{padding:14px;text-align:left;min-height:86px}.question.asked{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}.question.lowValue{border-color:rgba(255,157,53,.55)}.question b{display:block}.question span{display:block;color:var(--muted);font-size:12px;line-height:1.35;margin-top:5px}.slots{display:flex;gap:8px;align-items:center;margin-bottom:14px;color:var(--muted);font-weight:850}.slot{width:32px;height:12px;border-radius:99px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.1)}.slot.used{background:var(--cyan);box-shadow:0 0 12px rgba(32,217,255,.45)}
-
-  .palpationScene{display:grid;grid-template-columns:minmax(300px,450px) 1fr;gap:18px;align-items:start}.abdomenBoard{position:relative;border:1px solid var(--line);border-radius:20px;min-height:500px;background:radial-gradient(circle at 50% 46%,rgba(32,217,255,.12),transparent 14rem),rgba(0,0,0,.18);overflow:hidden}.torsoGraphic{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:260px;height:430px}.torsoHead{position:absolute;left:50%;top:0;transform:translateX(-50%);width:70px;height:80px;border-radius:50%;background:#c98b68}.torsoBody{position:absolute;left:50%;top:82px;transform:translateX(-50%);width:200px;height:315px;border-radius:44px 44px 70px 70px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.22)}.abdomenGrid{position:absolute;left:50%;top:235px;transform:translate(-50%,-50%);width:245px;height:210px;z-index:5}.abdomenButton{position:absolute;width:84px;height:58px;border-radius:18px;display:grid;place-items:center;text-align:center;font-weight:950;font-size:14px;background:rgba(2,15,28,.84);border:1px solid rgba(159,241,255,.65);box-shadow:0 0 16px rgba(32,217,255,.18)}.abdomenButton.checked{border-color:rgba(82,242,122,.9);background:rgba(82,242,122,.18);color:#d9ffe3}.abdomenButton.pain{border-color:rgba(255,177,95,.95);background:rgba(255,77,77,.25);box-shadow:0 0 22px rgba(255,77,77,.35)}.abdomenButton.ruq{left:20px;top:22px}.abdomenButton.luq{right:20px;top:22px}.abdomenButton.umb{left:80px;top:76px}.abdomenButton.rlq{left:20px;bottom:30px}.abdomenButton.llq{right:20px;bottom:30px}.abdomenButton.rebound{left:76px;bottom:-30px;width:94px;background:rgba(255,157,53,.18)}.examFeedback{display:grid;gap:12px}.feedbackBox{border:1px solid var(--line);border-radius:18px;background:rgba(0,0,0,.17);padding:14px}.reaction{font-size:52px;margin-bottom:4px}.quadrantChecklist{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.checkItem{padding:10px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);font-size:13px}.checkItem.done{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}
-
-  .clipboardGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.clipboardBtn{padding:18px;text-align:left;min-height:130px;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start}.clipboardIcon{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:30px;border:1px solid rgba(255,255,255,.1)}.clipboardBtn h3{margin:0 0 5px}.clipboardBtn p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}.requirements{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.req{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.req.done{background:rgba(82,242,122,.08);border-color:rgba(82,242,122,.55)}.req b{font-size:13px}.req span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
-
-  .debrief{display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:start}.scoreCircle{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;border:3px solid var(--green);box-shadow:0 0 32px rgba(82,242,122,.23);font-size:52px;font-weight:950}.debriefList{display:grid;gap:10px}.debriefItem{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.debriefItem strong{display:block;margin-bottom:4px}.debriefItem span{color:var(--muted);line-height:1.35;font-size:13px}
-
-  .footerActions{padding:15px 18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(0,0,0,.14)}.footerActions .leftActions,.footerActions .rightActions{display:flex;gap:10px;flex-wrap:wrap}.footerActions button{padding:11px 14px;font-weight:900}.statusText{color:var(--muted);font-size:13px;line-height:1.35}
-
-  @media(max-width:1100px){.topbar,.sceneGrid,.roomLayout,.palpationScene,.debrief{grid-template-columns:1fr}.monitor{grid-template-columns:repeat(3,1fr)}.ecgWrap{grid-column:1/-1;height:116px}.questionGrid,.clipboardGrid,.requirements{grid-template-columns:1fr}.stageCard{min-height:auto}.app{padding:8px}.stageHeader{display:block}.sceneGrid{gap:10px}.side{display:none}.side.showMobile{display:grid}}
+:root{
+  --bg:#06111f;
+  --bg2:#0a1d31;
+  --panel:#0b243b;
+  --panel2:#102f4d;
+  --glass:rgba(12,38,64,.88);
+  --line:rgba(111,211,255,.24);
+  --line2:rgba(111,211,255,.48);
+  --text:#ecf8ff;
+  --muted:#91b9ce;
+  --cyan:#20d9ff;
+  --green:#52f27a;
+  --red:#ff4d4d;
+  --orange:#ff9d35;
+  --yellow:#ffd84d;
+  --purple:#bb7cff;
+  --shadow:0 24px 80px rgba(0,0,0,.42);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
+button,input{font:inherit;color:inherit}
+button{border:1px solid var(--line);background:linear-gradient(180deg,rgba(28,76,113,.93),rgba(7,25,43,.96));border-radius:15px;cursor:pointer;transition:.14s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+button:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 22px rgba(32,217,255,.22),inset 0 1px 0 rgba(255,255,255,.08);transform:translateY(-1px)}
+button:disabled{opacity:.42;cursor:not-allowed;transform:none}
+input[type="range"]{width:100%;accent-color:var(--cyan)}
+.app{min-height:100vh;padding:16px;background:radial-gradient(circle at 10% 0%,rgba(32,217,255,.16),transparent 34rem),radial-gradient(circle at 90% 5%,rgba(82,242,122,.09),transparent 28rem),linear-gradient(135deg,#020812,#06111f 56%,#031827)}
+.shell{width:min(1420px,100%);margin:0 auto;display:grid;gap:14px}
+.card{background:linear-gradient(180deg,rgba(13,42,68,.96),rgba(4,17,31,.96));border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05);border-radius:var(--radius);overflow:hidden;min-width:0}
+.topbar{display:grid;grid-template-columns:370px 1fr;gap:14px;align-items:stretch}
+.brand{padding:16px;display:flex;gap:13px;align-items:center}.logo{width:58px;height:58px;border-radius:16px;border:1px solid rgba(111,211,255,.65);display:grid;place-items:center;font-size:31px;background:radial-gradient(circle,rgba(32,217,255,.25),rgba(6,24,42,.9));box-shadow:0 0 24px rgba(32,217,255,.23)}
+h1{margin:0 0 6px;font-size:29px;line-height:1;letter-spacing:-.04em}.subtitle{color:var(--cyan);font-weight:850;font-size:14px}
+.monitor{display:grid;grid-template-columns:minmax(320px,1fr) repeat(5,92px) 138px}.ecgWrap{position:relative;padding:10px 12px;border-right:1px solid var(--line)}#ecg{display:block;width:100%;height:95px;border-radius:13px;background:rgba(0,0,0,.22)}.live{position:absolute;right:18px;top:13px;color:var(--green);font-size:12px;font-weight:900;letter-spacing:.05em}.vital{display:grid;place-items:center;text-align:center;border-right:1px solid var(--line);padding:8px 4px}.vital small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:11px;font-weight:900;margin-bottom:5px}.vital b{font-size:27px;line-height:1}.vital span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.hr small,.hr b{color:var(--green)}.bp small,.bp b{color:var(--red)}.temp small,.temp b{color:var(--orange)}.o2 small,.o2 b{color:#4cc9ff}.pain small,.pain b{color:var(--purple)}.stab{display:grid;place-items:center;text-align:center}.stab .meter{width:106px;height:54px;border-radius:106px 106px 0 0;background:conic-gradient(from 270deg at 50% 100%,var(--green) 0 80deg,var(--yellow) 80deg 112deg,var(--red) 112deg 145deg,rgba(255,255,255,.12) 145deg 180deg);-webkit-mask:radial-gradient(circle at 50% 100%,transparent 0 36px,#000 37px);mask:radial-gradient(circle at 50% 100%,transparent 0 36px,#000 37px);margin-bottom:-2px}.stab b{color:var(--green);font-size:27px;display:block}.stab span{font-size:12px;color:var(--green);font-weight:900;letter-spacing:.05em}
+.layout{display:grid;grid-template-columns:280px minmax(0,1fr) 320px;gap:14px;align-items:start}.side{display:grid;gap:14px}.panelHead{height:46px;padding:0 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(29,84,126,.48),rgba(7,26,44,.22))}.panelHead h2,.panelHead h3{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#bfefff}.panelBody{padding:14px}
+.stepList{display:grid;gap:8px}.step{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.045)}.stepIcon{width:36px;height:36px;border-radius:999px;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-size:18px}.step.active{border-color:rgba(32,217,255,.72);background:rgba(32,217,255,.12);box-shadow:0 0 20px rgba(32,217,255,.12)}.step.done{border-color:rgba(82,242,122,.5);background:rgba(82,242,122,.07)}.step.done .stepIcon{color:var(--green);border-color:rgba(82,242,122,.5);background:rgba(82,242,122,.1)}.stepTitle{font-weight:900;font-size:13px}.stepCopy{font-size:12px;color:var(--muted);line-height:1.25;margin-top:2px}
+.log{display:grid;gap:8px;max-height:240px;overflow:auto}.logRow{display:grid;grid-template-columns:26px 1fr;gap:8px;font-size:13px;color:#d0e9f7;line-height:1.3}.logRow time{display:block;color:var(--muted);font-size:11px}.evidenceStack{display:grid;gap:8px;max-height:460px;overflow:auto}.ev{display:grid;grid-template-columns:34px 1fr;gap:9px;padding:9px;border-radius:13px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);align-items:center}.evIcon{font-size:23px;text-align:center}.ev strong{display:block;font-size:12px}.ev span{font-size:11px;color:var(--muted);line-height:1.25}.ev.critical{background:rgba(255,77,77,.12);border-color:rgba(255,77,77,.24)}.ev.supportive{background:rgba(255,216,77,.10);border-color:rgba(255,216,77,.22)}.ev.neutral{background:rgba(32,217,255,.08);border-color:rgba(32,217,255,.16)}.ev.lab{background:rgba(187,124,255,.10);border-color:rgba(187,124,255,.2)}
+.stageCard{min-height:680px}.stageHeader{padding:18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.badge{display:inline-flex;gap:6px;align-items:center;padding:5px 8px;border:1px solid rgba(32,217,255,.32);border-radius:99px;background:rgba(32,217,255,.11);color:#bff2ff;font-size:11px;text-transform:uppercase;font-weight:950;letter-spacing:.06em}.stageHeader h2{margin:9px 0 5px;font-size:30px;line-height:1.05;letter-spacing:-.035em}.stageHeader p{margin:0;color:var(--muted);line-height:1.42}.stageBody{padding:18px}.actions{display:flex;gap:10px;flex-wrap:wrap}.primary{border-color:rgba(32,217,255,.78);background:linear-gradient(180deg,rgba(32,217,255,.34),rgba(10,78,111,.96));font-weight:950}.good{border-color:rgba(82,242,122,.65);background:linear-gradient(180deg,rgba(82,242,122,.22),rgba(10,84,42,.92))}.warn{border-color:rgba(255,157,53,.62);background:linear-gradient(180deg,rgba(255,157,53,.22),rgba(97,51,10,.92))}.danger{border-color:rgba(255,77,77,.58);background:linear-gradient(180deg,rgba(255,77,77,.22),rgba(93,22,28,.92))}.bigBtn{padding:14px 16px;text-align:left;min-height:58px}.bigBtn b{display:block}.bigBtn span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.footer{padding:15px 18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(0,0,0,.14)}.footer .group{display:flex;gap:10px;flex-wrap:wrap}.footer button{padding:11px 14px;font-weight:900}.statusText{color:var(--muted);font-size:13px;line-height:1.35}
+.roomLayout{display:grid;grid-template-columns:300px 1fr;gap:18px}.portrait{position:relative;min-height:440px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(circle at 50% 48%,rgba(32,217,255,.12),transparent 14rem),rgba(0,0,0,.18);overflow:hidden;display:grid;place-items:center}.person{position:relative;width:170px;height:390px}.headShape{position:absolute;left:50%;top:0;transform:translateX(-50%);width:75px;height:90px;background:linear-gradient(180deg,#d8a37e,#b97658);border-radius:44% 44% 48% 48%;z-index:4}.headShape:before{content:'';position:absolute;left:-6px;right:-6px;top:-10px;height:28px;background:#4b281d;border-radius:50%}.bodyShape{position:absolute;left:50%;top:92px;transform:translateX(-50%);width:150px;height:230px;border-radius:32px 32px 48px 48px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.25)}.armShape{position:absolute;top:112px;width:36px;height:185px;border-radius:30px;background:linear-gradient(180deg,#c98b68,#a96749)}.armL{left:0;transform:rotate(8deg)}.armR{right:0;transform:rotate(-8deg)}.legShape{position:absolute;top:315px;width:44px;height:74px;border-radius:24px;background:#b97658}.legL{left:48px}.legR{right:48px}.faceDot{position:absolute;top:42px;width:5px;height:5px;background:#102033;border-radius:50%}.faceL{left:25px}.faceR{right:25px}.painGlow{position:absolute;left:50%;top:210px;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95) 0 7px,rgba(255,77,77,.66) 8px 26px,rgba(255,157,53,.28) 28px 52px,transparent 55px);box-shadow:0 0 40px rgba(255,77,77,.35);animation:pulse 1.8s infinite}.painGlow.hidden{display:none}@keyframes pulse{0%{transform:translate(-50%,-50%) scale(.9);opacity:.9}80%{transform:translate(-50%,-50%) scale(1.18);opacity:.36}100%{transform:translate(-50%,-50%) scale(.9);opacity:.9}}
+.infoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.info{padding:12px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1)}.info small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:900;margin-bottom:4px}.info b{font-size:15px}.chart{display:grid;gap:12px}.callout{padding:14px;border-radius:16px;background:rgba(32,217,255,.09);border:1px solid rgba(32,217,255,.19);line-height:1.45}.callout b{color:#dff9ff}.teacherNote{font-size:12px;color:var(--muted);line-height:1.4;margin-top:10px}
+.questionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.question{padding:14px;text-align:left;min-height:86px}.question.asked{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}.question.low{border-color:rgba(255,157,53,.55)}.question b{display:block}.question span{display:block;color:var(--muted);font-size:12px;line-height:1.35;margin-top:5px}.slots{display:flex;gap:8px;align-items:center;margin-bottom:14px;color:var(--muted);font-weight:850}.slot{width:32px;height:12px;border-radius:99px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.1)}.slot.used{background:var(--cyan);box-shadow:0 0 12px rgba(32,217,255,.45)}
+.palpationScene{display:grid;grid-template-columns:minmax(300px,450px) 1fr;gap:18px;align-items:start}.abdomenBoard{position:relative;border:1px solid var(--line);border-radius:20px;min-height:500px;background:radial-gradient(circle at 50% 46%,rgba(32,217,255,.12),transparent 14rem),rgba(0,0,0,.18);overflow:hidden}.torsoGraphic{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:260px;height:430px}.torsoHead{position:absolute;left:50%;top:0;transform:translateX(-50%);width:70px;height:80px;border-radius:50%;background:#c98b68}.torsoBody{position:absolute;left:50%;top:82px;transform:translateX(-50%);width:200px;height:315px;border-radius:44px 44px 70px 70px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.22)}.abdomenGrid{position:absolute;left:50%;top:235px;transform:translate(-50%,-50%);width:245px;height:210px;z-index:5}.abdomenButton{position:absolute;width:84px;height:58px;border-radius:18px;display:grid;place-items:center;text-align:center;font-weight:950;font-size:14px;background:rgba(2,15,28,.84);border:1px solid rgba(159,241,255,.65);box-shadow:0 0 16px rgba(32,217,255,.18)}.abdomenButton.checked{border-color:rgba(82,242,122,.9);background:rgba(82,242,122,.18);color:#d9ffe3}.abdomenButton.pain{border-color:rgba(255,177,95,.95);background:rgba(255,77,77,.25);box-shadow:0 0 22px rgba(255,77,77,.35)}.abdomenButton.ruq{left:20px;top:22px}.abdomenButton.luq{right:20px;top:22px}.abdomenButton.navel{left:80px;top:76px}.abdomenButton.rlq{left:20px;bottom:30px}.abdomenButton.llq{right:20px;bottom:30px}.abdomenButton.rebound{left:76px;bottom:-30px;width:94px;background:rgba(255,157,53,.18)}.feedback{display:grid;gap:12px}.box{border:1px solid var(--line);border-radius:18px;background:rgba(0,0,0,.17);padding:14px}.reaction{font-size:52px;margin-bottom:4px}.checklist{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.checkItem{padding:10px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);font-size:13px}.checkItem.done{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}
+.xrayScene{display:grid;grid-template-columns:minmax(360px,1fr) 350px;gap:18px;align-items:start}.xrayRoom{position:relative;min-height:540px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 50% 42%,rgba(32,217,255,.14),transparent 15rem),linear-gradient(180deg,rgba(7,30,52,.82),rgba(0,0,0,.20));overflow:hidden}.xrayTable{position:absolute;left:50%;bottom:42px;transform:translateX(-50%);width:76%;height:58px;border-radius:22px;background:linear-gradient(180deg,#496272,#1e3345);border:1px solid rgba(255,255,255,.2);box-shadow:0 18px 35px rgba(0,0,0,.42)}.xrayPatient{position:absolute;left:50%;top:245px;transform:translate(-50%,-50%);width:92px;height:250px;border-radius:50px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.22);box-shadow:0 12px 30px rgba(0,0,0,.3)}.xrayPatient:before{content:'';position:absolute;left:50%;top:-55px;transform:translateX(-50%);width:54px;height:62px;border-radius:50%;background:#c98b68}.plate{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:220px;height:270px;border-radius:18px;border:1px dashed rgba(255,255,255,.32);background:rgba(255,255,255,.035)}.xrayBeam{position:absolute;width:190px;height:220px;border:3px solid rgba(32,217,255,.8);border-radius:18px;background:rgba(32,217,255,.08);box-shadow:0 0 30px rgba(32,217,255,.22),inset 0 0 24px rgba(32,217,255,.08);transition:.12s ease}.crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;border:2px solid rgba(82,242,122,.72)}.crosshair:before,.crosshair:after{content:'';position:absolute;background:rgba(82,242,122,.85)}.crosshair:before{left:50%;top:-12px;width:2px;height:58px}.crosshair:after{top:50%;left:-12px;width:58px;height:2px}.xrayControls{display:grid;gap:12px}.control{padding:13px;border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.17)}.control h3{margin:0 0 8px;font-size:15px}.viewGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.viewBtn{padding:10px;text-align:center;font-size:13px;font-weight:900}.viewBtn.selected{border-color:var(--cyan);background:rgba(32,217,255,.16)}.moveGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210px;margin:auto}.moveGrid button{height:42px;font-size:20px;font-weight:950}.toggleRow{display:flex;align-items:center;gap:10px;font-size:14px;color:#d9effb}.qualityMeter{height:12px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.qualityFill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--red),var(--orange),var(--green));width:0%}.filmViewer{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start}.film{width:100%;max-width:360px;aspect-ratio:1/1;border-radius:18px;border:1px solid rgba(255,255,255,.2);background:#03070d;box-shadow:inset 0 0 35px rgba(255,255,255,.08),0 18px 50px rgba(0,0,0,.35);display:grid;place-items:center;overflow:hidden}.film svg{width:100%;height:100%;display:block}.report{display:grid;gap:12px}.reportLine{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.reportLine b{display:block}.reportLine span{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.35}
+.clipboardGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.clipBtn{padding:18px;text-align:left;min-height:130px;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start}.clipIcon{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:30px;border:1px solid rgba(255,255,255,.1)}.clipBtn h3{margin:0 0 5px}.clipBtn p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}.reqs{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.req{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.req.done{background:rgba(82,242,122,.08);border-color:rgba(82,242,122,.55)}.req b{font-size:13px}.req span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.orprepScene{display:grid;grid-template-columns:minmax(340px,1fr) 350px;gap:18px;align-items:start}.orRoom{position:relative;min-height:540px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 50% 44%,rgba(82,242,122,.10),transparent 15rem),linear-gradient(180deg,rgba(7,30,52,.82),rgba(0,0,0,.22));overflow:hidden}.orTable{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);width:78%;height:64px;border-radius:24px;background:linear-gradient(180deg,#536270,#1e3142);border:1px solid rgba(255,255,255,.22);box-shadow:0 20px 38px rgba(0,0,0,.42)}.orPatient{position:absolute;left:50%;top:270px;transform:translate(-50%,-50%);width:115px;height:270px;border-radius:54px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.22);box-shadow:0 14px 34px rgba(0,0,0,.34)}.orPatient:before{content:'';position:absolute;left:50%;top:-58px;transform:translateX(-50%);width:58px;height:64px;border-radius:50%;background:#c98b68}.drapeVisual{position:absolute;left:50%;top:274px;transform:translate(-50%,-50%);width:180px;height:245px;border-radius:38px;background:rgba(32,217,255,.18);border:1px dashed rgba(32,217,255,.5);display:none}.drapeVisual.on{display:block}.prepTarget{position:absolute;left:50%;top:304px;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;border:2px solid rgba(255,157,53,.75);background:radial-gradient(circle,rgba(255,157,53,.38),rgba(255,157,53,.1) 45%,transparent 68%);box-shadow:0 0 28px rgba(255,157,53,.22)}.sterileGlow{position:absolute;inset:20px;border-radius:22px;border:2px solid rgba(82,242,122,.25);box-shadow:inset 0 0 45px rgba(82,242,122,.06),0 0 35px rgba(82,242,122,.08)}.sterileGlow.bad{borde.scoreCircle{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;border:3px solid var(--green);box-shadow:0 0 32px rgba(82,242,122,.23);font-size:52px;font-weight:950}.debriefList{display:grid;gap:10px}.debriefItem{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.debriefItem strong{display:block;margin-bottom:4px}.debriefItem span{color:var(--muted);line-height:1.35;font-size:13px}
+@media(max-width:1100px){.topbar,.layout,.roomLayout,.palpationScene,.debrief,.xrayScene,.filmViewer{grid-template-columns:1fr}.monitor{grid-template-columns:repeat(3,1fr)}.ecgWrap{grid-column:1/-1;height:116px}.questionGrid,.clipboardGrid,.reqs{grid-template-columns:1fr}.stageCard{min-height:auto}.app{padding:8px}.stageHeader{display:block}.side{display:none}.side.mobile{display:grid}}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="shell">
-    <section class="topbar">
-      <div class="card brand">
-        <div class="logo">⌁</div>
-        <div>
-          <h1>Vitals: The Teaching Hospital</h1>
-          <div class="subtitle">Scene-Based Medical Reasoning Prototype</div>
-        </div>
-      </div>
-      <div class="card monitor">
-        <div class="ecgWrap"><canvas id="ecg" width="720" height="110"></canvas><div class="live">● LIVE</div></div>
-        <div class="vital hr"><div><small>HR</small><b id="vHR">--</b><span>bpm</span></div></div>
-        <div class="vital bp"><div><small>BP</small><b id="vBP">--</b><span>mmHg</span></div></div>
-        <div class="vital temp"><div><small>Temp</small><b id="vTemp">--</b><span>°C</span></div></div>
-        <div class="vital o2"><div><small>SpO₂</small><b id="vO2">--</b><span>%</span></div></div>
-        <div class="vital pain"><div><small>Pain</small><b id="vPain">--</b><span>/10</span></div></div>
-        <div class="stab"><div><div class="meter"></div><b id="vStability">--</b><span id="stabLabel">STABLE</span></div></div>
-      </div>
-    </section>
-
-    <section class="sceneGrid">
-      <aside class="side">
-        <div class="card">
-          <div class="panelHead"><h3>Case Flow</h3></div>
-          <div class="panelBody"><div class="stepList" id="stepList"></div></div>
-        </div>
-        <div class="card">
-          <div class="panelHead"><h3>Event Log</h3><button onclick="clearLog()">Clear</button></div>
-          <div class="panelBody"><div class="log" id="eventLog"></div></div>
-        </div>
-      </aside>
-
-      <main class="card stageCard">
-        <div id="stage"></div>
-      </main>
-
-      <aside class="side showMobile">
-        <div class="card">
-          <div class="panelHead"><h3>Evidence</h3><span class="muted" id="evidenceCount">0</span></div>
-          <div class="panelBody"><div class="evidenceStack" id="evidenceStack"></div></div>
-        </div>
-      </aside>
-    </section>
-  </div>
-</div>
-
+<div class="app"><div class="shell">
+  <section class="topbar">
+    <div class="card brand"><div class="logo">⌁</div><div><h1>Vitals: The Teaching Hospital</h1><div class="subtitle">Recovery Build · One Strong Case</div></div></div>
+    <div class="card monitor"><div class="ecgWrap"><canvas id="ecg" width="720" height="110"></canvas><div class="live">● LIVE</div></div><div class="vital hr"><div><small>HR</small><b id="vHR">--</b><span>bpm</span></div></div><div class="vital bp"><div><small>BP</small><b id="vBP">--</b><span>mmHg</span></div></div><div class="vital temp"><div><small>Temp</small><b id="vTemp">--</b><span>°C</span></div></div><div class="vital o2"><div><small>SpO₂</small><b id="vO2">--</b><span>%</span></div></div><div class="vital pain"><div><small>Pain</small><b id="vPain">--</b><span>/10</span></div></div><div class="stab"><div><div class="meter"></div><b id="vStability">--</b><span id="stabLabel">STABLE</span></div></div></div>
+  </section>
+  <section class="layout">
+    <aside class="side"><div class="card"><div class="panelHead"><h3>Case Flow</h3></div><div class="panelBody"><div class="stepList" id="stepList"></div></div></div><div class="card"><div class="panelHead"><h3>Event Log</h3><button onclick="clearLog()">Clear</button></div><div class="panelBody"><div class="log" id="eventLog"></div></div></div></aside>
+    <main class="card stageCard"><div id="stage"></div></main>
+    <aside class="side mobile"><div class="card"><div class="panelHead"><h3>Evidence</h3><span class="muted" id="evidenceCount">0</span></div><div class="panelBody"><div class="evidenceStack" id="evidenceStack"></div></div></div></aside>
+  </section>
+</div></div>
 <script>
-const scenes = [
-  {id:'patientRoom', label:'Patient Room', icon:'🏥', copy:'Chart and complaint'},
-  {id:'interview', label:'Interview', icon:'💬', copy:'Ask useful questions'},
-  {id:'palpation', label:'Palpation', icon:'🖐️', copy:'Map the abdomen'},
-  {id:'clipboard', label:'Clipboard', icon:'📋', copy:'Choose action'},
-  {id:'debrief', label:'Debrief', icon:'✅', copy:'Review outcome'}
+const scenes=[
+  {id:'room',label:'Patient Room',icon:'🏥',copy:'Read chart'},
+  {id:'interview',label:'Interview',icon:'💬',copy:'Ask questions'},
+  {id:'exam',label:'Palpation',icon:'🖐️',copy:'Map abdomen'},
+  {id:'xray',label:'X-Ray',icon:'🩻',copy:'Take film'},
+  {id:'decision',label:'Decision',icon:'📋',copy:'Choose action'},
+  {id:'debrief',label:'Debrief',icon:'✅',copy:'Review'}
 ];
-
-const patients = [
-  {
-    id:'appendicitis', name:'Emily Carter', age:24, room:'4A', sex:'Female',
-    complaint:'Pain started near the belly button and moved to the right lower abdomen.',
-    diagnosis:'Appendicitis', correctAction:'operate',
-    vitals:{hr:102,bp:'124/78',temp:38.2,spo2:97,pain:6,stability:72},
-    chart:'No major medical history. No known drug allergies. Last meal: toast eight hours ago.',
-    interview:[
-      {id:'location', q:'Where is the pain now?', result:'Patient points to the right lower abdomen.', value:'key', evidence:{id:'painLocation', icon:'📍', title:'Pain localized to RLQ', type:'critical', source:'Interview'}},
-      {id:'migration', q:'Did the pain move?', result:'It started near the belly button and moved right lower.', value:'key', evidence:{id:'painMigration', icon:'🏃', title:'Pain migrated from navel to RLQ', type:'critical', source:'Interview'}},
-      {id:'nausea', q:'Any nausea or appetite change?', result:'Patient reports nausea and decreased appetite.', value:'key', evidence:{id:'nausea', icon:'🤢', title:'Nausea and low appetite', type:'supportive', source:'Interview'}},
-      {id:'fever', q:'Any fever or chills?', result:'Fever began earlier today.', value:'key', evidence:{id:'fever', icon:'🌡️', title:'Fever present', type:'supportive', source:'Interview'}},
-      {id:'urinary', q:'Any burning urination or flank pain?', result:'No urinary symptoms or flank pain.', value:'support', evidence:{id:'noUrinary', icon:'✅', title:'No urinary symptoms', type:'neutral', source:'Interview'}},
-      {id:'diet', q:'What did you eat yesterday?', result:'Nothing unusual. This does not narrow the case much.', value:'low'},
-      {id:'sleep', q:'How did you sleep?', result:'Poorly because of pain. Low diagnostic value.', value:'low'},
-      {id:'family', q:'Any family history of stomach problems?', result:'No relevant family history.', value:'low'}
-    ],
-    palpation:{painful:['rlq','rebound'], required:['ruq','luq','rlq','llq'], findings:{ruq:'No strong pain in right upper quadrant.', luq:'No strong pain in left upper quadrant.', rlq:'Sharp right lower quadrant tenderness with guarding.', llq:'Mild discomfort only.', navel:'Mild central tenderness.', rebound:'Rebound tenderness: pain worsens after release.'}},
-    actionRequirements:{operate:['interviewKey3','allQuadrants','rlqPain','rebound']},
-    debrief:{best:'Appendicitis usually needs prompt surgical evaluation after a focused history and abdominal exam.', teacher:'Ask students why pain migration and rebound tenderness matter.'}
-  },
-  {
-    id:'kidneyStone', name:'Jordan S.', age:42, room:'3B', sex:'Male',
-    complaint:'Sharp side pain that comes in waves. Nausea. No fever.', diagnosis:'Kidney stone', correctAction:'refer',
-    vitals:{hr:96,bp:'126/80',temp:37.2,spo2:99,pain:7,stability:84},
-    chart:'No known drug allergies. History of dehydration during long work shifts.',
-    interview:[
-      {id:'location', q:'Where is the pain?', result:'Pain starts near the flank and waves toward the groin.', value:'key', evidence:{id:'flankGroin', icon:'📍', title:'Flank-to-groin pain', type:'critical', source:'Interview'}},
-      {id:'wave', q:'Is the pain constant or wave-like?', result:'It comes in intense waves.', value:'key', evidence:{id:'colicky', icon:'🌊', title:'Colicky wave-like pain', type:'critical', source:'Interview'}},
-      {id:'urinary', q:'Any urinary symptoms?', result:'Some urgency and discomfort with urination.', value:'key', evidence:{id:'urinarySymptoms', icon:'🚻', title:'Urinary symptoms present', type:'supportive', source:'Interview'}},
-      {id:'fever', q:'Any fever?', result:'No fever reported.', value:'support', evidence:{id:'noFever', icon:'✅', title:'No fever', type:'neutral', source:'Interview'}},
-      {id:'nausea', q:'Any nausea?', result:'Nausea is present during pain waves.', value:'support', evidence:{id:'stoneNausea', icon:'🤢', title:'Nausea with pain waves', type:'supportive', source:'Interview'}},
-      {id:'diet', q:'What did you eat?', result:'No unusual food exposure.', value:'low'},
-      {id:'cough', q:'Any cough?', result:'No cough. Low diagnostic value.', value:'low'}
-    ],
-    palpation:{painful:['rlq','llq'], required:['ruq','luq','rlq','llq'], findings:{ruq:'No upper abdominal pain.', luq:'No upper abdominal pain.', rlq:'Lower abdominal discomfort, not rebound.', llq:'Lower abdominal discomfort, not rebound.', navel:'No central mass.', rebound:'No rebound tenderness.'}},
-    actionRequirements:{refer:['interviewKey2','allQuadrants','noRebound']},
-    debrief:{best:'Kidney stone pattern should be referred rather than taken to abdominal surgery.', teacher:'Ask how colicky pain differs from peritoneal irritation.'}
-  },
-  {
-    id:'diffuseInfection', name:'Mason R.', age:19, room:'2C', sex:'Male',
-    complaint:'Generalized abdominal soreness with fever and nausea.', diagnosis:'Diffuse intestinal infection', correctAction:'medicate',
-    vitals:{hr:104,bp:'116/74',temp:38.5,spo2:98,pain:6,stability:78},
-    chart:'No surgical history. Several classmates recently had stomach illness.',
-    interview:[
-      {id:'spread', q:'Is the pain in one spot or all over?', result:'Patient says it hurts all over.', value:'key', evidence:{id:'diffusePain', icon:'↔️', title:'Diffuse abdominal pain', type:'critical', source:'Interview'}},
-      {id:'fever', q:'Any fever?', result:'Fever and chills began last night.', value:'key', evidence:{id:'infectionFever', icon:'🌡️', title:'Fever with chills', type:'supportive', source:'Interview'}},
-      {id:'sick', q:'Any sick contacts?', result:'Several classmates have similar symptoms.', value:'key', evidence:{id:'sickContacts', icon:'👥', title:'Sick contacts', type:'supportive', source:'Interview'}},
-      {id:'migration', q:'Did pain move to the right lower abdomen?', result:'No. It stayed generalized.', value:'support', evidence:{id:'noMigration', icon:'✅', title:'No pain migration', type:'neutral', source:'Interview'}},
-      {id:'urinary', q:'Any urinary symptoms?', result:'No urinary symptoms.', value:'support', evidence:{id:'noUrinary', icon:'✅', title:'No urinary symptoms', type:'neutral', source:'Interview'}},
-      {id:'family', q:'Family history?', result:'Not relevant here.', value:'low'},
-      {id:'sleep', q:'How did you sleep?', result:'Poorly. Low diagnostic value.', value:'low'}
-    ],
-    palpation:{painful:['ruq','luq','rlq','llq'], required:['ruq','luq','rlq','llq'], findings:{ruq:'Tenderness present.', luq:'Tenderness present.', rlq:'Tenderness present but not focal.', llq:'Tenderness present but not focal.', navel:'General discomfort.', rebound:'No clear rebound tenderness.'}},
-    actionRequirements:{medicate:['interviewKey2','allQuadrants','diffusePain']},
-    debrief:{best:'Diffuse tenderness plus fever and exposure history supports medication/supportive care, not surgery.', teacher:'Ask students what makes pain “localized” versus “diffuse.”'}
-  }
-];
-
-const game = {
-  scene:'patientRoom', patientIndex:0, score:0, time:0, budget:2500,
-  evidence:[], log:[], asked:[], questionSlots:5, palpated:[], selectedAction:null, outcome:null,
-  mistakes:[], completed:{patientRoom:false, interview:false, palpation:false, clipboard:false, debrief:false}
+const patient={
+  name:'Emily Carter',age:24,sex:'Female',room:'4A',diagnosis:'Appendicitis',correctAction:'operate',
+  complaint:'Pain started near the belly button and moved to the right lower abdomen.',
+  chart:'No major medical history. No known drug allergies. Last meal: toast eight hours ago.',
+  vitals:{hr:102,bp:'124/78',temp:38.2,spo2:97,pain:6,stability:72},
+  interview:[
+    {id:'location',q:'Where is the pain now?',result:'Patient points to the right lower abdomen.',value:'key',ev:{id:'painLocation',icon:'📍',title:'Pain localized to RLQ',type:'critical',source:'Interview'}},
+    {id:'migration',q:'Did the pain move?',result:'It started near the belly button and moved right lower.',value:'key',ev:{id:'painMigration',icon:'🏃',title:'Pain migrated from navel to RLQ',type:'critical',source:'Interview'}},
+    {id:'nausea',q:'Any nausea or appetite change?',result:'Patient reports nausea and decreased appetite.',value:'key',ev:{id:'nausea',icon:'🤢',title:'Nausea and low appetite',type:'supportive',source:'Interview'}},
+    {id:'fever',q:'Any fever or chills?',result:'Fever began earlier today.',value:'key',ev:{id:'fever',icon:'🌡️',title:'Fever present',type:'supportive',source:'Interview'}},
+    {id:'urinary',q:'Any burning urination or flank pain?',result:'No urinary symptoms or flank pain.',value:'support',ev:{id:'noUrinary',icon:'✅',title:'No urinary symptoms',type:'neutral',source:'Interview'}},
+    {id:'diet',q:'What did you eat yesterday?',result:'Nothing unusual. This does not narrow the case much.',value:'low'},
+    {id:'sleep',q:'How did you sleep?',result:'Poorly because of pain. Low diagnostic value.',value:'low'}
+  ],
+  palpation:{painful:['rlq','rebound'],required:['ruq','luq','rlq','llq'],findings:{ruq:'No strong pain in right upper quadrant.',luq:'No strong pain in left upper quadrant.',rlq:'Sharp right lower quadrant tenderness with guarding.',llq:'Mild discomfort only.',navel:'Mild central tenderness.',rebound:'Rebound tenderness: pain worsens after release.'}},
+  xrayFinding:'No radiopaque urinary stones. Mild nonspecific right-lower-quadrant bowel gas pattern.'
 };
-
-const abdomenRegions = [
-  {id:'ruq', label:'RUQ'}, {id:'luq', label:'LUQ'}, {id:'navel', label:'Navel'},
-  {id:'rlq', label:'RLQ'}, {id:'llq', label:'LLQ'}, {id:'rebound', label:'Rebound'}
-];
-
-function patient(){ return patients[game.patientIndex]; }
-function vitals(){ return patient().vitals; }
-function addLog(icon,text){ game.log.unshift({icon,text,time:formatTime()}); game.log=game.log.slice(0,12); }
-function clearLog(){ game.log=[]; render(); }
-function formatTime(){ const m=12+game.time; const h=9+Math.floor(m/60); return `${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
-function spend(minutes,scoreDelta=0){ game.time+=minutes; game.score+=scoreDelta; const v=vitals(); if(!game.outcome){ v.stability=Math.max(0, v.stability-Math.ceil(minutes/10)); if(v.stability<35) addLog('⚠️','Patient stability is getting low.'); } }
-function addEvidence(ev){ if(!ev) return; if(game.evidence.some(e=>e.id===ev.id)) return; game.evidence.push(ev); }
-function hasEvidence(id){ return game.evidence.some(e=>e.id===id); }
-function setScene(scene){ game.scene=scene; render(); window.scrollTo({top:0,behavior:'smooth'}); }
-function resetCase(index=game.patientIndex){
-  game.scene='patientRoom'; game.patientIndex=index; game.score=0; game.time=0; game.budget=2500; game.evidence=[]; game.log=[]; game.asked=[]; game.palpated=[]; game.selectedAction=null; game.outcome=null; game.mistakes=[];
-  game.completed={patientRoom:false,interview:false,palpation:false,clipboard:false,debrief:false};
-  patients.forEach(p=>p.vitals={...initialVitals[p.id]});
-  addLog('🏥',`Admitted ${patient().name} to Room ${patient().room}.`);
-  render();
-}
-const initialVitals = Object.fromEntries(patients.map(p=>[p.id,{...p.vitals}]));
-
-function sceneComplete(scene){
-  if(scene==='patientRoom') return game.completed.patientRoom;
-  if(scene==='interview') return game.asked.length>=3 || game.completed.interview;
-  if(scene==='palpation') return patient().palpation.required.every(id=>game.palpated.includes(id));
-  if(scene==='clipboard') return !!game.selectedAction;
-  if(scene==='debrief') return !!game.outcome;
-  return false;
-}
-
-function render(){
-  renderVitals(); renderSteps(); renderEvidence(); renderLog();
-  const stage=document.getElementById('stage');
-  if(game.scene==='patientRoom') stage.innerHTML=renderPatientRoom();
-  if(game.scene==='interview') stage.innerHTML=renderInterview();
-  if(game.scene==='palpation') stage.innerHTML=renderPalpation();
-  if(game.scene==='clipboard') stage.innerHTML=renderClipboard();
-  if(game.scene==='debrief') stage.innerHTML=renderDebrief();
-}
-
-function renderVitals(){
-  const v=vitals();
-  document.getElementById('vHR').textContent=Math.round(v.hr);
-  document.getElementById('vBP').textContent=v.bp;
-  document.getElementById('vTemp').textContent=v.temp.toFixed(1);
-  document.getElementById('vO2').textContent=Math.round(v.spo2);
-  document.getElementById('vPain').textContent=Math.round(v.pain);
-  document.getElementById('vStability').textContent=`${Math.round(v.stability)}%`;
-  document.getElementById('stabLabel').textContent=v.stability<35?'CRITICAL':v.stability<60?'WATCH':'STABLE';
-}
-
-function renderSteps(){
-  document.getElementById('stepList').innerHTML=scenes.map(s=>`<div class="step ${game.scene===s.id?'active':''} ${sceneComplete(s.id)?'done':''}"><div class="stepIcon">${sceneComplete(s.id)?'✓':s.icon}</div><div><div class="stepTitle">${s.label}</div><div class="stepCopy">${s.copy}</div></div></div>`).join('');
-}
-function renderEvidence(){
-  document.getElementById('evidenceCount').textContent=`${game.evidence.length} cards`;
-  document.getElementById('evidenceStack').innerHTML=game.evidence.length?game.evidence.map(e=>`<div class="ev ${e.type||'neutral'}"><div class="evIcon">${e.icon||'•'}</div><div><strong>${e.title}</strong><span>${e.source}</span></div></div>`).join(''):`<div class="ev neutral"><div class="evIcon">🔎</div><div><strong>No evidence yet</strong><span>Interview and exam findings appear here.</span></div></div>`;
-}
-function renderLog(){
-  document.getElementById('eventLog').innerHTML=game.log.length?game.log.map(l=>`<div class="logRow"><div>${l.icon}</div><div><time>${l.time}</time>${l.text}</div></div>`).join(''):`<div class="logRow"><div>•</div><div>No events yet.</div></div>`;
-}
-
-function sceneHeader(badge,title,copy,right=''){
-  return `<div class="stageHeader"><div><span class="badge">${badge}</span><h2>${title}</h2><p>${copy}</p></div><div class="actions">${right}</div></div>`;
-}
-function footer(left='',right=''){
-  return `<div class="footerActions"><div class="leftActions">${left}</div><div class="rightActions">${right}</div></div>`;
-}
-
-function renderPatientRoom(){
-  const p=patient(); const v=vitals();
-  const right=`<button onclick="resetCase((game.patientIndex+1)%patients.length)">Next Case</button>`;
-  return `${sceneHeader('Scene 1','Patient Room','Review the complaint and chart before starting the interview.',right)}
-  <div class="stageBody">
-    <div class="roomLayout">
-      <div class="patientPortrait">
-        <div class="person"><div class="painGlow ${v.pain>4?'':'hidden'}"></div><div class="headShape"><span class="faceDot faceL"></span><span class="faceDot faceR"></span></div><div class="armShape armL"></div><div class="armShape armR"></div><div class="bodyShape"></div><div class="legShape legL"></div><div class="legShape legR"></div></div>
-      </div>
-      <div class="chart">
-        <div class="infoGrid">
-          <div class="info"><small>Name</small><b>${p.name}</b></div>
-          <div class="info"><small>Age / Sex</small><b>${p.age} / ${p.sex}</b></div>
-          <div class="info"><small>Room</small><b>${p.room}</b></div>
-          <div class="info"><small>Stability</small><b>${v.stability}%</b></div>
-        </div>
-        <div class="callout"><b>Chief complaint:</b><br>${p.complaint}</div>
-        <div class="callout"><b>Chart:</b><br>${p.chart}</div>
-        <p class="teacherNote">Design note: this build is scene-based. Each clinical step becomes a playable mini-interaction rather than another dashboard button.</p>
-      </div>
-    </div>
-  </div>
-  ${footer(`<span class="statusText">Score: ${game.score} · Time: ${formatTime()} · Budget: $${game.budget}</span>`,`<button class="primary" onclick="startInterview()">Start Interview ▶</button>`)}`;
-}
-function startInterview(){ game.completed.patientRoom=true; spend(2,5); addLog('💬','Interview started.'); setScene('interview'); }
-
-function renderInterview(){
-  const p=patient(); const used=game.asked.length;
-  const slots=Array.from({length:game.questionSlots},(_,i)=>`<span class="slot ${i<used?'used':''}"></span>`).join('');
-  const qs=p.interview.map(q=>`<button class="question ${game.asked.includes(q.id)?'asked':''} ${q.value==='low'?'lowValue':''}" onclick="askQuestion('${q.id}')" ${game.asked.includes(q.id)||used>=game.questionSlots?'disabled':''}><b>${q.q}</b><span>${game.asked.includes(q.id)?q.result:(q.value==='low'?'May waste time':'May reveal useful evidence')}</span></button>`).join('');
-  const keyCount=countKeyInterview();
-  return `${sceneHeader('Scene 2','Interview Mini-Game','Choose questions carefully. You only get five question slots before the patient gets tired.')}
-  <div class="stageBody">
-    <div class="slots"><span>Question slots:</span>${slots}<span>${used}/${game.questionSlots}</span></div>
-    <div class="callout"><b>Goal:</b> uncover at least 3 useful clues. Current key clues: <b>${keyCount}</b></div>
-    <br>
-    <div class="questionGrid">${qs}</div>
-  </div>
-  ${footer(`<button onclick="setScene('patientRoom')">◀ Back to Room</button>`,`<button class="primary" onclick="finishInterview()" ${keyCount<2?'disabled':''}>Continue to Palpation ▶</button>`)}`;
-}
-function askQuestion(id){
-  const q=patient().interview.find(x=>x.id===id); if(!q||game.asked.includes(id)||game.asked.length>=game.questionSlots) return;
-  game.asked.push(id); spend(q.value==='low'?8:4,q.value==='low'?-5:10); addEvidence(q.evidence);
-  addLog(q.value==='low'?'🟧':'💬',q.result);
-  render();
-}
-function countKeyInterview(){ return game.asked.map(id=>patient().interview.find(q=>q.id===id)).filter(q=>q&&(q.value==='key'||q.value==='support')).length; }
-function finishInterview(){ game.completed.interview=true; addLog('🖐️','Moved to physical exam.'); setScene('palpation'); }
-
-function renderPalpation(){
-  const p=patient(); const checkedRequired=p.palpation.required.filter(id=>game.palpated.includes(id)).length;
-  const buttons=abdomenRegions.map(r=>{
-    const painful=p.palpation.painful.includes(r.id); const checked=game.palpated.includes(r.id);
-    return `<button class="abdomenButton ${r.id} ${painful?'pain':''} ${checked?'checked':''}" onclick="palpate('${r.id}')">${checked?'✓ ':''}${r.label}</button>`;
-  }).join('');
-  const checklist=p.palpation.required.map(id=>`<div class="checkItem ${game.palpated.includes(id)?'done':''}">${game.palpated.includes(id)?'✓':'•'} ${id.toUpperCase()}</div>`).join('');
-  const last=game.log[0]?.text || 'Click an abdomen region to start palpation.';
-  return `${sceneHeader('Scene 3','Palpation Mini-Game','Map the abdomen. The clipboard will reject your decision if you skip quadrants.')}
-  <div class="stageBody">
-    <div class="palpationScene">
-      <div class="abdomenBoard">
-        <div class="torsoGraphic"><div class="torsoHead"></div><div class="torsoBody"></div></div>
-        <div class="abdomenGrid">${buttons}</div>
-      </div>
-      <div class="examFeedback">
-        <div class="feedbackBox"><div class="reaction">${reactionEmoji()}</div><b>Latest response</b><p>${last}</p></div>
-        <div class="feedbackBox"><b>Required quadrants</b><div class="quadrantChecklist">${checklist}</div><p class="teacherNote">Required: RUQ, LUQ, RLQ, and LLQ. Navel and rebound add diagnostic power.</p></div>
-        <div class="callout"><b>Progress:</b> ${checkedRequired}/4 required quadrants checked.</div>
-      </div>
-    </div>
-  </div>
-  ${footer(`<button onclick="setScene('interview')">◀ Back to Interview</button>`,`<button class="primary" onclick="finishPalpation()" ${checkedRequired<4?'disabled':''}>Review Clipboard ▶</button>`)}`;
-}
-function reactionEmoji(){
-  const p=patient(); const last=game.palpated[game.palpated.length-1];
-  if(!last) return '😐';
-  if(p.palpation.painful.includes(last)) return last==='rebound'?'😫':'😣';
-  return '😐';
-}
-function palpate(id){
-  if(game.palpated.includes(id)) return;
-  const p=patient(); const finding=p.palpation.findings[id]||'No notable finding.'; const painful=p.palpation.painful.includes(id);
-  game.palpated.push(id);
-  spend(3,painful?12:6);
-  if(painful){ vitals().pain=Math.min(10,vitals().pain+1); vitals().hr+=2; }
-  addEvidence({id:'palp_'+id, icon:painful?'⚠️':'✅', title:finding, type:painful?'critical':'neutral', source:'Palpation'});
-  addLog(painful?'⚠️':'✅',finding);
-  render();
-}
-function finishPalpation(){ game.completed.palpation=true; addLog('📋','Physical exam completed. Clipboard available.'); setScene('clipboard'); }
-
-function renderClipboard(){
-  const reqs=renderRequirements();
-  const actions=[
-    {id:'observe', icon:'👀', title:'Observe', copy:'Safe for benign gas pain or small measured aneurysm.'},
-    {id:'medicate', icon:'💊', title:'Medicate', copy:'Use for diffuse infection/supportive-care pattern.'},
-    {id:'refer', icon:'📨', title:'Refer', copy:'Use when another service is appropriate, such as kidney stone.'},
-    {id:'operate', icon:'🔪', title:'Operate', copy:'Use for appendicitis or large aneurysm after enough evidence.'}
-  ].map(a=>`<button class="clipboardBtn" onclick="chooseAction('${a.id}')"><div class="clipboardIcon">${a.icon}</div><div><h3>${a.title}</h3><p>${a.copy}</p></div></button>`).join('');
-  return `${sceneHeader('Scene 4','Clipboard Decision','Make the clinical decision. Wrong or premature action triggers a chief resident lecture.')}
-  <div class="stageBody">
-    <div class="clipboardGrid">${actions}</div>
-    <div class="requirements">${reqs}</div>
-  </div>
-  ${footer(`<button onclick="setScene('palpation')">◀ Back to Exam</button>`,`<button onclick="openMedicalSchool()">Medical School Notes</button>`)}`;
-}
-function renderRequirements(){
-  const allQ=patient().palpation.required.every(id=>game.palpated.includes(id));
-  const key=countKeyInterview();
-  const focal=game.palpated.some(id=>patient().palpation.painful.includes(id));
-  return [
-    ['Interview clues',key>=2,`${key} useful clue(s) found`],
-    ['All quadrants',allQ,allQ?'Complete':'RUQ/LUQ/RLQ/LLQ required'],
-    ['Pain pattern',focal, focal?'Pain pattern mapped':'No focal response yet']
-  ].map(r=>`<div class="req ${r[1]?'done':''}"><b>${r[1]?'✓':'•'} ${r[0]}</b><span>${r[2]}</span></div>`).join('');
-}
-function chooseAction(action){
-  const p=patient(); game.selectedAction=action;
-  const allQ=p.palpation.required.every(id=>game.palpated.includes(id));
-  const key=countKeyInterview();
-  let lecture='';
-  if(key<2) lecture='You did not gather enough interview evidence before acting.';
-  else if(!allQ) lecture='You did not complete the abdominal exam. Check all four quadrants.';
-  else if(action!==p.correctAction) lecture=`Wrong clipboard action. Correct action was ${p.correctAction.toUpperCase()}.`;
-  if(lecture){
-    game.mistakes.push(lecture); spend(8,-30); vitals().stability=Math.max(0,vitals().stability-8); addLog('⚠️',lecture);
-    showLecture(lecture);
-    render();
-    return;
-  }
-  game.completed.clipboard=true; game.outcome='success'; spend(5,60); addLog('✅',`Correct action: ${action.toUpperCase()}.`); setScene('debrief');
-}
-function showLecture(msg){
-  const stage=document.getElementById('stage');
-  stage.innerHTML=`${sceneHeader('Chief Resident Lecture','Decision Rejected','The patient survives the lesson, but your evaluation drops.')}
-  <div class="stageBody"><div class="callout"><b>${msg}</b><br><br>Go back, gather the missing evidence, and try again.</div></div>
-  ${footer(`<button class="primary" onclick="setScene('clipboard')">Back to Clipboard</button>`,`<button onclick="openMedicalSchool()">Review Notes</button>`)}`;
-}
-function openMedicalSchool(){
-  const html=`${sceneHeader('Reference','Medical School Notes','Use these rules to guide the clipboard decision.')}
-  <div class="stageBody"><div class="callout"><ol><li>Interview first. Pain location, movement, fever, nausea, urinary symptoms, and sick contacts matter.</li><li>Palpate all four quadrants before making a decision.</li><li>No pain pattern can support observation.</li><li>Diffuse pain with infection clues supports medication/supportive care.</li><li>Colicky flank-to-groin pain supports referral.</li><li>RLQ pain plus rebound supports surgical evaluation.</li></ol></div></div>
-  ${footer(`<button class="primary" onclick="setScene('clipboard')">Back to Clipboard</button>`,'')}`;
-  document.getElementById('stage').innerHTML=html;
-}
-
-function renderDebrief(){
-  const p=patient(); const correct=game.selectedAction===p.correctAction; const base=correct?80:45; const penalty=game.mistakes.length*10; const score=Math.max(0,Math.min(100,base+Math.round(vitals().stability/5)+countKeyInterview()*2-penalty));
-  game.completed.debrief=true;
-  return `${sceneHeader('Scene 5','Debrief','Review the clinical reasoning and prepare for the next patient.')}
-  <div class="stageBody">
-    <div class="debrief">
-      <div class="scoreCircle">${score}</div>
-      <div class="debriefList">
-        <div class="debriefItem"><strong>Final diagnosis</strong><span>${p.diagnosis}</span></div>
-        <div class="debriefItem"><strong>Correct action</strong><span>${p.correctAction.toUpperCase()}</span></div>
-        <div class="debriefItem"><strong>Your action</strong><span>${(game.selectedAction||'none').toUpperCase()}</span></div>
-        <div class="debriefItem"><strong>Clinical takeaway</strong><span>${p.debrief.best}</span></div>
-        <div class="debriefItem"><strong>Teacher prompt</strong><span>${p.debrief.teacher}</span></div>
-        <div class="debriefItem"><strong>Mistakes</strong><span>${game.mistakes.length?game.mistakes.join(' '):'No major reasoning errors.'}</span></div>
-      </div>
-    </div>
-  </div>
-  ${footer(`<button onclick="resetCase(game.patientIndex)">Replay Case</button>`,`<button class="primary" onclick="resetCase((game.patientIndex+1)%patients.length)">Next Patient ▶</button>`)}`;
-}
-
-let ecgTick=0;
-function drawECG(){
-  const c=document.getElementById('ecg'); if(!c){requestAnimationFrame(drawECG);return;}
-  const ctx=c.getContext('2d'),w=c.width,h=c.height,v=vitals();
-  ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(0,10,16,.58)'; ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle='rgba(82,242,122,.09)'; ctx.lineWidth=1;
-  for(let x=0;x<w;x+=34){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
-  for(let y=0;y<h;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-  const speed=Math.max(.7,Math.min(1.8,v.hr/100)); const period=95/speed; const base=h*.58; ecgTick+=2.25*speed;
-  function yAt(x){const t=(x+ecgTick)%period;let y=base+Math.sin((x+ecgTick)*.025)*2;if(t>8&&t<17)y-=6*Math.sin((t-8)/9*Math.PI);if(t>27&&t<31)y+=15*Math.sin((t-27)/4*Math.PI);if(t>31&&t<36)y-=38*Math.sin((t-31)/5*Math.PI);if(t>36&&t<43)y+=12*Math.sin((t-36)/7*Math.PI);if(t>58&&t<77)y-=9*Math.sin((t-58)/19*Math.PI);if(v.stability<35)y+=(Math.random()-.5)*7;return y;}
-  ctx.strokeStyle=v.stability<35?'#ff9b9b':'#52f27a';ctx.lineWidth=3;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=10;ctx.beginPath();for(let x=0;x<w;x+=3){const y=yAt(x);x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.shadowBlur=0;
-  ctx.fillStyle='#52f27a';ctx.font='800 13px system-ui';ctx.fillText('II',15,22);ctx.fillText('25 mm/s',88,95);ctx.fillText('Filter: ON',176,95);
-  requestAnimationFrame(drawECG);
-}
-
-resetCase(0);
-requestAnimationFrame(drawECG);
-</script>
-</body>
-</html>
+const baseVitals={...patient.vitals};
+const game={scene:'room',score:0,time:0,budget:2500,evidence:[],log:[],asked:[],slots:5,palpated:[],selectedAction:null,outcome:null,mistakes:[],xray:{view:'abdomenAP',beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false},done:{room:false,interview:false,exam:false,xray:false,decision:false,debrief:false}};
+const regions=[{id:'ruq',label:'RUQ'},{id:'luq',label:'LUQ'},{id:'navel',label:'Navel'},{id:'rlq',label:'RLQ'},{id:'llq',label:'LLQ'},{id:'rebound',label:'Rebound'}];
+function v(){return patient.vitals}function formatTime(){const m=12+game.time,h=9+Math.floor(m/60);return`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}function spend(min,pts=0){game.time+=min;game.score+=pts;if(!game.outcome){v().stability=Math.max(0,v().stability-Math.ceil(min/12));if(v().stability<35)addLog('⚠️','Patient stability is getting low.')}}function addLog(icon,text){game.log.unshift({icon,text,time:formatTime()});game.log=game.log.slice(0,12)}function clearLog(){game.log=[];render()}function addEvidence(ev){if(ev&&!game.evidence.some(e=>e.id===ev.id))game.evidence.push(ev)}function hasEv(id){return game.evidence.some(e=>e.id===id)}function setScene(scene){game.scene=scene;render();window.scrollTo({top:0,behavior:'smooth'})}
+function resetGame(){Object.assign(patient.vitals,{...baseVitals});Object.assign(game,{scene:'room',score:0,time:0,budget:2500,evidence:[],log:[],asked:[],slots:5,palpated:[],selectedAction:null,outcome:null,mistakes:[],xray:{view:'abdomenAP',beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false},done:{room:false,interview:false,exam:false,xray:false,decision:false,debrief:false}});addLog('🏥',`Admitted ${patient.name} to Room ${patient.room}.`);render()}
+function sceneDone(id){if(id==='room')return game.done.room;if(id==='interview')return game.done.interview;if(id==='exam')return game.done.exam;if(id==='xray')return game.done.xray;if(id==='decision')return game.done.decision;if(id==='debrief')return game.done.debrief;return false}
+function render(){renderVitals();renderSteps();renderEvidence();renderLog();const stage=document.getElementById('stage');if(game.scene==='room')stage.innerHTML=renderRoom();if(game.scene==='interview')stage.innerHTML=renderInterview();if(game.scene==='exam')stage.innerHTML=renderExam();if(game.scene==='xray')stage.innerHTML=renderXray();if(game.scene==='decision')stage.innerHTML=renderDecision();if(game.scene==='debrief')stage.innerHTML=renderDebrief();if(game.scene==='xray')updateBeam()}
+function renderVitals(){document.getElementById('vHR').textContent=Math.round(v().hr);document.getElementById('vBP').textContent=v().bp;document.getElementById('vTemp').textContent=v().temp.toFixed(1);document.getElementById('vO2').textContent=Math.round(v().spo2);document.getElementById('vPain').textContent=Math.round(v().pain);document.getElementById('vStability').textContent=`${Math.round(v().stability)}%`;document.getElementById('stabLabel').textContent=v().stability<35?'CRITICAL':v().stability<60?'WATCH':'STABLE'}
+function renderSteps(){document.getElementById('stepList').innerHTML=scenes.map(s=>`<div class="step ${game.scene===s.id?'active':''} ${sceneDone(s.id)?'done':''}"><div class="stepIcon">${sceneDone(s.id)?'✓':s.icon}</div><div><div class="stepTitle">${s.label}</div><div class="stepCopy">${s.copy}</div></div></div>`).join('')}
+function renderEvidence(){document.getElementById('evidenceCount').textContent=`${game.evidence.length} cards`;document.getElementById('evidenceStack').innerHTML=game.evidence.length?game.evidence.map(e=>`<div class="ev ${e.type||'neutral'}"><div class="evIcon">${e.icon||'•'}</div><div><strong>${e.title}</strong><span>${e.source}</span></div></div>`).join(''):`<div class="ev neutral"><div class="evIcon">🔎</div><div><strong>No evidence yet</strong><span>Interview and exam findings appear here.</span></div></div>`}
+function renderLog(){document.getElementById('eventLog').innerHTML=game.log.length?game.log.map(l=>`<div class="logRow"><div>${l.icon}</div><div><time>${l.time}</time>${l.text}</div></div>`).join(''):`<div class="logRow"><div>•</div><div>No events yet.</div></div>`}
+function header(badge,title,copy,right=''){return`<div class="stageHeader"><div><span class="badge">${badge}</span><h2>${title}</h2><p>${copy}</p></div><div class="actions">${right}</div></div>`}function footer(left='',right=''){return`<div class="footer"><div class="group">${left}</div><div class="group">${right}</div></div>`}
+function renderRoom(){return`${header('Scene 1','Patient Room','Review the complaint and chart before starting the interview.',`<button onclick="resetGame()">Reset</button>`)}<div class="stageBody"><div class="roomLayout"><div class="portrait"><div class="person"><div class="painGlow"></div><div class="headShape"><span class="faceDot faceL"></span><span class="faceDot faceR"></span></div><div class="armShape armL"></div><div class="armShape armR"></div><div class="bodyShape"></div><div class="legShape legL"></div><div class="legShape legR"></div></div></div><div class="chart"><div class="infoGrid"><div class="info"><small>Name</small><b>${patient.name}</b></div><div class="info"><small>Age / Sex</small><b>${patient.age} / ${patient.sex}</b></div><div class="info"><small>Room</small><b>${patient.room}</b></div><div class="info"><small>Stability</small><b>${v().stability}%</b></div></div><div class="callout"><b>Chief complaint:</b><br>${patient.complaint}</div><div class="callout"><b>Chart:</b><br>${patient.chart}</div><p class="teacherNote">Recovery build rule: one case, one clear flow. Make this feel good before adding more patients or OR surgery.</p></div></div></div>${footer(`<span class="statusText">Score: ${game.score} · Time: ${formatTime()} · Budget: $${game.budget}</span>`,`<button class="primary" onclick="startInterview()">Start Interview ▶</button>`)}`}
+function startInterview(){game.done.room=true;spend(2,5);addLog('💬','Interview started.');setScene('interview')}
+function renderInterview(){const used=game.asked.length,slots=Array.from({length:game.slots},(_,i)=>`<span class="slot ${i<used?'used':''}"></span>`).join(''),qs=patient.interview.map(q=>`<button class="question ${game.asked.includes(q.id)?'asked':''} ${q.value==='low'?'low':''}" onclick="ask('${q.id}')" ${game.asked.includes(q.id)||used>=game.slots?'disabled':''}><b>${q.q}</b><span>${game.asked.includes(q.id)?q.result:(q.value==='low'?'May waste time':'May reveal useful evidence')}</span></button>`).join(''),key=countUseful();return`${header('Scene 2','Interview Mini-Game','Choose questions carefully. You only get five question slots before the patient gets tired.')}<div class="stageBody"><div class="slots"><span>Question slots:</span>${slots}<span>${used}/${game.slots}</span></div><div class="callout"><b>Goal:</b> uncover at least 3 useful clues. Current useful clues: <b>${key}</b></div><br><div class="questionGrid">${qs}</div></div>${footer(`<button onclick="setScene('room')">◀ Back to Room</button>`,`<button class="primary" onclick="finishInterview()" ${key<2?'disabled':''}>Continue to Palpation ▶</button>`)}`}
+function ask(id){const q=patient.interview.find(x=>x.id===id);if(!q||game.asked.includes(id)||game.asked.length>=game.slots)return;game.asked.push(id);spend(q.value==='low'?8:4,q.value==='low'?-5:10);addEvidence(q.ev);addLog(q.value==='low'?'🟧':'💬',q.result);render()}function countUseful(){return game.asked.map(id=>patient.interview.find(q=>q.id===id)).filter(q=>q&&(q.value==='key'||q.value==='support')).length}function finishInterview(){game.done.interview=true;addLog('🖐️','Moved to physical exam.');setScene('exam')}
+function renderExam(){const checked=patient.palpation.required.filter(id=>game.palpated.includes(id)).length,buttons=regions.map(r=>{const painful=patient.palpation.painful.includes(r.id),done=game.palpated.includes(r.id);return`<button class="abdomenButton ${r.id} ${painful?'pain':''} ${done?'checked':''}" onclick="palpate('${r.id}')">${done?'✓ ':''}${r.label}</button>`}).join(''),list=patient.palpation.required.map(id=>`<div class="checkItem ${game.palpated.includes(id)?'done':''}">${game.palpated.includes(id)?'✓':'•'} ${id.toUpperCase()}</div>`).join(''),last=game.log[0]?.text||'Click an abdomen region to start palpation.';return`${header('Scene 3','Palpation Mini-Game','Map the abdomen. The clipboard will reject your decision if you skip quadrants.')}<div class="stageBody"><div class="palpationScene"><div class="abdomenBoard"><div class="torsoGraphic"><div class="torsoHead"></div><div class="torsoBody"></div></div><div class="abdomenGrid">${buttons}</div></div><div class="feedback"><div class="box"><div class="reaction">${reaction()}</div><b>Latest response</b><p>${last}</p></div><div class="box"><b>Required quadrants</b><div class="checklist">${list}</div><p class="teacherNote">Required: RUQ, LUQ, RLQ, and LLQ. Navel and rebound add diagnostic power.</p></div><div class="callout"><b>Progress:</b> ${checked}/4 required quadrants checked.</div></div></div></div>${footer(`<button onclick="setScene('interview')">◀ Back to Interview</button>`,`<button class="primary" onclick="finishExam()" ${checked<4?'disabled':''}>Continue to X-Ray ▶</button>`)}`}
+function reaction(){const last=game.palpated[game.palpated.length-1];if(!last)return'😐';if(patient.palpation.painful.includes(last))return last==='rebound'?'😫':'😣';return'😐'}function palpate(id){if(game.palpated.includes(id))return;const finding=patient.palpation.findings[id]||'No notable finding.',painful=patient.palpation.painful.includes(id);game.palpated.push(id);spend(3,painful?12:6);if(painful){v().pain=Math.min(10,v().pain+1);v().hr+=2}addEvidence({id:'palp_'+id,icon:painful?'⚠️':'✅',title:finding,type:painful?'critical':'neutral',source:'Palpation'});addLog(painful?'⚠️':'✅',finding);render()}function finishExam(){game.done.exam=true;addLog('🩻','Physical exam completed. X-ray room available.');setScene('xray')}
+function renderXray(){if(game.xray.taken)return renderXrayResult();const q=xrayQuality();return`${header('Scene 4','X-Ray Mini-Game','Position the beam, choose the correct view, set exposure, and take a usable abdominal film.')}<div class="stageBody"><div class="xrayScene"><div class="xrayRoom"><div class="plate"></div><div class="xrayPatient"></div><div class="xrayTable"></div><div class="xrayBeam" id="xrayBeam"><div class="crosshair"></div></div></div><div class="xrayControls"><div class="control"><h3>1. Choose View</h3><div class="viewGrid"><button class="viewBtn ${game.xray.view==='abdomenAP'?'selected':''}" onclick="setXrayView('abdomenAP')">Abdomen AP</button><button class="viewBtn ${game.xray.view==='chest'?'selected':''}" onclick="setXrayView('chest')">Chest</button><button class="viewBtn ${game.xray.view==='pelvis'?'selected':''}" onclick="setXrayView('pelvis')">Pelvis</button><button class="viewBtn ${game.xray.view==='lateral'?'selected':''}" onclick="setXrayView('lateral')">Lateral</button></div></div><div class="control"><h3>2. Align Beam</h3><div class="moveGrid"><span></span><button onclick="moveBeam(0,-5)">▲</button><span></span><button onclick="moveBeam(-5,0)">◀</button><button onclick="centerBeam()">◎</button><button onclick="moveBeam(5,0)">▶</button><span></span><button onclick="moveBeam(0,5)">▼</button><span></span></div></div><div class="control"><h3>3. Exposure: <span id="exposureLabel">${game.xray.exposure}</span> kVp</h3><input type="range" min="25" max="90" value="${game.xray.exposure}" oninput="setExposure(this.value)"><p class="teacherNote">Good abdominal exposure is roughly 45–65 in this simplified model.</p></div><div class="control"><label class="toggleRow"><input type="checkbox" ${game.xray.still?'checked':''} onchange="toggleStill(this.checked)"> Patient is still / breath held</label></div><div class="control"><h3>Current Quality Estimate</h3><div class="qualityMeter"><div class="qualityFill" style="width:${q}%"></div></div><p class="teacherNote">Quality checks view, centering, exposure, and patient motion.</p></div><button class="primary bigBtn" onclick="takeXray()"><b>Take X-Ray</b><span>Uses time and budget. Poor technique creates a limited film.</span></button></div></div></div>${footer(`<button onclick="setScene('exam')">◀ Back to Exam</button>`,`<button onclick="xrayHelp()">Technique Help</button>`)}`}
+function renderXrayResult(){const q=game.xray.quality,usable=game.xray.usable;return`${header('Scene 4','X-Ray Result',usable?'The film is usable. Review the image and report.':'The film is limited. Retake it or proceed with weaker evidence.')}<div class="stageBody"><div class="filmViewer"><div class="film">${xraySVG(usable)}</div><div class="report"><div class="reportLine"><b>Image Quality</b><span>${q}/100 — ${usable?'diagnostic quality':'limited quality'}</span></div><div class="reportLine"><b>Radiology Read</b><span>${usable?patient.xrayFinding:'Limited film due to poor positioning/exposure. Repeat recommended before making the clipboard decision.'}</span></div><div class="reportLine"><b>Clinical Use</b><span>A usable X-ray helps rule out urinary stones before the appendicitis decision.</span></div><div class="actions"><button class="warn" onclick="retakeXray()">Retake X-Ray</button><button class="primary" onclick="finishXray()">Continue to Clipboard ▶</button></div></div></div></div>${footer(`<button onclick="setScene('exam')">◀ Back to Exam</button>`,`<span class="statusText">Budget: $${game.budget} · Time: ${formatTime()}</span>`)}`}
+function setXrayView(val){game.xray.view=val;render()}function moveBeam(dx,dy){game.xray.beamX=Math.max(20,Math.min(80,game.xray.beamX+dx));game.xray.beamY=Math.max(20,Math.min(80,game.xray.beamY+dy));render()}function centerBeam(){game.xray.beamX=50;game.xray.beamY=50;render()}function setExposure(val){game.xray.exposure=Number(val);const e=document.getElementById('exposureLabel');if(e)e.textContent=val;const f=document.querySelector('.qualityFill');if(f)f.style.width=xrayQuality()+'%'}function toggleStill(val){game.xray.still=val;render()}function updateBeam(){const b=document.getElementById('xrayBeam');if(!b)return;b.style.left=`calc(${game.xray.beamX}% - 95px)`;b.style.top=`calc(${game.xray.beamY}% - 110px)`}function xrayQuality(){let q=0;if(game.xray.view==='abdomenAP')q+=35;else if(game.xray.view==='pelvis')q+=12;const dx=Math.abs(game.xray.beamX-50),dy=Math.abs(game.xray.beamY-50);q+=Math.max(0,35-(dx+dy)*1.4);const exp=game.xray.exposure;q+=exp>=45&&exp<=65?20:Math.max(0,20-Math.abs(exp-55));if(game.xray.still)q+=10;return Math.round(Math.max(0,Math.min(100,q)))}
+function takeXray(){game.xray.quality=xrayQuality();game.xray.usable=game.xray.quality>=75;game.xray.taken=true;game.budget-=120;spend(10,game.xray.usable?20:-8);if(game.xray.usable){addEvidence({id:'xray_clear',icon:'🩻',title:patient.xrayFinding,type:'neutral',source:'X-Ray'});addLog('🩻',`Usable abdominal X-ray completed: ${patient.xrayFinding}`)}else addLog('🩻','X-ray taken, but image quality is limited.');render()}function retakeXray(){game.xray={view:'abdomenAP',beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false};addLog('🩻','Preparing to retake X-ray.');render()}function finishXray(){game.done.xray=game.xray.usable;setScene('decision')}function xrayHelp(){document.getElementById('stage').innerHTML=`${header('X-Ray Technique Help','How to Take a Usable Film','This simplified mini-game rewards the basic imaging workflow.')}<div class="stageBody"><div class="callout"><ol><li>Choose <b>Abdomen AP</b>.</li><li>Center the beam over the abdomen/pelvis region.</li><li>Use exposure between <b>45–65 kVp</b>.</li><li>Check patient stillness before taking the image.</li><li>Quality 75+ produces a usable diagnostic film.</li></ol></div></div>${footer(`<button class="primary" onclick="setScene('xray')">Back to X-Ray Room</button>`,'')}`}
+function renderDecision(){const actions=[['observe','👀','Observe','Safe for benign pain, but not this case.'],['medicate','💊','Medicate','Helpful support, but no
