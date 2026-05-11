@@ -49,10 +49,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .ov-back:hover{opacity:.7}
 .ov-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
 .ov-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;opacity:.5;margin-top:1px}
-.ov-body{display:flex;flex:1;overflow:hidden}
-.ov-left{width:240px;flex-shrink:0;border-right:1px solid;display:flex;flex-direction:column;padding:14px;gap:10px;overflow-y:auto}
-.sim-wrap{border-radius:12px;border:1px solid;overflow:hidden;flex-shrink:0}
-.sim-wrap canvas{display:block;width:100%;height:auto}
+.ov-body{display:grid;grid-template-columns:minmax(420px,58vw) minmax(320px,1fr);flex:1;overflow:hidden}
+.ov-left{width:auto;min-width:0;border-right:1px solid;display:flex;flex-direction:column;padding:16px;gap:12px;overflow-y:auto}
+.sim-wrap{border-radius:16px;border:1px solid;overflow:hidden;flex-shrink:0;width:100%;box-shadow:0 18px 70px #00000055}
+.sim-wrap canvas{display:block;width:100%;height:auto;aspect-ratio:16/10}
 .ctrl-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.5}
 .ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ctrl-row label{font-size:11px;opacity:.8}
@@ -62,6 +62,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .sim-btn{font-size:11px;border-radius:8px;padding:5px 10px;border:1px solid;cursor:pointer;background:none;font-family:'DM Sans',sans-serif;transition:opacity .15s}
 .sim-btn:hover{opacity:.7}
 .info-box{background:#0a120a;border-radius:10px;border:1px solid;padding:10px 12px;font-size:12px;line-height:1.7;color:#b0d0b0}
+.lab-card{background:#071107;border:1px solid;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+.lab-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700}
+.lab-prompt{font-size:12px;line-height:1.7;color:#b0d0b0}
+.lab-status{font-size:12px;line-height:1.6;border-radius:10px;padding:9px 10px;display:none}
+.lab-status.show{display:block}
+.lab-status.pass{background:#082818;border:1px solid #00c89660;color:#79f0c8}
+.lab-status.fail{background:#2a0a0a;border:1px solid #e05c5c70;color:#ffaaaa}
+.lab-meta{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;color:#5a8a5a}
 .ov-right{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
 .info-card{background:#0a120a;border-radius:12px;border:1px solid #1a3a1a;padding:16px 18px}
 .info-card h3{font-family:'Playfair Display',serif;font-size:15px;margin-bottom:8px}
@@ -86,10 +94,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .note-dot{width:7px;height:7px;border-radius:50%;background:#7ecf3f;display:inline-block;margin-left:4px;vertical-align:middle}
 
 /* responsive */
+@media(max-width:900px){
+  .ov-body{display:flex;flex-direction:column;overflow-y:auto}
+  .ov-left{width:100%;border-right:none;border-bottom:1px solid;overflow:visible}
+  .ov-right{overflow:visible}
+}
 @media(max-width:640px){
-  .ov-body{flex-direction:column}
-  .ov-left{width:100%;border-right:none;border-bottom:1px solid}
-  .sim-wrap{max-height:200px}
+  .sim-wrap{max-height:none}
+  .ov-left,.ov-right{padding:12px}
 }
 </style>
 </head>
@@ -386,12 +398,13 @@ function openModule(id) {
   simWrap.className = 'sim-wrap';
   simWrap.style.cssText = `border-color:${m.borderColor};background:${m.bg}`;
   const canvas = document.createElement('canvas');
-  canvas.width = 220; canvas.height = 180;
+  canvas.width = 640; canvas.height = 420;
   simWrap.appendChild(canvas);
   left.appendChild(simWrap);
 
   if (activeAnim) { activeAnim.stop(); activeAnim = null; }
   activeAnim = m.build(canvas, m.color, false, left);
+  buildLabChallenge(id, m, left, activeAnim);
 
   buildRight(id, m);
   ov.classList.add('open');
@@ -476,6 +489,117 @@ const CONTENT = {
     ]
   }
 };
+
+// ══════════════════════════════════════════════
+//  LAB CHALLENGES — SIMULATION CHECKS WITH FAILURE
+// ══════════════════════════════════════════════
+const CHALLENGES = {
+  cell:[
+    {prompt:'Use the simulation controls to place the cell in Metaphase, when chromosomes line up at the equator.', pass:'Correct — chromosomes are aligned at the metaphase plate before chromatids separate.', fail:'Not yet. Use Previous/Next until the phase label says METAPHASE.'},
+  ],
+  photosynthesis:[
+    {prompt:'Maximize photosynthesis by increasing light intensity above 80%.', pass:'Correct — high light increases the rate of the light-dependent reactions.', fail:'The light level is still too low. Move the Light Intensity slider above 80%.'},
+  ],
+  genetics:[
+    {prompt:'Choose a cross that can produce a recessive phenotype, then reveal all four Punnett square outcomes.', pass:'Correct — this cross includes at least one homozygous recessive outcome and all cells are revealed.', fail:'Not quite. Pick a cross with an aa outcome and reveal every square.'},
+  ],
+  evolution:[
+    {prompt:'Create industrial melanism: dark environment, strong selection, and a dark-moth population above 50%.', pass:'Correct — the environment is selecting for darker moths over generations.', fail:'Keep pushing the model. Choose Dark Env, keep selection pressure high, and run generations until dark moths pass 50%.'},
+  ],
+  ecology:[
+    {prompt:'Switch to Food Web view so energy relationships can be traced between organisms.', pass:'Correct — the food web view shows multiple feeding relationships instead of a single pyramid.', fail:'You are not in Food Web view yet. Use the view controls to switch modes.'},
+  ],
+  dna:[
+    {prompt:'Switch the model into Translation mode, where mRNA codons are read to build a protein.', pass:'Correct — translation is the mRNA → protein step at the ribosome.', fail:'Not yet. Choose the Translation view mode.'},
+  ],
+  respiration:[
+    {prompt:'Show the stage that produces the largest ATP payoff.', pass:'Correct — the Electron Transport Chain produces most of the ATP in aerobic respiration.', fail:'Wrong stage. Switch to Electron Transport, the stage with the biggest ATP yield.'},
+  ],
+  body:[
+    {prompt:'Stabilize the circulatory system by setting heart rate to a normal resting range: 60–100 bpm.', pass:'Correct — the heart rate is in the normal resting range while the circulatory system is shown.', fail:'That setup is not stable yet. Use Circulatory view and set the heart rate between 60 and 100 bpm.'},
+  ],
+  micro:[
+    {prompt:'Trigger a bacterial growth failure by applying an antibiotic during Bacterial Growth view.', pass:'Correct — antibiotic pressure has pushed the population into the death phase.', fail:'No failure condition yet. Switch to Bacterial Growth and apply the antibiotic.'},
+  ]
+};
+
+function buildLabChallenge(id, m, leftPanel, simApi) {
+  const challenges = CHALLENGES[id] || [];
+  if (!challenges.length) return;
+  let idx = 0;
+  let attempts = 0;
+
+  const card = document.createElement('div');
+  card.className = 'lab-card';
+  card.style.borderColor = m.color + '40';
+  card.innerHTML = `
+    <div class="lab-title" style="color:${m.color}">🧫 Lab Challenge</div>
+    <div class="lab-meta" id="lab-meta-${id}"></div>
+    <div class="lab-prompt" id="lab-prompt-${id}"></div>
+    <div class="btn-row">
+      <button class="sim-btn" id="lab-check-${id}" style="color:${m.color};border-color:${m.color}60">Check Setup</button>
+      <button class="sim-btn" id="lab-next-${id}" style="color:${m.color};border-color:${m.color}40;display:none">Try Another</button>
+    </div>
+    <div class="lab-status" id="lab-status-${id}"></div>
+  `;
+  leftPanel.appendChild(card);
+
+  const promptEl = document.getElementById(`lab-prompt-${id}`);
+  const metaEl = document.getElementById(`lab-meta-${id}`);
+  const statusEl = document.getElementById(`lab-status-${id}`);
+  const checkBtn = document.getElementById(`lab-check-${id}`);
+  const nextBtn = document.getElementById(`lab-next-${id}`);
+
+  function getState() {
+    return simApi && typeof simApi.getState === 'function' ? simApi.getState() : {};
+  }
+
+  function isPassing(challenge, state) {
+    if (id === 'cell') return state.phase === 'Metaphase';
+    if (id === 'photosynthesis') return state.lightLevel >= 0.8;
+    if (id === 'genetics') return state.revealedCount === 4 && state.dominantCount < 4;
+    if (id === 'evolution') return state.envType === 'dark' && state.selectionPressure >= 0.6 && state.darkPct >= 50 && state.generation >= 2;
+    if (id === 'ecology') return state.viewMode === 'foodweb';
+    if (id === 'dna') return state.viewMode === 'translation';
+    if (id === 'respiration') return state.viewMode === 'etc';
+    if (id === 'body') return state.viewMode === 'heart' && state.heartRate >= 60 && state.heartRate <= 100;
+    if (id === 'micro') return state.viewMode === 'growth' && state.antibioticApplied && state.phase === 3;
+    return false;
+  }
+
+  function renderChallenge() {
+    const c = challenges[idx];
+    metaEl.textContent = `Task ${idx + 1} of ${challenges.length} · attempts: ${attempts}`;
+    promptEl.textContent = c.prompt;
+    statusEl.className = 'lab-status';
+    statusEl.textContent = '';
+    nextBtn.style.display = 'none';
+  }
+
+  checkBtn.onclick = () => {
+    attempts++;
+    const c = challenges[idx];
+    const state = getState();
+    const ok = isPassing(c, state);
+    statusEl.className = `lab-status show ${ok ? 'pass' : 'fail'}`;
+    statusEl.textContent = ok ? `✓ ${c.pass}` : `✗ ${c.fail}`;
+    metaEl.textContent = `Task ${idx + 1} of ${challenges.length} · attempts: ${attempts}`;
+
+    if (ok) {
+      const key = `bio-lab-success-${id}`;
+      localStorage.setItem(key, String((Number(localStorage.getItem(key)) || 0) + 1));
+      if (idx + 1 < challenges.length) nextBtn.style.display = 'inline-block';
+    }
+  };
+
+  nextBtn.onclick = () => {
+    idx = (idx + 1) % challenges.length;
+    attempts = 0;
+    renderChallenge();
+  };
+
+  renderChallenge();
+}
 
 function buildRight(id, m) {
   const right = document.getElementById('ov-right');
@@ -865,7 +989,10 @@ function buildCell(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop: () => { running = false; } };
+  return {
+    stop: () => { running = false; },
+    getState: () => ({ phase: phases[phaseIdx], phaseIdx })
+  };
 }
 
 function drawChromosome(ctx, color, rx, ry, lw) {
@@ -1020,7 +1147,10 @@ function buildPhoto(canvas, color, preview, leftPanel) {
     requestAnimationFrame(draw);
   }
   draw();
-  return { stop: () => { running=false; } };
+  return {
+    stop: () => { running=false; },
+    getState: () => ({ lightLevel, showLabels })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -1160,7 +1290,15 @@ function buildGenetics(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop:()=>{ running=false; } };
+  return {
+    stop:()=>{ running=false; },
+    getState:()=>({
+      crossIdx,
+      crossLabel: crosses[crossIdx].p1 + ' × ' + crosses[crossIdx].p2,
+      revealedCount: revealed.filter(Boolean).length,
+      dominantCount: crosses[crossIdx].dominant.filter(Boolean).length
+    })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -1304,7 +1442,13 @@ function buildEvolution(canvas, color, preview, leftPanel) {
     requestAnimationFrame(draw);
   }
   draw();
-  return { stop:()=>{ running=false; } };
+  return {
+    stop:()=>{ running=false; },
+    getState:()=>({
+      generation, envType, selectionPressure,
+      darkPct: Math.round(population.filter(m=>m.dark).length / POP_SIZE * 100)
+    })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -1484,7 +1628,10 @@ function buildEcology(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop:()=>{ running=false; } };
+  return {
+    stop:()=>{ running=false; },
+    getState:()=>({ viewMode, showEnergy })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -1729,7 +1876,10 @@ function buildDNA(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop:()=>{ running=false; } };
+  return {
+    stop:()=>{ running=false; },
+    getState:()=>({ viewMode, speed })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -2123,7 +2273,10 @@ function buildRespiration(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop: () => { running = false; } };
+  return {
+    stop: () => { running = false; },
+    getState: () => ({ viewMode, speed, atpDisplayed: Math.round(atpDisplayed) })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -2383,7 +2536,10 @@ function buildBody(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop: () => { running = false; } };
+  return {
+    stop: () => { running = false; },
+    getState: () => ({ viewMode, heartRate })
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -2681,7 +2837,10 @@ function buildMicro(canvas, color, preview, leftPanel) {
   }
 
   draw();
-  return { stop: () => { running = false; } };
+  return {
+    stop: () => { running = false; },
+    getState: () => ({ viewMode, antibioticApplied, phase, phaseName: phaseNames[phase], virusStep })
+  };
 }
 
 // ══════════════════════════════════════════════
