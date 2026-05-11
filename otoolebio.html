@@ -2485,24 +2485,60 @@ function buildBody(canvas, color, preview, leftPanel) {
     // ECG trace at bottom
     if (!preview) {
       const ecgY = H * 0.87;
+      const secondsAcross = 6.5;
+      const beatInterval = 60 / Math.max(1, heartRate); // seconds per beat — this changes visible ECG spacing
+      const scrollSeconds = (frame / 60) * reactionSpeed;
+      const rhythmLabel = heartRate < 60 ? 'BRADYCARDIA — slow, wide-spaced QRS' : heartRate > 100 ? 'TACHYCARDIA — fast, tight QRS' : 'NORMAL SINUS RHYTHM';
+
+      // ECG baseline grid
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx <= W; gx += 28) {
+        ctx.beginPath(); ctx.moveTo(gx, ecgY - 36); ctx.lineTo(gx, ecgY + 32); ctx.stroke();
+      }
+      for (let gy = -30; gy <= 30; gy += 15) {
+        ctx.beginPath(); ctx.moveTo(0, ecgY + gy); ctx.lineTo(W, ecgY + gy); ctx.stroke();
+      }
+      ctx.restore();
+
       ctx.strokeStyle = color; ctx.lineWidth = 3;
       ctx.beginPath();
       for (let x = 0; x < W; x++) {
-        const t = ((x / W) + frame * 0.004 * bps * reactionSpeed) % 1;
+        // Convert x-position into seconds, then wrap by the selected heart-rate interval.
+        // Low bpm now creates fewer, wider-spaced beats; high bpm creates many tight beats.
+        const timeAtX = scrollSeconds + (x / W) * secondsAcross;
+        const phase = ((timeAtX % beatInterval) + beatInterval) % beatInterval;
+        const t = phase / beatInterval;
         let y = 0;
-        if (t < 0.1) y = Math.sin(t / 0.1 * Math.PI) * 4; // P wave
-        else if (t < 0.35) y = 0;
-        else if (t < 0.38) y = -Math.sin((t - 0.35) / 0.03 * Math.PI) * 8; // Q
-        else if (t < 0.42) y = Math.sin((t - 0.38) / 0.04 * Math.PI) * 30; // R
-        else if (t < 0.46) y = -Math.sin((t - 0.42) / 0.04 * Math.PI) * 6; // S
-        else if (t < 0.7) y = Math.sin((t - 0.46) / 0.24 * Math.PI) * 6; // T wave
+        if (t < 0.10) y = Math.sin(t / 0.10 * Math.PI) * 5; // P wave
+        else if (t < 0.30) y = 0;
+        else if (t < 0.34) y = -Math.sin((t - 0.30) / 0.04 * Math.PI) * 9; // Q
+        else if (t < 0.39) y = Math.sin((t - 0.34) / 0.05 * Math.PI) * 34; // R
+        else if (t < 0.44) y = -Math.sin((t - 0.39) / 0.05 * Math.PI) * 8; // S
+        else if (t < 0.70) y = Math.sin((t - 0.44) / 0.26 * Math.PI) * 7; // T wave
+        if (oxygenSat < 90) y *= 0.65; // low oxygen visibly weakens the trace
         if (x === 0) ctx.moveTo(x, ecgY - y);
         else ctx.lineTo(x, ecgY - y);
       }
       ctx.stroke();
+
+      // Beat markers make the rate change obvious for students.
+      ctx.fillStyle = color + '55';
+      const markerOffset = scrollSeconds % beatInterval;
+      for (let beatTime = -markerOffset; beatTime < secondsAcross; beatTime += beatInterval) {
+        const mx = (beatTime / secondsAcross) * W;
+        if (mx >= 0 && mx <= W) {
+          ctx.beginPath(); ctx.arc(mx, ecgY - 42, 3, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
       ctx.fillStyle = color; ctx.font = 'bold 10px DM Mono,monospace'; ctx.textAlign = 'left';
-      ctx.fillText('ECG', 8, ecgY - 30);
-      ctx.fillText(`${heartRate} bpm`, 8, ecgY + 36);
+      ctx.fillText('ECG', 8, ecgY - 48);
+      ctx.fillText(`${heartRate} bpm`, 8, ecgY + 42);
+      ctx.fillStyle = heartRate < 60 || heartRate > 100 ? '#e05c5c' : '#7ecf3f';
+      ctx.fillText(rhythmLabel, 64, ecgY + 42);
     }
   }
 
