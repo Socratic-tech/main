@@ -17,13 +17,28 @@
 .realImageWrap img{width:100%;height:100%;object-fit:contain;display:block;background:#020407}
 .realImageCredit{font-size:10px;color:#9fb9c8;padding:6px 8px;border-top:1px solid rgba(255,255,255,.12);line-height:1.25}
 
-@media(max-width:1100px){.topbar,.layout,.roomLayout,.examScene,.debrief,.imageScene,.filmViewer{grid-template-columns:1fr}.monitor{grid-template-columns:repeat(3,1fr)}.ecgWrap{grid-column:1/-1;height:116px}.questionGrid,.clipboardGrid,.reqs,.consultGrid,.hubGrid,.rotationGrid{grid-template-columns:1fr}.stageCard{min-height:auto}.app{padding:8px}.stageHeader{display:block}.side{display:none}.side.mobile{display:grid}}
+
+.procedureScene{display:grid;grid-template-columns:minmax(360px,1fr) 370px;gap:18px;align-items:start}
+.procedureRoom{position:relative;min-height:560px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 50% 44%,rgba(82,242,122,.10),transparent 15rem),linear-gradient(180deg,rgba(7,30,52,.82),rgba(0,0,0,.22));overflow:hidden}
+.orTable{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);width:78%;height:64px;border-radius:24px;background:linear-gradient(180deg,#536270,#1e3142);border:1px solid rgba(255,255,255,.22);box-shadow:0 20px 38px rgba(0,0,0,.42)}
+.procPatient{position:absolute;left:50%;top:278px;transform:translate(-50%,-50%);width:115px;height:270px;border-radius:54px;background:linear-gradient(180deg,#9db8c2,#7899a5);border:1px solid rgba(255,255,255,.22);box-shadow:0 14px 34px rgba(0,0,0,.34)}
+.procPatient:before{content:'';position:absolute;left:50%;top:-58px;transform:translateX(-50%);width:58px;height:64px;border-radius:50%;background:#c98b68}
+.procTarget{position:absolute;left:50%;top:318px;transform:translate(-50%,-50%);width:82px;height:82px;border-radius:50%;border:2px solid rgba(255,157,53,.8);background:radial-gradient(circle,rgba(255,157,53,.42),rgba(255,157,53,.12) 45%,transparent 68%);box-shadow:0 0 30px rgba(255,157,53,.22)}
+.procTarget.chest{top:230px;left:58%}.procTarget.hip{top:365px;left:62%}.procTarget.pelvis{top:355px;left:50%}.procTarget.vascular{top:310px;left:50%}
+.procOverlay{position:absolute;inset:22px;border-radius:24px;border:2px solid rgba(82,242,122,.22);box-shadow:inset 0 0 45px rgba(82,242,122,.06),0 0 35px rgba(82,242,122,.08)}
+.procOverlay.bad{border-color:rgba(255,77,77,.48);box-shadow:inset 0 0 45px rgba(255,77,77,.08),0 0 35px rgba(255,77,77,.12)}
+.procControls{display:grid;gap:12px}.procCard{padding:12px;border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.17)}.procCard h3{margin:0 0 8px;font-size:15px}
+.toolGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.procTool{padding:12px 10px;text-align:left;min-height:68px}.procTool.done{border-color:rgba(82,242,122,.62);background:rgba(82,242,122,.09)}.procTool b{display:block;font-size:13px}.procTool span{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.25}
+.safetyMeter{height:14px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.safetyFill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--red),var(--orange),var(--green));width:0%}
+.procChecklist{display:grid;gap:7px}.procCheck{padding:9px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);font-size:12px}.procCheck.done{border-color:rgba(82,242,122,.55);background:rgba(82,242,122,.08)}.procCheck.current{border-color:rgba(32,217,255,.65);background:rgba(32,217,255,.11)}
+
+@media(max-width:1100px){.topbar,.layout,.roomLayout,.examScene,.debrief,.imageScene,.filmViewer,.procedureScene{grid-template-columns:1fr}.monitor{grid-template-columns:repeat(3,1fr)}.ecgWrap{grid-column:1/-1;height:116px}.questionGrid,.clipboardGrid,.reqs,.consultGrid,.hubGrid,.rotationGrid{grid-template-columns:1fr}.stageCard{min-height:auto}.app{padding:8px}.stageHeader{display:block}.side{display:none}.side.mobile{display:grid}}
 </style>
 </head>
 <body>
 <div class="app"><div class="shell"><section class="topbar"><div class="card brand"><div class="logo">⌁</div><div><h1>Vitals: The Teaching Hospital</h1><div class="subtitle">Expanded Surgical Consults + Rotations</div></div></div><div class="card monitor"><div class="ecgWrap"><canvas id="ecg" width="720" height="110"></canvas><div class="live">● LIVE</div></div><div class="vital hr"><div><small>HR</small><b id="vHR">--</b><span>bpm</span></div></div><div class="vital bp"><div><small>BP</small><b id="vBP">--</b><span>mmHg</span></div></div><div class="vital temp"><div><small>Temp</small><b id="vTemp">--</b><span>°C</span></div></div><div class="vital o2"><div><small>SpO₂</small><b id="vO2">--</b><span>%</span></div></div><div class="vital pain"><div><small>Pain</small><b id="vPain">--</b><span>/10</span></div></div><div class="stab"><div><div class="meter"></div><b id="vStability">--</b><span id="stabLabel">STABLE</span></div></div></div></section><section class="layout"><aside class="side"><div class="card"><div class="panelHead"><h3>Case Flow</h3></div><div class="panelBody"><div class="stepList" id="stepList"></div></div></div><div class="card"><div class="panelHead"><h3>Event Log</h3><button onclick="clearLog()">Clear</button></div><div class="panelBody"><div class="log" id="eventLog"></div></div></div></aside><main class="card stageCard"><div id="stage"></div></main><aside class="side mobile"><div class="card"><div class="panelHead"><h3>Evidence</h3><span class="muted" id="evidenceCount">0</span></div><div class="panelBody"><div class="evidenceStack" id="evidenceStack"></div></div></div></aside></section></div></div>
 <script>
-const scenes=[{id:'hub',label:'Hospital Hub',icon:'🏥',copy:'Choose case'},{id:'room',label:'Patient Room',icon:'📋',copy:'Read chart'},{id:'interview',label:'Interview',icon:'💬',copy:'Ask questions'},{id:'exam',label:'Exam',icon:'🖐️',copy:'Map findings'},{id:'imaging',label:'Imaging',icon:'🩻',copy:'Run study'},{id:'decision',label:'Decision',icon:'⚖️',copy:'Treat or consult'},{id:'debrief',label:'Debrief',icon:'✅',copy:'Review'}];
+const scenes=[{id:'hub',label:'Hospital Hub',icon:'🏥',copy:'Choose case'},{id:'room',label:'Patient Room',icon:'📋',copy:'Read chart'},{id:'interview',label:'Interview',icon:'💬',copy:'Ask questions'},{id:'exam',label:'Exam',icon:'🖐️',copy:'Map findings'},{id:'imaging',label:'Imaging',icon:'🩻',copy:'Run study'},{id:'decision',label:'Decision',icon:'⚖️',copy:'Treat or consult'},{id:'procedure',label:'Procedure',icon:'🛠️',copy:'Specialty steps'},{id:'debrief',label:'Debrief',icon:'✅',copy:'Review'}];
 function q(id,question,result,value,icon,title,type){return{id,question,result,value,ev:{id,icon,title,type,source:'Interview'}}}function low(id,question,result){return{id,question,result,value:'low'}}
 function abdExam(painful,findings){return{type:'abdomen',required:['ruq','luq','rlq','llq'],regions:[{id:'ruq',label:'RUQ'},{id:'luq',label:'LUQ'},{id:'navel',label:'Navel'},{id:'rlq',label:'RLQ'},{id:'llq',label:'LLQ'},{id:'rebound',label:'Rebound'}],painful,findings}}
 function limbExam(painful,findings){return{type:'limb',required:['hip','pulses','sensation','movement'],regions:[{id:'hip',label:'Hip'},{id:'knee',label:'Knee'},{id:'pulses',label:'Pulses'},{id:'ankle',label:'Ankle'},{id:'sensation',label:'Sensation'},{id:'movement',label:'ROM'}],painful,findings}}
@@ -80,9 +95,9 @@ function correctLabelFor(p){
 }
 
 const baseVitals=Object.fromEntries(cases.map(c=>[c.id,{...c.vitals}]));
-const game={scene:'hub',track:'General Surgery',caseIndex:0,score:0,time:0,budget:3000,evidence:[],log:[],asked:[],slots:5,examined:[],selectedAction:null,selectedConsult:null,outcome:null,mistakes:[],imaging:{modality:'xray',target:'abdomenAP',beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false},done:{hub:false,room:false,interview:false,exam:false,imaging:false,decision:false,debrief:false}};
-function c(){return cases[game.caseIndex]}function v(){return c().vitals}function resetCase(idx=game.caseIndex){cases.forEach(x=>x.vitals={...baseVitals[x.id]});Object.assign(game,{scene:'room',track:game.track,caseIndex:idx,score:0,time:0,budget:3000,evidence:[],log:[],asked:[],slots:5,examined:[],selectedAction:null,selectedConsult:null,outcome:null,mistakes:[],imaging:{modality:cases[idx].imaging.modality,target:cases[idx].imaging.target,beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false},done:{hub:true,room:false,interview:false,exam:false,imaging:false,decision:false,debrief:false}});addLog('🏥',`Opened case: ${c().name}, Room ${c().room}.`);render()}function goHub(){game.scene='hub';render();window.scrollTo({top:0,behavior:'smooth'})}function formatTime(){const m=12+game.time,h=9+Math.floor(m/60);return`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}function spend(min,pts=0){game.time+=min;game.score+=pts;if(!game.outcome){v().stability=Math.max(0,v().stability-Math.ceil(min/12));if(v().stability<35)addLog('⚠️','Patient stability is getting low.')}}function addLog(icon,text){game.log.unshift({icon,text,time:formatTime()});game.log=game.log.slice(0,12)}function clearLog(){game.log=[];render()}function addEvidence(ev){if(ev&&!game.evidence.some(e=>e.id===ev.id))game.evidence.push(ev)}function setScene(scene){game.scene=scene;render();window.scrollTo({top:0,behavior:'smooth'})}function sceneDone(id){return game.done[id]||false}
-function render(){renderVitals();renderSteps();renderEvidence();renderLog();const stage=document.getElementById('stage');if(game.scene==='hub')stage.innerHTML=renderHub();if(game.scene==='room')stage.innerHTML=renderRoom();if(game.scene==='interview')stage.innerHTML=renderInterview();if(game.scene==='exam')stage.innerHTML=renderExam();if(game.scene==='imaging')stage.innerHTML=renderImaging();if(game.scene==='decision')stage.innerHTML=renderDecision();if(game.scene==='debrief')stage.innerHTML=renderDebrief();if(game.scene==='imaging')updateBeam()}function renderVitals(){const vt=v();document.getElementById('vHR').textContent=Math.round(vt.hr);document.getElementById('vBP').textContent=vt.bp;document.getElementById('vTemp').textContent=vt.temp.toFixed(1);document.getElementById('vO2').textContent=Math.round(vt.spo2);document.getElementById('vPain').textContent=Math.round(vt.pain);document.getElementById('vStability').textContent=`${Math.round(vt.stability)}%`;document.getElementById('stabLabel').textContent=vt.stability<35?'CRITICAL':vt.stability<60?'WATCH':'STABLE'}function renderSteps(){document.getElementById('stepList').innerHTML=scenes.map(s=>`<div class="step ${game.scene===s.id?'active':''} ${sceneDone(s.id)?'done':''}"><div class="stepIcon">${sceneDone(s.id)?'✓':s.icon}</div><div><div class="stepTitle">${s.label}</div><div class="stepCopy">${s.copy}</div></div></div>`).join('')}function renderEvidence(){document.getElementById('evidenceCount').textContent=`${game.evidence.length} cards`;document.getElementById('evidenceStack').innerHTML=game.evidence.length?game.evidence.map(e=>`<div class="ev ${e.type||'neutral'}"><div class="evIcon">${e.icon||'•'}</div><div><strong>${e.title}</strong><span>${e.source}</span></div></div>`).join(''):`<div class="ev neutral"><div class="evIcon">🔎</div><div><strong>No evidence yet</strong><span>Interview, exam, and imaging findings appear here.</span></div></div>`}function renderLog(){document.getElementById('eventLog').innerHTML=game.log.length?game.log.map(l=>`<div class="logRow"><div>${l.icon}</div><div><time>${l.time}</time>${l.text}</div></div>`).join(''):`<div class="logRow"><div>•</div><div>No events yet.</div></div>`}function header(badge,title,copy,right=''){return`<div class="stageHeader"><div><span class="badge">${badge}</span><h2>${title}</h2><p>${copy}</p></div><div class="actions">${right}</div></div>`}function footer(left='',right=''){return`<div class="footer"><div class="group">${left}</div><div class="group">${right}</div></div>`}
+const game={scene:'hub',track:'General Surgery',caseIndex:0,score:0,time:0,budget:3000,evidence:[],log:[],asked:[],slots:5,examined:[],selectedAction:null,selectedConsult:null,outcome:null,mistakes:[],procedure:{step:0,safety:55,mistakes:0,completed:[],name:null},imaging:{modality:'xray',target:'abdomenAP',beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false},done:{hub:false,room:false,interview:false,exam:false,imaging:false,decision:false,procedure:false,debrief:false}};
+function c(){return cases[game.caseIndex]}function v(){return c().vitals}function resetCase(idx=game.caseIndex){cases.forEach(x=>x.vitals={...baseVitals[x.id]});Object.assign(game,{scene:'room',track:game.track,caseIndex:idx,score:0,time:0,budget:3000,evidence:[],log:[],asked:[],slots:5,examined:[],selectedAction:null,selectedConsult:null,outcome:null,mistakes:[],procedure:{step:0,safety:55,mistakes:0,completed:[],name:null},imaging:{modality:cases[idx].imaging.modality,target:cases[idx].imaging.target,beamX:50,beamY:50,exposure:55,still:false,taken:false,quality:0,usable:false},done:{hub:true,room:false,interview:false,exam:false,imaging:false,decision:false,procedure:false,debrief:false}});addLog('🏥',`Opened case: ${c().name}, Room ${c().room}.`);render()}function goHub(){game.scene='hub';render();window.scrollTo({top:0,behavior:'smooth'})}function formatTime(){const m=12+game.time,h=9+Math.floor(m/60);return`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}function spend(min,pts=0){game.time+=min;game.score+=pts;if(!game.outcome){v().stability=Math.max(0,v().stability-Math.ceil(min/12));if(v().stability<35)addLog('⚠️','Patient stability is getting low.')}}function addLog(icon,text){game.log.unshift({icon,text,time:formatTime()});game.log=game.log.slice(0,12)}function clearLog(){game.log=[];render()}function addEvidence(ev){if(ev&&!game.evidence.some(e=>e.id===ev.id))game.evidence.push(ev)}function setScene(scene){game.scene=scene;render();window.scrollTo({top:0,behavior:'smooth'})}function sceneDone(id){return game.done[id]||false}
+function render(){renderVitals();renderSteps();renderEvidence();renderLog();const stage=document.getElementById('stage');if(game.scene==='hub')stage.innerHTML=renderHub();if(game.scene==='room')stage.innerHTML=renderRoom();if(game.scene==='interview')stage.innerHTML=renderInterview();if(game.scene==='exam')stage.innerHTML=renderExam();if(game.scene==='imaging')stage.innerHTML=renderImaging();if(game.scene==='decision')stage.innerHTML=renderDecision();if(game.scene==='procedure')stage.innerHTML=renderProcedure();if(game.scene==='debrief')stage.innerHTML=renderDebrief();if(game.scene==='imaging')updateBeam()}function renderVitals(){const vt=v();document.getElementById('vHR').textContent=Math.round(vt.hr);document.getElementById('vBP').textContent=vt.bp;document.getElementById('vTemp').textContent=vt.temp.toFixed(1);document.getElementById('vO2').textContent=Math.round(vt.spo2);document.getElementById('vPain').textContent=Math.round(vt.pain);document.getElementById('vStability').textContent=`${Math.round(vt.stability)}%`;document.getElementById('stabLabel').textContent=vt.stability<35?'CRITICAL':vt.stability<60?'WATCH':'STABLE'}function renderSteps(){document.getElementById('stepList').innerHTML=scenes.map(s=>`<div class="step ${game.scene===s.id?'active':''} ${sceneDone(s.id)?'done':''}"><div class="stepIcon">${sceneDone(s.id)?'✓':s.icon}</div><div><div class="stepTitle">${s.label}</div><div class="stepCopy">${s.copy}</div></div></div>`).join('')}function renderEvidence(){document.getElementById('evidenceCount').textContent=`${game.evidence.length} cards`;document.getElementById('evidenceStack').innerHTML=game.evidence.length?game.evidence.map(e=>`<div class="ev ${e.type||'neutral'}"><div class="evIcon">${e.icon||'•'}</div><div><strong>${e.title}</strong><span>${e.source}</span></div></div>`).join(''):`<div class="ev neutral"><div class="evIcon">🔎</div><div><strong>No evidence yet</strong><span>Interview, exam, and imaging findings appear here.</span></div></div>`}function renderLog(){document.getElementById('eventLog').innerHTML=game.log.length?game.log.map(l=>`<div class="logRow"><div>${l.icon}</div><div><time>${l.time}</time>${l.text}</div></div>`).join(''):`<div class="logRow"><div>•</div><div>No events yet.</div></div>`}function header(badge,title,copy,right=''){return`<div class="stageHeader"><div><span class="badge">${badge}</span><h2>${title}</h2><p>${copy}</p></div><div class="actions">${right}</div></div>`}function footer(left='',right=''){return`<div class="footer"><div class="group">${left}</div><div class="group">${right}</div></div>`}
 function renderHub(){
   const rotationButtons=rotations.map(r=>`<button class="rotationBtn ${game.track===r.id?'active':''}" onclick="setTrack('${r.id}')"><b>${r.icon} ${r.title}</b><span>${r.copy}</span></button>`).join('');
   const ordered=[...cases].map((p,i)=>({p,i,relevant:rotationRelevant(p)})).sort((a,b)=>Number(b.relevant)-Number(a.relevant));
@@ -110,8 +125,172 @@ function renderDecision(){const actions=[['observe','👀','Observe','No immedia
   addLog('✅',`Correct ${game.track} decision: ${action}${spec?' '+spec:''}.`);
   setScene('debrief')
 }
-function lectureScreen(msg){document.getElementById('stage').innerHTML=`${header('Chief Resident Lecture','Decision Rejected','The patient survives the lesson, but your evaluation drops.')}<div class="stageBody"><div class="callout"><b>${msg}</b><br><br>Go back, gather the missing evidence, and try again.</div></div>${footer(`<button class="primary" onclick="setScene('decision')">Back to Decision</button>`,`<button onclick="medicalNotes()">Review Notes</button>`)}`}function medicalNotes(){document.getElementById('stage').innerHTML=`${header('Reference','Rotation and Consult Decision Rules','Your role changes the correct action.')}<div class="stageBody"><div class="callout"><ol><li><b>General Surgery:</b> operate/admit abdominal surgical cases; consult Urology, Vascular, Orthopedics, OB/GYN, or Emergency Medicine when the case belongs there.</li><li><b>Orthopedics:</b> admit/own hip fracture and sprain-style bone/joint cases; consult General Surgery for abdominal emergencies.</li><li><b>Vascular:</b> large AAA belongs to you and may require operation; abdominal infections still go to General Surgery or Internal Medicine.</li><li><b>Urology:</b> kidney stone belongs to you; other abdominal surgical disease should be consulted back to General Surgery.</li><li><b>OB/GYN:</b> ectopic pregnancy concern belongs to you urgently.</li><li><b>Emergency Medicine:</b> pneumothorax/stabilization belongs to you; definitive surgical cases need the right service.</li></ol></div></div>${footer(`<button class="primary" onclick="setScene('decision')">Back to Decision</button>`,'')}`}
-function renderDebrief(){const score=Math.max(0,Math.min(100,80+Math.round(v().stability/5)+countUseful()*2+(game.done.imaging?8:0)-game.mistakes.length*10));game.done.debrief=true;const action=game.selectedAction==='consult'?`Consult ${game.selectedConsult}`:game.selectedAction;const correct=correctLabelFor(c());return`${header('Scene 6','Debrief','Review your reasoning before the next patient.')}<div class="stageBody"><div class="debrief"><div class="scoreCircle">${score}</div><div class="debriefList"><div class="debriefItem"><strong>Final diagnosis</strong><span>${c().diagnosis}</span></div><div class="debriefItem"><strong>Your rotation</strong><span>${game.track}</span></div><div class="debriefItem"><strong>Correct action</strong><span>${correct}</span></div><div class="debriefItem"><strong>Your action</strong><span>${action||'none'}</span></div><div class="debriefItem"><strong>Imaging</strong><span>${game.done.imaging?'Usable study completed.':'Required study missing or limited.'}</span></div><div class="debriefItem"><strong>Clinical takeaway</strong><span>${c().teach}</span></div><div class="debriefItem"><strong>Mistakes</strong><span>${game.mistakes.length?game.mistakes.join(' '):'No major reasoning errors.'}</span></div></div></div></div>${footer(`<button onclick="resetCase(game.caseIndex)">Replay Case</button>`,`<button class="primary" onclick="goHub()">Choose Next Case ▶</button>`)}`}
+function lectureScreen(msg){document.getElementById('stage').innerHTML=`${header('Chief Resident Lecture','Decision Rejected','The patient survives the lesson, but your evaluation drops.')}<div class="stageBody"><div class="callout"><b>${msg}</b><br><br>Go back, gather the missing evidence, and try again.</div></div>${footer(`<button class="primary" onclick="setScene('decision')">Back to Decision</button>`,`<button onclick="medicalNotes()">Review Notes</button>`)}`}function medicalNotes(){document.getElementById('stage').innerHTML=`${header('Reference','Rotation and Consult Decision Rules','Your role changes the correct action.')}<div class="stageBody"><div class="callout"><ol><li><b>General Surgery:</b> operate/admit abdominal surgical cases; consult Urology, Vascular, Orthopedics, OB/GYN, or Emergency Medicine when the case belongs there.</li><li><b>Orthopedics:</b> admit/own hip fracture and sprain-style bone/joint cases; consult General Surgery for abdominal emergencies.</li><li><b>Vascular:</b> large AAA belongs to you and may require operation; abdominal infections still go to General Surgery or Internal Medicine.</li><li><b>Urology:</b> kidney stone belongs to you; other abdominal surgical disease should be consulted back to General Surgery.</li><li><b>OB/GYN:</b> ectopic pregnancy concern belongs to you urgently.</li><li><b>Emergency Medicine:</b> pneumothorax/stabilization belongs to you; definitive surgical cases need the right service.</li><li><b>Procedures:</b> when the case belongs to your rotation, a procedure mini-game unlocks after the correct decision. Complete steps in the right order.</li></ol></div></div>${footer(`<button class="primary" onclick="setScene('decision')">Back to Decision</button>`,'')}`}
+
+const procedures={
+  appendectomy:{title:'Appendectomy',target:'abdomen',owner:'General Surgery',steps:[
+    ['scrub','🧼','Scrub and gown','Establish sterile field.'],
+    ['antibiotic','💉','Give antibiotics','Give pre-op antibiotics.'],
+    ['incision','🔪','RLQ incision','Open at the correct lower-right site.'],
+    ['identify','🔎','Identify appendix','Find appendix; do not cut blindly.'],
+    ['clamp','🩺','Clamp base','Control the appendix base.'],
+    ['remove','✂️','Remove appendix','Remove after clamping.'],
+    ['irrigate','🧽','Irrigate field','Clear contamination.'],
+    ['close','🪡','Close layers','Close fascia and skin.']
+  ]},
+  chole:{title:'Laparoscopic Gallbladder Setup',target:'abdomen',owner:'General Surgery',steps:[
+    ['scrub','🧼','Scrub and gown','Establish sterile field.'],
+    ['antibiotic','💉','Give antibiotics','Cover inflamed gallbladder.'],
+    ['ports','🎯','Place ports','Set safe laparoscopic access.'],
+    ['identify','🔎','Identify cystic duct','Confirm anatomy before clipping.'],
+    ['clip','📎','Clip duct/artery','Clip before cutting.'],
+    ['remove','✂️','Remove gallbladder','Separate and remove.'],
+    ['inspect','👁️','Inspect for bile leak','Check the field.'],
+    ['close','🪡','Close ports','Finish safely.']
+  ]},
+  obstruction:{title:'Bowel Obstruction Exploration',target:'abdomen',owner:'General Surgery',steps:[
+    ['ng','🧪','Confirm NG tube','Decompress before operation.'],
+    ['scrub','🧼','Scrub and prep','Sterile field.'],
+    ['incision','🔪','Midline incision','Enter abdomen safely.'],
+    ['explore','🔎','Run the bowel','Find transition point.'],
+    ['release','✂️','Release adhesion','Free obstructing band.'],
+    ['check','👁️','Check bowel viability','Look for ischemia.'],
+    ['irrigate','🧽','Irrigate field','Clear contamination.'],
+    ['close','🪡','Close abdomen','Finish safely.']
+  ]},
+  hernia:{title:'Incarcerated Hernia Repair',target:'abdomen',owner:'General Surgery',steps:[
+    ['scrub','🧼','Scrub and prep','Sterile groin prep.'],
+    ['incision','🔪','Groin incision','Open over hernia.'],
+    ['inspect','👁️','Inspect bowel','Check viability.'],
+    ['reduce','🤲','Reduce hernia','Return contents safely.'],
+    ['repair','🧵','Repair defect','Close the weakness.'],
+    ['close','🪡','Close skin','Finish safely.']
+  ]},
+  aaa:{title:'AAA Vascular Repair',target:'vascular',owner:'Vascular',steps:[
+    ['blood','🩸','Activate blood','Prepare for major bleeding.'],
+    ['scrub','🧼','Scrub and prep','Sterile field.'],
+    ['expose','🔎','Expose aorta','Gain proximal/distal control.'],
+    ['clamp','🩺','Clamp aorta','Control blood flow.'],
+    ['graft','🧬','Place graft','Repair aneurysm.'],
+    ['release','↔️','Release clamps slowly','Restore flow carefully.'],
+    ['check','👁️','Check pulses','Confirm perfusion.'],
+    ['close','🪡','Close abdomen','Finish safely.']
+  ]},
+  hip:{title:'Hip Fracture Fixation',target:'hip',owner:'Orthopedics',steps:[
+    ['position','📐','Position patient','Align hip for fixation.'],
+    ['prep','🧼','Prep and drape','Sterile orthopedic field.'],
+    ['reduce','↔️','Reduce fracture','Restore alignment.'],
+    ['guidewire','📍','Place guidewire','Aim hardware correctly.'],
+    ['screw','🔩','Place fixation','Secure fracture.'],
+    ['xray','🩻','Confirm alignment','Check hardware position.'],
+    ['close','🪡','Close wound','Finish safely.']
+  ]},
+  ectopic:{title:'Ectopic Pregnancy Procedure',target:'pelvis',owner:'OB/GYN',steps:[
+    ['blood','🩸','Prepare blood','Hemorrhage risk.'],
+    ['prep','🧼','Prep and drape','Sterile pelvic field.'],
+    ['access','🎯','Laparoscopic access','Enter safely.'],
+    ['identify','🔎','Identify ectopic site','Confirm location.'],
+    ['control','🩺','Control bleeding','Stabilize field.'],
+    ['remove','✂️','Remove ectopic tissue','Definitive treatment.'],
+    ['inspect','👁️','Inspect pelvis','Check bleeding.'],
+    ['close','🪡','Close ports','Finish safely.']
+  ]},
+  chesttube:{title:'Chest Tube Placement',target:'chest',owner:'Emergency Medicine',steps:[
+    ['oxygen','🫁','Give oxygen','Stabilize breathing.'],
+    ['prep','🧼','Prep chest wall','Sterile field.'],
+    ['site','📍','Mark safe site','Correct intercostal space.'],
+    ['incision','🔪','Small incision','Open safely.'],
+    ['dissect','↔️','Blunt dissect','Avoid sharp deep cut.'],
+    ['tube','🧪','Insert tube','Advance into pleural space.'],
+    ['connect','🫧','Connect suction','Restore negative pressure.'],
+    ['confirm','🩻','Confirm placement','Check lung expansion.']
+  ]},
+  stone:{title:'Ureteral Stone Stent Setup',target:'abdomen',owner:'Urology',steps:[
+    ['consent','📋','Confirm plan','Procedure and side.'],
+    ['prep','🧼','Prep sterile field','Sterile urologic setup.'],
+    ['scope','🔭','Advance scope','Enter urinary tract.'],
+    ['wire','📍','Pass guidewire','Get access past stone.'],
+    ['stent','🧪','Place stent','Relieve obstruction.'],
+    ['confirm','🩻','Confirm drainage','Check placement.']
+  ]}
+};
+function procedureKeyFor(p){
+  if(p.id==='appendicitis')return 'appendectomy';
+  if(p.id==='gallbladder')return 'chole';
+  if(p.id==='obstruction')return 'obstruction';
+  if(p.id==='hernia')return 'hernia';
+  if(p.id==='aaa')return 'aaa';
+  if(p.id==='hip')return 'hip';
+  if(p.id==='ectopic')return 'ectopic';
+  if(p.id==='pneumothorax')return 'chesttube';
+  if(p.id==='stone')return 'stone';
+  return null;
+}
+function shouldDoProcedure(p){
+  const key=procedureKeyFor(p);
+  if(!key)return false;
+  const proc=procedures[key];
+  return proc&&proc.owner===game.track;
+}
+function resetProcedure(){
+  const key=procedureKeyFor(c());
+  const proc=key?procedures[key]:null;
+  game.procedure={step:0,safety:55,mistakes:0,completed:[],name:proc?proc.title:null};
+}
+function renderProcedure(){
+  const key=procedureKeyFor(c()),proc=key?procedures[key]:null;
+  if(!proc)return renderDebrief();
+  const current=proc.steps[game.procedure.step];
+  if(!current)return renderProcedureComplete();
+  const tools=proc.steps.map((s,i)=>`<button class="procTool ${game.procedure.completed.includes(s[0])?'done':''}" onclick="useProcedureTool('${s[0]}')"><b>${s[1]} ${s[2]}</b><span>${s[3]}</span></button>`).join('');
+  const checks=proc.steps.map((s,i)=>`<div class="procCheck ${game.procedure.completed.includes(s[0])?'done':''} ${i===game.procedure.step?'current':''}">${game.procedure.completed.includes(s[0])?'✓':i===game.procedure.step?'▶':'•'} ${s[2]}</div>`).join('');
+  const bad=game.procedure.safety<55?'bad':'';
+  return `${header('Scene 6',`${proc.title} Mini-Game`,'Complete the specialty procedure in the correct order. Wrong steps reduce safety and stability.')}<div class="stageBody"><div class="procedureScene"><div class="procedureRoom"><div class="procOverlay ${bad}"></div><div class="procPatient"></div><div class="procTarget ${proc.target}"></div><div class="orTable"></div></div><div class="procControls"><div class="procCard"><h3>Current Step</h3><div class="callout"><b>${current[1]} ${current[2]}</b><br>${current[3]}</div></div><div class="procCard"><h3>Procedure Safety: ${game.procedure.safety}%</h3><div class="safetyMeter"><div class="safetyFill" style="width:${game.procedure.safety}%"></div></div><p class="teacherNote">Finish at 70%+ for a clean procedure.</p></div><div class="procCard"><h3>Tool / Action Tray</h3><div class="toolGrid">${tools}</div></div><div class="procCard"><h3>Checklist</h3><div class="procChecklist">${checks}</div></div></div></div></div>${footer(`<button onclick="setScene('decision')">◀ Back to Decision</button>`,`<button onclick="procedureHelp()">Procedure Help</button>`)}`;
+}
+function useProcedureTool(id){
+  const key=procedureKeyFor(c()),proc=key?procedures[key]:null;
+  if(!proc)return;
+  const expected=proc.steps[game.procedure.step];
+  if(!expected)return;
+  if(id===expected[0]){
+    game.procedure.completed.push(id);
+    game.procedure.step++;
+    game.procedure.safety=Math.min(100,game.procedure.safety+8);
+    spend(4,14);
+    addLog('🛠️',`${expected[2]} complete.`);
+    if(game.procedure.step>=proc.steps.length){
+      game.done.procedure=game.procedure.safety>=70;
+      if(game.done.procedure){
+        game.outcome='success';
+        addEvidence({id:'proc_'+key,icon:'🛠️',title:`${proc.title} completed safely`,type:'supportive',source:'Procedure'});
+        addLog('✅',`${proc.title} complete with safe procedure flow.`);
+      }else{
+        game.mistakes.push(`${proc.title} completed with compromised safety.`);
+        addLog('⚠️',`${proc.title} completed, but safety was compromised.`);
+      }
+    }
+  }else{
+    game.procedure.mistakes++;
+    game.procedure.safety=Math.max(0,game.procedure.safety-18);
+    spend(5,-18);
+    v().stability=Math.max(0,v().stability-4);
+    const chosen=proc.steps.find(s=>s[0]===id);
+    addLog('⚠️',`Wrong procedure order: ${chosen?chosen[2]:id}. Expected ${expected[2]}.`);
+    game.mistakes.push(`Procedure order error: used ${chosen?chosen[2]:id} before ${expected[2]}.`);
+  }
+  render();
+}
+function renderProcedureComplete(){
+  const key=procedureKeyFor(c()),proc=key?procedures[key]:null;
+  const safe=game.done.procedure;
+  return `${header('Scene 6','Procedure Complete',safe?'The specialty procedure was completed safely.':'The procedure was completed, but safety was compromised.')}<div class="stageBody"><div class="debrief"><div class="scoreCircle">${game.procedure.safety}%</div><div class="debriefList"><div class="debriefItem"><strong>Procedure</strong><span>${proc?proc.title:'None'}</span></div><div class="debriefItem"><strong>Safety</strong><span>${game.procedure.safety}% — ${safe?'safe flow':'compromised'}</span></div><div class="debriefItem"><strong>Procedure mistakes</strong><span>${game.procedure.mistakes}</span></div><div class="debriefItem"><strong>Completed sequence</strong><span>${game.procedure.completed.map(id=>proc.steps.find(s=>s[0]===id)?.[2]||id).join(' → ')}</span></div></div></div></div>${footer(`<button onclick="resetProcedure();game.done.procedure=false;setScene('procedure')">Retry Procedure</button>`,`<button class="primary" onclick="setScene('debrief')">Continue to Debrief ▶</button>`)}`;
+}
+function procedureHelp(){
+  const key=procedureKeyFor(c()),proc=key?procedures[key]:null;
+  const list=proc?proc.steps.map(s=>`<li>${s[1]} <b>${s[2]}</b>: ${s[3]}</li>`).join(''):'<li>No procedure for this case.</li>';
+  document.getElementById('stage').innerHTML=`${header('Procedure Help',proc?proc.title:'No Procedure','Follow the expected order for this specialty.')}<div class="stageBody"><div class="callout"><ol>${list}</ol></div></div>${footer(`<button class="primary" onclick="setScene('procedure')">Back to Procedure</button>`,'')}`;
+}
+function renderDebrief(){const score=Math.max(0,Math.min(100,80+Math.round(v().stability/5)+countUseful()*2+(game.done.imaging?8:0)+(game.done.procedure?10:0)-game.mistakes.length*10));game.done.debrief=true;const action=game.selectedAction==='consult'?`Consult ${game.selectedConsult}`:game.selectedAction;const correct=correctLabelFor(c());return`${header('Scene 6','Debrief','Review your reasoning before the next patient.')}<div class="stageBody"><div class="debrief"><div class="scoreCircle">${score}</div><div class="debriefList"><div class="debriefItem"><strong>Final diagnosis</strong><span>${c().diagnosis}</span></div><div class="debriefItem"><strong>Your rotation</strong><span>${game.track}</span></div><div class="debriefItem"><strong>Correct action</strong><span>${correct}</span></div><div class="debriefItem"><strong>Your action</strong><span>${action||'none'}</span></div><div class="debriefItem"><strong>Imaging</strong><span>${game.done.imaging?'Usable study completed.':'Required study missing or limited.'}</span></div><div class="debriefItem"><strong>Procedure</strong><span>${shouldDoProcedure(c())?(game.done.procedure?'Specialty procedure completed safely.':'Specialty procedure missing or compromised.'):'No owned procedure required for this rotation.'}</span></div><div class="debriefItem"><strong>Clinical takeaway</strong><span>${c().teach}</span></div><div class="debriefItem"><strong>Mistakes</strong><span>${game.mistakes.length?game.mistakes.join(' '):'No major reasoning errors.'}</span></div></div></div></div>${footer(`<button onclick="resetCase(game.caseIndex)">Replay Case</button>`,`<button class="primary" onclick="goHub()">Choose Next Case ▶</button>`)}`}
 
 const publicDomainImages={
   hip:{
