@@ -368,13 +368,275 @@
       color: var(--muted);
       font-size: .9rem;
     }
+
+
+    .standards-table-wrap {
+      overflow-x: auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .standards-table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+    .standards-table th, .standards-table td {
+      padding: .9rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+    .standards-table th {
+      background: #f3f7fb;
+      color: #31435f;
+      font-size: .84rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .standards-table tr:last-child td { border-bottom: none; }
+    .pe-list { display: flex; flex-wrap: wrap; gap: .35rem; margin: .1rem 0 .35rem; }
+    .pe {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      padding: .25rem .5rem;
+      font-size: .78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .standards-note {
+      color: var(--muted);
+      font-size: .92rem;
+      margin-top: .8rem;
+    }
+    .lookfor-list { margin: .2rem 0 0; padding-left: 1.1rem; color: var(--muted); }
+
+
+
+    .materials-dashboard {
+      display: grid;
+      grid-template-columns: minmax(280px, .95fr) minmax(0, 1.45fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    .material-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .material-card h3 { margin: 0 0 .5rem; line-height: 1.15; }
+    .material-card p { color: var(--muted); margin-top: 0; }
+    .readiness-meter {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: .8rem;
+      align-items: center;
+      margin: .8rem 0;
+    }
+    .meter-circle {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--green) 0deg, #e9edf4 0deg);
+      font-weight: 900;
+      color: var(--ink);
+    }
+    .meter-circle span {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      font-size: .95rem;
+    }
+    .prep-timeline { display: grid; gap: .7rem; }
+    .prep-step {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: .75rem;
+      align-items: start;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: .75rem;
+    }
+    .prep-step strong { color: var(--brand); }
+    .prep-step p { margin: 0; color: var(--muted); }
+    .materials-controls {
+      display: grid;
+      grid-template-columns: minmax(210px, 1fr) auto auto;
+      gap: .6rem;
+      align-items: end;
+      margin: .8rem 0;
+    }
+    .materials-output {
+      display: grid;
+      gap: .8rem;
+    }
+    .material-pill-list { display: flex; flex-wrap: wrap; gap: .4rem; margin: .55rem 0 0; }
+    .material-pill {
+      border-radius: 999px;
+      padding: .32rem .6rem;
+      background: #eef3f8;
+      color: #31435f;
+      font-size: .8rem;
+      font-weight: 800;
+    }
+    .material-pill.warn { background: #fff4d8; color: #7a4b00; }
+    .material-pill.risk { background: #fdecea; color: #934033; }
+    .material-pill.safe { background: #e6f3ec; color: #256143; }
+    .dashboard-note {
+      border-left: 5px solid var(--gold);
+      background: #fff8e8;
+      border-radius: 16px;
+      padding: .85rem;
+      color: #4b3a14;
+      margin-top: .8rem;
+    }
+    .bin-builder {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    .bin-builder textarea { min-height: 92px; }
+    .bin-labels {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .75rem;
+      margin-top: .8rem;
+    }
+    .bin-label {
+      border: 2px dashed #b8c5d8;
+      border-radius: 16px;
+      padding: .8rem;
+      background: #fbfcff;
+      min-height: 118px;
+    }
+    .bin-label strong { display: block; font-size: 1.05rem; }
+    .bin-label small { display: block; color: var(--muted); margin: .2rem 0 .4rem; }
+    .compact-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .92rem;
+    }
+    .compact-table th, .compact-table td {
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      padding: .65rem;
+    }
+    .compact-table th { background: #f3f7fb; color: #31435f; }
+    .compact-table tr:last-child td { border-bottom: none; }
+
     .source-list { padding-left: 1.2rem; }
     .source-list li { margin-bottom: .35rem; }
 
     .hidden { display: none !important; }
 
+
+    .page-toolbar {
+      max-width: 1220px;
+      margin: 0 auto 1rem;
+      padding: 0 1rem;
+    }
+    .page-toolbar-inner {
+      background: rgba(255,255,255,.82);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 28px rgba(20, 38, 61, .08);
+      padding: .9rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .page-kicker { color: var(--muted); font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .page-toolbar h2 { margin: .1rem 0; font-size: clamp(1.15rem, 2vw, 1.55rem); letter-spacing: -.03em; }
+    .page-toolbar p { margin: 0; color: var(--muted); max-width: 780px; }
+    .page-status-pill {
+      white-space: nowrap;
+      border: 1px solid var(--line);
+      background: var(--brand-soft);
+      color: var(--brand);
+      border-radius: 999px;
+      padding: .45rem .7rem;
+      font-weight: 800;
+      font-size: .84rem;
+    }
+    body:not(.show-all) .page-section { display: none; }
+    body:not(.show-all) .page-section.active-view { display: block; }
+    body:not(.show-all) header.hero:not(.active-view) { display: none; }
+    body:not(.show-all) header.hero.active-view { display: grid; }
+    body.show-all .page-toolbar .page-status-pill::after { content: " · all sections visible"; }
+    .nav-pills a.active {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+      box-shadow: 0 10px 20px rgba(23,91,115,.18);
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .9rem;
+    }
+    .dashboard-card {
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      text-decoration: none;
+      color: var(--ink);
+      box-shadow: 0 12px 28px rgba(20, 38, 61, .08);
+      transition: .18s ease;
+      min-height: 148px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .dashboard-card:hover { transform: translateY(-2px); border-color: #b4d9e1; background: #fff; }
+    .dashboard-card strong { display: block; font-size: 1.05rem; margin-bottom: .35rem; }
+    .dashboard-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .dashboard-card span { margin-top: .8rem; font-weight: 800; color: var(--brand); }
+    .search-results {
+      margin-top: .7rem;
+      display: grid;
+      gap: .45rem;
+      max-height: 210px;
+      overflow: auto;
+      padding-right: .25rem;
+    }
+    .search-result {
+      display: block;
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.88);
+      border-radius: 14px;
+      padding: .55rem .65rem;
+      font-size: .86rem;
+    }
+    .search-result strong { display: block; color: var(--brand); }
+    .search-result small { display: block; color: var(--muted); margin-top: .15rem; }
+
+    @media (max-width: 880px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .page-toolbar-inner { align-items: flex-start; flex-direction: column; }
+      .page-status-pill { white-space: normal; }
+    }
+
     @media (max-width: 980px) {
       .hero { grid-template-columns: 1fr; }
+      .materials-dashboard { grid-template-columns: 1fr; }
+      .materials-controls { grid-template-columns: 1fr; }
       .unit-grid, .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .sequence { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .calculator { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -382,7 +644,7 @@
       .nav-pills { justify-content: flex-start; }
     }
     @media (max-width: 650px) {
-      .grid.cols-2, .grid.cols-3, .grid.cols-4, .unit-grid, .sequence, .calculator { grid-template-columns: 1fr; }
+      .grid.cols-2, .grid.cols-3, .grid.cols-4, .unit-grid, .sequence, .calculator, .bin-builder, .bin-labels { grid-template-columns: 1fr; }
       .hero { padding-top: 1.5rem; }
       .topbar { position: static; }
       .hero-actions .btn { width: 100%; justify-content: center; }
@@ -393,8 +655,9 @@
       .topbar, .hero-actions, .searchbox, .unit-actions, .btn, .tabs, .calculator, .utility-btn { display: none !important; }
       .hero, main, .footer { max-width: none; padding: 0; }
       .hero { display: block; }
-      .hero-card, .coach-card, .panel, .unit-card, .tool-card, .routine-card, .template-card, .planner-card, .callout { box-shadow: none; break-inside: avoid; border-color: #aaa; background: #fff; }
+      .hero-card, .coach-card, .panel, .unit-card, .tool-card, .routine-card, .template-card, .planner-card, .material-card, .callout { box-shadow: none; break-inside: avoid; border-color: #aaa; background: #fff; }
       .tab-panel { display: block !important; }
+      .page-section, header.hero { display: block !important; }
       a { color: #000; text-decoration: none; }
     }
   </style>
@@ -406,28 +669,34 @@
     <div class="topbar-inner">
       <div class="brand-lockup">
         <div class="logo-mark" aria-hidden="true">8</div>
-        <div><strong>OpenSciEd 8 Toolkit</strong><span>First-year teacher support site</span></div>
+        <div><strong>OpenSciEd 8 Toolkit</strong><span>Implementation support site</span></div>
       </div>
-      <div class="nav-pills">
-        <a href="#start">Start</a>
-        <a href="#units">Units</a>
-        <a href="#routines">Routines</a>
-        <a href="#planning">Planning</a>
-        <a href="#assessment">Assessment</a>
-        <a href="#templates">Templates</a>
-        <button class="utility-btn" onclick="window.print()">Print Toolkit</button>
+      <div class="nav-pills" aria-label="Toolkit pages">
+        <a href="#home" data-view-link="home">Dashboard</a>
+        <a href="#units" data-view-link="units">Units</a>
+        <a href="#standards" data-view-link="standards">Standards</a>
+        <a href="#materials" data-view-link="materials">Materials</a>
+        <a href="#routines" data-view-link="routines">Routines</a>
+        <a href="#planning" data-view-link="planning">Planning</a>
+        <a href="#assessment" data-view-link="assessment">Assessment</a>
+        <a href="#templates" data-view-link="templates">Templates</a>
+        <a href="#coaching" data-view-link="coaching">Troubleshooting</a>
+        <button class="utility-btn" id="showAllBtn" type="button">Show full toolkit</button>
+        <button class="utility-btn" onclick="window.print()">Print</button>
       </div>
     </div>
   </nav>
 
-  <header class="hero">
+  <header class="hero active-view" data-view="home">
     <div class="hero-card">
       <span class="eyebrow">Teacher-facing support · Not a curriculum replacement</span>
       <h1>OpenSciEd 8th Grade Teacher Toolkit</h1>
-      <p class="lede">A practical launchpad for a teacher teaching OpenSciEd for the first time: unit-by-unit coaching, storyline routines, prep checklists, pacing guardrails, discussion moves, assessment shortcuts, and classroom-ready templates.</p>
+      <p class="lede">A practical implementation hub for teaching OpenSciEd 8: unit-by-unit coaching, storyline routines, prep checklists, pacing guardrails, NGSS alignment, discussion moves, assessment shortcuts, and classroom-ready templates.</p>
       <div class="hero-actions">
-        <a class="btn" href="#start">Start with the 30-minute setup</a>
+        <a class="btn" href="#home">Start with the setup path</a>
         <a class="btn secondary" href="#units">Open unit navigator</a>
+        <a class="btn secondary" href="#standards">View NGSS alignment</a>
+        <a class="btn secondary" href="#materials">Open materials dashboard</a>
         <a class="btn warn" href="#templates">Grab templates</a>
       </div>
     </div>
@@ -435,8 +704,9 @@
       <h2>Coach’s north star</h2>
       <div class="coach-note"><strong>Do not turn OpenSciEd into lecture notes.</strong><br />The power is in students noticing, questioning, investigating, modeling, arguing from evidence, and revising their thinking.</div>
       <label class="searchbox" for="siteSearch">
-        🔎 <input id="siteSearch" type="search" placeholder="Search: DQB, genetics, pacing..." />
+        🔎 <input id="siteSearch" type="search" placeholder="Search: NGSS, DQB, genetics, pacing..." />
       </label>
+      <div id="searchResults" class="search-results" hidden></div>
       <div class="progress-wrap">
         <div class="progress-label"><span>Toolkit checklist progress</span><span id="progressText">0%</span></div>
         <div class="progress-bar" aria-hidden="true"><span id="progressBar"></span></div>
@@ -444,12 +714,44 @@
     </aside>
   </header>
 
+  <div class="page-toolbar" aria-live="polite">
+    <div class="page-toolbar-inner">
+      <div>
+        <div class="page-kicker">Toolkit page</div>
+        <h2 id="activePageTitle">Dashboard</h2>
+        <p id="activePageDescription">Choose the support area you need. Only one page is shown at a time so the toolkit stays manageable.</p>
+      </div>
+      <div class="page-status-pill" id="activePageStatus">Focused view</div>
+    </div>
+  </div>
+
+
   <main id="main">
-    <section id="start" class="searchable">
+
+    <section id="home-dashboard" class="searchable page-section active-view" data-view="home">
+      <div class="section-title">
+        <div>
+          <h2>Choose the part of the toolkit you need</h2>
+          <p>This version works more like a small site: open one area at a time, then print the full toolkit only when needed.</p>
+        </div>
+      </div>
+      <div class="dashboard-grid" aria-label="Toolkit dashboard options">
+        <a class="dashboard-card" href="#units"><div><strong>Unit navigator</strong><p>Driving questions, coaching notes, misconceptions, and unit-specific implementation moves.</p></div><span>Open units →</span></a>
+        <a class="dashboard-card" href="#standards"><div><strong>NGSS alignment</strong><p>PE bundles translated into teacher look-fors and evidence artifacts.</p></div><span>Open standards →</span></a>
+        <a class="dashboard-card" href="#materials"><div><strong>Materials readiness</strong><p>Prep timelines, kit-list links, bin labels, consumables, and common failure points.</p></div><span>Open materials →</span></a>
+        <a class="dashboard-card" href="#routines"><div><strong>Routines</strong><p>DQB, navigation, modeling, problematizing, and putting-the-pieces-together moves.</p></div><span>Open routines →</span></a>
+        <a class="dashboard-card" href="#planning"><div><strong>Planning</strong><p>Pacing calculator, current-unit notes, weekly rhythm, and teacher prep flow.</p></div><span>Open planning →</span></a>
+        <a class="dashboard-card" href="#assessment"><div><strong>Assessment & learner support</strong><p>What to collect, how to give feedback, and how to support learners without lowering the thinking.</p></div><span>Open assessment →</span></a>
+        <a class="dashboard-card" href="#templates"><div><strong>Templates</strong><p>Copy/paste language for navigation, DQB updates, CERs, absent students, and families.</p></div><span>Open templates →</span></a>
+        <a class="dashboard-card" href="#coaching"><div><strong>Troubleshooting</strong><p>Danger zones and decision tools for when lessons get stuck or drift into task completion.</p></div><span>Open troubleshooting →</span></a>
+      </div>
+    </section>
+
+    <section id="start" class="searchable page-section active-view" data-view="home">
       <div class="section-title">
         <div>
           <h2>Start here: the first 30 minutes</h2>
-          <p>Use this sequence before opening the first lesson. It keeps a new teacher from drowning in tabs, slides, handouts, and good intentions.</p>
+          <p>Use this sequence before opening the next unit. It keeps planning focused so the curriculum does not become a maze of tabs, slides, handouts, and good intentions.</p>
         </div>
       </div>
       <div class="grid cols-3">
@@ -483,7 +785,7 @@
       </div>
     </section>
 
-    <section class="searchable">
+    <section class="searchable page-section active-view" id="sequence" data-view="home">
       <div class="section-title">
         <div>
           <h2>Year sequence at a glance</h2>
@@ -500,7 +802,74 @@
       </div>
     </section>
 
-    <section id="units" class="searchable">
+
+    <section id="standards" class="searchable page-section" data-view="standards">
+      <div class="section-title">
+        <div>
+          <h2>NGSS alignment map</h2>
+          <p>Use this as the quick standards layer while planning, observing, or coaching. The official OpenSciEd materials remain the source of truth; this map translates the PE bundle into classroom evidence to watch for.</p>
+        </div>
+      </div>
+      <div class="grid cols-3">
+        <article class="callout green"><h3>1. Start with the PE bundle</h3><p>Each unit is designed around bundled performance expectations. Do not treat the codes as a checklist of isolated mini-lessons.</p></article>
+        <article class="callout blue"><h3>2. Look for 3D evidence</h3><p>Students should be using science practices, crosscutting concepts, and disciplinary ideas together: modeling, arguing from evidence, analyzing data, and explaining phenomena.</p></article>
+        <article class="callout"><h3>3. Collect fewer, better artifacts</h3><p>Pick a small number of models, explanations, investigations, and transfer tasks that show what students can actually do with the science.</p></article>
+      </div>
+      <div class="standards-table-wrap" aria-label="NGSS alignment by OpenSciEd 8th grade unit">
+        <table class="standards-table">
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>NGSS Performance Expectations</th>
+              <th>Teacher look-fors</th>
+              <th>Best evidence artifacts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>8.1 Contact Forces</strong><br><small>Collisions, forces, energy, engineering design</small></td>
+              <td><div class="pe-list"><span class="pe">MS-PS2-1</span><span class="pe">MS-PS2-2</span><span class="pe">MS-PS3-1</span><span class="pe">MS-LS1-8</span><span class="pe">MS-ETS1-2</span><span class="pe">MS-ETS1-3</span></div></td>
+              <td><ul class="lookfor-list"><li>Students connect collision damage to force, mass, speed, and energy transfer.</li><li>Students use diagrams, graphs, and evidence before vocabulary.</li><li>Engineering choices are justified by data and constraints.</li></ul></td>
+              <td>Collision model revisions; force/motion data displays; design proposal with criteria, constraints, test data, and redesign rationale.</td>
+            </tr>
+            <tr>
+              <td><strong>8.2 Sound Waves</strong><br><small>Sound, vibration, wave models, transmission</small></td>
+              <td><div class="pe-list"><span class="pe">MS-PS4-1</span><span class="pe">MS-PS4-2</span></div></td>
+              <td><ul class="lookfor-list"><li>Students explain sound as vibration traveling through a medium.</li><li>Students relate amplitude to energy using qualitative and quantitative representations.</li><li>Models show source, medium, receiver, and interactions.</li></ul></td>
+              <td>Wave model; evidence chart from investigations; explanation of how loud sound makes a distant object move.</td>
+            </tr>
+            <tr>
+              <td><strong>8.3 Forces at a Distance</strong><br><small>Magnets, fields, current, speakers, electromagnets</small></td>
+              <td><div class="pe-list"><span class="pe">MS-PS2-3</span><span class="pe">MS-PS2-5</span><span class="pe">MS-PS3-2</span><span class="pe">MS-PS2-2*</span><span class="pe">MS-PS3-1*</span><span class="pe">MS-PS3-5*</span></div></td>
+              <td><ul class="lookfor-list"><li>Students use data to explain how strength and distance affect magnetic/electric interactions.</li><li>Students model fields as an explanation for non-contact forces.</li><li>Students connect speaker parts to force, motion, and energy transfer.</li></ul></td>
+              <td>Speaker system model; magnetic field investigation explanation; cup speaker redesign notes; argument about evidence for fields.</td>
+            </tr>
+            <tr>
+              <td><strong>8.4 Earth in Space</strong><br><small>Earth-Sun-Moon systems, gravity, scale, sky patterns</small></td>
+              <td><div class="pe-list"><span class="pe">MS-ESS1-1</span><span class="pe">MS-ESS1-2</span><span class="pe">MS-PS2-4</span><span class="pe">MS-ESS1-3</span><span class="pe">MS-PS4-2*</span></div></td>
+              <td><ul class="lookfor-list"><li>Students use models to explain cyclic patterns, not just name them.</li><li>Students use gravity to explain orbital motion at multiple scales.</li><li>Students use data to reason about scale properties in the solar system.</li></ul></td>
+              <td>Earth-Sun-Moon model; eclipse/season explanation; gravity argument; scale model or data interpretation task.</td>
+            </tr>
+            <tr>
+              <td><strong>8.5 Genetics</strong><br><small>Trait variation, chromosomes, proteins, inheritance, environment</small></td>
+              <td><div class="pe-list"><span class="pe">MS-LS1-5*</span><span class="pe">MS-LS3-1</span><span class="pe">MS-LS3-2</span><span class="pe">MS-LS4-5</span><span class="pe">MS-LS1-2*</span><span class="pe">MS-LS1-4*</span></div></td>
+              <td><ul class="lookfor-list"><li>Students explain traits through causal chains, not simple one-gene claims.</li><li>Students connect chromosomes, genes, proteins, structures, and functions.</li><li>Students use probability and evidence to reason about inheritance and variation.</li></ul></td>
+              <td>Cause-effect chain; inheritance model; selective breeding explanation; final model explaining genetic and environmental factors.</td>
+            </tr>
+            <tr>
+              <td><strong>8.6 Natural Selection & Common Ancestry</strong><br><small>Fossils, variation, selection, adaptation, ancestry</small></td>
+              <td><div class="pe-list"><span class="pe">MS-LS1-4*</span><span class="pe">MS-LS4-1</span><span class="pe">MS-LS4-2</span><span class="pe">MS-LS4-3</span><span class="pe">MS-LS4-4</span><span class="pe">MS-LS4-6</span></div></td>
+              <td><ul class="lookfor-list"><li>Students explain population-level change over time, not individual need-based change.</li><li>Students use fossil, anatomical, embryological, and trait-distribution evidence.</li><li>Students build arguments linking common ancestry and natural selection.</li></ul></td>
+              <td>Evidence tracker; natural selection model; common ancestry argument; final explanation connecting ancient and modern organisms.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="standards-note"><strong>Note:</strong> An asterisk means the PE is partially developed, reinforced, or shared across units in the OpenSciEd sequence. Use the official unit front matter and Scope &amp; Sequence when reporting formal alignment.</p>
+    </section>
+
+
+    <section id="units" class="searchable page-section" data-view="units">
       <div class="section-title">
         <div>
           <h2>Unit navigator</h2>
@@ -512,7 +881,8 @@
           <header><div><div class="unit-code">8.1</div><h3>Contact Forces</h3></div><span class="chip blue">Launch norms</span></header>
           <p class="driving-question">Why do things sometimes get damaged when they hit each other?</p>
           <div class="chiprow"><span class="chip">Force pairs</span><span class="chip">Collisions</span><span class="chip">Energy</span><span class="chip">Design</span></div>
-          <details class="accordion" open><summary>First-time teacher coaching</summary>
+          <details class="accordion"><summary>NGSS PE bundle</summary><div class="pe-list"><span class="pe">MS-PS2-1</span><span class="pe">MS-PS2-2</span><span class="pe">MS-PS3-1</span><span class="pe">MS-LS1-8</span><span class="pe">MS-ETS1-2</span><span class="pe">MS-ETS1-3</span></div></details>
+          <details class="accordion" open><summary>Implementation coaching</summary>
             <ul>
               <li>Protect the anchoring phenomenon. The dropped phone is not a hook; it is the shared problem students keep returning to.</li>
               <li>Spend real time on classroom norms, DQB, modeling, and “evidence before answer.” This unit sets the year.</li>
@@ -530,7 +900,8 @@
           <header><div><div class="unit-code">8.2</div><h3>Sound Waves</h3></div><span class="chip green">Models matter</span></header>
           <p class="driving-question">How can a sound make something move?</p>
           <div class="chiprow"><span class="chip">Vibration</span><span class="chip">Media</span><span class="chip">Amplitude</span><span class="chip">Frequency</span></div>
-          <details class="accordion" open><summary>First-time teacher coaching</summary>
+          <details class="accordion"><summary>NGSS PE bundle</summary><div class="pe-list"><span class="pe">MS-PS4-1</span><span class="pe">MS-PS4-2</span></div></details>
+          <details class="accordion" open><summary>Implementation coaching</summary>
             <ul>
               <li>Make the invisible visible. Students need models, graphs, slow motion, and physical analogs to connect sound to motion.</li>
               <li>Watch for the misconception that sound travels through “empty space” the same way it travels through matter.</li>
@@ -548,7 +919,8 @@
           <header><div><div class="unit-code">8.3</div><h3>Forces at a Distance</h3></div><span class="chip purple">Material heavy</span></header>
           <p class="driving-question">How can a magnet move another object without touching it?</p>
           <div class="chiprow"><span class="chip">Magnetism</span><span class="chip">Fields</span><span class="chip">Current</span><span class="chip">Speakers</span></div>
-          <details class="accordion" open><summary>First-time teacher coaching</summary>
+          <details class="accordion"><summary>NGSS PE bundle</summary><div class="pe-list"><span class="pe">MS-PS2-3</span><span class="pe">MS-PS2-5</span><span class="pe">MS-PS3-2</span><span class="pe">MS-PS2-2*</span><span class="pe">MS-PS3-1*</span><span class="pe">MS-PS3-5*</span></div></details>
+          <details class="accordion" open><summary>Implementation coaching</summary>
             <ul>
               <li>This unit can be electric in the classroom, but only if materials are organized before launch.</li>
               <li>The speaker is the throughline. Keep asking: what part is moving, what caused it, and what changed when we modified the system?</li>
@@ -566,7 +938,8 @@
           <header><div><div class="unit-code">8.4</div><h3>Earth in Space</h3></div><span class="chip gold">Localize it</span></header>
           <p class="driving-question">How are we connected to the patterns we see in the sky and space?</p>
           <div class="chiprow"><span class="chip">Moon phases</span><span class="chip">Seasons</span><span class="chip">Gravity</span><span class="chip">Scale</span></div>
-          <details class="accordion" open><summary>First-time teacher coaching</summary>
+          <details class="accordion"><summary>NGSS PE bundle</summary><div class="pe-list"><span class="pe">MS-ESS1-1</span><span class="pe">MS-ESS1-2</span><span class="pe">MS-PS2-4</span><span class="pe">MS-ESS1-3</span><span class="pe">MS-PS4-2*</span></div></details>
+          <details class="accordion" open><summary>Implementation coaching</summary>
             <ul>
               <li>Make this local. Track sunset direction, daylight, shadows, Moon observations, school-building alignments, or community sky stories.</li>
               <li>Students often memorize seasons incorrectly. Push model-based reasoning: tilt, intensity, daylight, and hemisphere differences.</li>
@@ -584,7 +957,8 @@
           <header><div><div class="unit-code">8.5</div><h3>Genetics</h3></div><span class="chip green">Be precise</span></header>
           <p class="driving-question">Why are living things different from one another?</p>
           <div class="chiprow"><span class="chip">Traits</span><span class="chip">Genes</span><span class="chip">Proteins</span><span class="chip">Environment</span></div>
-          <details class="accordion" open><summary>First-time teacher coaching</summary>
+          <details class="accordion"><summary>NGSS PE bundle</summary><div class="pe-list"><span class="pe">MS-LS1-5*</span><span class="pe">MS-LS3-1</span><span class="pe">MS-LS3-2</span><span class="pe">MS-LS4-5</span><span class="pe">MS-LS1-2*</span><span class="pe">MS-LS1-4*</span></div></details>
+          <details class="accordion" open><summary>Implementation coaching</summary>
             <ul>
               <li>Keep the message balanced: traits are influenced by genetic and environmental factors, often together.</li>
               <li>Avoid “one gene = one destiny” explanations. Students need causal chains, probability, and multiple causes.</li>
@@ -602,7 +976,8 @@
           <header><div><div class="unit-code">8.6</div><h3>Natural Selection & Common Ancestry</h3></div><span class="chip red">Evidence arc</span></header>
           <p class="driving-question">How could things living today be connected to things that lived long ago?</p>
           <div class="chiprow"><span class="chip">Fossils</span><span class="chip">Variation</span><span class="chip">Selection</span><span class="chip">Argument</span></div>
-          <details class="accordion" open><summary>First-time teacher coaching</summary>
+          <details class="accordion"><summary>NGSS PE bundle</summary><div class="pe-list"><span class="pe">MS-LS1-4*</span><span class="pe">MS-LS4-1</span><span class="pe">MS-LS4-2</span><span class="pe">MS-LS4-3</span><span class="pe">MS-LS4-4</span><span class="pe">MS-LS4-6</span></div></details>
+          <details class="accordion" open><summary>Implementation coaching</summary>
             <ul>
               <li>This is the capstone. Students need to synthesize fossils, structures, behaviors, trait distributions, and embryological data.</li>
               <li>Do not reduce natural selection to “animals try to adapt.” Press for population-level change over time.</li>
@@ -618,10 +993,121 @@
       </div>
     </section>
 
-    <section id="routines" class="searchable">
+
+
+    <section id="materials" class="searchable page-section" data-view="materials">
       <div class="section-title">
         <div>
-          <h2>Core OpenSciEd routines, translated for a new teacher</h2>
+          <h2>Materials readiness dashboard</h2>
+          <p>Use this before each unit and again before each lesson set. The goal is simple: no lesson should fail because the teacher discovered missing supplies, blocked videos, dead batteries, or untested stations five minutes before students walk in.</p>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <article class="callout green"><h3>Inventory before planning</h3><p>Start with the official OpenSciEd kit list and Teacher Edition, then turn that into lesson bins, station plans, and reset routines.</p></article>
+        <article class="callout blue"><h3>Prep by lesson set</h3><p>Do not prep the whole unit all at once. Prep the first lesson set deeply, then keep a rolling two-lesson lookahead.</p></article>
+        <article class="callout"><h3>Track consumables</h3><p>Anything students cut, tape, bend, use up, contaminate, or take apart should be tracked before the next section uses it.</p></article>
+      </div>
+
+      <div class="materials-dashboard">
+        <aside class="material-card">
+          <h3>Readiness control panel</h3>
+          <p>Select a unit to generate its prep focus, common material risks, safety notes, and official kit list link.</p>
+          <div class="materials-controls">
+            <div class="field">
+              <label for="materialUnitSelect">Unit</label>
+              <select id="materialUnitSelect" onchange="renderMaterialsDashboard()">
+                <option>8.1 Contact Forces</option>
+                <option>8.2 Sound Waves</option>
+                <option>8.3 Forces at a Distance</option>
+                <option>8.4 Earth in Space</option>
+                <option>8.5 Genetics</option>
+                <option>8.6 Natural Selection & Common Ancestry</option>
+              </select>
+            </div>
+            <button class="btn small" onclick="renderMaterialsDashboard()">Load</button>
+            <button class="btn small secondary" onclick="copyMaterialSummary()">Copy plan</button>
+          </div>
+
+          <div class="readiness-meter" aria-label="Materials readiness progress">
+            <div class="meter-circle" id="materialMeter"><span id="materialMeterText">0%</span></div>
+            <div>
+              <strong id="materialProgressLabel">0 of 8 checks complete</strong>
+              <p>Use the checklist below as a repeatable pre-unit routine. It saves locally in this browser.</p>
+            </div>
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input data-material-check type="checkbox" /><span>Official kit list opened<small>Confirm current unit materials from OpenSciEd or your district kit.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Teacher Edition lesson materials skimmed<small>Look lesson-by-lesson, not just at the unit overview.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Videos and simulations tested<small>Check student network, projector, sound, captions, and backup links.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Lesson bins labeled<small>Sort by lesson number and reset needs.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Consumables counted<small>Tape, paper, cups, batteries, craft supplies, printed cards, and anything students alter.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Safety notes posted<small>Electrical, motion/drop, sharp, allergy, noise, or cleanup expectations.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Absent-student path ready<small>Photos, sample data, partner notes, or a short catch-up model task.</small></span></label>
+            <label class="check"><input data-material-check type="checkbox" /><span>Reset plan written<small>What must be restored between sections and after school?</small></span></label>
+          </div>
+          <div class="dashboard-note"><strong>Good rule:</strong> if a lesson depends on a physical setup, test it with your actual classroom materials once before students use it.</div>
+        </aside>
+
+        <div class="materials-output">
+          <article class="material-card" id="unitMaterialPlan" aria-live="polite"></article>
+          <article class="material-card">
+            <h3>Rolling prep timeline</h3>
+            <div class="prep-timeline">
+              <div class="prep-step"><strong>3 weeks before</strong><p>Open official kit list, check district purchasing rules, identify items that need ordering, borrowing, printing, or administrator approval.</p></div>
+              <div class="prep-step"><strong>1 week before</strong><p>Build lesson bins, print/copy student materials, test videos and simulations, and rehearse any station that could bottleneck.</p></div>
+              <div class="prep-step"><strong>1 day before</strong><p>Set up the anchor, label stations, count group sets, charge devices, cue videos, and write safety/reset directions where students can see them.</p></div>
+              <div class="prep-step"><strong>Class period</strong><p>Start by naming the question the materials help answer. During the activity, watch for setup confusion before you watch for perfect vocabulary.</p></div>
+              <div class="prep-step"><strong>After class</strong><p>Reset materials, record what broke or ran out, save sample student data/photos, and update the next section’s bins.</p></div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <article class="material-card">
+          <h3>Lesson bin label builder</h3>
+          <p>Create quick printable labels for bins, trays, station envelopes, or prep carts.</p>
+          <div class="bin-builder">
+            <div class="field"><label for="binUnit">Unit / lesson</label><input id="binUnit" type="text" value="8.3 Lesson __" /></div>
+            <div class="field"><label for="binTitle">Bin title</label><input id="binTitle" type="text" value="Station materials" /></div>
+            <div class="field"><label for="binPeriod">Class / section</label><input id="binPeriod" type="text" value="All sections" /></div>
+            <div class="field"><label for="binReset">Reset note</label><input id="binReset" type="text" value="Return pieces, count sets, replace consumables" /></div>
+            <div class="field" style="grid-column: 1 / -1;"><label for="binContents">Contents</label><textarea id="binContents" class="notes-area" placeholder="List the items that belong in this bin..."></textarea></div>
+          </div>
+          <div class="hero-actions"><button class="btn small" onclick="generateBinLabels()">Generate labels</button><button class="btn small secondary" onclick="window.print()">Print labels</button></div>
+          <div id="binLabels" class="bin-labels" aria-live="polite"></div>
+        </article>
+
+        <article class="material-card">
+          <h3>Consumables + refurbishment tracker</h3>
+          <p>Use this after each section. It saves in this browser and gives the teacher a running list before the next unit or next year.</p>
+          <textarea id="consumableNotes" class="notes-area" placeholder="Example: 8.3 L4 — AA batteries low after period 5; replace by Friday. 8.1 design materials — cardboard scraps worked, bubble wrap ran out."></textarea>
+          <div class="hero-actions"><button class="btn small" onclick="saveConsumables()">Save tracker</button><button class="btn small secondary" onclick="clearConsumables()">Clear tracker</button></div>
+          <div class="dashboard-note"><strong>Coach move:</strong> ask the teacher to keep this tracker open during cleanup, not at the end of the week when details are gone.</div>
+        </article>
+      </div>
+
+      <article class="material-card">
+        <h3>Common materials problems and fast fixes</h3>
+        <table class="compact-table">
+          <thead><tr><th>Problem</th><th>Likely cause</th><th>Fast fix</th><th>Better prevention</th></tr></thead>
+          <tbody>
+            <tr><td>Students treat the lab like a task</td><td>Materials appeared before the question was clear</td><td>Pause and ask, “What are these materials helping us figure out?”</td><td>Add a station card with the investigation question at every setup.</td></tr>
+            <tr><td>One station creates a line</td><td>Not enough duplicated materials or unclear role flow</td><td>Split the station into observe / record / reset roles</td><td>Run the station once with a student helper before class.</td></tr>
+            <tr><td>Videos or simulations fail</td><td>Blocked links, audio issue, or no backup</td><td>Use screenshots, downloaded teacher notes, or a live demo alternative</td><td>Test on the student network and keep the phenomena video library handy.</td></tr>
+            <tr><td>Later sections get worse materials</td><td>No reset routine between periods</td><td>Assign a two-minute inventory/reset job before dismissal</td><td>Create bin cards that list exact counts and reset state.</td></tr>
+            <tr><td>Consumables disappear faster than expected</td><td>Students use materials for trial-and-error without constraints</td><td>Give each group a fixed material budget</td><td>Pre-bag consumables by group and keep emergency extras separate.</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+
+    <section id="routines" class="searchable page-section" data-view="routines">
+      <div class="section-title">
+        <div>
+          <h2>Core OpenSciEd routines, translated for classroom use</h2>
           <p>These routines are the spine of the experience. When the class feels messy, come back here before adding more teacher talk.</p>
         </div>
       </div>
@@ -665,7 +1151,7 @@
       </div>
     </section>
 
-    <section id="planning" class="searchable">
+    <section id="planning" class="searchable page-section" data-view="planning">
       <div class="section-title">
         <div>
           <h2>Planning tools</h2>
@@ -675,7 +1161,7 @@
       <div class="grid cols-2">
         <article class="panel">
           <h3>Pacing calculator</h3>
-          <p>This gives a rough planning frame. It does not replace the unit guidance, but it helps a new teacher see the tradeoffs.</p>
+          <p>This gives a rough planning frame. It does not replace the unit guidance, but it helps make pacing tradeoffs visible.</p>
           <div class="calculator">
             <div class="field"><label for="unitSelect">Unit</label><select id="unitSelect"><option>8.1 Contact Forces</option><option>8.2 Sound Waves</option><option>8.3 Forces at a Distance</option><option>8.4 Earth in Space</option><option>8.5 Genetics</option><option>8.6 Natural Selection & Common Ancestry</option></select></div>
             <div class="field"><label for="daysAvail">Class days available</label><input id="daysAvail" type="number" value="25" min="1" /></div>
@@ -706,7 +1192,7 @@
       </div>
     </section>
 
-    <section id="assessment" class="searchable">
+    <section id="assessment" class="searchable page-section" data-view="assessment">
       <div class="section-title">
         <div>
           <h2>Assessment without grading yourself into the ground</h2>
@@ -750,7 +1236,7 @@
       </div>
     </section>
 
-    <section class="searchable">
+    <section class="searchable page-section" id="learner-support" data-view="assessment">
       <div class="section-title">
         <div>
           <h2>Support all learners without watering down the science</h2>
@@ -764,7 +1250,7 @@
       </div>
     </section>
 
-    <section id="templates" class="searchable">
+    <section id="templates" class="searchable page-section" data-view="templates">
       <div class="section-title">
         <div>
           <h2>Classroom-ready templates</h2>
@@ -849,11 +1335,11 @@ Confidence check: I am confident / partly confident / unsure because...</textare
       </div>
     </section>
 
-    <section class="searchable">
+    <section class="searchable page-section" id="danger-zones" data-view="coaching">
       <div class="section-title">
         <div>
-          <h2>First-year danger zones</h2>
-          <p>These are the places new OpenSciEd teachers often get knocked sideways.</p>
+          <h2>Implementation danger zones</h2>
+          <p>These are the places OpenSciEd implementation often gets knocked sideways.</p>
         </div>
       </div>
       <div class="grid cols-3">
@@ -862,11 +1348,11 @@ Confidence check: I am confident / partly confident / unsure because...</textare
         <article class="callout red"><h3>Treating the DQB as decoration</h3><p>If the DQB is not revisited, students will not believe their questions matter. Build it into weekly routine.</p></article>
         <article class="callout red"><h3>Grading every handout</h3><p>You will burn out. Grade key explanations and models. Use most artifacts to decide tomorrow’s teaching move.</p></article>
         <article class="callout red"><h3>Letting labs become tasks</h3><p>Students should know what question the investigation helps answer. If they cannot say that, pause and navigate.</p></article>
-        <article class="callout red"><h3>Customizing too soon</h3><p>Teach close to the curriculum first. Modify once you understand which parts are load-bearing.</p></article>
+        <article class="callout red"><h3>Customizing too soon</h3><p>Teach close to the curriculum before making major cuts. Modify once you understand which parts are load-bearing.</p></article>
       </div>
     </section>
 
-    <section class="searchable">
+    <section class="searchable page-section" id="decision-tool" data-view="coaching">
       <div class="section-title">
         <div>
           <h2>Decision tool: what does the class need right now?</h2>
@@ -892,6 +1378,7 @@ Confidence check: I am confident / partly confident / unsure because...</textare
         <li><a href="https://openscied.org/curriculum/middle-school/" target="_blank" rel="noreferrer">OpenSciEd Middle School Curriculum</a></li>
         <li><a href="https://openscied.org/curriculum/middle-school/explore-the-curriculum/" target="_blank" rel="noreferrer">OpenSciEd Middle School Instructional Materials</a></li>
         <li><a href="https://openscied.org/curriculum/middle-school/science-lab-kit-lists/" target="_blank" rel="noreferrer">OpenSciEd Science Lab Kit Lists</a></li>
+        <li><a href="https://openscied.org/curriculum/middle-school/standards-alignment/" target="_blank" rel="noreferrer">OpenSciEd Standards Alignment and Scope &amp; Sequence</a></li>
         <li><a href="https://openscied.org/professional-learning/on-demand-teacher-support/" target="_blank" rel="noreferrer">OpenSciEd On-Demand Teacher Support Library</a></li>
         <li><a href="https://openscied.org/why-openscied/instructional-model/" target="_blank" rel="noreferrer">OpenSciEd Instructional Model</a></li>
       </ul>
@@ -930,6 +1417,8 @@ Confidence check: I am confident / partly confident / unsure because...</textare
       localStorage.setItem(UNIT_KEY, unit);
       document.getElementById('currentUnitDisplay').textContent = 'Current unit: ' + unit;
       document.getElementById('unitSelect').value = unit;
+      const materialSelect = document.getElementById('materialUnitSelect');
+      if (materialSelect && [...materialSelect.options].some(o => o.value === unit)) { materialSelect.value = unit; renderMaterialsDashboard(); }
       location.hash = '#planning';
     }
     function loadCurrentUnit() {
@@ -938,6 +1427,8 @@ Confidence check: I am confident / partly confident / unsure because...</textare
         document.getElementById('currentUnitDisplay').textContent = 'Current unit: ' + unit;
         const select = document.getElementById('unitSelect');
         if ([...select.options].some(o => o.value === unit)) select.value = unit;
+        const materialSelect = document.getElementById('materialUnitSelect');
+        if (materialSelect && [...materialSelect.options].some(o => o.value === unit)) materialSelect.value = unit;
       }
       document.getElementById('unitNotes').value = localStorage.getItem(NOTES_KEY) || '';
     }
@@ -995,18 +1486,238 @@ Confidence check: I am confident / partly confident / unsure because...</textare
       });
     }
 
+
+
+    const MATERIAL_CHECK_KEY = 'ose8-material-checks-v1';
+    const CONSUMABLES_KEY = 'ose8-consumable-notes-v1';
+    const materialData = {
+      '8.1 Contact Forces': {
+        focus: 'Collisions, damage, force/motion evidence, and engineering protection designs.',
+        official: 'https://openscied.org/curriculum/middle-school/unit-8-1-kit-materials/',
+        risk: 'Medium-high: setup quality affects student data and design testing.',
+        verify: ['Collision demo/setup materials', 'Design-protection supplies', 'Graphing/data collection supports', 'Chart space for DQB and consensus models', 'Cleanup space for engineering trials'],
+        consumables: ['cardboard / paper materials', 'tape or fasteners', 'design-test padding materials', 'student handouts', 'chart paper or sticky notes'],
+        safety: ['clear drop/test zones', 'goggles if materials can fragment', 'rules for throwing/dropping objects', 'floor traffic control'],
+        tech: ['anchor videos', 'simulation links if used', 'projector visibility for data/model comparison'],
+        watchout: 'The lesson can turn into “build the best protector” unless the teacher keeps returning to force, motion, energy, and evidence.'
+      },
+      '8.2 Sound Waves': {
+        focus: 'Vibrations, sound transfer, wave patterns, amplitude/frequency models, and sensory connections.',
+        official: 'https://openscied.org/curriculum/middle-school/unit-8-2-kit-materials/',
+        risk: 'Medium: noise management and clear observations matter.',
+        verify: ['Sound source demonstrations', 'materials for visible vibration', 'wave pattern displays', 'student-safe audio levels', 'optional CS-integrated tech if selected'],
+        consumables: ['cups / string / bands as used', 'paper handouts', 'station cards', 'replacement small parts'],
+        safety: ['reasonable volume limits', 'hearing sensitivity accommodations', 'clean shared mouth/contact materials when applicable'],
+        tech: ['audio playback', 'microphone or app access if used', 'simulation/video links', 'caption availability'],
+        watchout: 'Students may memorize “sound is vibration” without explaining how evidence supports that model.'
+      },
+      '8.3 Forces at a Distance': {
+        focus: 'Magnets, fields, current, coils, speakers, and forces without contact.',
+        official: 'https://openscied.org/curriculum/middle-school/unit-8-3-kit-materials/',
+        risk: 'High: this unit is powerful, but missing magnets, speakers, batteries, or wire can derail the storyline.',
+        verify: ['speakers for observation/dissection', 'magnets of varied strength', 'wire/coils', 'batteries or power supplies', 'cup speaker components', 'compasses or field indicators if used'],
+        consumables: ['batteries', 'wire segments', 'tape', 'cups/paper components', 'replacement speaker parts'],
+        safety: ['battery heat checks', 'no short circuits', 'magnet handling expectations', 'keep magnets away from sensitive devices when needed'],
+        tech: ['speaker audio test', 'videos of inaccessible phenomena', 'simulation links', 'document camera for small parts'],
+        watchout: 'The biggest failure point is not concept difficulty; it is logistics. Build bins and test circuits before class.'
+      },
+      '8.4 Earth in Space': {
+        focus: 'Sky patterns, Earth-Sun-Moon models, seasons, phases, eclipses, gravity, and scale.',
+        official: 'https://openscied.org/curriculum/middle-school/unit-8-4-kit-materials/',
+        risk: 'Medium: models and visualizations need to be tested for visibility and misconception risk.',
+        verify: ['Earth-Sun-Moon model materials', 'lamps/light sources if used', 'scale model materials', 'shadow/phase demonstration setup', 'local sky observation supports'],
+        consumables: ['printed model cards', 'chart paper', 'sticky notes', 'student observation logs', 'craft/modeling supplies'],
+        safety: ['light-source heat awareness', 'dark-room movement expectations', 'outdoor observation supervision if used'],
+        tech: ['simulations', 'phenomena videos', 'planetarium/sky tools if used', 'backup screenshots for blocked sites'],
+        watchout: 'Physical models can accidentally reinforce wrong scale or motion ideas. Name model limitations explicitly.'
+      },
+      '8.5 Genetics': {
+        focus: 'Trait variation, genes/chromosomes/proteins, inheritance, environment, probability, and model limits.',
+        official: 'https://openscied.org/curriculum/middle-school/unit-8-5-kit-materials/',
+        risk: 'Medium: paper/modeling organization and sensitive discussion boundaries matter.',
+        verify: ['trait data sets/cards', 'inheritance/probability modeling materials', 'chromosome/gene/protein visuals', 'student data organizers', 'discussion norms for human genetics questions'],
+        consumables: ['printed cards', 'markers/sticky notes', 'model pieces', 'student handouts', 'replacement manipulatives'],
+        safety: ['privacy expectations for personal/family traits', 'avoid deterministic language', 'do not ask students to disclose family medical history'],
+        tech: ['videos', 'simulations or digital datasets', 'projector/doc camera for models'],
+        watchout: 'Students often jump to “one gene equals one trait.” Keep pushing them to include proteins, environment, and probability where appropriate.'
+      },
+      '8.6 Natural Selection & Common Ancestry': {
+        focus: 'Fossils, common ancestry, population variation, natural selection, evidence comparison, and argument from evidence.',
+        official: 'https://openscied.org/curriculum/middle-school/unit-8-6-kit-materials/',
+        risk: 'Medium-low physically, high cognitively: evidence sets must stay organized.',
+        verify: ['fossil/evidence cards or images', 'population data sets', 'selection simulation materials', 'argument-writing supports', 'model revision spaces'],
+        consumables: ['printed evidence sets', 'sticky notes', 'chart paper', 'claim/evidence organizers', 'student handouts'],
+        safety: ['respectful discussion norms', 'clear distinction between individual change and population change', 'support for questions about evolution'],
+        tech: ['videos/images', 'simulation links', 'display setup for data comparison'],
+        watchout: 'Do not let this become vocabulary recall. The point is whether students can use evidence to support common ancestry and selection explanations.'
+      }
+    };
+
+    function listItems(items) {
+      return '<ul>' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+    }
+    function pillItems(items, cls='') {
+      return items.map(item => `<span class="material-pill ${cls}">${item}</span>`).join('');
+    }
+    function renderMaterialsDashboard() {
+      const select = document.getElementById('materialUnitSelect');
+      if (!select) return;
+      const unit = select.value;
+      const data = materialData[unit];
+      const output = document.getElementById('unitMaterialPlan');
+      output.innerHTML = `
+        <h3>${unit}: materials focus</h3>
+        <p><strong>Focus:</strong> ${data.focus}</p>
+        <p><strong>Prep risk:</strong> ${data.risk}</p>
+        <div class="material-pill-list">${pillItems(data.verify, 'safe')}</div>
+        <div class="grid cols-2" style="margin-top: .9rem;">
+          <div><strong>Consumables to count</strong>${listItems(data.consumables)}</div>
+          <div><strong>Safety / management checks</strong>${listItems(data.safety)}</div>
+          <div><strong>Tech checks</strong>${listItems(data.tech)}</div>
+          <div><strong>Watch-out</strong><p>${data.watchout}</p></div>
+        </div>
+        <div class="hero-actions"><a class="btn small secondary" href="${data.official}" target="_blank" rel="noreferrer">Open official kit list</a><a class="btn small secondary" href="https://openscied.org/curriculum/middle-school/science-lab-kit-lists/" target="_blank" rel="noreferrer">All kit lists</a></div>
+      `;
+    }
+    function loadMaterialChecks() {
+      const boxes = Array.from(document.querySelectorAll('[data-material-check]'));
+      const saved = JSON.parse(localStorage.getItem(MATERIAL_CHECK_KEY) || '{}');
+      boxes.forEach((box, i) => box.checked = !!saved[i]);
+      updateMaterialMeter();
+      boxes.forEach(box => box.addEventListener('change', saveMaterialChecks));
+      const consumables = document.getElementById('consumableNotes');
+      if (consumables) consumables.value = localStorage.getItem(CONSUMABLES_KEY) || '';
+    }
+    function saveMaterialChecks() {
+      const boxes = Array.from(document.querySelectorAll('[data-material-check]'));
+      const saved = {};
+      boxes.forEach((box, i) => saved[i] = box.checked);
+      localStorage.setItem(MATERIAL_CHECK_KEY, JSON.stringify(saved));
+      updateMaterialMeter();
+    }
+    function updateMaterialMeter() {
+      const boxes = Array.from(document.querySelectorAll('[data-material-check]'));
+      if (!boxes.length) return;
+      const done = boxes.filter(b => b.checked).length;
+      const total = boxes.length;
+      const pct = Math.round((done / total) * 100);
+      const deg = Math.round((pct / 100) * 360);
+      document.getElementById('materialMeter').style.background = `conic-gradient(var(--green) ${deg}deg, #e9edf4 ${deg}deg)`;
+      document.getElementById('materialMeterText').textContent = pct + '%';
+      document.getElementById('materialProgressLabel').textContent = `${done} of ${total} checks complete`;
+    }
+    function copyMaterialSummary() {
+      const unit = document.getElementById('materialUnitSelect').value;
+      const data = materialData[unit];
+      const text = `${unit} Materials Readiness Plan\n\nFocus: ${data.focus}\nPrep risk: ${data.risk}\n\nVerify: ${data.verify.join('; ')}\n\nConsumables: ${data.consumables.join('; ')}\n\nSafety/management: ${data.safety.join('; ')}\n\nTech checks: ${data.tech.join('; ')}\n\nWatch-out: ${data.watchout}\n\nOfficial kit list: ${data.official}`;
+      navigator.clipboard.writeText(text).then(() => alert('Materials plan copied.'));
+    }
+    function generateBinLabels() {
+      const unit = document.getElementById('binUnit').value || 'Unit / Lesson';
+      const title = document.getElementById('binTitle').value || 'Bin title';
+      const period = document.getElementById('binPeriod').value || 'Class / section';
+      const reset = document.getElementById('binReset').value || 'Reset note';
+      const contents = document.getElementById('binContents').value || 'Contents:';
+      const container = document.getElementById('binLabels');
+      container.innerHTML = [1,2,3,4].map(i => `<div class="bin-label"><strong>${unit}</strong><small>${title} · Bin ${i} · ${period}</small><div>${contents.replace(/\n/g, '<br>')}</div><small><strong>Reset:</strong> ${reset}</small></div>`).join('');
+    }
+    function saveConsumables() {
+      localStorage.setItem(CONSUMABLES_KEY, document.getElementById('consumableNotes').value);
+      alert('Consumables tracker saved in this browser.');
+    }
+    function clearConsumables() {
+      if (confirm('Clear saved consumables tracker?')) {
+        localStorage.removeItem(CONSUMABLES_KEY);
+        document.getElementById('consumableNotes').value = '';
+      }
+    }
+
+    const viewMeta = {
+      home: { title: 'Dashboard', desc: 'Start here, choose a support area, or use the setup path before opening the next unit.' },
+      units: { title: 'Unit navigator', desc: 'Open one unit at a time for driving questions, coaching notes, misconceptions, and practical implementation moves.' },
+      standards: { title: 'NGSS alignment', desc: 'Use the standards map to connect PE bundles with teacher look-fors and evidence artifacts.' },
+      materials: { title: 'Materials readiness', desc: 'Prep timelines, official kit-list links, bin labels, consumables, and common materials failure points.' },
+      routines: { title: 'Core routines', desc: 'Classroom translation of the routines that keep OpenSciEd focused on student sensemaking.' },
+      planning: { title: 'Planning tools', desc: 'Pacing calculator, current-unit notes, and a weekly rhythm for staying coherent without overplanning.' },
+      assessment: { title: 'Assessment & learner support', desc: 'Collect fewer, better artifacts and support all learners without watering down the science.' },
+      templates: { title: 'Classroom-ready templates', desc: 'Copy/paste supports for navigation, DQB updates, model revision, CER writing, absent students, and families.' },
+      coaching: { title: 'Troubleshooting', desc: 'Use the danger zones and decision tool when a lesson gets stuck or turns into task completion.' }
+    };
+    const hashAliases = {
+      start: 'home',
+      sequence: 'home',
+      'home-dashboard': 'home',
+      'weekly-rhythm': 'planning',
+      'learner-support': 'assessment',
+      'danger-zones': 'coaching',
+      'decision-tool': 'coaching'
+    };
+    function viewFromHash() {
+      const raw = (location.hash || '#home').replace('#', '');
+      if (viewMeta[raw]) return raw;
+      if (hashAliases[raw]) return hashAliases[raw];
+      const target = document.getElementById(raw);
+      return target?.dataset?.view || 'home';
+    }
+    function applyView() {
+      const view = viewFromHash();
+      const showAll = document.body.classList.contains('show-all');
+      document.querySelectorAll('[data-view]').forEach(el => {
+        el.classList.toggle('active-view', showAll || el.dataset.view === view);
+      });
+      document.querySelectorAll('[data-view-link]').forEach(link => {
+        link.classList.toggle('active', link.dataset.viewLink === view && !showAll);
+      });
+      const meta = viewMeta[view] || viewMeta.home;
+      document.getElementById('activePageTitle').textContent = showAll ? 'Full toolkit' : meta.title;
+      document.getElementById('activePageDescription').textContent = showAll ? 'All toolkit sections are visible. Use this mode for skimming or printing.' : meta.desc;
+      document.getElementById('activePageStatus').textContent = showAll ? 'Full view' : 'Focused view';
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    }
+    window.addEventListener('hashchange', applyView);
+    document.getElementById('showAllBtn')?.addEventListener('click', () => {
+      document.body.classList.toggle('show-all');
+      const full = document.body.classList.contains('show-all');
+      document.getElementById('showAllBtn').textContent = full ? 'Return to focused view' : 'Show full toolkit';
+      applyView();
+    });
+
     const search = document.getElementById('siteSearch');
+    const searchResults = document.getElementById('searchResults');
+    function stripText(text) { return text.replace(/\s+/g, ' ').trim(); }
     search.addEventListener('input', () => {
       const q = search.value.trim().toLowerCase();
-      document.querySelectorAll('.searchable, .unit-card, .tool-card, .routine-card, .template-card, .panel, .callout').forEach(el => {
-        if (!q) { el.classList.remove('hidden'); return; }
-        const text = el.innerText.toLowerCase();
-        el.classList.toggle('hidden', !text.includes(q));
-      });
+      if (!q) {
+        searchResults.hidden = true;
+        searchResults.innerHTML = '';
+        return;
+      }
+      const candidates = Array.from(document.querySelectorAll('.page-section'))
+        .map(section => {
+          const title = section.querySelector('h2')?.textContent || 'Toolkit section';
+          const text = stripText(section.innerText || '');
+          return { section, title, text, view: section.dataset.view || 'home' };
+        })
+        .filter(item => item.text.toLowerCase().includes(q))
+        .slice(0, 8);
+      if (!candidates.length) {
+        searchResults.innerHTML = '<div class="search-result"><strong>No matches yet</strong><small>Try a broader word like materials, model, DQB, genetics, or assessment.</small></div>';
+        searchResults.hidden = false;
+        return;
+      }
+      searchResults.innerHTML = candidates.map(item => {
+        const idx = item.text.toLowerCase().indexOf(q);
+        const snippet = idx >= 0 ? item.text.slice(Math.max(0, idx - 45), idx + 120) : item.text.slice(0, 130);
+        return `<a class="search-result" href="#${item.view}"><strong>${item.title}</strong><small>${snippet}...</small></a>`;
+      }).join('');
+      searchResults.hidden = false;
     });
 
     loadChecklist();
     loadCurrentUnit();
+    renderMaterialsDashboard();
+    loadMaterialChecks();
+    applyView();
   </script>
 </body>
 </html>
