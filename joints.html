@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JointLab | Woodshop Joinery Explorer</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --panel: #fffaf1;
+      --ink: #24180f;
+      --muted: #6f5a44;
+      --line: #d6c3aa;
+      --accent: #7a4a24;
+      --accent-2: #a4632e;
+      --accent-soft: #ead6bc;
+      --good: #267a46;
+      --warn: #ac6d1f;
+      --bad: #a83326;
+      --blueprint: #1d3957;
+      --shadow: 0 16px 40px rgba(61, 37, 16, .14);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(164, 99, 46, .16), transparent 34rem),
+        linear-gradient(135deg, #f7f0e5, #eadcc8);
+    }
+
+    button, input, select { font: inherit; }
+
+    .app-shell {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header.hero {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 20px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .hero-card {
+      background: rgba(255, 250, 241, .92);
+      border: 1px solid rgba(122, 74, 36, .18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card:after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -70px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: rgba(164, 99, 46, .13);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .82rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      line-height: .96;
+      letter-spacing: -.05em;
+    }
+
+    .hero p {
+      max-width: 78ch;
+      color: var(--muted);
+      font-size: 1.06rem;
+      line-height: 1.55;
+      margin: 14px 0 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: var(--accent);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(122, 74, 36, .22);
+    }
+
+    .button.secondary {
+      background: white;
+      color: var(--accent);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .button.ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px dashed rgba(122, 74, 36, .42);
+      box-shadow: none;
+    }
+
+    .button:hover, .chip:hover, .joint-card:hover { transform: translateY(-1px); }
+    .button:active, .chip:active, .joint-card:active { transform: translateY(0); }
+
+    .quick-start {
+      display: grid;
+      gap: 12px;
+    }
+
+    .quick-start h2, .panel h2, .panel h3 { margin-top: 0; }
+
+    .quick-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .quick-list li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .quick-list span {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .panel {
+      background: rgba(255, 250, 241, .94);
+      border: 1px solid rgba(122, 74, 36, .18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .search-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .search-row input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .search-row input:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 4px rgba(164, 99, 46, .14);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: .9rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      color: white;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .joint-list {
+      display: grid;
+      gap: 10px;
+      max-height: calc(100vh - 330px);
+      overflow: auto;
+      padding-right: 5px;
+    }
+
+    .joint-card {
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      padding: 13px;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .joint-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(122, 74, 36, .12);
+    }
+
+    .mini-diagram {
+      width: 72px;
+      height: 58px;
+      border-radius: 14px;
+      background: #f7ecd9;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid #e3c8a5;
+    }
+
+    .joint-card h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      letter-spacing: -.02em;
+    }
+
+    .joint-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.25;
+    }
+
+    .difficulty {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .72rem;
+      font-weight: 900;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-top: 7px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    main.workspace {
+      display: grid;
+      gap: 22px;
+    }
+
+    .joint-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .joint-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .joint-title-row h2 {
+      font-size: clamp(1.7rem, 3.2vw, 3rem);
+      margin: 0;
+      letter-spacing: -.05em;
+      line-height: 1;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+    }
+
+    .meta-box {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .meta-box strong {
+      display: block;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .meta-box span { color: var(--muted); font-size: .94rem; line-height: 1.35; }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-weight: 900;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: var(--blueprint);
+      color: white;
+      border-color: var(--blueprint);
+    }
+
+    .visual-wrap {
+      background:
+        linear-gradient(rgba(29, 57, 87, .05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29, 57, 87, .05) 1px, transparent 1px),
+        #fffdf8;
+      background-size: 22px 22px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .visual-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.75);
+    }
+
+    .visual-toolbar .hint {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    #jointSvg {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 360px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .control-group {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: baseline;
+    }
+
+    .control-head label {
+      font-weight: 900;
+      letter-spacing: -.02em;
+    }
+
+    .control-head output {
+      color: var(--accent);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .small-help {
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.35;
+      margin-top: 5px;
+    }
+
+    .force-buttons, .mistake-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .force-buttons button, .mistake-buttons button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--muted);
+      border-radius: 14px;
+      padding: 10px;
+      font-weight: 900;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .force-buttons button.active, .mistake-buttons button.active {
+      background: #f4e1c9;
+      border-color: var(--accent-2);
+      color: var(--accent);
+    }
+
+    .result-box {
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 14px;
+      color: var(--muted);
+      line-height: 1.48;
+    }
+
+    .result-box strong { color: var(--ink); }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .rating-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .rating-row {
+      display: grid;
+      grid-template-columns: 145px 1fr 40px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .bar {
+      height: 12px;
+      background: #eee0ce;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    }
+
+    .use-list, .safety-list, .glossary-list {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .quiz-card {
+      display: grid;
+      gap: 14px;
+    }
+
+    .question {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .question p {
+      margin: 0 0 10px;
+      font-weight: 900;
+    }
+
+    .question label {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .question label:hover { background: #f5eadb; }
+
+    .question input { margin-right: 8px; }
+
+    .quiz-feedback {
+      display: none;
+      border-radius: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .quiz-feedback.show { display: block; }
+
+    .teacher-sheet {
+      display: none;
+      gap: 16px;
+    }
+
+    .teacher-sheet.show { display: grid; }
+
+    .teacher-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .teacher-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .teacher-card h4 { margin: 0 0 8px; }
+    .teacher-card p, .teacher-card li { color: var(--muted); line-height: 1.45; }
+    .teacher-card ul { margin: 0; padding-left: 1.1rem; }
+
+    .notice {
+      border-left: 5px solid var(--warn);
+      background: #fff4e5;
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: #6c4316;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,.12);
+      display: inline-block;
+    }
+
+    .swatch.cut { background: #d18b45; }
+    .swatch.glue { background: #ffdf63; }
+    .swatch.error { background: #db5145; }
+
+    .empty-state {
+      padding: 16px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: white;
+    }
+
+    .print-only { display: none; }
+
+    @media (max-width: 1120px) {
+      header.hero, .layout, .joint-top, .three-col { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .joint-list { max-height: none; }
+      .meta-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell { padding: 14px; }
+      .joint-card { grid-template-columns: 58px 1fr; }
+      .mini-diagram { width: 58px; height: 50px; }
+      .force-buttons, .mistake-buttons, .teacher-grid { grid-template-columns: 1fr; }
+      .joint-title-row { display: grid; }
+      .visual-toolbar { align-items: start; }
+      .rating-row { grid-template-columns: 1fr; gap: 5px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .sidebar, .hero-actions, .tabs, .controls, .quiz-card, .button, .search-row, .visual-toolbar { display: none !important; }
+      .app-shell { max-width: none; padding: 0; }
+      .hero, .layout, .joint-top, .three-col, .teacher-grid { display: block; }
+      .panel, .hero-card { box-shadow: none; border: 1px solid #aaa; page-break-inside: avoid; margin-bottom: 12px; }
+      .teacher-sheet { display: grid !important; }
+      .print-only { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <section class="hero-card">
+        <div class="eyebrow">🪚 Woodshop MVP</div>
+        <h1>JointLab</h1>
+        <p>Explore common wood joints before you cut. Students can switch views, change board thickness, test forces, and see what common mistakes do to the joint.</p>
+        <div class="hero-actions">
+          <button class="button" id="startDado">Start with a Dado Joint</button>
+          <button class="button secondary" id="printSheet">Print Teacher Sheet</button>
+          <button class="button ghost" id="resetDemo">Reset Demo</button>
+        </div>
+      </section>
+      <aside class="hero-card quick-start">
+        <h2>Classroom Flow</h2>
+        <ul class="quick-list">
+          <li><span>1</span><div><strong>Pick a joint.</strong><br>Start with the joint used in today’s build.</div></li>
+          <li><span>2</span><div><strong>Change the view.</strong><br>Compare exploded, assembled, and cross-section diagrams.</div></li>
+          <li><span>3</span><div><strong>Try a mistake.</strong><br>See why careful measurement and setup matter.</div></li>
+        </ul>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="panel search-row">
+          <h2>Choose a Joint</h2>
+          <input id="jointSearch" type="search" placeholder="Search by name, use, or tool..." aria-label="Search joints" />
+          <div class="chips" aria-label="Difficulty filters">
+            <button class="chip active" data-filter="all">All</button>
+            <button class="chip" data-filter="beginner">Beginner</button>
+            <button class="chip" data-filter="intermediate">Intermediate</button>
+            <button class="chip" data-filter="advanced">Advanced</button>
+          </div>
+        </section>
+        <section class="panel">
+          <div id="jointList" class="joint-list"></div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <section class="panel joint-top">
+          <div>
+            <div class="joint-title-row">
+              <div>
+                <div class="eyebrow" id="jointDifficulty">Beginner</div>
+                <h2 id="jointName">Dado Joint</h2>
+              </div>
+              <button class="button secondary" id="teacherToggle" aria-expanded="false">Teacher View</button>
+            </div>
+            <p id="jointSummary" class="small-help"></p>
+            <div class="meta-grid">
+              <div class="meta-box"><strong>Best Use</strong><span id="jointBestUse"></span></div>
+              <div class="meta-box"><strong>Common Tools</strong><span id="jointTools"></span></div>
+              <div class="meta-box"><strong>Main Idea</strong><span id="jointMainIdea"></span></div>
+            </div>
+          </div>
+
+          <div class="result-box">
+            <strong>Shop Note</strong>
+            <p id="shopNote" style="margin:8px 0 0;"></p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="tabs" role="tablist" aria-label="Diagram view">
+            <button class="tab active" data-mode="exploded">Exploded View</button>
+            <button class="tab" data-mode="assembled">Assembled View</button>
+            <button class="tab" data-mode="section">Cross-Section</button>
+          </div>
+
+          <div class="visual-wrap">
+            <div class="visual-toolbar">
+              <div><strong id="visualTitle">Exploded View</strong><div class="hint" id="visualHint">See the pieces before they come together.</div></div>
+              <div class="legend">
+                <span><i class="swatch cut"></i> removed/cut area</span>
+                <span><i class="swatch glue"></i> glue surface</span>
+                <span><i class="swatch error"></i> mistake/gap</span>
+              </div>
+            </div>
+            <svg id="jointSvg" viewBox="0 0 820 430" role="img" aria-labelledby="svgTitle svgDesc">
+              <title id="svgTitle">Wood joint diagram</title>
+              <desc id="svgDesc">Interactive SVG diagram of the selected wood joint.</desc>
+            </svg>
+          </div>
+        </section>
+
+        <section class="joint-top">
+          <section class="panel controls">
+            <h2>Try Variables</h2>
+            <div class="control-group">
+              <div class="control-head">
+                <label for="thicknessRange">Board thickness</label>
+                <output id="thicknessOut">3/4 in</output>
+              </div>
+              <input id="thicknessRange" type="range" min="0.5" max="1.5" value="0.75" step="0.125" />
+              <div class="small-help">Changing thickness updates recommended cut depth and labels.</div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-head">
+                <label for="depthRange">Cut depth</label>
+                <output id="depthOut">1/4 in</output>
+              </div>
+              <input id="depthRange" type="range" min="0.08" max="0.65" value="0.25" step="0.01" />
+              <div class="small-help" id="depthHelp">Many housed joints use about one-third of the receiving board thickness.</div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-head">
+                <label for="fitRange">Fit tolerance</label>
+                <output id="fitOut">Snug</output>
+              </div>
+              <input id="fitRange" type="range" min="-2" max="2" value="0" step="1" />
+              <div class="small-help">Loose, snug, or too tight. Good joinery starts with controlled fit, not force.</div>
+            </div>
+          </section>
+
+          <section class="panel controls">
+            <h2>Force Test</h2>
+            <div class="force-buttons" id="forceButtons"></div>
+            <div class="result-box" id="forceResult"></div>
+
+            <h2 style="margin-top:18px;">Mistake Simulator</h2>
+            <div class="mistake-buttons" id="mistakeButtons"></div>
+            <div class="result-box" id="mistakeResult"></div>
+          </section>
+        </section>
+
+        <section class="three-col">
+          <section class="panel">
+            <h2>Strength Profile</h2>
+            <div class="rating-list" id="ratings"></div>
+          </section>
+
+          <section class="panel">
+            <h2>Where You’d Use It</h2>
+            <ul class="use-list" id="useList"></ul>
+          </section>
+        </section>
+
+        <section class="panel quiz-card">
+          <h2>Quick Check</h2>
+          <div id="quizArea"></div>
+          <button class="button" id="checkQuiz">Check Answers</button>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+        </section>
+
+        <section class="panel teacher-sheet" id="teacherSheet">
+          <h2>Teacher Sheet</h2>
+          <div class="notice"><strong>Safety reminder:</strong> This app explains joint geometry. It does not replace live tool instruction, machine guards, PPE, test cuts, or teacher approval before using equipment.</div>
+          <div class="teacher-grid">
+            <div class="teacher-card">
+              <h4>Discussion Prompts</h4>
+              <ul id="discussionList"></ul>
+            </div>
+            <div class="teacher-card">
+              <h4>Project Connections</h4>
+              <ul id="projectList"></ul>
+            </div>
+            <div class="teacher-card">
+              <h4>Vocabulary</h4>
+              <ul class="glossary-list">
+                <li><strong>Glue surface:</strong> Area where glue can bond two pieces together.</li>
+                <li><strong>Shoulder:</strong> The flat step or ledge created by a cut.</li>
+                <li><strong>Racking:</strong> Side-to-side force that twists a frame out of square.</li>
+                <li><strong>End grain:</strong> The exposed ends of wood fibers. It usually glues weaker than long grain.</li>
+                <li><strong>Dry fit:</strong> Test assembly before applying glue.</li>
+              </ul>
+            </div>
+            <div class="teacher-card">
+              <h4>Safety Notes</h4>
+              <ul class="safety-list" id="safetyList"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const joints = [
+      {
+        id: 'butt', name: 'Butt Joint', difficulty: 'Beginner', visual: 'butt',
+        bestUse: 'quick boxes, blocking, rough assembly', tools: 'saw, drill, clamps',
+        mainIdea: 'Two flat surfaces meet at an edge or end.',
+        summary: 'A butt joint is the simplest joint: one board meets another without a shaped cut. It is fast, but usually needs screws, nails, dowels, biscuits, or another reinforcement.',
+        shopNote: 'Great baseline joint. Ask students: what is actually stopping this from pulling apart?',
+        uses: ['simple utility boxes', 'temporary fixtures', 'framing/blocking', 'projects where fasteners are acceptable'],
+        ratings: { 'Pull-apart': 1, 'Shear': 2, 'Alignment help': 1, 'Glue surface': 1, 'Difficulty': 1 },
+        force: {
+          pull: 'Weak by itself. End grain and a small glue area make this easy to pull apart unless reinforced.',
+          down: 'Can handle some downward load if supported, but the joint is not doing much work alone.',
+          twist: 'Poor against twisting. The pieces can rack out of square quickly.',
+          rack: 'Needs gussets, screws, dowels, or another joint design if the frame must stay square.'
+        },
+        mistakes: [
+          { id: 'gap', title: 'Gap at Joint', cause: 'Ends were not cut square or clamps pulled pieces out of alignment.', fix: 'Check the saw setup, use a square, and dry fit before glue.', effect: 'A red gap appears where the boards should touch.' },
+          { id: 'weakGlue', title: 'Only End Grain Glue', cause: 'Glue is mostly soaking into end grain instead of bonding long grain.', fix: 'Add screws, dowels, biscuits, pocket screws, or choose a stronger joint.', effect: 'The glue surface is shown as small and unreliable.' },
+          { id: 'misalign', title: 'Boards Not Flush', cause: 'Pieces slipped during clamping or fasteners pulled them out of position.', fix: 'Use cauls, clamps, and a flat reference surface.', effect: 'One board is shifted higher than the other.' }
+        ],
+        quiz: [
+          { q: 'Why is a plain butt joint usually weak?', options: ['It uses too much glue', 'It has limited glue surface and often end grain', 'It is impossible to clamp', 'It only works with hardwood'], answer: 1, explain: 'A plain butt joint often relies on small glue areas and end grain, so reinforcement matters.' },
+          { q: 'What is a good way to strengthen a butt joint?', options: ['Leave a gap', 'Add dowels, screws, biscuits, or pocket screws', 'Sand after glue dries only', 'Make the boards thinner'], answer: 1, explain: 'Reinforcement gives the joint mechanical holding power.' },
+          { q: 'Before gluing, what should students do?', options: ['Skip measuring', 'Dry fit and check square', 'Force it together', 'Remove all clamps'], answer: 1, explain: 'Dry fitting catches alignment problems while they are still easy to fix.' }
+        ],
+        discussion: ['What is the difference between glue holding and fasteners holding?', 'Where would a butt joint be acceptable?', 'How could you redesign this joint to resist racking?'],
+        projects: ['shop stool blocking', 'utility crate', 'prototype frame', 'simple jig'],
+        safety: ['Clamp small parts before drilling.', 'Keep hands clear when driving screws.', 'Pre-drill when splitting is likely.']
+      },
+      {
+        id: 'rabbet', name: 'Rabbet Joint', difficulty: 'Beginner', visual: 'rabbet',
+        bestUse: 'cabinet backs, box corners, drawer parts', tools: 'table saw, router, chisel',
+        mainIdea: 'An L-shaped step is cut on the edge of a board.',
+        summary: 'A rabbet joint removes a step from the edge of one board so another board can sit into it. It adds alignment and more glue surface than a plain butt joint.',
+        shopNote: 'Good first “shaped cut” joint because students can see the shoulder and the ledge clearly.',
+        uses: ['cabinet backs', 'drawer bottoms', 'box corners', 'casework panels'],
+        ratings: { 'Pull-apart': 2, 'Shear': 3, 'Alignment help': 4, 'Glue surface': 3, 'Difficulty': 2 },
+        force: {
+          pull: 'Better than a butt joint, but still may need fasteners if pulled hard.',
+          down: 'Good for locating a panel or back because the ledge supports it.',
+          twist: 'Moderate. The shoulder helps alignment, but the joint can still open under twist.',
+          rack: 'Better than a butt joint for keeping parts positioned, especially with glue and fasteners.'
+        },
+        mistakes: [
+          { id: 'tooDeep', title: 'Rabbet Too Deep', cause: 'The cut removes too much of the receiving board.', fix: 'Use a test cut and set depth carefully.', effect: 'The remaining board looks thin and weak.' },
+          { id: 'tooLoose', title: 'Loose Shoulder', cause: 'The rabbet width is wider than the mating board.', fix: 'Sneak up on the final width with test cuts.', effect: 'A visible gap appears against the shoulder.' },
+          { id: 'tearout', title: 'Tearout', cause: 'Cutting direction, dull blade, or unsupported fibers caused chipped edges.', fix: 'Use a sharp cutter and backer board; score the line when needed.', effect: 'The shoulder edge is shown chipped.' }
+        ],
+        quiz: [
+          { q: 'What shape is removed for a rabbet joint?', options: ['A round hole', 'An L-shaped step on an edge', 'A triangle through the center', 'A full-width groove across the board'], answer: 1, explain: 'A rabbet is a step cut along the edge or end of a board.' },
+          { q: 'Why does a rabbet help alignment?', options: ['The mating piece sits against a shoulder', 'It makes the wood flexible', 'It removes all glue', 'It hides every mistake'], answer: 0, explain: 'The shoulder gives the second piece a physical reference edge.' },
+          { q: 'What should you do before cutting the final rabbet?', options: ['Make a test cut', 'Turn off measurement marks', 'Skip the fence', 'Glue first'], answer: 0, explain: 'A test cut lets you verify depth and width safely.' }
+        ],
+        discussion: ['How is a rabbet different from a dado?', 'Why does a shoulder help with assembly?', 'When would you still add nails or screws?'],
+        projects: ['cabinet back panel', 'small box', 'drawer bottom groove/rabbet comparison', 'shadow box frame'],
+        safety: ['Use push sticks and guards on table saw setups.', 'Do not trap offcuts between blade and fence.', 'Use router direction correctly to avoid climb cutting.']
+      },
+      {
+        id: 'dado', name: 'Dado Joint', difficulty: 'Beginner', visual: 'dado',
+        bestUse: 'shelves, dividers, bookcases', tools: 'table saw, router, chisel',
+        mainIdea: 'A groove goes across the grain to hold another board.',
+        summary: 'A dado joint is a slot cut across one board so another board can fit into it. It is common in shelves and cabinets because it supports weight and helps the parts line up.',
+        shopNote: 'This is probably the best first “why joinery matters” example for students building shelves.',
+        uses: ['bookcase shelves', 'cabinet dividers', 'drawer dividers', 'storage cubbies'],
+        ratings: { 'Pull-apart': 3, 'Shear': 4, 'Alignment help': 5, 'Glue surface': 4, 'Difficulty': 2 },
+        force: {
+          pull: 'Moderate. The walls of the dado help resist movement, but glue and fit still matter.',
+          down: 'Strong for shelf loads because the shelf is captured by the groove and supported along its length.',
+          twist: 'Good if the fit is snug and the case is square. A loose dado can still rack.',
+          rack: 'Helpful against racking because shelves and dividers lock the case sides into position.'
+        },
+        mistakes: [
+          { id: 'tooLoose', title: 'Dado Too Loose', cause: 'The groove is wider than the shelf thickness.', fix: 'Measure the actual material, then sneak up on the fit with test cuts.', effect: 'The shelf wiggles inside the groove.' },
+          { id: 'tooTight', title: 'Dado Too Tight', cause: 'The groove is slightly narrow or glue swelling was not considered.', fix: 'Make test cuts and leave enough room for glue without forcing the joint.', effect: 'The shelf binds and may split the side panel.' },
+          { id: 'tooDeep', title: 'Dado Too Deep', cause: 'The groove removes too much material from the side panel.', fix: 'A common starting point is around one-third of board thickness.', effect: 'The side panel becomes thin under the groove.' }
+        ],
+        quiz: [
+          { q: 'What is the main purpose of a dado joint?', options: ['To make a decorative rounded edge', 'To hold another board in a groove', 'To sharpen a blade', 'To make end grain disappear'], answer: 1, explain: 'A dado is a groove that captures another board.' },
+          { q: 'Why is a dado useful for shelves?', options: ['It supports the shelf and helps alignment', 'It makes the shelf lighter only', 'It removes the need to measure', 'It only works with metal'], answer: 0, explain: 'The groove supports weight and locates the shelf.' },
+          { q: 'What is a common starting depth for a dado?', options: ['All the way through', 'About one-third of the board thickness', 'Twice the board thickness', 'No depth at all'], answer: 1, explain: 'One-third is a common starting point, though the exact design depends on the project.' }
+        ],
+        discussion: ['Why is a dado stronger for a shelf than a plain butt joint?', 'What happens if the dado is too loose?', 'How does board thickness affect safe cut depth?'],
+        projects: ['bookcase', 'cubby organizer', 'cabinet divider', 'shelf test sample'],
+        safety: ['Use the correct cutter/blade setup for the machine.', 'Make test cuts in scrap first.', 'Keep hands away from the cutter path and use push blocks.']
+      },
+      {
+        id: 'lap', name: 'Half-Lap Joint', difficulty: 'Intermediate', visual: 'lap',
+        bestUse: 'frames, grid structures, stretchers', tools: 'table saw, router, chisel',
+        mainIdea: 'Each piece loses half its thickness so they overlap flush.',
+        summary: 'A half-lap joint removes half the thickness from each piece so they overlap and finish flush. It creates a large glue surface and is useful for frames and crossing members.',
+        shopNote: 'Great for teaching depth control because two accurate half-depth cuts should equal one full board thickness.',
+        uses: ['picture frames', 'table stretchers', 'grid frames', 'shop jigs'],
+        ratings: { 'Pull-apart': 3, 'Shear': 4, 'Alignment help': 4, 'Glue surface': 5, 'Difficulty': 3 },
+        force: {
+          pull: 'Good with glue because the long-grain overlap gives a large bonding area.',
+          down: 'Strong when load is transferred through the overlapping faces.',
+          twist: 'Moderate to good. Wide laps resist twist better than narrow laps.',
+          rack: 'Good for frames when joints fit accurately and are glued square.'
+        },
+        mistakes: [
+          { id: 'tooDeep', title: 'Cuts Too Deep', cause: 'Both laps removed more than half the thickness.', fix: 'Set depth using scrap and check with calipers or a square.', effect: 'The joint sits below flush and loses strength.' },
+          { id: 'tooShallow', title: 'Cuts Too Shallow', cause: 'Not enough material was removed.', fix: 'Take light cleanup passes until the faces are flush.', effect: 'The boards sit proud instead of flush.' },
+          { id: 'misalign', title: 'Shoulders Not Square', cause: 'Layout lines or fence setup were off.', fix: 'Mark clearly, use stop blocks, and cut to the waste side of the line.', effect: 'The crossing pieces are crooked.' }
+        ],
+        quiz: [
+          { q: 'In a half-lap joint, how much is usually removed from each board?', options: ['None', 'Half the thickness', 'All the thickness', 'Twice the thickness'], answer: 1, explain: 'Each board usually loses half so the final joint sits flush.' },
+          { q: 'Why can a half-lap joint be strong?', options: ['Large long-grain glue surface', 'No glue surface', 'Only end grain touches', 'It is always metal reinforced'], answer: 0, explain: 'The broad overlap gives glue more useful area.' },
+          { q: 'What happens if both laps are cut too shallow?', options: ['The joint sits proud', 'The joint disappears', 'The wood turns flexible', 'The board becomes thicker'], answer: 0, explain: 'Not enough material removed means the pieces cannot sit flush.' }
+        ],
+        discussion: ['Why do two half-depth cuts need to add up correctly?', 'Where would a half-lap be better than a butt joint?', 'How do stop blocks improve repeatability?'],
+        projects: ['grid frame', 'small stool base', 'picture frame sample', 'table stretcher mockup'],
+        safety: ['Use stop blocks safely; do not trap workpieces.', 'Keep fingers away during repeated cuts.', 'Clean up waste with controlled passes, not force.']
+      },
+      {
+        id: 'miter', name: 'Miter Joint', difficulty: 'Beginner', visual: 'miter',
+        bestUse: 'frames, trim, visual corners', tools: 'miter saw, table saw, shooting board',
+        mainIdea: 'Two angled ends meet to form a corner.',
+        summary: 'A miter joint uses angled cuts, usually 45 degrees, so two pieces form a clean corner. It looks nice, but plain miters can be weak because the glue surface is mostly end grain.',
+        shopNote: 'Good place to separate “looks clean” from “is structurally strong.”',
+        uses: ['picture frames', 'trim molding', 'decorative boxes', 'edge banding corners'],
+        ratings: { 'Pull-apart': 2, 'Shear': 2, 'Alignment help': 2, 'Glue surface': 2, 'Difficulty': 2 },
+        force: {
+          pull: 'Plain miters are weak in pull-apart loads unless reinforced with splines, keys, biscuits, or fasteners.',
+          down: 'Fine for decorative trim, but not ideal as a primary load-bearing joint.',
+          twist: 'Weak to moderate. Corners can open if the frame racks.',
+          rack: 'Frames with plain miters need careful clamping and often reinforcement to stay square.'
+        },
+        mistakes: [
+          { id: 'angleGap', title: 'Angle Gap', cause: 'The saw angle was slightly off 45 degrees.', fix: 'Calibrate the saw and make paired test cuts.', effect: 'The outside corner opens up.' },
+          { id: 'lengthMismatch', title: 'Length Mismatch', cause: 'Opposite frame pieces were not cut to matching lengths.', fix: 'Use stop blocks and cut matching parts together.', effect: 'The frame goes out of square.' },
+          { id: 'weakGlue', title: 'No Reinforcement', cause: 'A plain miter relies heavily on end-grain glue.', fix: 'Add a spline, key, biscuit, brad nails, or other reinforcement.', effect: 'The joint is highlighted as weak under pull.' }
+        ],
+        quiz: [
+          { q: 'What angle is common for a square frame miter?', options: ['15°', '30°', '45°', '90°'], answer: 2, explain: 'Two 45° cuts make a 90° corner.' },
+          { q: 'Why can a plain miter be weak?', options: ['Mostly end-grain glue', 'Too much long grain', 'It is always too thick', 'It cannot be clamped'], answer: 0, explain: 'End-grain glue is usually weaker than long-grain glue.' },
+          { q: 'What can strengthen a miter?', options: ['A spline or key', 'Leaving sawdust in the joint', 'Cutting without measuring', 'Using no clamps'], answer: 0, explain: 'Splines or keys add mechanical strength and more glue surface.' }
+        ],
+        discussion: ['Why do miters show tiny errors so clearly?', 'When does appearance matter more than strength?', 'How would a spline change this joint?'],
+        projects: ['picture frame', 'small decorative box', 'trim corner sample', 'mitered edge banding'],
+        safety: ['Keep hands clear of miter saw blade path.', 'Use stop blocks for repeat cuts, not fingers as stops.', 'Let the blade stop before lifting after a cut.']
+      },
+      {
+        id: 'pocket', name: 'Pocket Screw Joint', difficulty: 'Beginner', visual: 'pocket',
+        bestUse: 'face frames, quick cabinet assembly', tools: 'pocket-hole jig, drill, clamp',
+        mainIdea: 'An angled hole guides a screw into the mating board.',
+        summary: 'A pocket screw joint uses an angled drilled pocket so a screw pulls two boards together. It is fast and useful, especially where the pocket can be hidden.',
+        shopNote: 'Students tend to love this because it works quickly. Make sure they understand grain direction, screw length, and clamping.',
+        uses: ['face frames', 'cabinet boxes', 'quick shop projects', 'hidden underside connections'],
+        ratings: { 'Pull-apart': 3, 'Shear': 3, 'Alignment help': 2, 'Glue surface': 2, 'Difficulty': 1 },
+        force: {
+          pull: 'Good for many shop projects, but screw length, direction, and clamping matter.',
+          down: 'Works well when the screw pulls the parts tight and the load is not prying the joint open.',
+          twist: 'Moderate. Frames can rack if pocket screws are the only support and layout is poor.',
+          rack: 'Useful with glue and square clamping, but not magic. Bad alignment still gives a bad frame.'
+        },
+        mistakes: [
+          { id: 'tooLong', title: 'Screw Too Long', cause: 'The screw length does not match board thickness.', fix: 'Use the jig chart and test on scrap.', effect: 'The screw pokes through the face.' },
+          { id: 'noClamp', title: 'No Clamp', cause: 'The screw pulls one board upward while driving.', fix: 'Clamp the joint flat before driving screws.', effect: 'The boards shift out of flush.' },
+          { id: 'wrongDirection', title: 'Weak Direction', cause: 'The screw is placed where force can pry the joint open.', fix: 'Think about load direction and add glue or another joint when needed.', effect: 'The arrow pries the joint apart.' }
+        ],
+        quiz: [
+          { q: 'What guides the screw in a pocket screw joint?', options: ['An angled pocket hole', 'A dovetail pin', 'A full dado', 'A round mortise only'], answer: 0, explain: 'The jig drills an angled pocket that guides the screw.' },
+          { q: 'Why should the joint be clamped before driving screws?', options: ['To stop pieces from shifting', 'To make the screw shorter', 'To remove all friction', 'To change wood species'], answer: 0, explain: 'Pocket screws can pull pieces out of flush unless clamped.' },
+          { q: 'What mistake can happen with the wrong screw length?', options: ['Screw pokes through the face', 'Glue dries faster', 'Board gets wider', 'Saw blade dulls'], answer: 0, explain: 'Wrong screw length is one of the most common pocket-hole problems.' }
+        ],
+        discussion: ['When is a pocket screw joint a smart choice?', 'Why does clamping matter so much?', 'What makes this joint different from shaped joinery?'],
+        projects: ['face frame', 'simple bench', 'cabinet assembly sample', 'shop cart frame'],
+        safety: ['Clamp the jig and workpiece securely.', 'Keep hands away from drill bit exit paths.', 'Wear eye protection while drilling.']
+      },
+      {
+        id: 'dowel', name: 'Dowel Joint', difficulty: 'Intermediate', visual: 'dowel',
+        bestUse: 'edge joining, panels, reinforced butt joints', tools: 'dowel jig, drill, clamps',
+        mainIdea: 'Round pins align and reinforce two pieces.',
+        summary: 'A dowel joint uses round wooden pins fitted into matching holes. Dowels add alignment and mechanical strength when the holes are accurate.',
+        shopNote: 'Excellent for teaching precision: if holes are off, the joint tells on you immediately.',
+        uses: ['edge-glued panels', 'table aprons', 'reinforced box corners', 'chair/stool parts'],
+        ratings: { 'Pull-apart': 3, 'Shear': 3, 'Alignment help': 4, 'Glue surface': 3, 'Difficulty': 3 },
+        force: {
+          pull: 'Good when dowels are sized correctly and glued well. Poor if holes are sloppy or shallow.',
+          down: 'Dowels help transfer load, but the surrounding wood still matters.',
+          twist: 'Multiple dowels resist twisting better than one dowel because they prevent rotation.',
+          rack: 'Good alignment help, especially with two or more dowels and square clamping.'
+        },
+        mistakes: [
+          { id: 'misalign', title: 'Holes Misaligned', cause: 'Layout or jig placement was off.', fix: 'Use a dowel jig, reference faces, and mark parts clearly.', effect: 'The boards cannot close evenly.' },
+          { id: 'tooDeep', title: 'Hole Too Deep', cause: 'Drill stop was not set.', fix: 'Use tape or a stop collar and check depth.', effect: 'The dowel bottoms out or glue has nowhere to go.' },
+          { id: 'tooLoose', title: 'Loose Dowels', cause: 'Wrong bit size or worn holes.', fix: 'Match dowel and bit size; test fit before glue.', effect: 'The dowels wiggle instead of aligning the joint.' }
+        ],
+        quiz: [
+          { q: 'What do dowels add to a joint?', options: ['Alignment and reinforcement', 'A 45° angle only', 'A decorative paint layer', 'A full-width groove'], answer: 0, explain: 'Dowels help line up parts and resist movement.' },
+          { q: 'Why are two dowels often better than one?', options: ['They resist rotation', 'They remove the need for measuring', 'They make wood softer', 'They replace clamps completely'], answer: 0, explain: 'One round dowel can allow rotation; two help lock orientation.' },
+          { q: 'What helps prevent drilling too deep?', options: ['A stop collar or tape mark', 'More pressure', 'No layout lines', 'A dull bit'], answer: 0, explain: 'A depth stop gives a repeatable safe drilling depth.' }
+        ],
+        discussion: ['Why do reference faces matter?', 'What happens if one hole is slightly off?', 'When would dowels be better than screws?'],
+        projects: ['edge panel sample', 'small table apron', 'reinforced box corner', 'stool rail sample'],
+        safety: ['Clamp parts before drilling.', 'Use drill stops to control depth.', 'Keep hands away from bit and use eye protection.']
+      },
+      {
+        id: 'mortiseTenon', name: 'Mortise & Tenon', difficulty: 'Advanced', visual: 'mortise',
+        bestUse: 'tables, chairs, doors, frames', tools: 'chisels, drill press, router, saw',
+        mainIdea: 'A projecting tenon fits into a matching mortise hole.',
+        summary: 'A mortise and tenon joint has a tab called a tenon that fits into a rectangular hole called a mortise. It is one of the strongest traditional joints for frames and furniture.',
+        shopNote: 'This is the “gold standard” frame joint. The vocabulary is worth learning even before students can cut it perfectly.',
+        uses: ['table legs and aprons', 'chairs', 'doors', 'workbench frames', 'rail-and-stile frames'],
+        ratings: { 'Pull-apart': 5, 'Shear': 5, 'Alignment help': 5, 'Glue surface': 5, 'Difficulty': 5 },
+        force: {
+          pull: 'Very strong when the tenon fits well and has good shoulder contact.',
+          down: 'Excellent for furniture loads because the tenon transfers force into the leg or stile.',
+          twist: 'Strong against twist if the tenon has enough width and shoulder support.',
+          rack: 'Excellent for frame construction because the joint resists racking in multiple directions.'
+        },
+        mistakes: [
+          { id: 'tooLoose', title: 'Loose Tenon', cause: 'The tenon is smaller than the mortise.', fix: 'Cut tenons slightly oversized and fit gradually.', effect: 'The tenon wiggles in the mortise.' },
+          { id: 'tooTight', title: 'Tenon Too Tight', cause: 'The tenon is forced into the mortise.', fix: 'Pare carefully until it fits with hand pressure.', effect: 'The mortise wall may split.' },
+          { id: 'badShoulder', title: 'Shoulder Gap', cause: 'Shoulders were cut unevenly or not square.', fix: 'Use accurate layout and cut clean shoulders.', effect: 'A visible gap appears around the joint.' }
+        ],
+        quiz: [
+          { q: 'What is the mortise?', options: ['The rectangular hole', 'The round dowel', 'The 45° angle', 'The saw blade'], answer: 0, explain: 'The mortise is the hole that receives the tenon.' },
+          { q: 'What is the tenon?', options: ['The projecting tab that fits into the mortise', 'A screw head', 'A sanding block', 'A clamp'], answer: 0, explain: 'The tenon is the shaped projection on the end of a rail or board.' },
+          { q: 'Why is this joint strong?', options: ['Large glue surface, shoulders, and mechanical fit', 'No contact between parts', 'Only paint holds it', 'It avoids measurement'], answer: 0, explain: 'It combines geometry, glue surface, and shoulders.' }
+        ],
+        discussion: ['Why is shoulder contact important?', 'Where do you see mortise and tenon joints in furniture?', 'How does a loose fit change strength?'],
+        projects: ['table apron sample', 'small stool frame', 'door frame model', 'practice mortise block'],
+        safety: ['Secure work when chiseling.', 'Keep both hands behind cutting edges.', 'Use drill press clamps and depth stops.']
+      },
+      {
+        id: 'box', name: 'Box / Finger Joint', difficulty: 'Intermediate', visual: 'box',
+        bestUse: 'boxes, drawers, decorative corners', tools: 'table saw jig, router jig',
+        mainIdea: 'Alternating rectangular fingers interlock at a corner.',
+        summary: 'A box joint, also called a finger joint, uses matching rectangular fingers. It gives a lot of glue surface and strong corner alignment when the fingers fit well.',
+        shopNote: 'Students can instantly see why repetition and jig setup matter.',
+        uses: ['wooden boxes', 'drawers', 'storage trays', 'decorative case corners'],
+        ratings: { 'Pull-apart': 4, 'Shear': 4, 'Alignment help': 5, 'Glue surface': 5, 'Difficulty': 4 },
+        force: {
+          pull: 'Strong because there is lots of long-grain glue surface across many fingers.',
+          down: 'Good corner strength for boxes and drawers.',
+          twist: 'Good if the fingers fit snugly and the box is clamped square.',
+          rack: 'Strong against corner racking because the fingers mechanically interlock.'
+        },
+        mistakes: [
+          { id: 'tooLoose', title: 'Loose Fingers', cause: 'Jig spacing or blade width was off.', fix: 'Tune the jig with test cuts before cutting project parts.', effect: 'Gaps appear between fingers.' },
+          { id: 'tooTight', title: 'Too Tight', cause: 'Fingers are oversized or the spacing is too narrow.', fix: 'Adjust the jig slightly and test again.', effect: 'The joint cannot seat without force.' },
+          { id: 'misalign', title: 'Wrong Start Position', cause: 'One board started on the wrong side of the jig key.', fix: 'Label inside/outside faces and starting edges.', effect: 'Fingers collide instead of interlocking.' }
+        ],
+        quiz: [
+          { q: 'What makes a box joint strong?', options: ['Many interlocking fingers and glue surfaces', 'One tiny nail only', 'No contact', 'Only a 45° corner'], answer: 0, explain: 'The repeated fingers create a large bonding area and mechanical interlock.' },
+          { q: 'What tool setup is especially important?', options: ['A repeatable jig', 'A random fence position', 'A dull blade', 'No test cut'], answer: 0, explain: 'Box joints depend on repeatable spacing.' },
+          { q: 'What happens if the fingers are too loose?', options: ['Visible gaps and weaker glue bond', 'The box becomes waterproof', 'The blade sharpens itself', 'The boards get thicker'], answer: 0, explain: 'Loose fingers reduce contact and look messy.' }
+        ],
+        discussion: ['Why does a box joint need repeatability?', 'How is this different from a dovetail?', 'What makes the glue surface so large?'],
+        projects: ['small box', 'drawer corner sample', 'pencil tray', 'tool tote corner'],
+        safety: ['Use approved jigs and guards.', 'Keep hands away from repeated blade passes.', 'Use push blocks and test cuts.']
+      },
+      {
+        id: 'dovetail', name: 'Dovetail Joint', difficulty: 'Advanced', visual: 'dovetail',
+        bestUse: 'drawers, boxes, fine furniture', tools: 'saw, chisel, router jig',
+        mainIdea: 'Angled tails and pins mechanically resist pulling apart.',
+        summary: 'A dovetail joint uses wedge-shaped tails and pins. The shape mechanically resists pulling apart, which is why dovetails are famous in drawers and fine boxes.',
+        shopNote: 'Do not make the MVP about cutting perfect dovetails. Make it about why the shape works.',
+        uses: ['drawer fronts', 'fine boxes', 'case corners', 'decorative joinery samples'],
+        ratings: { 'Pull-apart': 5, 'Shear': 4, 'Alignment help': 5, 'Glue surface': 4, 'Difficulty': 5 },
+        force: {
+          pull: 'Excellent in one direction because the angled shape mechanically locks the boards together.',
+          down: 'Strong for drawer and box corners when the load pushes into the joint.',
+          twist: 'Good, but accuracy still matters. Gaps weaken and show immediately.',
+          rack: 'Strong corner joint because the shape resists being pulled apart and helps keep the box square.'
+        },
+        mistakes: [
+          { id: 'gap', title: 'Gappy Baselines', cause: 'Sawing or chiseling missed the line.', fix: 'Cut to the waste side and pare carefully to the line.', effect: 'Gaps appear at the shoulders.' },
+          { id: 'wrongDirection', title: 'Wrong Direction', cause: 'The dovetail was oriented so force can pull it apart from the open side.', fix: 'Think about drawer-front direction: tails should resist the expected pull.', effect: 'Pull arrows show the joint sliding out.' },
+          { id: 'tooTight', title: 'Forced Fit', cause: 'Pins or tails were too large.', fix: 'Pare high spots gradually; never hammer a bad fit hard.', effect: 'The joint splits at the corner.' }
+        ],
+        quiz: [
+          { q: 'Why does a dovetail resist pulling apart?', options: ['Angled wedge shapes mechanically lock', 'It uses no geometry', 'It is only paint', 'The boards never touch'], answer: 0, explain: 'The angled tails and pins lock against pull in the correct direction.' },
+          { q: 'Where are dovetails commonly used?', options: ['Drawer fronts and boxes', 'Only roof shingles', 'Only metal welding', 'Never in furniture'], answer: 0, explain: 'Dovetails are common in drawers, boxes, and fine casework.' },
+          { q: 'What mistake makes dovetails look bad quickly?', options: ['Gaps at baselines and shoulders', 'Too much square checking', 'Sharp tools', 'Clear layout lines'], answer: 0, explain: 'Dovetails are visible joinery, so gaps are easy to see.' }
+        ],
+        discussion: ['Why does direction of force matter in a dovetail?', 'Why are dovetails valued visually?', 'What skills would students need before cutting these by hand?'],
+        projects: ['drawer corner model', 'decorative box sample', 'router-jig demo', 'hand-cut layout practice'],
+        safety: ['Secure work when sawing and chiseling.', 'Keep hands behind sharp tools.', 'Use router jigs only with teacher-approved setup.']
+      }
+    ];
+
+    const state = {
+      selected: 'dado',
+      filter: 'all',
+      search: '',
+      mode: 'exploded',
+      force: 'down',
+      mistake: null,
+      thickness: 0.75,
+      depth: 0.25,
+      fit: 0,
+      teacher: false
+    };
+
+    const $ = id => document.getElementById(id);
+
+    const forceLabels = {
+      pull: 'Pull Apart',
+      down: 'Push Down',
+      twist: 'Twist',
+      rack: 'Rack Sideways'
+    };
+
+    const modeHints = {
+      exploded: ['Exploded View', 'See the pieces before they come together.'],
+      assembled: ['Assembled View', 'See how the joint looks when built.'],
+      section: ['Cross-Section', 'See the hidden shape of the cut.']
+    };
+
+    function currentJoint() {
+      return joints.find(j => j.id === state.selected) || joints[0];
+    }
+
+    function fraction(n) {
+      const common = [
+        [0.5, '1/2'], [0.625, '5/8'], [0.75, '3/4'], [0.875, '7/8'], [1, '1'], [1.125, '1 1/8'], [1.25, '1 1/4'], [1.375, '1 3/8'], [1.5, '1 1/2'],
+        [0.125, '1/8'], [0.1875, '3/16'], [0.25, '1/4'], [0.3125, '5/16'], [0.375, '3/8'], [0.4375, '7/16']
+      ];
+      let best = common[0];
+      for (const item of common) {
+        if (Math.abs(item[0] - n) < Math.abs(best[0] - n)) best = item;
+      }
+      if (Math.abs(best[0] - n) < 0.035) return best[1];
+      return n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    }
+
+    function fitLabel(v) {
+      return { '-2': 'Very Loose', '-1': 'Loose', '0': 'Snug', '1': 'Tight', '2': 'Too Tight' }[String(v)] || 'Snug';
+    }
+
+    function difficultyMark(d) {
+      if (d === 'Beginner') return '●○○';
+      if (d === 'Intermediate') return '●●○';
+      return '●●●';
+    }
+
+    function miniSvg(type) {
+      const wood = '#c78b4d', dark = '#7a4a24', cut = '#e0b16e';
+      const base = `<svg viewBox="0 0 100 80" aria-hidden="true"><rect width="100" height="80" fill="#f8ead6"/>`;
+      const end = `</svg>`;
+      const common = {
+        butt: `<rect x="12" y="42" width="58" height="16" rx="2" fill="${wood}" stroke="${dark}"/><rect x="62" y="22" width="16" height="36" rx="2" fill="${wood}" stroke="${dark}"/><path d="M62 22v36" stroke="#ffdf63" stroke-width="4"/>`,
+        rabbet: `<path d="M12 42h48v-12h20v28H12z" fill="${wood}" stroke="${dark}"/><rect x="58" y="30" width="22" height="12" fill="${cut}" stroke="${dark}"/>`,
+        dado: `<rect x="12" y="45" width="76" height="18" fill="${wood}" stroke="${dark}"/><rect x="42" y="31" width="16" height="32" fill="${wood}" stroke="${dark}"/><rect x="40" y="45" width="20" height="9" fill="${cut}" opacity=".95"/>`,
+        lap: `<rect x="14" y="38" width="72" height="16" fill="${wood}" stroke="${dark}"/><rect x="42" y="16" width="16" height="52" fill="${wood}" stroke="${dark}"/><rect x="42" y="38" width="16" height="16" fill="${cut}" opacity=".8"/>`,
+        miter: `<path d="M16 52 L48 20 L60 32 L28 64 Z" fill="${wood}" stroke="${dark}"/><path d="M48 20 L82 54 L70 66 L36 32 Z" fill="${wood}" stroke="${dark}"/><path d="M48 20 L36 32" stroke="#ffdf63" stroke-width="4"/>`,
+        pocket: `<rect x="12" y="44" width="62" height="16" fill="${wood}" stroke="${dark}"/><rect x="62" y="18" width="16" height="42" fill="${wood}" stroke="${dark}"/><path d="M34 50 C45 46 51 36 63 30" stroke="#1d3957" stroke-width="4" fill="none"/>`,
+        dowel: `<rect x="12" y="34" width="34" height="22" fill="${wood}" stroke="${dark}"/><rect x="54" y="34" width="34" height="22" fill="${wood}" stroke="${dark}"/><circle cx="48" cy="40" r="4" fill="#8b572a"/><circle cx="48" cy="50" r="4" fill="#8b572a"/>`,
+        mortise: `<rect x="16" y="42" width="70" height="18" fill="${wood}" stroke="${dark}"/><rect x="42" y="46" width="20" height="10" fill="#8b572a"/><path d="M44 18h16v24h-16z" fill="${wood}" stroke="${dark}"/>`,
+        box: `<path d="M16 24h12v12h12V24h12v12h12V24h12v42H16z" fill="${wood}" stroke="${dark}"/><path d="M48 36h12v12H48v12H36V48h12z" fill="${cut}" opacity=".7"/>`,
+        dovetail: `<path d="M18 26h14l6 12 6-12h14l6 12 6-12h12v42H18z" fill="${wood}" stroke="${dark}"/><path d="M36 26l8 18H28z" fill="${cut}" opacity=".7"/>`
+      };
+      return base + (common[type] || common.dado) + end;
+    }
+
+    function renderJointList() {
+      const list = $('jointList');
+      const q = state.search.trim().toLowerCase();
+      const filtered = joints.filter(j => {
+        const difficultyMatch = state.filter === 'all' || j.difficulty.toLowerCase() === state.filter;
+        const haystack = [j.name, j.bestUse, j.tools, j.summary, ...j.uses].join(' ').toLowerCase();
+        return difficultyMatch && (!q || haystack.includes(q));
+      });
+      list.innerHTML = '';
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty-state">No matching joints yet. Try a different search or filter.</div>';
+        return;
+      }
+      filtered.forEach(j => {
+        const btn = document.createElement('button');
+        btn.className = 'joint-card' + (j.id === state.selected ? ' active' : '');
+        btn.innerHTML = `
+          <div class="mini-diagram">${miniSvg(j.visual)}</div>
+          <div>
+            <h3>${j.name}</h3>
+            <p>${j.bestUse}</p>
+            <span class="difficulty">${difficultyMark(j.difficulty)} ${j.difficulty}</span>
+          </div>`;
+        btn.addEventListener('click', () => {
+          state.selected = j.id;
+          state.mistake = null;
+          state.force = 'down';
+          tuneDepthForJoint();
+          renderAll();
+          document.querySelector('main.workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        list.appendChild(btn);
+      });
+    }
+
+    function tuneDepthForJoint() {
+      const j = currentJoint();
+      if (['dado', 'rabbet'].includes(j.id)) state.depth = Math.min(0.65, Math.max(0.08, state.thickness / 3));
+      if (j.id === 'lap') state.depth = Math.min(0.65, Math.max(0.08, state.thickness / 2));
+      if (['mortiseTenon', 'box', 'dovetail'].includes(j.id)) state.depth = Math.min(0.65, Math.max(0.08, state.thickness * 0.45));
+    }
+
+    function renderHeader() {
+      const j = currentJoint();
+      $('jointDifficulty').textContent = `${difficultyMark(j.difficulty)} ${j.difficulty}`;
+      $('jointName').textContent = j.name;
+      $('jointSummary').textContent = j.summary;
+      $('jointBestUse').textContent = j.bestUse;
+      $('jointTools').textContent = j.tools;
+      $('jointMainIdea').textContent = j.mainIdea;
+      $('shopNote').textContent = j.shopNote;
+      $('teacherSheet').classList.toggle('show', state.teacher);
+      $('teacherToggle').setAttribute('aria-expanded', String(state.teacher));
+      $('teacherToggle').textContent = state.teacher ? 'Hide Teacher View' : 'Teacher View';
+    }
+
+    function renderTabs() {
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === state.mode);
+      });
+      const [title, hint] = modeHints[state.mode];
+      $('visualTitle').textContent = title;
+      $('visualHint').textContent = hint;
+    }
+
+    function renderControls() {
+      $('thicknessRange').value = state.thickness;
+      $('depthRange').value = state.depth;
+      $('fitRange').value = state.fit;
+      $('thicknessOut').textContent = `${fraction(state.thickness)} in`;
+      $('depthOut').textContent = `${fraction(state.depth)} in`;
+      $('fitOut').textContent = fitLabel(state.fit);
+      const j = currentJoint();
+      if (j.id === 'lap') $('depthHelp').textContent = 'Half-lap joints usually remove about half the thickness from each piece.';
+      else if (j.id === 'miter') $('depthHelp').textContent = 'Miter joints care more about angle and matching length than cut depth.';
+      else if (j.id === 'butt' || j.id === 'pocket' || j.id === 'dowel') $('depthHelp').textContent = 'For this joint, depth represents hole/cut engagement rather than a wide groove.';
+      else $('depthHelp').textContent = 'Many housed joints use about one-third of the receiving board thickness.';
+    }
+
+    function renderForceMistake() {
+      const j = currentJoint();
+      const fb = $('forceButtons');
+      fb.innerHTML = '';
+      Object.entries(forceLabels).forEach(([id, label]) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.className = id === state.force ? 'active' : '';
+        btn.addEventListener('click', () => { state.force = id; renderAll(false); });
+        fb.appendChild(btn);
+      });
+      $('forceResult').innerHTML = `<strong>${forceLabels[state.force]}:</strong> ${j.force[state.force]}`;
+
+      const mb = $('mistakeButtons');
+      mb.innerHTML = '';
+      const none = document.createElement('button');
+      none.textContent = 'No Mistake';
+      none.className = !state.mistake ? 'active' : '';
+      none.addEventListener('click', () => { state.mistake = null; renderAll(false); });
+      mb.appendChild(none);
+      j.mistakes.forEach(m => {
+        const btn = document.createElement('button');
+        btn.textContent = m.title;
+        btn.className = state.mistake === m.id ? 'active' : '';
+        btn.addEventListener('click', () => { state.mistake = m.id; renderAll(false); });
+        mb.appendChild(btn);
+      });
+      const m = j.mistakes.find(x => x.id === state.mistake);
+      $('mistakeResult').innerHTML = m ? `<strong>${m.title}:</strong> ${m.cause}<br><br><strong>Fix:</strong> ${m.fix}` : '<strong>No mistake selected:</strong> The diagram shows the intended fit. Use this as the target before you compare errors.';
+    }
+
+    function renderRatingsUses() {
+      const j = currentJoint();
+      const ratings = $('ratings');
+      ratings.innerHTML = '';
+      Object.entries(j.ratings).forEach(([name, val]) => {
+        const row = document.createElement('div');
+        row.className = 'rating-row';
+        row.innerHTML = `<span>${name}</span><div class="bar" aria-label="${name}: ${val} of 5"><span style="width:${val * 20}%"></span></div><strong>${val}/5</strong>`;
+        ratings.appendChild(row);
+      });
+      const ul = $('useList');
+      ul.innerHTML = '';
+      j.uses.forEach(use => {
+        const li = document.createElement('li');
+        li.textContent = use;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderQuiz() {
+      const j = currentJoint();
+      const area = $('quizArea');
+      area.innerHTML = '';
+      $('quizFeedback').classList.remove('show');
+      $('quizFeedback').innerHTML = '';
+      j.quiz.forEach((question, idx) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `<p>${idx + 1}. ${question.q}</p>` + question.options.map((opt, oidx) => `
+          <label><input type="radio" name="q${idx}" value="${oidx}"> ${opt}</label>
+        `).join('');
+        area.appendChild(div);
+      });
+    }
+
+    function renderTeacher() {
+      const j = currentJoint();
+      const d = $('discussionList'), p = $('projectList'), s = $('safetyList');
+      d.innerHTML = ''; p.innerHTML = ''; s.innerHTML = '';
+      j.discussion.forEach(text => { const li = document.createElement('li'); li.textContent = text; d.appendChild(li); });
+      j.projects.forEach(text => { const li = document.createElement('li'); li.textContent = text; p.appendChild(li); });
+      j.safety.forEach(text => { const li = document.createElement('li'); li.textContent = text; s.appendChild(li); });
+    }
+
+    function svgDefs() {
+      return `
+        <defs>
+          <pattern id="wood" patternUnits="userSpaceOnUse" width="90" height="28">
+            <rect width="90" height="28" fill="#c98b4e"/>
+            <path d="M-5 10 C20 0, 42 22, 95 8 M-5 22 C18 18, 35 33, 92 20" stroke="#a76431" stroke-width="2" opacity=".45" fill="none"/>
+            <path d="M10 4 C22 12, 34 12, 46 4" stroke="#e2b374" stroke-width="1.5" opacity=".55" fill="none"/>
+          </pattern>
+          <pattern id="endgrain" patternUnits="userSpaceOnUse" width="42" height="42">
+            <rect width="42" height="42" fill="#b7743b"/>
+            <circle cx="20" cy="20" r="6" stroke="#8a5228" fill="none" opacity=".55"/>
+            <circle cx="20" cy="20" r="13" stroke="#8a5228" fill="none" opacity=".38"/>
+          </pattern>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L8,3 z" fill="#a83326" />
+          </marker>
+          <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L8,3 z" fill="#1d3957" />
+          </marker>
+          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#4b2a12" flood-opacity=".22"/>
+          </filter>
+        </defs>`;
+    }
+
+    function boardRect(x,y,w,h,label='') {
+      return `<g filter="url(#softShadow)"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="url(#wood)" stroke="#704018" stroke-width="3"/>${label ? `<text x="${x + w/2}" y="${y + h/2 + 5}" text-anchor="middle" font-weight="900" fill="#4c2b12">${label}</text>` : ''}</g>`;
+    }
+
+    function cutRect(x,y,w,h,label='cut') {
+      return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#d18b45" stroke="#8a4c1e" stroke-width="2" opacity=".9"/><text x="${x + w/2}" y="${y + h/2 + 5}" text-anchor="middle" font-size="14" font-weight="900" fill="#5c3212">${label}</text></g>`;
+    }
+
+    function glueLine(d) {
+      return `<path d="${d}" stroke="#ffdf63" stroke-width="8" stroke-linecap="round" opacity=".95"/>`;
+    }
+
+    function errorGap(x,y,w,h,label='gap') {
+      return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#db5145" opacity=".85"/><text x="${x+w/2}" y="${y+h/2+5}" text-anchor="middle" font-size="14" font-weight="900" fill="white">${label}</text></g>`;
+    }
+
+    function label(x,y,text,anchor='middle') {
+      return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="15" font-weight="800" fill="#1d3957">${text}</text>`;
+    }
+
+    function dimension(x1,y1,x2,y2,text) {
+      return `<g stroke="#1d3957" fill="none" stroke-width="2" opacity=".85"><path d="M${x1},${y1} L${x2},${y2}"/><path d="M${x1},${y1-6} L${x1},${y1+6}"/><path d="M${x2},${y2-6} L${x2},${y2+6}"/></g>${label((x1+x2)/2, y1-10, text)}`;
+    }
+
+    function forceArrows() {
+      const f = state.force;
+      if (f === 'pull') {
+        return `<path d="M230 115 L135 115" stroke="#a83326" stroke-width="7" marker-end="url(#arrow)"/><path d="M590 115 L685 115" stroke="#a83326" stroke-width="7" marker-end="url(#arrow)"/>${label(410,70,'Pull-apart force')}`;
+      }
+      if (f === 'down') {
+        return `<path d="M410 60 L410 145" stroke="#a83326" stroke-width="7" marker-end="url(#arrow)"/>${label(410,45,'Downward load')}`;
+      }
+      if (f === 'twist') {
+        return `<path d="M265 88 C205 120, 210 185, 270 210" stroke="#a83326" stroke-width="6" marker-end="url(#arrow)" fill="none"/><path d="M555 210 C615 178, 610 113, 550 88" stroke="#a83326" stroke-width="6" marker-end="url(#arrow)" fill="none"/>${label(410,50,'Twisting force')}`;
+      }
+      return `<path d="M230 90 L315 90" stroke="#a83326" stroke-width="7" marker-end="url(#arrow)"/><path d="M590 230 L505 230" stroke="#a83326" stroke-width="7" marker-end="url(#arrow)"/>${label(410,50,'Racking force')}`;
+    }
+
+    function mistakeOverlay(type) {
+      const m = state.mistake;
+      if (!m) return '';
+      if (['gap', 'angleGap', 'badShoulder'].includes(m)) return errorGap(390,175,42,24,'gap');
+      if (['tooLoose', 'noClamp', 'misalign', 'lengthMismatch'].includes(m)) return `${errorGap(362,206,96,20,'loose')}<path d="M330 260 L480 234" stroke="#db5145" stroke-width="5" stroke-dasharray="8 7"/>`;
+      if (['tooTight', 'forcedFit'].includes(m)) return `${errorGap(378,190,64,52,'tight')}<path d="M354 160 L466 260" stroke="#db5145" stroke-width="4"/><path d="M466 160 L354 260" stroke="#db5145" stroke-width="4"/>`;
+      if (['tooDeep'].includes(m)) return errorGap(345,230,130,42,'too deep');
+      if (['weakGlue'].includes(m)) return `<path d="M398 145 L398 270" stroke="#db5145" stroke-width="8" stroke-dasharray="10 8"/>${label(500,290,'weak glue area','start')}`;
+      if (['tearout'].includes(m)) return `<path d="M328 206 l12 -10 l12 14 l10 -13 l11 16 l8 -12" stroke="#db5145" stroke-width="5" fill="none"/>${label(430,222,'tearout','start')}`;
+      if (['tooLong'].includes(m)) return `<path d="M342 248 L468 110" stroke="#1d3957" stroke-width="5"/><circle cx="468" cy="110" r="10" fill="#db5145"/>${label(485,108,'screw pokes through','start')}`;
+      if (['wrongDirection'].includes(m)) return `<path d="M510 150 L650 150" stroke="#db5145" stroke-width="8" marker-end="url(#arrow)"/>${label(585,132,'wrong pull direction')}`;
+      if (['tooShallow'].includes(m)) return errorGap(365,172,90,18,'proud');
+      return errorGap(380,185,70,28,'error');
+    }
+
+    function drawDado() {
+      const sep = state.mode === 'exploded' ? -95 : 0;
+      const depthPx = Math.max(16, Math.min(66, state.depth * 110));
+      const baseY = 245, baseH = 82, grooveW = 118;
+      let svg = boardRect(150, baseY, 520, baseH, 'side panel');
+      svg += cutRect(351, baseY, grooveW, depthPx, 'dado');
+      svg += boardRect(374, baseY - 142 + sep, 72, 142, 'shelf');
+      if (state.mode !== 'exploded') svg += glueLine(`M356 ${baseY + 8} H466 M376 ${baseY + depthPx} H444`);
+      if (state.mode === 'section') {
+        svg = boardRect(130, 210, 560, 105, 'receiving board') + cutRect(342,210,136,depthPx,'groove') + boardRect(367, 90, 86, 120, 'shelf') + glueLine(`M348 214 H472`);
+      }
+      svg += dimension(150, 355, 670, 355, `board thickness: ${fraction(state.thickness)} in`);
+      svg += label(410, 386, `recommended depth ≈ ${fraction(state.thickness/3)} in | current: ${fraction(state.depth)} in`);
+      return svg;
+    }
+
+    function drawRabbet() {
+      const depthPx = Math.max(18, Math.min(70, state.depth * 115));
+      const sep = state.mode === 'exploded' ? 90 : 0;
+      if (state.mode === 'section') {
+        return boardRect(160, 215, 480, 92, 'board with edge step') + cutRect(520,215,120,depthPx,'rabbet') + boardRect(545, 118 - sep/2, 95, 97 + sep/2, 'panel') + glueLine('M526 220 V286 M526 286 H636') + dimension(160,342,640,342,`board thickness: ${fraction(state.thickness)} in`);
+      }
+      return boardRect(135, 230, 430, 82, 'case side') + cutRect(470,230,95,depthPx,'rabbet') + boardRect(505 + sep, 142, 88, 170, 'back/panel') + glueLine('M506 234 V307') + dimension(135,345,565,345,`rabbet depth: ${fraction(state.depth)} in`);
+    }
+
+    function drawButt() {
+      const shift = state.mode === 'exploded' ? 86 : 0;
+      if (state.mode === 'section') {
+        return boardRect(150, 232, 285, 80, 'board A') + boardRect(435 + shift/2, 152, 82, 160, 'board B') + glueLine('M435 154 V310') + label(410,132,'small glue/contact area') + dimension(150,345,518,345,`board thickness: ${fraction(state.thickness)} in`);
+      }
+      return boardRect(150, 240, 300, 82, 'board A') + boardRect(450 + shift, 150, 82, 172, 'board B') + glueLine(`M${450 + shift} 154 V318`) + label(410,125, state.mode === 'exploded' ? 'simple edge/end contact' : 'fastener or reinforcement often needed');
+    }
+
+    function drawLap() {
+      const sep = state.mode === 'exploded' ? -75 : 0;
+      const depthPx = Math.max(22, Math.min(68, state.depth * 110));
+      if (state.mode === 'section') {
+        return boardRect(160,235,500,75,'board A') + cutRect(350,235,120,depthPx,'half depth') + boardRect(372,135 + sep,76,175,'board B') + cutRect(372,235,76,depthPx,'half') + glueLine('M355 240 H465 M377 240 V306 M443 240 V306') + dimension(160,342,660,342,`target: half of ${fraction(state.thickness)} in`);
+      }
+      return boardRect(160,235,500,75,'board A') + boardRect(372,135 + sep,76,175,'board B') + cutRect(350,235,120,depthPx,'lap area') + glueLine('M356 242 H464 M378 242 V304 M442 242 V304') + label(410,108, state.mode === 'exploded' ? 'both pieces lose half thickness' : 'faces should finish flush');
+    }
+
+    function drawMiter() {
+      const sep = state.mode === 'exploded' ? 52 : 0;
+      const left = `<g filter="url(#softShadow)"><path d="M210 285 L385 110 L435 160 L260 335 Z" fill="url(#wood)" stroke="#704018" stroke-width="3"/></g>`;
+      const right = `<g filter="url(#softShadow)" transform="translate(${sep},0)"><path d="M385 110 L610 335 L560 385 L335 160 Z" fill="url(#wood)" stroke="#704018" stroke-width="3"/></g>`;
+      let svg = left + right + glueLine(`M385 112 L335 162`) + label(410,86,'two 45° cuts form a 90° corner');
+      if (state.mode === 'section') svg += `<path d="M385 110 L335 160" stroke="#1d3957" stroke-width="3" stroke-dasharray="8 7"/>${label(300,132,'miter face')}`;
+      return svg;
+    }
+
+    function drawPocket() {
+      const shift = state.mode === 'exploded' ? 75 : 0;
+      let svg = boardRect(165,242,315,80,'rail') + boardRect(480 + shift,145,82,177,'stile') + glueLine(`M${480 + shift} 150 V318`);
+      svg += `<path d="M275 276 C330 260 380 206 ${482 + shift} 177" stroke="#1d3957" stroke-width="12" fill="none" stroke-linecap="round" opacity=".35"/><path d="M280 276 C335 260 383 207 ${485 + shift} 178" stroke="#1d3957" stroke-width="4" fill="none" marker-end="url(#blueArrow)"/>${label(330,230,'angled pocket hole')}`;
+      if (state.mode === 'section') svg += `<circle cx="284" cy="275" r="16" fill="#e9d4b7" stroke="#704018" stroke-width="3"/>`;
+      return svg;
+    }
+
+    function drawDowel() {
+      const sep = state.mode === 'exploded' ? 80 : 0;
+      let svg = boardRect(145,220,255,86,'board A') + boardRect(420 + sep,220,255,86,'board B');
+      const dowelX = 410 + sep/2;
+      svg += `<rect x="390" y="238" width="${50 + sep}" height="14" rx="7" fill="#8a5228" stroke="#5d3518" stroke-width="2"/><rect x="390" y="274" width="${50 + sep}" height="14" rx="7" fill="#8a5228" stroke="#5d3518" stroke-width="2"/>`;
+      svg += glueLine(`M400 238 H${420 + sep} M400 274 H${420 + sep}`) + label(dowelX, 190, 'matching holes must line up');
+      if (state.mode === 'section') svg += `<circle cx="400" cy="245" r="12" fill="#8a5228"/><circle cx="400" cy="281" r="12" fill="#8a5228"/><circle cx="420" cy="245" r="12" fill="#8a5228"/><circle cx="420" cy="281" r="12" fill="#8a5228"/>`;
+      return svg;
+    }
+
+    function drawMortise() {
+      const sep = state.mode === 'exploded' ? -96 : 0;
+      const mortise = cutRect(358,228,104,40,'mortise');
+      let svg = boardRect(145,210,530,92,'leg / stile') + mortise;
+      svg += `<g filter="url(#softShadow)" transform="translate(0,${sep})"><rect x="378" y="88" width="64" height="144" rx="5" fill="url(#wood)" stroke="#704018" stroke-width="3"/><rect x="362" y="200" width="96" height="42" rx="4" fill="url(#wood)" stroke="#704018" stroke-width="3"/><text x="410" y="176" text-anchor="middle" font-weight="900" fill="#4c2b12">rail</text><text x="410" y="227" text-anchor="middle" font-weight="900" fill="#4c2b12">tenon</text></g>`;
+      svg += glueLine('M362 228 H458 M362 268 H458') + label(410,72,'tenon fits into mortise');
+      if (state.mode === 'section') svg += label(516,250,'shoulders register against face','start');
+      return svg;
+    }
+
+    function fingerPath(x,y,w,h,vertical=false) {
+      if (!vertical) {
+        return `M${x} ${y} h40 v22 h40 v-22 h40 v22 h40 v-22 h40 v${h} H${x} Z`;
+      }
+      return `M${x} ${y} v40 h22 v40 h-22 v40 h22 v40 h-22 v40 H${x+w} V${y} Z`;
+    }
+
+    function drawBox() {
+      const sep = state.mode === 'exploded' ? 65 : 0;
+      let svg = `<g filter="url(#softShadow)"><path d="${fingerPath(190,170,240,150,false)}" fill="url(#wood)" stroke="#704018" stroke-width="3"/></g>`;
+      svg += `<g filter="url(#softShadow)" transform="translate(${sep},0)"><path d="M430 170 v40 h-22 v40 h22 v40 h-22 v40 h22 v40 h150 V170 Z" fill="url(#wood)" stroke="#704018" stroke-width="3"/></g>`;
+      svg += glueLine('M430 172 V320') + label(410,130,'alternating fingers interlock');
+      if (state.mode === 'section') svg += cutRect(290,170,40,22,'finger') + cutRect(370,170,40,22,'finger');
+      return svg;
+    }
+
+    function drawDovetail() {
+      const sep = state.mode === 'exploded' ? 70 : 0;
+      let left = `<g filter="url(#softShadow)"><path d="M190 165 h52 l20 42 20-42 h52 l20 42 20-42 h52 v172 H190 Z" fill="url(#wood)" stroke="#704018" stroke-width="3"/></g>`;
+      let right = `<g filter="url(#softShadow)" transform="translate(${sep},0)"><path d="M426 165 l-22 42 h42 l-22-42 h64 l-22 42 h42 l-22-42 h94 v172 H426 Z" fill="url(#wood)" stroke="#704018" stroke-width="3"/></g>`;
+      let svg = left + right + glueLine('M426 168 V335') + label(410,126,'angled shape resists pull');
+      if (state.mode === 'section') svg += `<path d="M242 165 l20 42 l20-42" fill="none" stroke="#1d3957" stroke-width="4"/>${label(270,225,'tail shape')}`;
+      return svg;
+    }
+
+    function drawJointDiagram() {
+      const j = currentJoint();
+      const svg = $('jointSvg');
+      let content = svgDefs();
+      content += `<rect x="0" y="0" width="820" height="430" fill="transparent"/>`;
+      const bgLabel = `<text x="30" y="40" fill="#1d3957" font-size="15" font-weight="900" opacity=".7">${j.name} • ${modeHints[state.mode][0]}</text>`;
+      content += bgLabel;
+      const drawMap = {
+        dado: drawDado, rabbet: drawRabbet, butt: drawButt, lap: drawLap, miter: drawMiter,
+        pocket: drawPocket, dowel: drawDowel, mortise: drawMortise, box: drawBox, dovetail: drawDovetail
+      };
+      content += (drawMap[j.visual] || drawDado)();
+      content += forceArrows();
+      content += mistakeOverlay(j.visual);
+      content += `<rect x="20" y="382" width="780" height="34" rx="17" fill="rgba(255,255,255,.82)" stroke="#d6c3aa"/><text x="410" y="405" text-anchor="middle" fill="#6f5a44" font-size="15" font-weight="800">Fit: ${fitLabel(state.fit)} • Board thickness: ${fraction(state.thickness)} in • Cut/engagement depth: ${fraction(state.depth)} in</text>`;
+      svg.innerHTML = content;
+      $('svgTitle').textContent = `${j.name} diagram`;
+      $('svgDesc').textContent = `${modeHints[state.mode][0]} of ${j.name} with current force test and mistake simulation.`;
+    }
+
+    function renderAll(resetQuiz = true) {
+      renderJointList();
+      renderHeader();
+      renderTabs();
+      renderControls();
+      renderForceMistake();
+      renderRatingsUses();
+      renderTeacher();
+      drawJointDiagram();
+      if (resetQuiz) renderQuiz();
+    }
+
+    function checkQuiz() {
+      const j = currentJoint();
+      let correct = 0;
+      const lines = [];
+      j.quiz.forEach((question, idx) => {
+        const picked = document.querySelector(`input[name="q${idx}"]:checked`);
+        const val = picked ? Number(picked.value) : -1;
+        if (val === question.answer) correct++;
+        lines.push(`<li><strong>Q${idx + 1}:</strong> ${val === question.answer ? 'Correct.' : 'Review this one.'} ${question.explain}</li>`);
+      });
+      const fb = $('quizFeedback');
+      fb.classList.add('show');
+      fb.innerHTML = `<strong>Score: ${correct}/${j.quiz.length}</strong><ul>${lines.join('')}</ul>`;
+    }
+
+    function bindEvents() {
+      $('jointSearch').addEventListener('input', e => { state.search = e.target.value; renderJointList(); });
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          state.filter = chip.dataset.filter;
+          document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
+          renderJointList();
+        });
+      });
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => { state.mode = tab.dataset.mode; renderAll(false); });
+      });
+      $('thicknessRange').addEventListener('input', e => {
+        state.thickness = Number(e.target.value);
+        const j = currentJoint();
+        if (j.id === 'dado' || j.id === 'rabbet') state.depth = Math.min(0.65, Math.max(0.08, state.thickness / 3));
+        if (j.id === 'lap') state.depth = Math.min(0.65, Math.max(0.08, state.thickness / 2));
+        renderAll(false);
+      });
+      $('depthRange').addEventListener('input', e => { state.depth = Number(e.target.value); renderAll(false); });
+      $('fitRange').addEventListener('input', e => {
+        state.fit = Number(e.target.value);
+        if (state.fit <= -1) state.mistake = 'tooLoose';
+        if (state.fit >= 2) state.mistake = 'tooTight';
+        if (state.fit === 0) state.mistake = null;
+        renderAll(false);
+      });
+      $('teacherToggle').addEventListener('click', () => { state.teacher = !state.teacher; renderAll(false); });
+      $('checkQuiz').addEventListener('click', checkQuiz);
+      $('printSheet').addEventListener('click', () => { state.teacher = true; renderAll(false); setTimeout(() => window.print(), 100); });
+      $('startDado').addEventListener('click', () => { state.selected = 'dado'; state.mode = 'exploded'; state.mistake = null; tuneDepthForJoint(); renderAll(); document.querySelector('main.workspace').scrollIntoView({ behavior: 'smooth' }); });
+      $('resetDemo').addEventListener('click', () => {
+        state.selected = 'dado'; state.filter = 'all'; state.search = ''; state.mode = 'exploded'; state.force = 'down'; state.mistake = null; state.thickness = 0.75; state.depth = 0.25; state.fit = 0; state.teacher = false;
+        $('jointSearch').value = '';
+        document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+        renderAll();
+      });
+    }
+
+    bindEvents();
+    renderAll();
+  </script>
+</body>
+</html>
