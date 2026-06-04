@@ -9,7 +9,7 @@
       --paper:#fff8e8;
       --paper2:#fffdf5;
       --ink:#211a17;
-      --muted:#685d54;
+      --muted:#675b52;
       --line:#dccaa9;
       --grid:rgba(78,61,45,.10);
       --marker:#e94f37;
@@ -22,7 +22,7 @@
       --warn:#b66b12;
       --shadow:10px 12px 0 rgba(33,26,23,.13);
       --hard-shadow:6px 6px 0 rgba(33,26,23,.82);
-      --radius:10px;
+      --radius:11px;
       --focus:0 0 0 4px rgba(31,111,139,.24), 0 0 0 7px rgba(33,26,23,.95);
       --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --display: Georgia, "Times New Roman", serif;
@@ -45,277 +45,50 @@
       background-size:28px 28px,28px 28px,auto,auto,auto;
     }
     body:before{
-      content:"practica • patrón • habla • repite";
-      position:fixed;
-      left:-80px;
-      top:210px;
-      transform:rotate(-90deg);
-      font-family:var(--mono);
-      font-weight:900;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      color:rgba(33,26,23,.16);
-      pointer-events:none;
-      z-index:-1;
+      content:"patrón • lógica • repeticiones • confianza";
+      position:fixed; left:-115px; top:245px; transform:rotate(-90deg);
+      font-family:var(--mono); font-weight:950; letter-spacing:.22em; text-transform:uppercase;
+      color:rgba(33,26,23,.15); pointer-events:none; z-index:-1;
     }
     button,input,textarea,select{font:inherit}
-    a{color:var(--azul)}
     .wrap{max-width:1240px;margin:0 auto;padding:28px 22px 24px}
-
-    header.hero{
-      display:grid;
-      grid-template-columns:minmax(0,1.28fr) minmax(320px,.72fr);
-      gap:24px;
-      align-items:stretch;
-      padding:12px 0 24px;
-    }
-    .hero-card,.panel,.mini-card{
-      position:relative;
-      border:3px solid var(--ink);
-      border-radius:var(--radius);
-      background:var(--paper2);
-      box-shadow:var(--shadow);
-    }
-    .hero-card{
-      padding:34px 36px 31px 94px;
-      overflow:hidden;
-      background:
-        linear-gradient(90deg,rgba(31,111,139,.18) 0 62px,transparent 62px),
-        repeating-linear-gradient(0deg, transparent 0 35px, rgba(31,111,139,.10) 36px, transparent 37px),
-        var(--paper2);
-    }
-    .hero-card:before{
-      content:"";
-      position:absolute;
-      left:25px;top:28px;bottom:28px;width:20px;
-      background:
-        radial-gradient(circle,var(--paper2) 0 6px,var(--ink) 7px 9px,transparent 10px) center top/20px 75px repeat-y;
-      opacity:.9;
-    }
-    .hero-card:after{
-      content:"SPANISH\A PATTERN\A GYM";
-      white-space:pre;
-      position:absolute;
-      right:-24px;
-      top:22px;
-      transform:rotate(8deg);
-      background:var(--marker);
-      color:#fff;
-      font-family:var(--mono);
-      font-weight:950;
-      font-size:.82rem;
-      line-height:1.08;
-      letter-spacing:.06em;
-      padding:13px 48px 13px 16px;
-      border:3px solid var(--ink);
-      box-shadow:4px 5px 0 rgba(33,26,23,.35);
-    }
-    .eyebrow{
-      display:inline-block;
-      margin:0 0 14px;
-      padding:7px 10px;
-      border:2px solid var(--ink);
-      background:var(--oro);
-      box-shadow:4px 4px 0 rgba(33,26,23,.82);
-      color:var(--ink);
-      font-family:var(--mono);
-      font-size:.77rem;
-      font-weight:950;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-    h1{
-      font-family:var(--display);
-      font-size:clamp(2.55rem,5.6vw,5.3rem);
-      line-height:.88;
-      margin:0 0 18px;
-      letter-spacing:-.07em;
-      max-width:840px;
-    }
+    .hero{display:grid;grid-template-columns:minmax(0,1.28fr) minmax(320px,.72fr);gap:24px;align-items:stretch;padding:12px 0 24px}
+    .hero-card,.panel,.mini-card{position:relative;border:3px solid var(--ink);border-radius:var(--radius);background:var(--paper2);box-shadow:var(--shadow)}
+    .hero-card{padding:34px 36px 31px 94px;overflow:hidden;background:linear-gradient(90deg,rgba(31,111,139,.18) 0 62px,transparent 62px),repeating-linear-gradient(0deg, transparent 0 35px, rgba(31,111,139,.10) 36px, transparent 37px),var(--paper2)}
+    .hero-card:before{content:"";position:absolute;left:25px;top:28px;bottom:28px;width:20px;background:radial-gradient(circle,var(--paper2) 0 6px,var(--ink) 7px 9px,transparent 10px) center top/20px 75px repeat-y;opacity:.9}
+    .hero-card:after{content:"SPANISH\A PATTERN\A GYM";white-space:pre;position:absolute;right:-24px;top:22px;transform:rotate(8deg);background:var(--marker);color:#fff;font-family:var(--mono);font-weight:950;font-size:.82rem;line-height:1.08;letter-spacing:.06em;padding:13px 48px 13px 16px;border:3px solid var(--ink);box-shadow:4px 5px 0 rgba(33,26,23,.35)}
+    .eyebrow{display:inline-block;margin:0 0 14px;padding:7px 10px;border:2px solid var(--ink);background:var(--oro);box-shadow:4px 4px 0 rgba(33,26,23,.82);font-family:var(--mono);font-size:.77rem;font-weight:950;text-transform:uppercase;letter-spacing:.08em}
+    h1{font-family:var(--display);font-size:clamp(2.55rem,5.6vw,5.3rem);line-height:.88;margin:0 0 18px;letter-spacing:-.07em;max-width:840px}
+    h2{font-family:var(--display);font-size:2.25rem;line-height:.98;margin:0 0 12px;letter-spacing:-.045em}
+    h3{font-size:1.28rem;line-height:1.05;margin:0 0 9px;font-weight:950}
+    p{line-height:1.58}.muted{color:var(--muted)}
     .hero-card p{font-size:1.09rem;line-height:1.62;max-width:760px;color:var(--muted);margin:0 0 16px}
     .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
-
-    .btn{
-      border:3px solid var(--ink);
-      border-radius:12px;
-      padding:11px 15px;
-      font-weight:950;
-      cursor:pointer;
-      background:#fff;
-      color:var(--ink);
-      transition:.12s transform,.12s box-shadow,.12s background;
-      display:inline-flex;align-items:center;gap:8px;
-      text-decoration:none;
-      box-shadow:4px 4px 0 rgba(33,26,23,.75);
-    }
+    .btn{border:3px solid var(--ink);border-radius:12px;padding:11px 15px;font-weight:950;cursor:pointer;background:#fff;color:var(--ink);transition:.12s transform,.12s box-shadow,.12s background;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:4px 4px 0 rgba(33,26,23,.75)}
     .btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 rgba(33,26,23,.78)}
     .btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 rgba(33,26,23,.8)}
     .btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.tile:focus-visible,.tab:focus-visible,.choice:focus-visible{outline:none;box-shadow:var(--focus)}
-    .btn.primary{background:var(--marker);color:#fff}
-    .btn.secondary{background:var(--azul);color:#fff}
-    .btn.good{background:var(--verde);color:#fff}
-    .btn.ghost{background:var(--paper2);color:var(--ink)}
-    .btn.small{padding:7px 10px;font-size:.86rem;border-width:2px;box-shadow:3px 3px 0 rgba(33,26,23,.72)}
-
-    .mini-card{padding:22px;display:flex;flex-direction:column;justify-content:space-between;gap:15px;background:#fff4cf}
-    .mini-card:before{
-      content:"PROGRESS PASSPORT";
-      display:block;
-      position:absolute;
-      top:-15px;left:20px;
-      padding:5px 9px;
-      background:var(--uva);
-      color:#fff;
-      border:3px solid var(--ink);
-      font-family:var(--mono);
-      font-size:.74rem;
-      font-weight:950;
-      letter-spacing:.08em;
-      transform:rotate(-2deg);
-    }
-    h2{font-family:var(--display);font-size:2.25rem;line-height:.98;margin:0 0 12px;letter-spacing:-.045em}
-    h3{font-size:1.28rem;line-height:1.05;margin:0 0 9px;font-weight:950}
-    p{line-height:1.58}
-    .muted{color:var(--muted)}
-    .score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .score-box{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:13px;box-shadow:3px 3px 0 rgba(33,26,23,.72);transform:rotate(-1deg)}
-    .score-box:nth-child(even){transform:rotate(1.5deg)}
-    .score-box strong{display:block;font-family:var(--display);font-size:2rem;line-height:.9;color:var(--azul)}
-    .score-box span{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-weight:950;text-transform:uppercase;letter-spacing:.07em}
+    .btn.primary{background:var(--marker);color:#fff}.btn.secondary{background:var(--azul);color:#fff}.btn.good{background:var(--verde);color:#fff}.btn.ghost{background:var(--paper2);color:var(--ink)}.btn.small{padding:7px 10px;font-size:.86rem;border-width:2px;box-shadow:3px 3px 0 rgba(33,26,23,.72)}
+    .mini-card{padding:22px;display:flex;flex-direction:column;justify-content:space-between;gap:15px;background:#fff4cf}.mini-card:before{content:"PROGRESS PASSPORT";display:block;position:absolute;top:-15px;left:20px;padding:5px 9px;background:var(--uva);color:#fff;border:3px solid var(--ink);font-family:var(--mono);font-size:.74rem;font-weight:950;letter-spacing:.08em;transform:rotate(-2deg)}
+    .score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.score-box{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:13px;box-shadow:3px 3px 0 rgba(33,26,23,.72);transform:rotate(-1deg)}.score-box:nth-child(even){transform:rotate(1.5deg)}.score-box strong{display:block;font-family:var(--display);font-size:2rem;line-height:.9;color:var(--azul)}.score-box span{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-weight:950;text-transform:uppercase;letter-spacing:.07em}
     .notice{font-size:.9rem;color:var(--muted);line-height:1.45;background:#fff;border:2px dashed rgba(33,26,23,.45);padding:12px;border-radius:10px}
-
-    nav.tabs{
-      display:flex;
-      gap:0;
-      flex-wrap:wrap;
-      margin:2px 0 24px;
-      position:sticky;
-      top:0;
-      z-index:10;
-      background:rgba(246,234,211,.91);
-      backdrop-filter:blur(10px);
-      padding:14px 0 9px;
-      border-bottom:3px solid rgba(33,26,23,.18);
-    }
-    .tab{
-      border:3px solid var(--ink);
-      border-bottom-width:5px;
-      background:#fff;
-      color:var(--ink);
-      border-radius:13px 13px 0 0;
-      padding:11px 13px 9px;
-      font-weight:950;
-      cursor:pointer;
-      margin-right:-3px;
-      transform:translateY(4px);
-      box-shadow:none;
-    }
-    .tab:nth-child(2n){background:#eaf5ff}.tab:nth-child(3n){background:#fff1b8}.tab:nth-child(4n){background:#fce1d9}.tab:nth-child(5n){background:#e8f4de}
-    .tab.active{background:var(--ink);color:#fff;border-color:var(--ink);transform:translateY(0)}
-    .screen{display:none}
-    .screen.active{display:block}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:21px}
-    .panel{padding:22px;background:var(--paper2)}
-    .panel:not(.mini-card):before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      border-radius:7px;
-      background:linear-gradient(90deg, rgba(233,79,55,.10) 0 4px, transparent 4px 100%);
-      opacity:.85;
-    }
-    .span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
-
-    .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-    .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--ink);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:.77rem;font-weight:950;color:var(--ink);box-shadow:2px 2px 0 rgba(33,26,23,.35)}
-    .pill.blue{background:#dff2ff;color:#153f52}.pill.green{background:#e6f6d8;color:#285c36}.pill.red{background:#ffdcd3;color:#823122}
-
-    .module-card{min-height:255px;display:flex;flex-direction:column;justify-content:space-between;overflow:visible;background:#fff}
-    .module-card:nth-child(1){background:#fff7d6;transform:rotate(-.7deg)}
-    .module-card:nth-child(2){background:#e4f6ff;transform:rotate(.8deg)}
-    .module-card:nth-child(3){background:#ffe1d9;transform:rotate(-.35deg)}
-    .module-card:nth-child(4){background:#e8f7db;transform:rotate(.35deg)}
-    .module-card:nth-child(5){background:#f1e9ff;transform:rotate(-.5deg)}
-    .module-card .num{
-      position:absolute;
-      right:14px;top:8px;
-      width:58px;height:58px;
-      display:grid;place-items:center;
-      border:3px solid var(--ink);
-      border-radius:50%;
-      background:#fff;
-      color:var(--ink);
-      font-family:var(--display);
-      font-size:2.35rem;
-      font-weight:950;
-      letter-spacing:-.08em;
-      box-shadow:3px 3px 0 rgba(33,26,23,.75);
-      opacity:1;
-    }
-    .module-card p{color:var(--muted);margin:0 0 14px;padding-right:52px}
-    .progress-bar{height:14px;background:#fff;border-radius:999px;overflow:hidden;border:2px solid var(--ink)}
-    .progress-fill{height:100%;background:repeating-linear-gradient(45deg,var(--azul) 0 10px,var(--verde) 10px 20px);width:0%}
-
-    .practice-layout{display:grid;grid-template-columns:minmax(0,1fr) 355px;gap:22px;align-items:start}
-    .trainer-card{min-height:520px;display:flex;flex-direction:column;gap:18px;background:#fffdf4}
-    .trainer-card:after{
-      content:"";
-      position:absolute;right:22px;top:-18px;width:72px;height:34px;
-      background:rgba(244,185,66,.72);border:2px solid rgba(33,26,23,.35);transform:rotate(3deg)
-    }
-    .prompt-box{background:#fff;border:3px solid var(--ink);border-radius:10px;padding:22px;box-shadow:4px 4px 0 rgba(33,26,23,.72)}
-    .prompt-label{font-family:var(--mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--marker);font-weight:950;margin-bottom:9px}
-    .prompt{font-family:var(--display);font-size:clamp(1.55rem,3.2vw,2.65rem);font-weight:950;line-height:1.03;letter-spacing:-.04em;margin:0;color:var(--ink)}
-    .hint{font-size:1rem;color:var(--muted);margin-top:12px}
-    .answer-row{display:flex;gap:10px;align-items:stretch}
-    input.answer{flex:1;border:3px solid var(--ink);border-radius:10px;padding:15px 16px;background:#fff;font-size:1.1rem;min-width:0;box-shadow:inset 3px 3px 0 rgba(33,26,23,.08)}
-    .feedback{border-radius:10px;padding:14px 16px;border:3px solid var(--ink);background:#fff8d4;line-height:1.5;display:none;box-shadow:4px 4px 0 rgba(33,26,23,.55)}
-    .feedback.show{display:block}.feedback.correct{background:#dff4df}.feedback.wrong{background:#ffd9d4}.feedback.partial{background:#fff0bd}
-    .feedback strong{display:block;margin-bottom:4px}
-    .side-stack{display:flex;flex-direction:column;gap:22px}
-    .pattern-sheet{background:#f0f8ff}
-    .pattern-sheet code{background:#fff;padding:3px 7px;border:2px solid var(--ink);border-radius:7px;font-weight:950;color:var(--marker)}
-    .choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .choice{border:3px solid var(--ink);background:#fff;border-radius:10px;padding:13px;text-align:left;cursor:pointer;font-weight:900;color:var(--ink);box-shadow:3px 3px 0 rgba(33,26,23,.5)}
-    .choice:hover{background:#fff0bd}.choice.selected{background:#dff2ff;transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(33,26,23,.55)}
-    .tiles{display:flex;gap:8px;flex-wrap:wrap;min-height:50px;background:#fff;border:3px dashed rgba(33,26,23,.48);border-radius:10px;padding:10px}
-    .tile{border:2px solid var(--ink);background:#fffef7;border-radius:9px;padding:9px 12px;font-weight:950;cursor:pointer;box-shadow:2px 2px 0 rgba(33,26,23,.42)}
-    .tile.used{opacity:.35;text-decoration:line-through}
-    .built{min-height:58px;border:3px solid var(--azul);border-radius:10px;padding:13px 14px;background:#f0fbff;font-weight:950;font-size:1.08rem;box-shadow:3px 3px 0 rgba(31,111,139,.28)}
-    .table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:3px solid var(--ink);border-radius:10px;background:#fff;box-shadow:4px 4px 0 rgba(33,26,23,.28)}
-    .table th,.table td{text-align:left;padding:12px;border-bottom:2px solid rgba(33,26,23,.18);vertical-align:top}
-    .table th{font-family:var(--mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);background:#ffe9a8}
-    .table tr:last-child td{border-bottom:0}
-    .lab-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-    .mini-form{display:grid;gap:10px}
-    .field label{display:block;font-family:var(--mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:950;color:var(--muted);margin:0 0 6px}
-    .field input,.field textarea,.field select{width:100%;border:3px solid var(--ink);border-radius:10px;padding:12px;background:#fff;color:var(--ink);box-shadow:inset 3px 3px 0 rgba(33,26,23,.06)}
-    textarea{min-height:100px;resize:vertical}
-    .builder-output{font-size:1.23rem;font-weight:950;background:#fff;border:3px solid var(--ink);border-radius:10px;padding:16px;min-height:66px;box-shadow:3px 3px 0 rgba(33,26,23,.35)}
-    .danger-zone{border-style:dashed;background:#fff1ed}
-    .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:8px;padding:4px 8px;font-weight:950;font-size:.76rem;background:#fff;border:2px solid var(--ink);color:var(--ink)}
-    .badge.good{background:#dff4df;color:#164e30}.badge.bad{background:#ffd9d4;color:#842923}.badge.warn{background:#fff0bd;color:#725016}
-    .list{display:grid;gap:10px}.list-item{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:13px;box-shadow:3px 3px 0 rgba(33,26,23,.22)}
-    .list-item strong{display:block;margin-bottom:3px}
-    .shadow-card{background:#fff;border:3px solid var(--ink);border-radius:10px;padding:20px;display:grid;gap:14px;box-shadow:4px 4px 0 rgba(33,26,23,.45)}
-    .spanish-line{font-family:var(--display);font-size:2.05rem;font-weight:950;letter-spacing:-.04em}.english-line{font-size:1.1rem;color:var(--muted);display:none}.english-line.show{display:block}
-    .meter{height:16px;border-radius:999px;background:#fff;overflow:hidden;border:3px solid var(--ink)}
-    .meter div{height:100%;width:0;background:repeating-linear-gradient(45deg,var(--marker) 0 10px,var(--oro) 10px 20px)}
-    details{border:3px solid var(--ink);border-radius:10px;background:#fff;padding:14px;box-shadow:3px 3px 0 rgba(33,26,23,.28)} details+details{margin-top:10px}
-    summary{font-weight:950;cursor:pointer}
-    .print-only{display:none}
-    footer{margin:32px 0 12px;color:var(--muted);font-size:.9rem;text-align:center;font-family:var(--mono)}
-    .toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;border:3px solid #fff;border-radius:12px;padding:14px 16px;box-shadow:var(--hard-shadow);z-index:30;display:none;max-width:360px}.toast.show{display:block}
-    @media (max-width: 960px){
-      header.hero,.practice-layout{grid-template-columns:1fr}.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:span 12}.lab-tools{grid-template-columns:1fr}.side-stack{order:-1}.mini-card{min-height:auto}.hero-card{padding-left:78px}.module-card{transform:none!important}
-    }
-    @media (max-width: 620px){
-      .wrap{padding:16px 13px}.hero-card,.panel{padding:17px}.hero-card{padding-left:64px}.score-grid,.choice-grid{grid-template-columns:1fr}.answer-row{flex-direction:column}.btn{width:100%;justify-content:center}.tab{flex:1 1 48%;font-size:.86rem;margin-bottom:-3px}.hero-actions{gap:8px}nav.tabs{position:static}.prompt{font-size:1.7rem}h1{font-size:2.7rem}.hero-card:after{display:none}.mini-card:before{position:static;transform:none;width:max-content;margin-bottom:4px}
-    }
-    @media print{
-      body{background:#fff}.wrap{max-width:none}.hero-actions,nav.tabs,.btn,.practice-layout,.toast{display:none!important}.screen{display:block!important}.panel,.hero-card{box-shadow:none;border:1px solid #777;break-inside:avoid;background:#fff}.print-only{display:block}.hero-card:after,.hero-card:before,.panel:not(.mini-card):before{display:none}
-    }
+    nav.tabs{display:flex;gap:0;flex-wrap:wrap;margin:2px 0 24px;position:sticky;top:0;z-index:10;background:rgba(246,234,211,.91);backdrop-filter:blur(10px);padding:14px 0 9px;border-bottom:3px solid rgba(33,26,23,.18)}
+    .tab{border:3px solid var(--ink);border-bottom-width:5px;background:#fff;color:var(--ink);border-radius:13px 13px 0 0;padding:11px 13px 9px;font-weight:950;cursor:pointer;margin-right:-3px;transform:translateY(4px);box-shadow:none}.tab:nth-child(2n){background:#eaf5ff}.tab:nth-child(3n){background:#fff1b8}.tab:nth-child(4n){background:#fce1d9}.tab:nth-child(5n){background:#e8f4de}.tab.active{background:var(--ink);color:#fff;border-color:var(--ink);transform:translateY(0)}
+    .screen{display:none}.screen.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:21px}.panel{padding:22px;background:var(--paper2)}.panel:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:7px;background:linear-gradient(90deg, rgba(233,79,55,.10) 0 4px, transparent 4px 100%);opacity:.85}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+    .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--ink);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:.77rem;font-weight:950;color:var(--ink);box-shadow:2px 2px 0 rgba(33,26,23,.35)}.pill.blue{background:#dff2ff;color:#153f52}.pill.green{background:#e6f6d8;color:#285c36}.pill.red{background:#ffdcd3;color:#823122}.pill.gold{background:#fff1b8;color:#6a4b00}.pill.purple{background:#f0e6ff;color:#4d2a78}
+    .level-card,.module-card{min-height:255px;display:flex;flex-direction:column;justify-content:space-between;overflow:visible;background:#fff}.level-card:nth-child(1),.module-card:nth-child(1){background:#fff7d6;transform:rotate(-.7deg)}.level-card:nth-child(2),.module-card:nth-child(2){background:#e4f6ff;transform:rotate(.8deg)}.level-card:nth-child(3),.module-card:nth-child(3){background:#ffe1d9;transform:rotate(-.35deg)}.level-card:nth-child(4),.module-card:nth-child(4){background:#e8f7db;transform:rotate(.35deg)}.level-num{position:absolute;right:14px;top:8px;width:58px;height:58px;display:grid;place-items:center;border:3px solid var(--ink);border-radius:50%;background:#fff;font-family:var(--display);font-size:2.35rem;font-weight:950;letter-spacing:-.08em;box-shadow:3px 3px 0 rgba(33,26,23,.75)}
+    .lesson-buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.lesson-chip{border:2px solid var(--ink);background:#fff;border-radius:999px;padding:7px 10px;font-size:.82rem;font-weight:950;cursor:pointer;box-shadow:2px 2px 0 rgba(33,26,23,.35)}.lesson-chip:hover{background:#fff0bd}
+    .progress-bar{height:14px;background:#fff;border-radius:999px;overflow:hidden;border:2px solid var(--ink)}.progress-fill{height:100%;background:repeating-linear-gradient(45deg,var(--azul) 0 10px,var(--verde) 10px 20px);width:0%}
+    .practice-layout{display:grid;grid-template-columns:minmax(0,1fr) 365px;gap:22px;align-items:start}.trainer-card{min-height:520px;display:flex;flex-direction:column;gap:18px;background:#fffdf4}.trainer-card:after{content:"";position:absolute;right:22px;top:-18px;width:72px;height:34px;background:rgba(244,185,66,.72);border:2px solid rgba(33,26,23,.35);transform:rotate(3deg)}.side-stack{display:flex;flex-direction:column;gap:22px}.pattern-sheet{background:#f0f8ff}
+    .teach-card{background:#fff;border:3px solid var(--ink);border-radius:10px;padding:18px;box-shadow:4px 4px 0 rgba(33,26,23,.45)}.teach-card .formula{font-family:var(--mono);font-weight:950;background:#fff1b8;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;display:inline-block}.example-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}.example-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.example-row div{background:#fff;border:2px solid rgba(33,26,23,.35);border-radius:8px;padding:8px}.logic-box{background:#eef8ff;border:2px dashed rgba(31,111,139,.65);border-radius:10px;padding:12px;margin-top:12px}.mistake-box{background:#fff1ed;border:2px dashed rgba(185,50,50,.55);border-radius:10px;padding:12px;margin-top:12px}
+    .prompt-box{background:#fff;border:3px solid var(--ink);border-radius:10px;padding:22px;box-shadow:4px 4px 0 rgba(33,26,23,.72)}.prompt-label{font-family:var(--mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--marker);font-weight:950;margin-bottom:9px}.prompt{font-family:var(--display);font-size:clamp(1.55rem,3.2vw,2.65rem);font-weight:950;line-height:1.03;letter-spacing:-.04em;margin:0;color:var(--ink)}.hint{font-size:1rem;color:var(--muted);margin-top:12px}.answer-row{display:flex;gap:10px;align-items:stretch}input.answer{flex:1;border:3px solid var(--ink);border-radius:10px;padding:15px 16px;background:#fff;font-size:1.1rem;min-width:0;box-shadow:inset 3px 3px 0 rgba(33,26,23,.08)}
+    .feedback{border-radius:10px;padding:14px 16px;border:3px solid var(--ink);background:#fff8d4;line-height:1.5;display:none;box-shadow:4px 4px 0 rgba(33,26,23,.55)}.feedback.show{display:block}.feedback.correct{background:#dff4df}.feedback.wrong{background:#ffd9d4}.feedback.partial{background:#fff0bd}.feedback strong{display:block;margin-bottom:4px}.feedback ul{margin:8px 0 0 18px;padding:0}.feedback li{margin:4px 0}
+    .choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.choice{border:3px solid var(--ink);background:#fff;border-radius:10px;padding:13px;text-align:left;cursor:pointer;font-weight:900;color:var(--ink);box-shadow:3px 3px 0 rgba(33,26,23,.5)}.choice:hover{background:#fff0bd}.choice.selected{background:#dff2ff;transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(33,26,23,.55)}.tiles{display:flex;gap:8px;flex-wrap:wrap;min-height:50px;background:#fff;border:3px dashed rgba(33,26,23,.48);border-radius:10px;padding:10px}.tile{border:2px solid var(--ink);background:#fffef7;border-radius:9px;padding:9px 12px;font-weight:950;cursor:pointer;box-shadow:2px 2px 0 rgba(33,26,23,.42)}.tile.used{opacity:.35;text-decoration:line-through}.built{min-height:58px;border:3px solid var(--azul);border-radius:10px;padding:13px 14px;background:#f0fbff;font-weight:950;font-size:1.08rem;box-shadow:3px 3px 0 rgba(31,111,139,.28)}.built .word{display:inline-block;margin:3px;padding:5px 7px;border:2px solid var(--ink);border-radius:7px;background:#fff}.built .word.good{background:#dff4df}.built .word.misplaced{background:#fff0bd}.built .word.extra{background:#ffd9d4}
+    .table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:3px solid var(--ink);border-radius:10px;background:#fff;box-shadow:4px 4px 0 rgba(33,26,23,.28)}.table th,.table td{text-align:left;padding:12px;border-bottom:2px solid rgba(33,26,23,.18);vertical-align:top}.table th{font-family:var(--mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;background:#ffe9a8}.table tr:last-child td{border-bottom:0}.list{display:grid;gap:10px}.list-item{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:13px;box-shadow:3px 3px 0 rgba(33,26,23,.22)}.list-item strong{display:block;margin-bottom:3px}.mini-form{display:grid;gap:10px}.field label{display:block;font-family:var(--mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:950;color:var(--muted);margin:0 0 6px}.field input,.field textarea,.field select{width:100%;border:3px solid var(--ink);border-radius:10px;padding:12px;background:#fff;color:var(--ink);box-shadow:inset 3px 3px 0 rgba(33,26,23,.06)}textarea{min-height:100px;resize:vertical}.builder-output{font-size:1.23rem;font-weight:950;background:#fff;border:3px solid var(--ink);border-radius:10px;padding:16px;min-height:66px;box-shadow:3px 3px 0 rgba(33,26,23,.35)}.lab-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.badge{display:inline-flex;align-items:center;justify-content:center;border-radius:8px;padding:4px 8px;font-weight:950;font-size:.76rem;background:#fff;border:2px solid var(--ink);color:var(--ink)}.badge.good{background:#dff4df;color:#164e30}.badge.bad{background:#ffd9d4;color:#842923}.badge.warn{background:#fff0bd;color:#725016}.danger-zone{border-style:dashed;background:#fff1ed}.workout-card{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:18px;box-shadow:4px 4px 0 rgba(33,26,23,.42)}.scenario-card{min-height:220px;display:flex;flex-direction:column;justify-content:space-between;background:#fff}.scenario-card:nth-child(odd){transform:rotate(-.45deg);background:#fff7d6}.scenario-card:nth-child(even){transform:rotate(.45deg);background:#e4f6ff}.mistake-type{display:flex;justify-content:space-between;gap:12px;align-items:center}.empty{padding:18px;border:2px dashed rgba(33,26,23,.45);border-radius:10px;background:#fff;color:var(--muted)}
+    footer{margin:32px 0 12px;color:var(--muted);font-size:.9rem;text-align:center;font-family:var(--mono)}.toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;border:3px solid #fff;border-radius:12px;padding:14px 16px;box-shadow:var(--hard-shadow);z-index:30;display:none;max-width:360px}.toast.show{display:block}
+    @media (max-width: 960px){.hero,.practice-layout{grid-template-columns:1fr}.span-3,.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:span 12}.lab-tools{grid-template-columns:1fr}.side-stack{order:-1}.mini-card{min-height:auto}.hero-card{padding-left:78px}.level-card,.module-card,.scenario-card{transform:none!important}.example-row{grid-template-columns:1fr}}
+    @media (max-width: 620px){.wrap{padding:16px 13px}.hero-card,.panel{padding:17px}.hero-card{padding-left:64px}.score-grid,.choice-grid{grid-template-columns:1fr}.answer-row{flex-direction:column}.btn{width:100%;justify-content:center}.tab{flex:1 1 48%;font-size:.86rem;margin-bottom:-3px}.hero-actions{gap:8px}nav.tabs{position:static}.prompt{font-size:1.7rem}h1{font-size:2.7rem}.hero-card:after{display:none}.mini-card:before{position:static;transform:none;width:max-content;margin-bottom:4px}}
+    @media print{body{background:#fff}.wrap{max-width:none}.hero-actions,nav.tabs,.btn,.practice-layout,.toast{display:none!important}.screen{display:block!important}.panel,.hero-card{box-shadow:none;border:1px solid #777;break-inside:avoid;background:#fff}.hero-card:after,.hero-card:before,.panel:before{display:none}.worksheet-output{display:block!important}}
   </style>
 </head>
 <body>
@@ -323,18 +96,18 @@
     <header class="hero">
       <section class="hero-card">
         <p class="eyebrow">Spanish Pattern Gym</p>
-        <h1>Lift small patterns until sentences feel automatic.</h1>
-        <p>A workbook-style trainer for English-speaking learners: spot the pattern, build the phrase, say it out loud, and repeat until Spanish starts to feel less mysterious.</p>
+        <h1>Train the pattern before you chase the sentence.</h1>
+        <p>A workbook-style Spanish trainer for English-speaking learners. Each lesson starts with the logic, shows worked examples, then gives coached reps with feedback on missing words, order, connectors, and verb patterns.</p>
         <div class="hero-actions">
-          <button class="btn primary" data-jump="practice">Run a 10-card set</button>
-          <button class="btn secondary" data-jump="lab">Open Pattern Lab</button>
-          <button class="btn ghost" id="printBtn">Print teacher sheet</button>
+          <button class="btn primary" id="heroWorkoutBtn">Start today’s 10 reps</button>
+          <button class="btn secondary" data-jump="map">Choose a level</button>
+          <button class="btn ghost" data-jump="scenarios">Try a scenario</button>
         </div>
       </section>
       <aside class="mini-card panel">
         <div>
           <h3>Your local progress</h3>
-          <p class="muted">Progress saves in this browser only. No accounts, no data collection.</p>
+          <p class="muted">Progress saves in this browser only. No account, no tracking, no server.</p>
         </div>
         <div class="score-grid">
           <div class="score-box"><strong id="statSeen">0</strong><span>cards seen</span></div>
@@ -342,96 +115,54 @@
           <div class="score-box"><strong id="statStreak">0</strong><span>streak</span></div>
           <div class="score-box"><strong id="statMastery">0%</strong><span>mastery</span></div>
         </div>
-        <div class="notice"><strong>Not affiliated with Qroo Paul.</strong> This is a classroom-friendly original trainer that borrows the broad idea of learning through patterns instead of memorizing disconnected phrases.</div>
+        <div class="notice"><strong>Independent practice tool.</strong> This is not affiliated with Qroo Paul. It uses original examples and broadly taught pattern-based Spanish ideas.</div>
       </aside>
     </header>
 
     <nav class="tabs" aria-label="Main sections">
-      <button class="tab active" data-screen="home">Practice Map</button>
-      <button class="tab" data-screen="practice">Drill Mode</button>
+      <button class="tab active" data-screen="map">Practice Map</button>
+      <button class="tab" data-screen="practice">Learn + Drill</button>
+      <button class="tab" data-screen="workout">Daily 10</button>
+      <button class="tab" data-screen="scenarios">Scenarios</button>
+      <button class="tab" data-screen="mistakes">Mistake Notebook</button>
       <button class="tab" data-screen="lab">Pattern Lab</button>
-      <button class="tab" data-screen="subjunctive">Subjunctive Coach</button>
-      <button class="tab" data-screen="listening">Listen + Shadow</button>
-      <button class="tab" data-screen="custom">Custom Builder</button>
-      <button class="tab" data-screen="teacher">Teacher Notes</button>
+      <button class="tab" data-screen="custom">Custom Sets</button>
     </nav>
 
     <main>
-      <section id="home" class="screen active">
-        <div class="grid">
-          <article class="panel span-4 module-card">
-            <span class="num">1</span>
-            <div>
-              <h3>Cognate Engine</h3>
-              <p>Notice English-to-Spanish word families so learners can unlock usable vocabulary quickly.</p>
-              <div class="pill-row"><span class="pill blue">-tion → -ción</span><span class="pill green">-ity → -idad</span><span class="pill red">-ous → -oso/a</span></div>
-            </div>
-            <button class="btn secondary" data-start-module="cognates">Practice cognates</button>
-          </article>
-          <article class="panel span-4 module-card">
-            <span class="num">2</span>
-            <div>
-              <h3>Sentence Starters</h3>
-              <p>Use sturdy chunks like <em>quiero</em>, <em>tengo que</em>, <em>voy a</em>, and <em>me gustaría</em> to build real sentences.</p>
-              <div class="progress-bar"><div id="moduleProgress-starters" class="progress-fill"></div></div>
-            </div>
-            <button class="btn secondary" data-start-module="starters">Practice starters</button>
-          </article>
-          <article class="panel span-4 module-card">
-            <span class="num">3</span>
-            <div>
-              <h3>Trigger Thinking</h3>
-              <p>Train the decision: indicative for facts, subjunctive for desire, influence, uncertainty, and purpose.</p>
-              <div class="progress-bar"><div id="moduleProgress-subj" class="progress-fill"></div></div>
-            </div>
-            <button class="btn secondary" data-start-module="subjunctive">Practice triggers</button>
-          </article>
-          <article class="panel span-6 module-card">
-            <span class="num">4</span>
-            <div>
-              <h3>Why / Why / For What Drill</h3>
-              <p>Choose between <strong>por qué</strong>, <strong>porque</strong>, <strong>para qué</strong>, and <strong>por eso</strong> by asking what job the phrase is doing.</p>
-            </div>
-            <button class="btn secondary" data-start-module="why">Practice why drill</button>
-          </article>
-          <article class="panel span-6 module-card">
-            <span class="num">5</span>
-            <div>
-              <h3>Chunk Expansion</h3>
-              <p>Grow output with reusable Spanish chunks like <em>me doy cuenta de que</em>, <em>vale la pena</em>, and <em>cada vez que</em>.</p>
-            </div>
-            <button class="btn secondary" data-start-module="chunks">Practice chunks</button>
-          </article>
-          <section class="panel span-12">
-            <h2>How this trainer works</h2>
-            <div class="grid">
-              <div class="span-4"><h3>1. Notice the pattern</h3><p class="muted">Learners see a reusable frame, not a giant grammar lecture.</p></div>
-              <div class="span-4"><h3>2. Build from English</h3><p class="muted">The prompt starts with an English idea. The learner turns it into Spanish using the frame.</p></div>
-              <div class="span-4"><h3>3. Explain the miss</h3><p class="muted">Wrong answers point back to the pattern: word order, trigger, verb form, or missing connector.</p></div>
-            </div>
-          </section>
-        </div>
+      <section id="map" class="screen active">
+        <div class="grid" id="levelGrid"></div>
+        <section class="panel span-12" style="margin-top:21px">
+          <h2>What changed in this version</h2>
+          <div class="grid">
+            <div class="span-4"><h3>Teach first</h3><p class="muted">Every pattern now has a formula, English-to-Spanish logic, worked examples, and a common mistake before practice.</p></div>
+            <div class="span-4"><h3>Coach mistakes</h3><p class="muted">Typed and tile practice now identify likely issues like missing <em>a</em>, missing <em>que</em>, wrong order, English words, and infinitive mistakes.</p></div>
+            <div class="span-4"><h3>Practice with purpose</h3><p class="muted">Levels, scenarios, daily reps, trouble-pattern review, and stronger custom sets make this feel more like a trainer.</p></div>
+          </div>
+        </section>
       </section>
 
       <section id="practice" class="screen">
         <div class="practice-layout">
           <section class="panel trainer-card">
             <div class="pill-row">
-              <span class="pill blue" id="currentModulePill">Mixed Practice</span>
-              <span class="pill green" id="currentModePill">Type answer</span>
+              <span class="pill blue" id="currentLevelPill">Level 1</span>
+              <span class="pill green" id="currentLessonPill">Survival Pattern</span>
               <span class="pill" id="cardCountPill">Card 1</span>
             </div>
+            <div class="teach-card" id="teachCard"></div>
             <div class="prompt-box">
               <div class="prompt-label" id="promptLabel">Translate the idea</div>
-              <p class="prompt" id="promptText">Loading…</p>
+              <p class="prompt" id="promptText">Choose a lesson to begin.</p>
               <p class="hint" id="promptHint"></p>
             </div>
             <div id="choiceArea" class="choice-grid" style="display:none"></div>
             <div id="tileArea" style="display:none">
               <div class="prompt-label">Tap tiles to build the sentence</div>
               <div id="builtSentence" class="built"></div>
+              <div id="tileCoach" class="hint"></div>
               <div id="tiles" class="tiles" style="margin-top:10px"></div>
-              <div class="pill-row"><button class="btn small ghost" id="undoTileBtn">Undo</button><button class="btn small ghost" id="clearTilesBtn">Clear</button></div>
+              <div class="pill-row"><button class="btn small ghost" id="undoTileBtn">Undo</button><button class="btn small ghost" id="clearTilesBtn">Clear</button><button class="btn small primary" id="checkTilesBtn">Check tiles</button></div>
             </div>
             <div id="typeArea" class="answer-row">
               <input id="answerInput" class="answer" placeholder="Type your Spanish answer…" autocomplete="off" autocapitalize="none" spellcheck="false" />
@@ -441,27 +172,76 @@
             <div class="hero-actions">
               <button class="btn good" id="nextBtn">Next card</button>
               <button class="btn ghost" id="hintBtn">Show hint</button>
-              <button class="btn ghost" id="speakAnswerBtn">Hear answer</button>
             </div>
           </section>
           <aside class="side-stack">
             <section class="panel pattern-sheet">
-              <h3 id="patternTitle">Pattern Sheet</h3>
-              <p id="patternExplanation" class="muted">Choose a drill to see the pattern.</p>
-              <div id="patternFormula" class="pill-row"></div>
-            </section>
-            <section class="panel">
               <h3>Session settings</h3>
               <div class="mini-form">
-                <div class="field"><label for="moduleSelect">Practice set</label><select id="moduleSelect"></select></div>
+                <div class="field"><label for="lessonSelect">Practice lesson</label><select id="lessonSelect"></select></div>
                 <div class="field"><label for="modeSelect">Practice mode</label><select id="modeSelect"><option value="type">Type answer</option><option value="tiles">Build with tiles</option><option value="choice">Multiple choice</option></select></div>
-                <button class="btn secondary" id="restartBtn">Restart set</button>
+                <button class="btn secondary" id="restartBtn">Restart lesson</button>
               </div>
             </section>
             <section class="panel">
-              <h3>Recent misses</h3>
-              <div id="missList" class="list"><p class="muted">Missed cards will show here.</p></div>
+              <h3>Why this pattern works</h3>
+              <div id="logicSide" class="muted">Choose a lesson to see the Spanish logic.</div>
             </section>
+            <section class="panel">
+              <h3>Recent misses</h3>
+              <div id="recentMisses" class="list"><p class="muted">Missed cards will show here.</p></div>
+              <div class="hero-actions"><button class="btn small ghost" data-jump="mistakes">Open notebook</button></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="workout" class="screen">
+        <div class="grid">
+          <section class="panel span-7">
+            <h2>Daily 10-rep workout</h2>
+            <p class="muted">A short mixed set: review, current-level patterns, a connector, a tile-ready sentence, and one trouble-pattern card if you have misses saved.</p>
+            <div class="workout-card">
+              <h3>Today’s workout recipe</h3>
+              <ul class="muted">
+                <li>3 review cards from earlier levels</li>
+                <li>3 cards from your selected focus level</li>
+                <li>2 connector/chunk cards</li>
+                <li>1 tile-friendly sentence build</li>
+                <li>1 recent miss when available</li>
+              </ul>
+              <div class="hero-actions"><button class="btn primary" id="startWorkoutBtn">Start 10 reps</button><button class="btn ghost" id="previewWorkoutBtn">Preview set</button></div>
+            </div>
+          </section>
+          <aside class="panel span-5">
+            <h3>Focus level</h3>
+            <div class="mini-form"><div class="field"><label for="focusLevel">Workout focus</label><select id="focusLevel"><option value="1">Level 1: Survival</option><option value="2">Level 2: Conversation</option><option value="3">Level 3: Connectors</option><option value="4">Level 4: Subjunctive</option></select></div></div>
+            <div id="workoutPreview" class="list" style="margin-top:14px"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="scenarios" class="screen">
+        <div class="grid">
+          <section class="panel span-12">
+            <h2>Scenario mode</h2>
+            <p class="muted">These use the same patterns, but the reps are grouped around situations learners actually care about.</p>
+          </section>
+        </div>
+        <div class="grid" id="scenarioGrid"></div>
+      </section>
+
+      <section id="mistakes" class="screen">
+        <div class="grid">
+          <section class="panel span-8">
+            <h2>Mistake notebook</h2>
+            <p class="muted">Misses are grouped by the kind of problem so practice becomes targeted instead of random.</p>
+            <div id="mistakeGroups" class="list"></div>
+          </section>
+          <aside class="panel span-4">
+            <h3>Trouble-pattern actions</h3>
+            <p class="muted">Practice the cards you missed, or clear the notebook after reviewing.</p>
+            <div class="hero-actions"><button class="btn primary" id="practiceMissesBtn">Practice misses</button><button class="btn ghost" id="clearMissesBtn">Clear notebook</button></div>
           </aside>
         </div>
       </section>
@@ -470,7 +250,7 @@
         <div class="grid">
           <section class="panel span-7">
             <h2>Pattern Lab</h2>
-            <p class="muted">Choose a sentence frame, then swap subjects, verbs, and details. This is the fastest way to feel how the structure works before moving into free conversation.</p>
+            <p class="muted">Swap parts inside a sentence frame. This helps students feel how Spanish logic works before answering cold prompts.</p>
             <div class="lab-tools">
               <div class="field"><label for="labPattern">Pattern</label><select id="labPattern"></select></div>
               <div class="field"><label for="labSubject">Subject</label><select id="labSubject"></select></div>
@@ -483,86 +263,11 @@
               <div class="prompt-label" style="margin-top:14px">English idea</div>
               <div id="labEnglish" class="builder-output"></div>
             </div>
-            <div class="hero-actions">
-              <button class="btn primary" id="labSpeakBtn">Hear Spanish</button>
-              <button class="btn ghost" id="labCopyBtn">Copy sentence</button>
-              <button class="btn secondary" id="labRandomBtn">Randomize</button>
-            </div>
+            <div class="hero-actions"><button class="btn ghost" id="labCopyBtn">Copy sentence</button><button class="btn secondary" id="labRandomBtn">Randomize</button></div>
           </section>
           <aside class="panel span-5">
-            <h3>Pattern cards</h3>
-            <div class="list" id="patternCards"></div>
-          </aside>
-          <section class="panel span-12">
-            <h2>Cognate shortcut table</h2>
-            <p class="muted">These are not perfect rules, but they help students recognize and create a lot of useful words early.</p>
-            <table class="table" aria-label="Cognate pattern table">
-              <thead><tr><th>English ending</th><th>Spanish pattern</th><th>Example</th><th>Trainer warning</th></tr></thead>
-              <tbody id="cognateRows"></tbody>
-            </table>
-          </section>
-        </div>
-      </section>
-
-      <section id="subjunctive" class="screen">
-        <div class="grid">
-          <section class="panel span-7">
-            <h2>Subjunctive Coach</h2>
-            <p class="muted">The goal is not “memorize a scary mood.” The goal is to decide whether the second verb is being presented as a fact or as something wanted, influenced, uncertain, emotional, future/unknown, or purpose-driven.</p>
-            <div class="prompt-box">
-              <div class="prompt-label">Decision question</div>
-              <p class="prompt" id="subjPrompt">Loading…</p>
-              <p class="hint" id="subjHint"></p>
-            </div>
-            <div class="choice-grid" id="subjChoices"></div>
-            <div id="subjFeedback" class="feedback" aria-live="polite"></div>
-            <div class="hero-actions"><button class="btn primary" id="subjNextBtn">Next decision</button><button class="btn ghost" id="subjSpeakBtn">Hear sentence</button></div>
-          </section>
-          <aside class="panel span-5">
-            <h3>Quick trigger map</h3>
-            <table class="table">
-              <thead><tr><th>Trigger</th><th>Usually needs</th></tr></thead>
-              <tbody>
-                <tr><td><strong>Quiero que…</strong></td><td>subjunctive</td></tr>
-                <tr><td><strong>Espero que…</strong></td><td>subjunctive when hope/wish</td></tr>
-                <tr><td><strong>Es importante que…</strong></td><td>subjunctive</td></tr>
-                <tr><td><strong>Para que…</strong></td><td>subjunctive</td></tr>
-                <tr><td><strong>Antes de que…</strong></td><td>subjunctive</td></tr>
-                <tr><td><strong>Sé que… / Creo que…</strong></td><td>indicative when presenting belief/fact</td></tr>
-                <tr><td><strong>No creo que…</strong></td><td>subjunctive</td></tr>
-                <tr><td><strong>Cuando…</strong></td><td>subjunctive for future/unknown, indicative for habitual/current fact</td></tr>
-              </tbody>
-            </table>
-          </aside>
-        </div>
-      </section>
-
-      <section id="listening" class="screen">
-        <div class="grid">
-          <section class="panel span-7">
-            <h2>Listen + Shadow</h2>
-            <p class="muted">A speaking trainer does not need to be complicated. Hear the sentence, repeat it out loud, reveal the English, then say it again without looking.</p>
-            <div class="shadow-card">
-              <div class="prompt-label">Spanish line</div>
-              <div class="spanish-line" id="shadowSpanish">Loading…</div>
-              <div class="english-line" id="shadowEnglish"></div>
-              <div class="meter" aria-label="shadow timer"><div id="shadowMeter"></div></div>
-              <div class="hero-actions">
-                <button class="btn primary" id="shadowPlayBtn">Play</button>
-                <button class="btn ghost" id="shadowRevealBtn">Reveal English</button>
-                <button class="btn secondary" id="shadowNextBtn">Next line</button>
-              </div>
-            </div>
-          </section>
-          <aside class="panel span-5">
-            <h3>Shadow routine</h3>
-            <ol class="muted">
-              <li>Listen without reading the English.</li>
-              <li>Repeat the rhythm, not just the words.</li>
-              <li>Reveal the English meaning.</li>
-              <li>Say it again from the English idea.</li>
-            </ol>
-            <div class="notice">Browser speech voices vary by device. Chrome and Edge usually provide better Spanish voices than older browsers.</div>
+            <h3>English logic → Spanish logic</h3>
+            <div id="logicCards" class="list"></div>
           </aside>
         </div>
       </section>
@@ -570,79 +275,43 @@
       <section id="custom" class="screen">
         <div class="grid">
           <section class="panel span-6">
-            <h2>Custom Builder</h2>
-            <p class="muted">Add your own pattern cards. This is useful when a teacher wants a district-friendly version, a travel Spanish version, or a Spanish I classroom version.</p>
+            <h2>Custom Sets</h2>
+            <p class="muted">Build one card, import a set, or generate a quick set from a common pattern.</p>
             <div class="mini-form">
-              <div class="field"><label for="customTitle">Pattern title</label><input id="customTitle" placeholder="Example: I used to…" /></div>
-              <div class="field"><label for="customPattern">Pattern formula</label><input id="customPattern" placeholder="Example: solía + infinitive" /></div>
-              <div class="field"><label for="customEnglish">English prompt</label><input id="customEnglish" placeholder="Example: I used to study at night." /></div>
-              <div class="field"><label for="customSpanish">Accepted Spanish answer</label><input id="customSpanish" placeholder="Example: Solía estudiar por la noche." /></div>
-              <div class="field"><label for="customWhy">Coach explanation</label><textarea id="customWhy" placeholder="Explain why the pattern works."></textarea></div>
+              <div class="field"><label for="customCategory">Category / set name</label><input id="customCategory" placeholder="Example: Travel Spanish" /></div>
+              <div class="field"><label for="customLevel">Level</label><select id="customLevel"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option></select></div>
+              <div class="field"><label for="customPattern">Pattern formula</label><input id="customPattern" placeholder="Example: necesito + infinitive" /></div>
+              <div class="field"><label for="customEnglish">English prompt</label><input id="customEnglish" placeholder="Example: I need to buy a ticket." /></div>
+              <div class="field"><label for="customSpanish">Accepted Spanish answer</label><input id="customSpanish" placeholder="Example: Necesito comprar un boleto." /></div>
+              <div class="field"><label for="customLogic">Spanish logic / feedback</label><textarea id="customLogic" placeholder="Explain the pattern and the likely mistake."></textarea></div>
               <button class="btn primary" id="saveCustomBtn">Save custom card</button>
             </div>
           </section>
           <section class="panel span-6">
-            <h3>Saved custom cards</h3>
-            <div id="customList" class="list"><p class="muted">No custom cards yet.</p></div>
-            <div class="hero-actions">
-              <button class="btn secondary" id="useCustomBtn">Practice custom set</button>
-              <button class="btn ghost" id="exportCustomBtn">Export JSON</button>
-              <button class="btn ghost" id="importCustomBtn">Import JSON</button>
+            <h3>Generate a mini-set</h3>
+            <p class="muted">Choose a common frame and generate 10 editable cards.</p>
+            <div class="mini-form">
+              <div class="field"><label for="generatePattern">Frame</label><select id="generatePattern"><option value="quiero">quiero + infinitive</option><option value="tengoQue">tengo que + infinitive</option><option value="voyA">voy a + infinitive</option><option value="meGustaria">me gustaría + infinitive</option><option value="necesitoQue">necesito que + subjunctive</option></select></div>
+              <button class="btn secondary" id="generateSetBtn">Generate 10 cards</button>
             </div>
+            <h3 style="margin-top:18px">Saved custom cards</h3>
+            <div id="customList" class="list"><p class="muted">No custom cards yet.</p></div>
+            <div class="hero-actions"><button class="btn secondary" id="useCustomBtn">Practice custom set</button><button class="btn ghost" id="exportCustomBtn">Export JSON</button><button class="btn ghost" id="importCustomBtn">Import JSON</button><button class="btn ghost" id="worksheetBtn">Make worksheet</button></div>
             <div class="field" style="margin-top:12px"><label for="customJson">Import / export box</label><textarea id="customJson" placeholder="JSON appears here when exported. Paste JSON here to import."></textarea></div>
           </section>
+          <section class="panel span-12 worksheet-output" id="worksheetPanel" style="display:none">
+            <h2>Printable custom worksheet</h2>
+            <div id="worksheetContent"></div>
+          </section>
           <section class="panel span-12 danger-zone">
-            <h3>Reset local progress</h3>
-            <p class="muted">This only clears progress and custom cards saved in this browser.</p>
+            <h3>Reset local data</h3>
+            <p class="muted">This clears progress, custom cards, and the mistake notebook saved in this browser.</p>
             <button class="btn ghost" id="resetBtn">Reset everything</button>
           </section>
         </div>
       </section>
-
-      <section id="teacher" class="screen">
-        <div class="grid">
-          <section class="panel span-8">
-            <h2>Teacher notes</h2>
-            <details open>
-              <summary>What this is</summary>
-              <p>This is a single-file Spanish trainer built around pattern recognition, sentence frames, short drills, and immediate feedback. It is meant for adults or secondary students who benefit from seeing the logic behind Spanish instead of memorizing isolated phrases.</p>
-            </details>
-            <details>
-              <summary>What this is not</summary>
-              <p>This is not an official Qroo Paul resource, not a replacement for his lessons, and not a copy of his paid materials. It uses original examples and common Spanish grammar patterns that are widely taught.</p>
-            </details>
-            <details>
-              <summary>Best use</summary>
-              <p>Use it for 5–10 minute warmups, independent practice, travel-prep drills, or Spanish I/II pattern reinforcement. The best flow is: introduce a pattern, let students play with the Pattern Lab, then assign 10 cards in Drill Mode.</p>
-            </details>
-            <details>
-              <summary>How to share</summary>
-              <p>Upload this HTML file to your website or Google Drive, or send it directly to a learner. It runs locally in the browser and does not need a server.</p>
-            </details>
-            <details>
-              <summary>Accessibility and classroom controls</summary>
-              <p>The tool uses large buttons, plain language, local saves, keyboard-friendly form fields, and printable teacher notes. For younger students, stick to cognates, sentence starters, and tile mode before using subjunctive drills.</p>
-            </details>
-          </section>
-          <aside class="panel span-4">
-            <h3>Printable one-page flow</h3>
-            <div class="print-only"><h2>Spanish Pattern Gym</h2></div>
-            <table class="table">
-              <thead><tr><th>Step</th><th>Teacher move</th></tr></thead>
-              <tbody>
-                <tr><td>1</td><td>Show the pattern formula.</td></tr>
-                <tr><td>2</td><td>Build three sample sentences together.</td></tr>
-                <tr><td>3</td><td>Students complete 10-card drill.</td></tr>
-                <tr><td>4</td><td>Review misses by pattern type.</td></tr>
-                <tr><td>5</td><td>Students say two original sentences aloud.</td></tr>
-              </tbody>
-            </table>
-          </aside>
-        </div>
-      </section>
     </main>
-
-    <footer>Spanish Pattern Gym · Original classroom-friendly practice tool · Saves locally in your browser</footer>
+    <footer>Spanish Pattern Gym · original classroom-friendly practice tool · saves locally in your browser</footer>
   </div>
   <div id="toast" class="toast"></div>
 
@@ -650,179 +319,314 @@
 (() => {
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const STORAGE_KEY = 'spanishPatternGym.progress.v2';
+  const CUSTOM_KEY = 'spanishPatternGym.custom.v2';
 
-  const STORAGE_KEY = 'patternSpanishTrainer.v1';
-  const CUSTOM_KEY = 'patternSpanishTrainer.custom.v1';
+  function card(lessonId, en, es, hint, why, category, tags=[]){
+    return {id: lessonId + '-' + Math.random().toString(36).slice(2,8), lessonId, en, es:Array.isArray(es)?es:[es], hint, why, category, tags};
+  }
 
-  const state = {
-    activeModule: 'mixed',
-    mode: 'type',
-    deck: [],
-    index: 0,
-    current: null,
-    answered: false,
-    builtWords: [],
-    tileWords: [],
-    stats: loadStats(),
-    custom: loadCustom(),
-    subjIndex: 0,
-    shadowIndex: 0,
-    sessionSeen: 0
-  };
-
-  const modules = {
+  const lessons = {
+    quiero: {
+      id:'quiero', level:1, title:'Quiero + infinitive', short:'I want to...', formula:'quiero + infinitive',
+      logic:'English says “I want to learn.” Spanish says “Quiero aprender.” The second action stays unchanged because quiero already carries the subject and tense.',
+      rule:'After quiero, do not conjugate the next verb.', mistake:'Do not say “Quiero aprendo.” Use “Quiero aprender.”', category:'Infinitive after starter',
+      examples:[['I want to learn.','Quiero aprender.'],['I want to speak more.','Quiero hablar más.'],['I want to eat now.','Quiero comer ahora.']],
+      cards:[
+        card('quiero','I want to learn Spanish.',['Quiero aprender español.','Quiero aprender espanol'],'quiero + infinitive','Quiero already means I want. The next verb stays as aprender.','Infinitive after starter',['infinitive','starter']),
+        card('quiero','I want to speak more.',['Quiero hablar más.','Quiero hablar mas'],'querer + infinitive','Use hablar, not hablo, after quiero.','Infinitive after starter',['infinitive','starter']),
+        card('quiero','I want to buy water.','Quiero comprar agua.','quiero + comprar','Comprar stays in the infinitive because quiero is the conjugated verb.','Infinitive after starter',['infinitive','starter']),
+        card('quiero','I want to understand the question.','Quiero entender la pregunta.','quiero + entender','The pattern gives you a fast sentence: quiero + action + detail.','Infinitive after starter',['infinitive','starter']),
+        card('quiero','I want to travel tomorrow.',['Quiero viajar mañana.','Quiero viajar manana'],'quiero + viajar','The time word can go at the end: mañana.','Word order',['infinitive','starter'])
+      ]
+    },
+    tengoQue: {
+      id:'tengoQue', level:1, title:'Tengo que + infinitive', short:'I have to...', formula:'tengo que + infinitive',
+      logic:'Spanish uses “I have that to do something”: tengo que estudiar. Treat tengo que as one chunk.',
+      rule:'Keep que. Then use the infinitive.', mistake:'Do not say “Tengo estudiar.” The que is not optional.', category:'Missing connector',
+      examples:[['I have to study.','Tengo que estudiar.'],['I have to leave.','Tengo que salir.'],['I have to practice today.','Tengo que practicar hoy.']],
+      cards:[
+        card('tengoQue','I have to study today.','Tengo que estudiar hoy.','tengo que + infinitive','Tienes the chunk: tengo que. Then use estudiar.','Missing connector',['que','infinitive']),
+        card('tengoQue','I have to leave now.','Tengo que salir ahora.','tengo que + salir','Salir stays as the infinitive after tengo que.','Missing connector',['que','infinitive']),
+        card('tengoQue','I have to practice every day.',['Tengo que practicar todos los días.','Tengo que practicar todos los dias'],'tengo que + practicar','Do not drop que. It is part of the pattern.','Missing connector',['que','infinitive']),
+        card('tengoQue','I have to call my family.','Tengo que llamar a mi familia.','llamar a + person','Use llamar a mi familia. People often need the personal a.','Personal a',['que','infinitive']),
+        card('tengoQue','I have to listen slowly.','Tengo que escuchar despacio.','tengo que + escuchar','The action stays unchanged after tengo que.','Infinitive after starter',['que','infinitive'])
+      ]
+    },
+    voyA: {
+      id:'voyA', level:1, title:'Voy a + infinitive', short:'I am going to...', formula:'voy a + infinitive',
+      logic:'Spanish builds near future with “I go to do”: voy a practicar. The small a is the bridge.',
+      rule:'Do not skip a.', mistake:'Do not say “Voy practicar.” Use “Voy a practicar.”', category:'Missing a',
+      examples:[['I am going to practice.','Voy a practicar.'],['I am going to eat later.','Voy a comer más tarde.'],['I am going to speak tomorrow.','Voy a hablar mañana.']],
+      cards:[
+        card('voyA','I am going to practice tomorrow.',['Voy a practicar mañana.','Voy a practicar manana'],'voy a + infinitive','Voy a creates the near future. Keep the a.','Missing a',['a','future','infinitive']),
+        card('voyA','I am going to eat later.',['Voy a comer más tarde.','Voy a comer mas tarde'],'voy a + comer','Comer stays in the infinitive after voy a.','Missing a',['a','future','infinitive']),
+        card('voyA','I am going to travel to Mexico.',['Voy a viajar a México.','Voy a viajar a Mexico'],'voy a viajar a + place','The first a belongs to voy a. The second a points to Mexico.','Missing a',['a','future','infinitive']),
+        card('voyA','I am going to learn more.',['Voy a aprender más.','Voy a aprender mas'],'voy a + aprender','Do not conjugate aprender after voy a.','Infinitive after starter',['a','future','infinitive']),
+        card('voyA','I am going to help you.',['Voy a ayudarte.','Te voy a ayudar.'],'voy a + ayudar','The object can attach to ayudar or go before voy.','Object pronoun',['a','future','infinitive'])
+      ]
+    },
+    puedo: {
+      id:'puedo', level:1, title:'Puedo / Necesito + infinitive', short:'Can / need to...', formula:'puedo / necesito + infinitive',
+      logic:'Puedo and necesito already carry the subject. Attach the action in its dictionary form.',
+      rule:'One conjugated verb is enough.', mistake:'Do not say “Puedo ayudo.” Use “Puedo ayudar.”', category:'Infinitive after starter',
+      examples:[['I can help.','Puedo ayudar.'],['I need to buy a ticket.','Necesito comprar un boleto.'],['I can understand a little.','Puedo entender un poco.']],
+      cards:[
+        card('puedo','I can help you.',['Puedo ayudarte.','Te puedo ayudar.','Puedo ayudarle.'],'puedo + infinitive','Use ayudar after puedo. The object can move.','Infinitive after starter',['infinitive','starter']),
+        card('puedo','I need to buy a ticket.','Necesito comprar un boleto.','necesito + infinitive','Comprar stays unchanged after necesito.','Infinitive after starter',['infinitive','starter']),
+        card('puedo','I can understand a little.','Puedo entender un poco.','puedo + entender','Puedo carries “I can,” so entender stays in the infinitive.','Infinitive after starter',['infinitive','starter']),
+        card('puedo','I need to drink water.','Necesito tomar agua.','necesito + tomar','Tomar is the action. No second conjugation needed.','Infinitive after starter',['infinitive','starter']),
+        card('puedo','I can wait here.','Puedo esperar aquí.','puedo + esperar','Aquí means here. The pattern is still puedo + infinitive.','Accent/spelling',['infinitive','starter'])
+      ]
+    },
     cognates: {
-      title: 'Cognate Engine',
-      pattern: 'English word family → Spanish word family',
-      explanation: 'Use familiar English roots to recognize and create Spanish words. Check gender and spelling, but let the pattern give you a head start.',
-      cards: [
-        card('Translate: The situation is complicated.', ['La situación es complicada.','La situacion es complicada'], 'situation → situación; complicated → complicada', 'The -tion family often becomes -ción. Match adjective gender: situación is feminine, so complicada.'),
-        card('Translate: The university is important.', ['La universidad es importante.'], 'university → universidad', 'English -ity often becomes Spanish -idad. Importante does not change for masculine/feminine.'),
-        card('Translate: It is necessary.', ['Es necesario.'], 'necessary → necesario', 'English -ary often maps to Spanish -ario/-ario-like forms, but necessary is necesario.'),
-        card('Translate: The conversation is normal.', ['La conversación es normal.','La conversacion es normal'], 'conversation → conversación', 'The cognate gives you the noun. Spanish still needs the article: la conversación.'),
-        card('Translate: The idea is obvious.', ['La idea es obvia.'], 'obvious → obvio/obvia', 'Idea is feminine even though it ends in -a, so use obvia.'),
-        card('Translate: The decision is difficult.', ['La decisión es difícil.','La decision es dificil'], 'decision → decisión; difficult → difícil', 'Use the cognate, then Spanish word order: article + noun + es + adjective.'),
-        card('Translate: The family is curious.', ['La familia es curiosa.'], 'curious → curioso/a', 'English -ous often becomes -oso/-osa. Familia is feminine: curiosa.'),
-        card('Translate: It is probably different.', ['Probablemente es diferente.','Es probablemente diferente.'], 'probably → probablemente', 'English -ly often maps to -mente, usually attached to the feminine adjective form.')
+      id:'cognates', level:1, title:'Cognate Engine', short:'word families', formula:'English word family → Spanish word family',
+      logic:'Use English roots as a shortcut, then apply Spanish spelling, gender, and adjective agreement.',
+      rule:'Cognates help you guess, but Spanish still needs articles and agreement.', mistake:'Do not trust the English ending blindly. Situation becomes situación, not situation.', category:'Cognate / spelling',
+      examples:[['The situation is complicated.','La situación es complicada.'],['The university is important.','La universidad es importante.'],['The family is curious.','La familia es curiosa.']],
+      cards:[
+        card('cognates','The situation is complicated.',['La situación es complicada.','La situacion es complicada'],'-tion → -ción','Situación is feminine, so complicada.','Agreement',['cognate','agreement']),
+        card('cognates','The university is important.','La universidad es importante.','-ity → -idad','Universidad is feminine. Importante works for masculine/feminine.','Cognate / spelling',['cognate']),
+        card('cognates','The decision is difficult.',['La decisión es difícil.','La decision es dificil'],'-sion → -sión','Spanish uses decisión and difícil. Accents matter, but this trainer accepts missing accents.','Accent/spelling',['cognate']),
+        card('cognates','The family is curious.','La familia es curiosa.','-ous → -oso/a','Curious becomes curioso/curiosa. Familia is feminine.','Agreement',['cognate','agreement']),
+        card('cognates','The conversation is normal.',['La conversación es normal.','La conversacion es normal'],'conversation → conversación','Spanish needs the article la before conversación.','Missing article',['cognate'])
       ]
     },
-    starters: {
-      title: 'Sentence Starters',
-      pattern: 'starter + infinitive / noun phrase',
-      explanation: 'Start with a sturdy chunk, then attach an action. This gets learners speaking quickly without conjugating every verb.',
-      cards: [
-        card('I want to learn Spanish.', ['Quiero aprender español.','Quiero aprender espanol'], 'quiero + infinitive', 'Quiero already carries “I want.” The second verb stays in the infinitive: aprender.'),
-        card('I have to study today.', ['Tengo que estudiar hoy.'], 'tengo que + infinitive', 'Tengo que means “I have to.” Do not conjugate estudiar after it.'),
-        card('I am going to practice tomorrow.', ['Voy a practicar mañana.','Voy a practicar manana'], 'voy a + infinitive', 'Voy a builds the near future: I am going to + action.'),
-        card('I can help you.', ['Puedo ayudarte.','Te puedo ayudar.','Puedo ayudarle.'], 'puedo + infinitive', 'Puedo carries “I can.” The action stays as ayudar; the object can attach or go before.'),
-        card('I would like to speak more.', ['Me gustaría hablar más.','Me gustaria hablar mas'], 'me gustaría + infinitive', 'Me gustaría is a polite starter. The second verb stays in the infinitive.'),
-        card('I need to buy water.', ['Necesito comprar agua.'], 'necesito + infinitive', 'Necesito already means “I need.” The second verb remains comprar.'),
-        card('I just arrived.', ['Acabo de llegar.'], 'acabar de + infinitive', 'Acabo de + infinitive means “I just did something.”'),
-        card('I keep working.', ['Sigo trabajando.'], 'seguir + gerundio', 'Seguir + gerundio shows an action continuing: sigo trabajando.')
+    meGustaria: {
+      id:'meGustaria', level:2, title:'Me gustaría + infinitive', short:'I would like to...', formula:'me gustaría + infinitive',
+      logic:'Spanish says “it would be pleasing to me to…” but treat me gustaría as a polite chunk.',
+      rule:'After me gustaría, use the infinitive.', mistake:'Do not say “Me gustaría hablo.” Use “Me gustaría hablar.”', category:'Infinitive after starter',
+      examples:[['I would like to speak.','Me gustaría hablar.'],['I would like to order.','Me gustaría pedir.'],['I would like to visit Mexico.','Me gustaría visitar México.']],
+      cards:[
+        card('meGustaria','I would like to speak more.',['Me gustaría hablar más.','Me gustaria hablar mas'],'me gustaría + infinitive','Me gustaría is the polite starter. Hablar stays unchanged.','Infinitive after starter',['infinitive','polite']),
+        card('meGustaria','I would like to order water.','Me gustaría pedir agua.','pedir = to order / ask for','Use pedir after me gustaría.','Infinitive after starter',['infinitive','polite']),
+        card('meGustaria','I would like to visit Mexico.',['Me gustaría visitar México.','Me gustaria visitar Mexico'],'visitar + place','Visitar stays in the infinitive.','Accent/spelling',['infinitive','polite']),
+        card('meGustaria','I would like to try this.','Me gustaría probar esto.','probar = to try','This is a handy restaurant/travel sentence.','Infinitive after starter',['infinitive','polite']),
+        card('meGustaria','I would like to ask a question.','Me gustaría hacer una pregunta.','hacer una pregunta','Spanish says make/do a question: hacer una pregunta.','Chunk choice',['infinitive','polite'])
       ]
     },
-    subjunctive: {
-      title: 'Subjunctive Triggers',
-      pattern: 'trigger + que + new subject + subjunctive',
-      explanation: 'When a trigger expresses desire, influence, doubt, emotion, purpose, or future uncertainty, the second verb often shifts into subjunctive.',
-      cards: [
-        card('I want you to go.', ['Quiero que vayas.'], 'quiero que + subjunctive', 'There is a desire and a subject change: I want / you go. Use vayas.'),
-        card('I hope it rains.', ['Espero que llueva.'], 'espero que + subjunctive', 'Hope points to a desired/uncertain event, so use llueva.'),
-        card('It is important that they arrive early.', ['Es importante que lleguen temprano.'], 'es importante que + subjunctive', 'An impersonal judgment triggers subjunctive: lleguen.'),
-        card('I need her to call me.', ['Necesito que me llame.','Necesito que ella me llame.'], 'necesito que + subjunctive', 'When needing someone else to do something, use que + subject + subjunctive.'),
-        card('We study so that we can speak.', ['Estudiamos para que podamos hablar.'], 'para que + subjunctive', 'Para que introduces purpose with a new subject, so use podamos.'),
-        card('Before you leave, call me.', ['Antes de que salgas, llámame.','Antes de que salgas, llamame.'], 'antes de que + subjunctive', 'Antes de que points to a future event not yet completed: salgas.'),
-        card('I do not think he knows.', ['No creo que sepa.','No creo que él sepa.','No creo que el sepa'], 'no creo que + subjunctive', 'Negated belief usually triggers subjunctive: sepa.'),
-        card('When I arrive tomorrow, I will call you.', ['Cuando llegue mañana, te llamaré.','Cuando llegue manana, te llamare','Cuando llegue mañana, voy a llamarte.','Cuando llegue manana, voy a llamarte'], 'cuando + future/unknown → subjunctive', 'A future “when” event takes subjunctive: cuando llegue.')
+    acaboDe: {
+      id:'acaboDe', level:2, title:'Acabo de + infinitive', short:'I just...', formula:'acabo de + infinitive',
+      logic:'Spanish says “I finish from doing something” to mean “I just did it”: acabo de llegar.',
+      rule:'Keep de before the infinitive.', mistake:'Do not say “Acabo llegar.” Use “Acabo de llegar.”', category:'Missing de',
+      examples:[['I just arrived.','Acabo de llegar.'],['I just ate.','Acabo de comer.'],['I just talked with her.','Acabo de hablar con ella.']],
+      cards:[
+        card('acaboDe','I just arrived.','Acabo de llegar.','acabo de + infinitive','Keep de. Llegar stays in the infinitive.','Missing de',['de','infinitive']),
+        card('acaboDe','I just ate.','Acabo de comer.','acabo de + comer','Comer stays unchanged after acabo de.','Missing de',['de','infinitive']),
+        card('acaboDe','I just spoke with my teacher.','Acabo de hablar con mi profesor.','hablar con','Use hablar con for speaking with someone.','Missing de',['de','infinitive']),
+        card('acaboDe','I just finished the lesson.','Acabo de terminar la lección.','terminar la lección','The pattern acabo de still means I just did it.','Accent/spelling',['de','infinitive']),
+        card('acaboDe','We just started.','Acabamos de empezar.','acabamos de + infinitive','For we, use acabamos de.','Verb form',['de','infinitive'])
       ]
     },
-    why: {
-      title: 'Why / Because / For What',
-      pattern: 'por qué / porque / para qué / por eso',
-      explanation: 'Do not translate word-by-word. Ask the job: asking reason, giving reason, asking purpose, or saying therefore.',
-      cards: [
-        choiceCard('Choose the best phrase: ___ estudias español?', 'por qué', ['por qué','porque','para qué','por eso'], 'You are asking for a reason: ¿Por qué estudias español?'),
-        choiceCard('Choose the best phrase: Estudio español ___ quiero viajar.', 'porque', ['por qué','porque','para qué','por eso'], 'You are giving a reason: porque quiero viajar.'),
-        choiceCard('Choose the best phrase: ___ necesitas el dinero?', 'para qué', ['por qué','porque','para qué','por eso'], 'You are asking purpose: “for what purpose?”'),
-        choiceCard('Choose the best phrase: Estoy cansado. ___ no voy.', 'por eso', ['por qué','porque','para qué','por eso'], 'Por eso means “therefore / that is why.”'),
-        choiceCard('Choose the best phrase: No sé ___ ella salió.', 'por qué', ['por qué','porque','para qué','por eso'], 'After “I do not know,” you are still talking about why: por qué.'),
-        choiceCard('Choose the best phrase: Lo hago ___ mi familia.', 'por', ['por','para','porque','por eso'], 'Por can show motive/cause: I do it for/because of my family.'),
-        choiceCard('Choose the best phrase: Este regalo es ___ ti.', 'para', ['por','para','porque','por eso'], 'Para marks recipient/destination: for you.'),
-        choiceCard('Choose the best phrase: ¿___ sirve esta herramienta?', 'para qué', ['por qué','porque','para qué','por eso'], 'You are asking what it is used for: ¿Para qué sirve?')
+    estoyTratando: {
+      id:'estoyTratando', level:2, title:'Estoy tratando de + infinitive', short:'I am trying to...', formula:'estoy tratando de + infinitive',
+      logic:'The whole chunk means “I am trying to.” Keep de before the action.',
+      rule:'Use de + infinitive after tratando.', mistake:'Do not say “Estoy tratando hablar.” Use “Estoy tratando de hablar.”', category:'Missing de',
+      examples:[['I am trying to learn.','Estoy tratando de aprender.'],['I am trying to understand.','Estoy tratando de entender.'],['I am trying to speak slowly.','Estoy tratando de hablar despacio.']],
+      cards:[
+        card('estoyTratando','I am trying to learn Spanish.',['Estoy tratando de aprender español.','Estoy tratando de aprender espanol'],'tratando de + infinitive','The de is part of the chunk.','Missing de',['de','infinitive']),
+        card('estoyTratando','I am trying to understand.','Estoy tratando de entender.','tratando de + entender','Entender stays in the infinitive after de.','Missing de',['de','infinitive']),
+        card('estoyTratando','I am trying to speak slowly.','Estoy tratando de hablar despacio.','hablar despacio','The pattern carries “trying to.”','Missing de',['de','infinitive']),
+        card('estoyTratando','I am trying to listen more.',['Estoy tratando de escuchar más.','Estoy tratando de escuchar mas'],'escuchar más','Keep de between tratando and escuchar.','Missing de',['de','infinitive']),
+        card('estoyTratando','I am trying to use the pattern.','Estoy tratando de usar el patrón.','usar el patrón','Spanish needs el patrón.','Missing article',['de','infinitive'])
+      ]
+    },
+    meCuesta: {
+      id:'meCuesta', level:2, title:'Me cuesta + infinitive', short:'It is hard for me to...', formula:'me cuesta + infinitive',
+      logic:'Spanish says “it costs me to…” for something that is difficult.',
+      rule:'The difficult action stays in the infinitive.', mistake:'Do not translate as “Es duro para mí” every time. Me cuesta sounds more natural.', category:'Chunk choice',
+      examples:[['It is hard for me to understand.','Me cuesta entender.'],['It is hard for me to speak quickly.','Me cuesta hablar rápido.'],['It is hard for me to remember words.','Me cuesta recordar palabras.']],
+      cards:[
+        card('meCuesta','It is hard for me to understand.','Me cuesta entender.','me cuesta + infinitive','Entender stays in the infinitive after me cuesta.','Infinitive after starter',['infinitive','chunk']),
+        card('meCuesta','It is hard for me to speak quickly.',['Me cuesta hablar rápido.','Me cuesta hablar rapido'],'hablar rápido','Me cuesta sounds like “it is difficult for me.”','Accent/spelling',['infinitive','chunk']),
+        card('meCuesta','It is hard for me to remember words.','Me cuesta recordar palabras.','recordar palabras','Use recordar for remember.','Infinitive after starter',['infinitive','chunk']),
+        card('meCuesta','It is hard for me to write in Spanish.','Me cuesta escribir en español.','escribir en español','Use en for in Spanish.','Preposition',['infinitive','chunk']),
+        card('meCuesta','It is hard for us to listen.','Nos cuesta escuchar.','nos cuesta + infinitive','For us, use nos cuesta.','Object pronoun',['infinitive','chunk'])
+      ]
+    },
+    loQuePasa: {
+      id:'loQuePasa', level:2, title:'Lo que pasa es que...', short:'The thing is...', formula:'lo que pasa es que + sentence',
+      logic:'This chunk buys time and explains a situation: “what happens is that…”',
+      rule:'Keep lo que pasa es que together.', mistake:'Do not translate each word separately. Learn it as a chunk.', category:'Chunk order',
+      examples:[['The thing is that I do not understand.','Lo que pasa es que no entiendo.'],['The thing is that I am tired.','Lo que pasa es que estoy cansado.'],['The thing is that I need help.','Lo que pasa es que necesito ayuda.']],
+      cards:[
+        card('loQuePasa','The thing is that I do not understand.','Lo que pasa es que no entiendo.','lo que pasa es que','Use the full chunk, then a normal sentence.','Chunk order',['chunk','que']),
+        card('loQuePasa','The thing is that I need help.','Lo que pasa es que necesito ayuda.','necesito ayuda','No a after necesito when a noun follows.','Chunk order',['chunk','que']),
+        card('loQuePasa','The thing is that I am tired.',['Lo que pasa es que estoy cansado.','Lo que pasa es que estoy cansada.'],'estoy cansado/a','Use cansado or cansada depending on the speaker.','Agreement',['chunk','que']),
+        card('loQuePasa','The thing is that I have to leave.','Lo que pasa es que tengo que salir.','tengo que salir','The explanation can include another pattern.','Missing connector',['chunk','que']),
+        card('loQuePasa','The thing is that I want to practice more.',['Lo que pasa es que quiero practicar más.','Lo que pasa es que quiero practicar mas'],'quiero practicar más','Chunk + starter pattern.','Chunk order',['chunk','que'])
+      ]
+    },
+    porque: {
+      id:'porque', level:3, title:'Por qué / porque / por eso', short:'why / because / therefore', formula:'por qué = why · porque = because · por eso = therefore',
+      logic:'Ask what job the phrase is doing: asking reason, giving reason, or pointing to a result.',
+      rule:'Separate words for the question: por qué. One word for because: porque.', mistake:'Do not use porque for a question that means why.', category:'Connector choice',
+      examples:[['Why do you study?','¿Por qué estudias?'],['I study because I want to travel.','Estudio porque quiero viajar.'],['I am tired. That is why I am not going.','Estoy cansado. Por eso no voy.']],
+      cards:[
+        card('porque','Why do you study Spanish?',['¿Por qué estudias español?','Por qué estudias español?'],'por qué asks why','Two words and usually accents when asking why.','Connector choice',['connector']),
+        card('porque','I study Spanish because I want to travel.','Estudio español porque quiero viajar.','porque gives a reason','Because is one word: porque.','Connector choice',['connector']),
+        card('porque','I am tired. That is why I am not going.','Estoy cansado. Por eso no voy.','por eso = therefore / that is why','Por eso points back to the reason.','Connector choice',['connector']),
+        card('porque','I do not know why she left.',['No sé por qué ella salió.','No se por que ella salio.','No sé por qué salió.','No se por que salio'],'por qué after no sé','Still asking “why,” even inside a statement.','Connector choice',['connector']),
+        card('porque','Why do you need the money?',['¿Por qué necesitas el dinero?','Por qué necesitas el dinero?'],'por qué asks reason','Use por qué for reason, not para qué.','Connector choice',['connector'])
+      ]
+    },
+    paraQue: {
+      id:'paraQue', level:3, title:'Para / para que', short:'for / so that', formula:'para + noun/infinitive · para que + new subject + subjunctive',
+      logic:'Para points to purpose, destination, recipient, or deadline. Para que means “so that” and usually brings a new subject.',
+      rule:'Use para que when someone else needs to do the second action.', mistake:'Do not say “para tú puedes.” Use “para que puedas.”', category:'Subjunctive trigger',
+      examples:[['This gift is for you.','Este regalo es para ti.'],['I study to learn.','Estudio para aprender.'],['I explain it so that you can understand.','Lo explico para que puedas entender.']],
+      cards:[
+        card('paraQue','This gift is for you.','Este regalo es para ti.','para + recipient','Para marks who something is for.','Preposition',['para']),
+        card('paraQue','I study to learn.','Estudio para aprender.','para + infinitive','Same subject: I study / I learn. Use para + infinitive.','Preposition',['para','infinitive']),
+        card('paraQue','I explain it so that you can understand.','Lo explico para que puedas entender.','para que + subjunctive','New subject: I explain / you understand. Use puedas.','Subjunctive trigger',['para que','subjunctive']),
+        card('paraQue','I write it so that they remember.','Lo escribo para que recuerden.','para que + recuerden','Purpose with a new subject triggers subjunctive.','Subjunctive trigger',['para que','subjunctive']),
+        card('paraQue','What is this tool for?',['¿Para qué sirve esta herramienta?','Para qué sirve esta herramienta?'],'para qué asks purpose','Ask purpose with para qué.','Connector choice',['para'])
       ]
     },
     chunks: {
-      title: 'Chunk Expansion',
-      pattern: 'reusable chunk + idea',
-      explanation: 'Chunks let learners say more without building everything from scratch. Practice them as units first, then swap details.',
-      cards: [
-        card('I realize that I need more practice.', ['Me doy cuenta de que necesito más práctica.','Me doy cuenta de que necesito mas practica'], 'me doy cuenta de que + sentence', 'The full chunk is me doy cuenta de que. Keep de que together.'),
-        card('It is worth practicing every day.', ['Vale la pena practicar todos los días.','Vale la pena practicar todos los dias'], 'vale la pena + infinitive', 'Vale la pena means “it is worth it.” Attach an infinitive: practicar.'),
-        card('Every time I listen, I understand more.', ['Cada vez que escucho, entiendo más.','Cada vez que escucho, entiendo mas'], 'cada vez que + sentence', 'Cada vez que means “every time that.” Use a full clause after it.'),
-        card('The most important thing is that you try.', ['Lo más importante es que intentes.','Lo mas importante es que intentes','Lo más importante es que lo intentes.','Lo mas importante es que lo intentes'], 'lo más importante es que + subjunctive', 'A judgment about what should happen often triggers subjunctive: intentes.'),
-        card('What I want is to speak with confidence.', ['Lo que quiero es hablar con confianza.'], 'lo que + verb + es + infinitive/noun', 'Lo que means “what/the thing that.” It helps build longer sentences.'),
-        card('I am used to speaking slowly.', ['Estoy acostumbrado a hablar despacio.','Estoy acostumbrada a hablar despacio'], 'estar acostumbrado/a a + infinitive', 'Use a before the infinitive: acostumbrado a hablar.'),
-        card('I feel like eating now.', ['Tengo ganas de comer ahora.'], 'tener ganas de + infinitive', 'Tengo ganas de means “I feel like / I want to.”'),
-        card('That depends on what you want.', ['Eso depende de lo que quieras.'], 'depende de lo que + subjunctive', 'Lo que quieras refers to an unknown/variable thing, so quieras works here.')
+      id:'chunks', level:3, title:'Reusable chunks', short:'longer sentence frames', formula:'chunk + idea',
+      logic:'Chunks let you speak in longer thoughts without building every sentence from zero.',
+      rule:'Learn the small frame as one unit.', mistake:'Do not split chunks like me doy cuenta de que. Keep all the pieces.', category:'Chunk order',
+      examples:[['I realize that I need practice.','Me doy cuenta de que necesito práctica.'],['It is worth practicing.','Vale la pena practicar.'],['Every time I listen, I understand more.','Cada vez que escucho, entiendo más.']],
+      cards:[
+        card('chunks','I realize that I need more practice.',['Me doy cuenta de que necesito más práctica.','Me doy cuenta de que necesito mas practica'],'me doy cuenta de que','Keep de que together.','Chunk order',['chunk','que']),
+        card('chunks','It is worth practicing every day.',['Vale la pena practicar todos los días.','Vale la pena practicar todos los dias'],'vale la pena + infinitive','Attach an infinitive after vale la pena.','Infinitive after starter',['chunk','infinitive']),
+        card('chunks','Every time I listen, I understand more.',['Cada vez que escucho, entiendo más.','Cada vez que escucho, entiendo mas'],'cada vez que + sentence','Cada vez que means every time that.','Chunk order',['chunk','que']),
+        card('chunks','What I want is to speak with confidence.','Lo que quiero es hablar con confianza.','lo que quiero es','Lo que means what/the thing that.','Chunk order',['chunk']),
+        card('chunks','That depends on what you want.','Eso depende de lo que quieras.','depende de lo que + subjunctive','What you want is unknown/variable, so quieras.','Subjunctive trigger',['chunk','subjunctive'])
+      ]
+    },
+    gerundio: {
+      id:'gerundio', level:3, title:'Estoy / sigo + -ando/-iendo', short:'doing / keep doing', formula:'estar / seguir + gerundio',
+      logic:'Use -ando/-iendo for an action in progress or continuing: estoy practicando, sigo aprendiendo.',
+      rule:'-ar → -ando; -er/-ir → -iendo.', mistake:'Do not use infinitive after estoy for “I am doing.” Use the gerundio.', category:'Gerund form',
+      examples:[['I am practicing.','Estoy practicando.'],['I keep learning.','Sigo aprendiendo.'],['We are listening.','Estamos escuchando.']],
+      cards:[
+        card('gerundio','I am practicing now.','Estoy practicando ahora.','practicar → practicando','Use -ando for -ar verbs.','Gerund form',['gerund']),
+        card('gerundio','I keep learning Spanish.',['Sigo aprendiendo español.','Sigo aprendiendo espanol'],'aprender → aprendiendo','Seguir + gerundio means keep doing.','Gerund form',['gerund']),
+        card('gerundio','We are listening to music.','Estamos escuchando música.','escuchar → escuchando','Use estamos for we are.','Gerund form',['gerund']),
+        card('gerundio','They are eating now.','Están comiendo ahora.','comer → comiendo','-er verbs usually become -iendo.','Accent/spelling',['gerund']),
+        card('gerundio','I keep trying.','Sigo intentando.','intentar → intentando','Sigo + gerundio = I keep doing.','Gerund form',['gerund'])
+      ]
+    },
+    quieroQue: {
+      id:'quieroQue', level:4, title:'Quiero que + subjunctive', short:'I want someone to...', formula:'quiero que + new subject + subjunctive',
+      logic:'English says “I want you to go.” Spanish says “I want that you go”: quiero que vayas.',
+      rule:'Subject change after wanting/influencing usually needs subjunctive.', mistake:'Do not say “Quiero tú vas.” Use “Quiero que vayas.”', category:'Subjunctive trigger',
+      examples:[['I want you to go.','Quiero que vayas.'],['I want her to call me.','Quiero que me llame.'],['We want them to arrive early.','Queremos que lleguen temprano.']],
+      cards:[
+        card('quieroQue','I want you to go.','Quiero que vayas.','quiero que + vayas','Desire + subject change triggers subjunctive.','Subjunctive trigger',['que','subjunctive']),
+        card('quieroQue','I want her to call me.',['Quiero que me llame.','Quiero que ella me llame.'],'quiero que + llame','Someone else is doing the action. Use que + subjunctive.','Subjunctive trigger',['que','subjunctive']),
+        card('quieroQue','We want them to arrive early.','Queremos que lleguen temprano.','queremos que + lleguen','Queremos triggers subjunctive for what we want them to do.','Subjunctive trigger',['que','subjunctive']),
+        card('quieroQue','I need you to help me.','Necesito que me ayudes.','necesito que + ayudes','Need someone else to act: que + subjunctive.','Subjunctive trigger',['que','subjunctive']),
+        card('quieroQue','She prefers that we wait here.','Ella prefiere que esperemos aquí.','prefiere que + esperemos','Preference with a new subject triggers subjunctive.','Subjunctive trigger',['que','subjunctive'])
+      ]
+    },
+    noCreo: {
+      id:'noCreo', level:4, title:'Creo que / No creo que', short:'belief vs doubt', formula:'creo que + indicative · no creo que + subjunctive',
+      logic:'A positive belief presents the idea as fact. A negated belief pushes it into doubt.',
+      rule:'Creo que usually uses indicative. No creo que usually uses subjunctive.', mistake:'Do not use the same verb form after creo que and no creo que.', category:'Mood choice',
+      examples:[['I think he knows.','Creo que sabe.'],['I do not think he knows.','No creo que sepa.'],['I think she is coming.','Creo que viene.']],
+      cards:[
+        card('noCreo','I think he knows.','Creo que sabe.','creo que + indicative','A positive belief presents it as fact.','Mood choice',['indicative']),
+        card('noCreo','I do not think he knows.',['No creo que sepa.','No creo que él sepa.','No creo que el sepa'],'no creo que + subjunctive','Negated belief triggers subjunctive.','Mood choice',['subjunctive']),
+        card('noCreo','I think she is coming tomorrow.',['Creo que viene mañana.','Creo que viene manana'],'creo que + viene','Viene is indicative because this is a belief stated as likely fact.','Mood choice',['indicative']),
+        card('noCreo','I do not think she is coming tomorrow.',['No creo que venga mañana.','No creo que venga manana'],'no creo que + venga','Venga is subjunctive after no creo que.','Mood choice',['subjunctive']),
+        card('noCreo','It is possible that you are right.','Es posible que tengas razón.','es posible que + subjunctive','Possible = uncertain, so tengas.','Subjunctive trigger',['subjunctive'])
+      ]
+    },
+    cuando: {
+      id:'cuando', level:4, title:'Cuando: habit vs future', short:'when I do / when I do later', formula:'cuando + indicative for habit · cuando + subjunctive for future/unknown',
+      logic:'Cuando can be factual/habitual or future/unknown. The time frame decides the mood.',
+      rule:'Future when often needs subjunctive.', mistake:'Do not use present indicative for future “when I arrive tomorrow.” Use llegue.', category:'Mood choice',
+      examples:[['When I have time, I study.','Cuando tengo tiempo, estudio.'],['When I have time tomorrow, I will study.','Cuando tenga tiempo mañana, estudiaré.'],['When I arrive, I will call you.','Cuando llegue, te llamaré.']],
+      cards:[
+        card('cuando','When I have time, I study.','Cuando tengo tiempo, estudio.','habit/current → indicative','This is a repeated fact/habit.','Mood choice',['indicative']),
+        card('cuando','When I have time tomorrow, I will study.',['Cuando tenga tiempo mañana, estudiaré.','Cuando tenga tiempo manana, estudiare','Cuando tenga tiempo mañana, voy a estudiar.','Cuando tenga tiempo manana, voy a estudiar'],'future/unknown → subjunctive','Future cuando event uses tenga.','Mood choice',['subjunctive']),
+        card('cuando','When I arrive, I will call you.',['Cuando llegue, te llamaré.','Cuando llegue, te llamare','Cuando llegue, voy a llamarte.'],'future/unknown → llegue','Arrival is future/unknown. Use llegue.','Mood choice',['subjunctive']),
+        card('cuando','When we finish, we will leave.',['Cuando terminemos, saldremos.','Cuando terminemos, vamos a salir.'],'cuando + terminemos','Future “when” triggers subjunctive.','Mood choice',['subjunctive']),
+        card('cuando','When she listens, she understands.','Cuando escucha, entiende.','habit/current → indicative','This describes a regular pattern, so escucha is indicative.','Mood choice',['indicative'])
+      ]
+    },
+    unknownPerson: {
+      id:'unknownPerson', level:4, title:'Known vs unknown person', short:'someone who...', formula:'known person + indicative · unknown/desired person + subjunctive',
+      logic:'If the person exists and is known, use indicative. If you are looking for someone who may or may not exist, use subjunctive.',
+      rule:'Known = es. Unknown/desired = sea.', mistake:'Do not use es for a person you are only looking for or hoping to find.', category:'Mood choice',
+      examples:[['I know a teacher who is patient.','Conozco a un profesor que es paciente.'],['I am looking for a teacher who is patient.','Busco un profesor que sea paciente.'],['Do you have something that works?','¿Tienes algo que funcione?']],
+      cards:[
+        card('unknownPerson','I know a teacher who is patient.','Conozco a un profesor que es paciente.','known person → indicative','The teacher is specific/known, so es.','Mood choice',['indicative']),
+        card('unknownPerson','I am looking for a teacher who is patient.','Busco un profesor que sea paciente.','unknown person → subjunctive','You are looking for this person; not confirmed. Use sea.','Mood choice',['subjunctive']),
+        card('unknownPerson','Do you have something that works?',['¿Tienes algo que funcione?','Tienes algo que funcione?'],'unknown thing → subjunctive','Something that works is not identified yet.','Mood choice',['subjunctive']),
+        card('unknownPerson','I need a hotel that is cheap.','Necesito un hotel que sea barato.','unknown hotel → subjunctive','Not a specific known hotel, so sea.','Mood choice',['subjunctive']),
+        card('unknownPerson','I have a hotel that is cheap.','Tengo un hotel que es barato.','known hotel → indicative','Now you have a specific hotel, so es.','Mood choice',['indicative'])
       ]
     }
   };
 
-  const subjCoach = [
-    {spanish:'Quiero que tú vengas mañana.', english:'I want you to come tomorrow.', answer:'Subjunctive', why:'Quiero que expresses desire with a subject change. Vengas is subjunctive.'},
-    {spanish:'Creo que ella viene mañana.', english:'I think she is coming tomorrow.', answer:'Indicative', why:'Creo que presents a belief as a fact, so viene is indicative.'},
-    {spanish:'No creo que ella venga mañana.', english:'I do not think she is coming tomorrow.', answer:'Subjunctive', why:'No creo que expresses doubt/negated belief, so venga is subjunctive.'},
-    {spanish:'Busco un profesor que sea paciente.', english:'I am looking for a teacher who is patient.', answer:'Subjunctive', why:'The teacher is not identified/known, so sea is subjunctive.'},
-    {spanish:'Conozco a un profesor que es paciente.', english:'I know a teacher who is patient.', answer:'Indicative', why:'The teacher is known and specific, so es is indicative.'},
-    {spanish:'Cuando tengo tiempo, estudio.', english:'When I have time, I study.', answer:'Indicative', why:'This is habitual/current, so tengo is indicative.'},
-    {spanish:'Cuando tenga tiempo, estudiaré.', english:'When I have time, I will study.', answer:'Subjunctive', why:'This points to a future/unknown time, so tenga is subjunctive.'},
-    {spanish:'Es obvio que tienes razón.', english:'It is obvious that you are right.', answer:'Indicative', why:'Es obvio que presents the idea as factual, so tienes is indicative.'},
-    {spanish:'Es posible que tengas razón.', english:'It is possible that you are right.', answer:'Subjunctive', why:'Es posible que expresses uncertainty, so tengas is subjunctive.'},
-    {spanish:'Te llamo para que sepas.', english:'I am calling you so that you know.', answer:'Subjunctive', why:'Para que introduces purpose with a new subject, so sepas is subjunctive.'}
+  const levels = [
+    {num:1, title:'Survival Patterns', desc:'Fast, useful frames that keep the second verb in the infinitive.', lessons:['quiero','tengoQue','voyA','puedo','cognates']},
+    {num:2, title:'Conversation Builders', desc:'Polite chunks and explanation frames that make speech sound more natural.', lessons:['meGustaria','acaboDe','estoyTratando','meCuesta','loQuePasa']},
+    {num:3, title:'Connector Logic', desc:'Why, because, purpose, reusable chunks, and action-in-progress patterns.', lessons:['porque','paraQue','chunks','gerundio']},
+    {num:4, title:'Subjunctive Decisions', desc:'Triggers, uncertainty, future when, and known vs unknown people/things.', lessons:['quieroQue','noCreo','cuando','unknownPerson']}
+  ];
+
+  const scenarios = [
+    {id:'restaurant', title:'At a restaurant', desc:'Order politely, ask for help, and explain what you need.', cards:[
+      card('meGustaria','I would like to order water.','Me gustaría pedir agua.','polite ordering','Me gustaría softens the request.','Infinitive after starter',['scenario']),
+      card('puedo','Can you help me?',['¿Puedes ayudarme?','Puedes ayudarme?'],'puedes + infinitive','Use puedes for can you.','Infinitive after starter',['scenario']),
+      card('quiero','I want to try this.','Quiero probar esto.','quiero + probar','The action stays in the infinitive.','Infinitive after starter',['scenario']),
+      card('loQuePasa','The thing is that I do not understand the menu.','Lo que pasa es que no entiendo el menú.','lo que pasa es que','Use the chunk, then the explanation.','Chunk order',['scenario']),
+      card('paraQue','What is this for?',['¿Para qué sirve esto?','Para qué sirve esto?'],'para qué asks purpose','You are asking what purpose it serves.','Connector choice',['scenario'])
+    ]},
+    {id:'hotel', title:'Checking into a hotel', desc:'Ask for what you need and explain problems clearly.', cards:[
+      card('meGustaria','I would like to check in.','Me gustaría registrarme.','me gustaría + infinitive','Registrarme means to check myself in.','Infinitive after starter',['scenario']),
+      card('tengoQue','I have to leave tomorrow.',['Tengo que salir mañana.','Tengo que salir manana'],'tengo que + salir','Keep que in the pattern.','Missing connector',['scenario']),
+      card('puedo','I need to change the room.','Necesito cambiar la habitación.','necesito + infinitive','Cambiar stays in the infinitive.','Infinitive after starter',['scenario']),
+      card('loQuePasa','The thing is that the room is cold.',['Lo que pasa es que la habitación está fría.','Lo que pasa es que la habitacion esta fria'],'lo que pasa es que','Use estar for condition.','Accent/spelling',['scenario']),
+      card('quieroQue','I need someone to help me.','Necesito que alguien me ayude.','necesito que + subjunctive','You need someone else to act.','Subjunctive trigger',['scenario'])
+    ]},
+    {id:'taxi', title:'Taxi / rideshare', desc:'Say where you are going and what you need the driver to do.', cards:[
+      card('voyA','I am going to the airport.','Voy al aeropuerto.','a + el = al','Voy a el becomes voy al.','Preposition',['scenario']),
+      card('meGustaria','I would like to go downtown.','Me gustaría ir al centro.','ir al centro','Use al before centro.','Preposition',['scenario']),
+      card('paraQue','I am leaving early so that I can arrive on time.','Salgo temprano para que pueda llegar a tiempo.','para que + subjunctive','Purpose with can/pueda.','Subjunctive trigger',['scenario']),
+      card('porque','I am in a hurry because I have a meeting.','Tengo prisa porque tengo una reunión.','porque gives reason','Because is one word.','Connector choice',['scenario']),
+      card('tengoQue','I have to arrive before eight.','Tengo que llegar antes de las ocho.','tengo que llegar','Arrive by/before time uses antes de.','Preposition',['scenario'])
+    ]},
+    {id:'school', title:'At school or work', desc:'Talk about deadlines, practice, and what is hard.', cards:[
+      card('tengoQue','I have to finish the project today.','Tengo que terminar el proyecto hoy.','tengo que + terminar','Keep que and use infinitive.','Missing connector',['scenario']),
+      card('meCuesta','It is hard for me to understand the instructions.','Me cuesta entender las instrucciones.','me cuesta + infinitive','The difficult action stays in the infinitive.','Infinitive after starter',['scenario']),
+      card('estoyTratando','I am trying to use Spanish more.',['Estoy tratando de usar español más.','Estoy tratando de usar espanol mas','Estoy tratando de usar más español.','Estoy tratando de usar mas espanol'],'tratando de + infinitive','Keep de in the chunk.','Missing de',['scenario']),
+      card('chunks','I realize that I need more time.',['Me doy cuenta de que necesito más tiempo.','Me doy cuenta de que necesito mas tiempo'],'me doy cuenta de que','Keep de que together.','Chunk order',['scenario']),
+      card('cuando','When I finish, I will send it.',['Cuando termine, lo enviaré.','Cuando termine, lo enviare','Cuando termine, voy a enviarlo.'],'future cuando + subjunctive','Future/unknown completion uses termine.','Mood choice',['scenario'])
+    ]}
   ];
 
   const labPatterns = [
-    {id:'want', title:'Quiero + infinitive', formula:'Quiero {verb} {detail}.', english:'I want to {verbEn} {detailEn}.'},
-    {id:'haveTo', title:'Tengo que + infinitive', formula:'Tengo que {verb} {detail}.', english:'I have to {verbEn} {detailEn}.'},
-    {id:'goingTo', title:'Voy a + infinitive', formula:'Voy a {verb} {detail}.', english:'I am going to {verbEn} {detailEn}.'},
-    {id:'wouldLike', title:'Me gustaría + infinitive', formula:'Me gustaría {verb} {detail}.', english:'I would like to {verbEn} {detailEn}.'},
-    {id:'needYou', title:'Quiero que + subjunctive', formula:'Quiero que {subjectSubj} {subjVerb} {detail}.', english:'I want {subjectEn} to {verbEn} {detailEn}.'},
-    {id:'purpose', title:'Para que + subjunctive', formula:'Estudio para que {subjectSubj} {subjVerb} {detail}.', english:'I study so that {subjectEn} can {verbEn} {detailEn}.'},
-    {id:'worth', title:'Vale la pena + infinitive', formula:'Vale la pena {verb} {detail}.', english:'It is worth {verbIng} {detailEn}.'},
-    {id:'realize', title:'Me doy cuenta de que + sentence', formula:'Me doy cuenta de que {subject} {presentVerb} {detail}.', english:'I realize that {subjectEn} {presentVerbEn} {detailEn}.'}
+    {id:'quiero', title:'Quiero + infinitive', formula:'Quiero {verb} {detail}.', english:'I want to {verbEn} {detailEn}.'},
+    {id:'tengoQue', title:'Tengo que + infinitive', formula:'Tengo que {verb} {detail}.', english:'I have to {verbEn} {detailEn}.'},
+    {id:'voyA', title:'Voy a + infinitive', formula:'Voy a {verb} {detail}.', english:'I am going to {verbEn} {detailEn}.'},
+    {id:'meGustaria', title:'Me gustaría + infinitive', formula:'Me gustaría {verb} {detail}.', english:'I would like to {verbEn} {detailEn}.'},
+    {id:'paraQue', title:'Para que + subjunctive', formula:'Lo explico para que {subjectSubj} {subjVerb} {detail}.', english:'I explain it so that {subjectEn} can {verbEn} {detailEn}.'},
+    {id:'vale', title:'Vale la pena + infinitive', formula:'Vale la pena {verb} {detail}.', english:'It is worth {verbIng} {detailEn}.'}
   ];
-
   const subjects = [
-    {label:'yo', subject:'yo', subjectSubj:'yo', subjectEn:'I'},
-    {label:'tú', subject:'tú', subjectSubj:'tú', subjectEn:'you'},
-    {label:'ella', subject:'ella', subjectSubj:'ella', subjectEn:'she'},
-    {label:'nosotros', subject:'nosotros', subjectSubj:'nosotros', subjectEn:'we'},
-    {label:'mis estudiantes', subject:'mis estudiantes', subjectSubj:'mis estudiantes', subjectEn:'my students'}
+    {label:'yo', subjectSubj:'yo', subjectEn:'I'}, {label:'tú', subjectSubj:'tú', subjectEn:'you'}, {label:'ella', subjectSubj:'ella', subjectEn:'she'}, {label:'nosotros', subjectSubj:'nosotros', subjectEn:'we'}, {label:'mis estudiantes', subjectSubj:'mis estudiantes', subjectEn:'my students'}
   ];
-
   const verbs = [
-    {label:'hablar', verb:'hablar', verbEn:'speak', verbIng:'speaking', presentVerb:'hablo', presentVerbEn:'speak', subjVerb:'hables'},
-    {label:'aprender', verb:'aprender', verbEn:'learn', verbIng:'learning', presentVerb:'aprendo', presentVerbEn:'learn', subjVerb:'aprendas'},
-    {label:'practicar', verb:'practicar', verbEn:'practice', verbIng:'practicing', presentVerb:'practico', presentVerbEn:'practice', subjVerb:'practiques'},
-    {label:'escuchar', verb:'escuchar', verbEn:'listen', verbIng:'listening', presentVerb:'escucho', presentVerbEn:'listen', subjVerb:'escuches'},
-    {label:'viajar', verb:'viajar', verbEn:'travel', verbIng:'traveling', presentVerb:'viajo', presentVerbEn:'travel', subjVerb:'viajes'},
-    {label:'entender', verb:'entender', verbEn:'understand', verbIng:'understanding', presentVerb:'entiendo', presentVerbEn:'understand', subjVerb:'entiendas'},
-    {label:'comer', verb:'comer', verbEn:'eat', verbIng:'eating', presentVerb:'como', presentVerbEn:'eat', subjVerb:'comas'},
-    {label:'salir', verb:'salir', verbEn:'leave', verbIng:'leaving', presentVerb:'salgo', presentVerbEn:'leave', subjVerb:'salgas'}
+    {label:'hablar', verb:'hablar', verbEn:'speak', verbIng:'speaking', subjVerb:'hables'}, {label:'aprender', verb:'aprender', verbEn:'learn', verbIng:'learning', subjVerb:'aprendas'}, {label:'practicar', verb:'practicar', verbEn:'practice', verbIng:'practicing', subjVerb:'practiques'}, {label:'escuchar', verb:'escuchar', verbEn:'listen', verbIng:'listening', subjVerb:'escuches'}, {label:'viajar', verb:'viajar', verbEn:'travel', verbIng:'traveling', subjVerb:'viajes'}, {label:'entender', verb:'entender', verbEn:'understand', verbIng:'understanding', subjVerb:'entiendas'}, {label:'comer', verb:'comer', verbEn:'eat', verbIng:'eating', subjVerb:'comas'}, {label:'salir', verb:'salir', verbEn:'leave', verbIng:'leaving', subjVerb:'salgas'}
   ];
-
   const details = [
-    {label:'hoy', detail:'hoy', detailEn:'today'},
-    {label:'mañana', detail:'mañana', detailEn:'tomorrow'},
-    {label:'con confianza', detail:'con confianza', detailEn:'with confidence'},
-    {label:'un poco más', detail:'un poco más', detailEn:'a little more'},
-    {label:'en México', detail:'en México', detailEn:'in Mexico'},
-    {label:'despacio', detail:'despacio', detailEn:'slowly'},
-    {label:'todos los días', detail:'todos los días', detailEn:'every day'},
-    {label:'con mi familia', detail:'con mi familia', detailEn:'with my family'}
+    {label:'hoy', detail:'hoy', detailEn:'today'}, {label:'mañana', detail:'mañana', detailEn:'tomorrow'}, {label:'con confianza', detail:'con confianza', detailEn:'with confidence'}, {label:'un poco más', detail:'un poco más', detailEn:'a little more'}, {label:'en México', detail:'en México', detailEn:'in Mexico'}, {label:'despacio', detail:'despacio', detailEn:'slowly'}, {label:'todos los días', detail:'todos los días', detailEn:'every day'}, {label:'con mi familia', detail:'con mi familia', detailEn:'with my family'}
   ];
 
-  const cognates = [
-    ['-tion','-ción','information → información','Often feminine; accent on -ción.'],
-    ['-sion','-sión','decision → decisión','Often feminine; spelling may shift.'],
-    ['-ity','-idad','university → universidad','Usually feminine.'],
-    ['-ous','-oso / -osa','curious → curioso/a','Must match gender and number.'],
-    ['-ly','-mente','normally → normalmente','Often built from feminine adjective + mente.'],
-    ['-al','-al','normal → normal','Often identical or very close.'],
-    ['-ic','-ico / -ica','historic → histórico/a','Must match gender and often uses accent.'],
-    ['-ent / -ant','-ente / -ante','important → importante','Often one form for masculine/feminine.']
-  ];
-
-  function card(prompt, answers, hint, why){
-    return {type:'type', prompt, answers, hint, why};
-  }
-  function choiceCard(prompt, answer, choices, why){
-    return {type:'choice', prompt, answers:[answer], choices, hint:'Ask what job the phrase is doing.', why};
-  }
+  const state = {
+    lessonId:'quiero', mode:'type', deck:[], index:0, current:null, answered:false,
+    builtWords:[], tileWords:[], stats:loadStats(), custom:loadCustom(), sessionName:'Lesson'
+  };
 
   function loadStats(){
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {seen:0,correct:0,streak:0,misses:[],module:{}}; }
-    catch { return {seen:0,correct:0,streak:0,misses:[],module:{}}; }
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {seen:0,correct:0,streak:0,misses:[],lesson:{}}; }
+    catch { return {seen:0,correct:0,streak:0,misses:[],lesson:{}}; }
   }
   function saveStats(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats)); }
   function loadCustom(){
@@ -830,392 +634,304 @@
     catch { return []; }
   }
   function saveCustom(){ localStorage.setItem(CUSTOM_KEY, JSON.stringify(state.custom)); }
-
-  function normalize(str){
-    return String(str || '')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .replace(/[¿?¡!.,;:]/g,'')
-      .replace(/\s+/g,' ')
-      .trim();
-  }
-  function stripFinalPeriod(str){ return String(str || '').replace(/[.?!¡¿]+$/,'').trim(); }
-  function shuffle(arr){
-    const a = [...arr];
-    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-    return a;
-  }
+  function allCards(){ return Object.values(lessons).flatMap(l=>l.cards).concat(scenarios.flatMap(s=>s.cards)).concat(state.custom); }
+  function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
   function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function toast(msg){
-    const el = $('#toast'); el.textContent = msg; el.classList.add('show');
-    clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('show'), 2600);
-  }
-  function setScreen(id){
-    $$('.screen').forEach(s=>s.classList.toggle('active', s.id===id));
-    $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.screen===id));
-    window.scrollTo({top:0, behavior:'smooth'});
-  }
+  function escapeHtml(str){ return String(str??'').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+  function escapeAttr(str){ return escapeHtml(str).replace(/'/g,'&#39;'); }
+  function normalize(str){ return String(str||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[¿?¡!.,;:]/g,'').replace(/\s+/g,' ').trim(); }
+  function stripPunct(str){ return String(str||'').replace(/[.?!¡¿]+$/,'').trim(); }
+  function uniqueByPrompt(cards){ const seen=new Set(); return cards.filter(c=>{ const k=c.en+'|'+c.es[0]; if(seen.has(k)) return false; seen.add(k); return true; }); }
+  function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),2600); }
+  function setScreen(id){ $$('.screen').forEach(s=>s.classList.toggle('active', s.id===id)); $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.screen===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='mistakes') renderMistakes(); if(id==='custom') renderCustom(); }
+  function currentLesson(){ const id = state.current && lessons[state.current.lessonId] ? state.current.lessonId : state.lessonId; return lessons[id] || {level:'Custom', title:state.sessionName, formula:'custom', logic:'Custom practice set.', examples:[], mistake:'', rule:'', cards:state.deck}; }
 
-  function buildDeck(moduleKey){
-    let cards = [];
-    if(moduleKey === 'mixed'){
-      Object.values(modules).forEach(m => cards.push(...m.cards));
-      cards.push(...state.custom);
-    } else if(moduleKey === 'custom'){
-      cards = [...state.custom];
-    } else {
-      cards = [...(modules[moduleKey]?.cards || [])];
-    }
-    if(!cards.length) cards = [card('I want to learn Spanish.', ['Quiero aprender español.','Quiero aprender espanol'], 'quiero + infinitive', 'Quiero carries “I want.” The second verb stays as aprender.')];
-    return shuffle(cards);
+  function renderMap(){
+    $('#levelGrid').innerHTML = levels.map(level => `
+      <article class="panel span-6 level-card">
+        <span class="level-num">${level.num}</span>
+        <div>
+          <p class="eyebrow">Level ${level.num}</p>
+          <h2>${escapeHtml(level.title)}</h2>
+          <p class="muted">${escapeHtml(level.desc)}</p>
+          <div class="progress-bar"><div class="progress-fill" style="width:${levelProgress(level)}%"></div></div>
+          <div class="lesson-buttons">
+            ${level.lessons.map(id=>`<button class="lesson-chip" data-start-lesson="${id}">${escapeHtml(lessons[id].short)}</button>`).join('')}
+          </div>
+        </div>
+        <button class="btn secondary" data-start-level="${level.num}">Practice Level ${level.num}</button>
+      </article>`).join('');
+    $$('[data-start-lesson]').forEach(btn=>btn.onclick=()=>startLesson(btn.dataset.startLesson));
+    $$('[data-start-level]').forEach(btn=>startLevel(btn));
   }
-
-  function startModule(key){
-    state.activeModule = key;
-    state.deck = buildDeck(key);
-    state.index = 0;
-    state.sessionSeen = 0;
-    $('#moduleSelect').value = key;
-    setScreen('practice');
-    renderCard();
+  function levelProgress(level){
+    const ids=level.lessons; const total=ids.length*5; const seen=ids.reduce((sum,id)=>sum+(state.stats.lesson[id]?.seen||0),0); return Math.min(100, Math.round((seen/total)*100));
   }
-
+  function startLevel(btn){
+    const num=Number(btn.dataset.startLevel); const level=levels.find(l=>l.num===num); if(!level) return;
+    const cards=level.lessons.flatMap(id=>lessons[id].cards);
+    startDeck(`Level ${num}: ${level.title}`, shuffle(cards), level.lessons[0]);
+  }
+  function renderLessonSelect(){
+    const opts = levels.map(level => `<optgroup label="Level ${level.num}: ${escapeAttr(level.title)}">${level.lessons.map(id=>`<option value="${id}">${escapeHtml(lessons[id].title)}</option>`).join('')}</optgroup>`).join('') + `<option value="custom">Custom cards</option>`;
+    $('#lessonSelect').innerHTML=opts;
+    $('#lessonSelect').value = lessons[state.lessonId] ? state.lessonId : 'custom';
+  }
+  function startLesson(id){
+    if(id==='custom'){ if(!state.custom.length){ toast('Add or import custom cards first.'); setScreen('custom'); return; } startDeck('Custom Set', shuffle(state.custom), 'custom'); return; }
+    const lesson=lessons[id]; if(!lesson) return;
+    state.lessonId=id; startDeck(lesson.title, shuffle(lesson.cards), id);
+  }
+  function startDeck(name, cards, lessonId){
+    state.sessionName=name; state.deck=uniqueByPrompt(cards); state.index=0; state.lessonId=lessonId; state.answered=false; setScreen('practice'); renderLessonSelect(); renderCard();
+  }
+  function renderTeachCard(){
+    const l=currentLesson();
+    const examples = (l.examples||[]).map(row=>`<div class="example-row"><div><strong>English</strong><br>${escapeHtml(row[0])}</div><div><strong>Spanish</strong><br>${escapeHtml(row[1])}</div></div>`).join('') || '<p class="muted">Custom set. Add logic to each card for the best coaching.</p>';
+    $('#teachCard').innerHTML = `<div class="prompt-label">Teach first</div><h3>${escapeHtml(l.title)}</h3><div class="formula">${escapeHtml(l.formula||'custom pattern')}</div><div class="logic-box"><strong>English logic → Spanish logic</strong><br>${escapeHtml(l.logic||'Use the Spanish pattern instead of translating word by word.')}</div><div class="example-grid">${examples}</div>${l.mistake?`<div class="mistake-box"><strong>Common mistake</strong><br>${escapeHtml(l.mistake)}<br><strong>Small rule:</strong> ${escapeHtml(l.rule||'Notice the pattern before answering.')}</div>`:''}`;
+    $('#logicSide').innerHTML = `<p>${escapeHtml(l.logic||'Use the card feedback to learn the pattern.')}</p><div class="pill-row"><span class="pill gold">${escapeHtml(l.formula||'custom')}</span></div>`;
+  }
   function renderCard(){
+    if(!state.deck.length) startLesson('quiero');
     state.current = state.deck[state.index % state.deck.length];
-    state.answered = false;
-    state.builtWords = [];
-    const m = modules[state.activeModule];
-    $('#currentModulePill').textContent = state.activeModule === 'mixed' ? 'Mixed Practice' : state.activeModule === 'custom' ? 'Custom Practice' : m.title;
-    $('#currentModePill').textContent = state.mode === 'type' ? 'Type answer' : state.mode === 'tiles' ? 'Tile builder' : 'Multiple choice';
+    state.answered=false; state.builtWords=[]; state.tileWords=[];
+    const l=currentLesson();
+    $('#currentLevelPill').textContent = l.level ? `Level ${l.level}` : 'Custom';
+    $('#currentLessonPill').textContent = state.sessionName || l.title;
     $('#cardCountPill').textContent = `Card ${(state.index % state.deck.length)+1} of ${state.deck.length}`;
-    $('#promptText').textContent = state.current.prompt;
-    $('#promptHint').textContent = '';
-    $('#feedback').className = 'feedback';
-    $('#feedback').innerHTML = '';
-    $('#answerInput').value = '';
-    $('#answerInput').disabled = false;
-    $('#checkBtn').disabled = false;
-    const modForSheet = m || detectModuleForCard(state.current) || modules.starters;
-    $('#patternTitle').textContent = modForSheet.title;
-    $('#patternExplanation').textContent = modForSheet.explanation;
-    $('#patternFormula').innerHTML = `<span class="pill blue">${escapeHtml(modForSheet.pattern)}</span>`;
-    renderModeArea();
-    updateStatsUI();
+    $('#promptText').textContent = state.current.en;
+    $('#promptHint').textContent='';
+    $('#feedback').className='feedback'; $('#feedback').innerHTML='';
+    $('#answerInput').value=''; $('#answerInput').disabled=false; $('#checkBtn').disabled=false;
+    renderTeachCard(); renderModeArea(); updateStatsUI(); renderRecentMisses();
   }
-
-  function detectModuleForCard(cardObj){
-    for(const key of Object.keys(modules)) if(modules[key].cards.includes(cardObj)) return modules[key];
-    return null;
-  }
-
   function renderModeArea(){
-    const cardType = state.current.type;
-    const forcedChoice = cardType === 'choice';
-    const mode = forcedChoice ? 'choice' : state.mode;
-    $('#choiceArea').style.display = mode === 'choice' ? 'grid' : 'none';
-    $('#tileArea').style.display = mode === 'tiles' ? 'block' : 'none';
-    $('#typeArea').style.display = mode === 'type' ? 'flex' : 'none';
-    if(mode === 'choice') renderChoices();
-    if(mode === 'tiles') renderTiles();
-    if(mode === 'type') setTimeout(()=>$('#answerInput').focus(), 50);
+    $('#choiceArea').style.display = state.mode==='choice' ? 'grid' : 'none';
+    $('#tileArea').style.display = state.mode==='tiles' ? 'block' : 'none';
+    $('#typeArea').style.display = state.mode==='type' ? 'flex' : 'none';
+    if(state.mode==='choice') renderChoices();
+    if(state.mode==='tiles') renderTiles();
+    if(state.mode==='type') setTimeout(()=>$('#answerInput').focus(),50);
   }
-
   function renderChoices(){
-    let choices = state.current.choices ? [...state.current.choices] : makeChoicesFor(state.current);
-    choices = shuffle(choices);
-    $('#choiceArea').innerHTML = choices.map(c => `<button class="choice" data-choice="${escapeAttr(c)}">${escapeHtml(c)}</button>`).join('');
-    $$('#choiceArea .choice').forEach(btn => btn.onclick = () => checkAnswer(btn.dataset.choice, btn));
+    const correct = stripPunct(state.current.es[0]);
+    const distractors = makeDistractors(state.current);
+    const choices = shuffle([correct, ...distractors]).slice(0,4);
+    if(!choices.includes(correct)) choices[0]=correct;
+    $('#choiceArea').innerHTML = shuffle(choices).map(c=>`<button class="choice" data-choice="${escapeAttr(c)}">${escapeHtml(c)}</button>`).join('');
+    $$('#choiceArea .choice').forEach(btn=>btn.onclick=()=>checkAnswer(btn.dataset.choice, btn));
   }
-
-  function makeChoicesFor(cardObj){
-    const correct = stripFinalPeriod(cardObj.answers[0]);
-    const distractors = ['Quiero que aprender español','Tengo estudiar hoy','Voy practicar mañana','Me gusta hablar más','Es importante que llega temprano','Cuando tengo tiempo mañana'];
-    return [correct, ...shuffle(distractors).slice(0,3)];
+  function makeDistractors(c){
+    const base = ['Voy practicar mañana','Tengo estudiar hoy','Quiero que aprender español','Me gustaría hablo más','No creo que sabe','Para tú puedes entender','Estoy tratando hablar','Acabo llegar','Porque estudias español?','Tengo que practicar hoy'];
+    if(c.lessonId==='voyA') return ['Voy practicar mañana','Voy a practico mañana','Quiero practicar mañana'];
+    if(c.lessonId==='tengoQue') return ['Tengo estudiar hoy','Tengo que estudio hoy','Voy a estudiar hoy'];
+    if(c.tags?.includes('subjunctive')) return ['Quiero que vas','No creo que sabe','Para tú puedes entender'];
+    return shuffle(base).slice(0,3);
   }
-
   function renderTiles(){
-    const answer = stripFinalPeriod(state.current.answers[0]);
+    const answer = stripPunct(state.current.es[0]);
     const baseWords = answer.split(/\s+/);
-    const extras = ['yo','que','de','a','es','con','hoy','mañana','más','para'].filter(w=>!normalize(answer).split(' ').includes(normalize(w)));
-    state.tileWords = shuffle([...baseWords, ...shuffle(extras).slice(0, Math.min(4, Math.max(1, baseWords.length-2)))]);
-    $('#builtSentence').textContent = '';
+    const extras = ['yo','que','de','a','es','con','hoy','mañana','más','para','porque'].filter(w=>!normalize(answer).split(' ').includes(normalize(w)));
+    state.tileWords = shuffle([...baseWords, ...shuffle(extras).slice(0, Math.min(4, Math.max(2, baseWords.length-2)))]);
+    $('#builtSentence').innerHTML=''; $('#tileCoach').textContent='Start building from left to right.';
     $('#tiles').innerHTML = state.tileWords.map((w,i)=>`<button class="tile" data-i="${i}">${escapeHtml(w)}</button>`).join('');
-    $$('#tiles .tile').forEach(btn => btn.onclick = () => {
-      if(btn.classList.contains('used')) return;
-      btn.classList.add('used');
-      state.builtWords.push({word: state.tileWords[Number(btn.dataset.i)], index:Number(btn.dataset.i)});
-      $('#builtSentence').textContent = state.builtWords.map(x=>x.word).join(' ');
-    });
+    $$('#tiles .tile').forEach(btn=>btn.onclick=()=>{ if(btn.classList.contains('used') || state.answered) return; btn.classList.add('used'); state.builtWords.push({word:state.tileWords[Number(btn.dataset.i)], index:Number(btn.dataset.i)}); updateBuiltSentence(false); });
   }
-
+  function updateBuiltSentence(final=false){
+    const target = stripPunct(state.current.es[0]).split(/\s+/).map(normalize);
+    const built = state.builtWords.map(x=>x.word);
+    const builtNorm = built.map(normalize);
+    $('#builtSentence').innerHTML = built.map((w,i)=>{
+      let cls = builtNorm[i]===target[i] ? 'good' : target.includes(builtNorm[i]) ? 'misplaced' : 'extra';
+      return `<span class="word ${cls}">${escapeHtml(w)}</span>`;
+    }).join('');
+    if(!built.length){ $('#tileCoach').textContent='Start building from left to right.'; return; }
+    const prefixOk = builtNorm.every((w,i)=>w===target[i]);
+    if(prefixOk && built.length<target.length) $('#tileCoach').textContent = `Good start. Missing ${target.length-built.length} word${target.length-built.length===1?'':'s'}.`;
+    else if(prefixOk && built.length===target.length) $('#tileCoach').textContent = 'Looks complete. Check it.';
+    else {
+      const extras = builtNorm.filter(w=>!target.includes(w));
+      const sameWords = builtNorm.length===target.length && builtNorm.every(w=>target.includes(w));
+      $('#tileCoach').textContent = extras.length ? `You added extra tile${extras.length>1?'s':''}: ${extras.join(', ')}.` : sameWords ? 'You have the right words, but the order is off.' : 'Something is out of order. Compare the left-to-right pattern.';
+    }
+  }
   function checkAnswer(input, choiceBtn=null){
     if(state.answered) return;
     let answer = input;
-    if(state.current.type !== 'choice' && state.mode === 'tiles') answer = state.builtWords.map(x=>x.word).join(' ');
-    if(state.current.type !== 'choice' && state.mode === 'type') answer = $('#answerInput').value;
-    const norm = normalize(answer);
-    const accepted = state.current.answers.map(normalize);
-    const correct = accepted.includes(norm);
-    let partial = false;
-    if(!correct && norm){
-      const target = accepted[0].split(' ');
-      const got = norm.split(' ');
-      const overlap = target.filter(w=>got.includes(w)).length;
-      partial = overlap >= Math.ceil(target.length * .65);
-    }
-    state.answered = true;
+    if(state.mode==='tiles') answer = state.builtWords.map(x=>x.word).join(' ');
+    if(state.mode==='type') answer = $('#answerInput').value;
+    const result = analyzeAnswer(answer, state.current);
+    state.answered=true;
     state.stats.seen++;
-    state.sessionSeen++;
-    const moduleKey = state.activeModule;
-    if(!state.stats.module[moduleKey]) state.stats.module[moduleKey] = {seen:0,correct:0};
-    state.stats.module[moduleKey].seen++;
-
-    if(correct){
-      state.stats.correct++;
-      state.stats.streak++;
-      state.stats.module[moduleKey].correct++;
-      showFeedback('correct', 'Good. That pattern is working.', `Accepted answer: <strong>${escapeHtml(state.current.answers[0])}</strong><br>${escapeHtml(state.current.why || '')}`);
-      if(choiceBtn) choiceBtn.classList.add('selected');
+    const lid = state.current.lessonId || state.lessonId;
+    state.stats.lesson[lid] = state.stats.lesson[lid] || {seen:0,correct:0};
+    state.stats.lesson[lid].seen++;
+    if(result.correct){
+      state.stats.correct++; state.stats.streak++; state.stats.lesson[lid].correct++;
     } else {
-      state.stats.streak = 0;
-      const miss = {prompt: state.current.prompt, answer: state.current.answers[0], your: answer, why: state.current.why || '', time: Date.now()};
-      state.stats.misses.unshift(miss);
-      state.stats.misses = state.stats.misses.slice(0,8);
-      showFeedback(partial ? 'partial' : 'wrong', partial ? 'Close, but the pattern needs cleanup.' : 'Not yet. Look at the pattern, not just the words.', `Your answer: <strong>${escapeHtml(answer || '—')}</strong><br>Best answer: <strong>${escapeHtml(state.current.answers[0])}</strong><br>${escapeHtml(state.current.why || '')}`);
+      state.stats.streak=0; addMiss(answer, result);
     }
     saveStats();
-    updateStatsUI();
-    renderMisses();
-    $('#answerInput').disabled = true;
-    $('#checkBtn').disabled = true;
+    if(choiceBtn) choiceBtn.classList.add('selected');
+    showFeedback(result);
+    $('#answerInput').disabled=true; $('#checkBtn').disabled=true;
+    updateStatsUI(); renderRecentMisses(); if(state.mode==='tiles') updateBuiltSentence(true);
   }
-
-  function showFeedback(kind, title, html){
-    const el = $('#feedback');
-    el.className = `feedback show ${kind}`;
-    el.innerHTML = `<strong>${title}</strong>${html}`;
+  function analyzeAnswer(answer, c){
+    const norm = normalize(answer); const accepted = c.es.map(normalize); const rawTrim = String(answer||'').trim();
+    const correct = accepted.includes(norm);
+    const accentOnly = !correct && rawTrim && c.es.some(es=>normalize(es)===norm);
+    const target = c.es[0]; const targetNorm = normalize(target); const targetWords=targetNorm.split(' '); const words=norm.split(' ').filter(Boolean);
+    const notes=[]; let category = c.category || 'General pattern';
+    if(!norm){ notes.push('Type or build a Spanish answer first.'); category='Blank answer'; }
+    const englishWords = ['i','you','we','they','the','to','because','want','need','have','can','going','why','for','that','is','am','are'];
+    const leftEnglish = words.filter(w=>englishWords.includes(w)); if(leftEnglish.length){ notes.push(`You left English word${leftEnglish.length>1?'s':''} in the answer: ${leftEnglish.join(', ')}.`); category='English left in answer'; }
+    if(c.tags?.includes('a') && /^voy\s+(?!a\b)/.test(norm)){ notes.push('This pattern needs the small bridge word a: voy a + infinitive.'); category='Missing a'; }
+    if(c.tags?.includes('que') && /\b(tengo|quiero|necesito|prefiere|queremos|es importante|no creo|para)\b/.test(norm) && !/\bque\b/.test(norm) && /\b(tengo|quiero|necesito|prefiere|queremos|importante|creo|para)\b/.test(targetNorm)){ notes.push('This sentence likely needs que. In Spanish, que often connects the trigger to the next clause.'); category='Missing que'; }
+    if(c.tags?.includes('de') && !/\bde\b/.test(norm) && /\bde\b/.test(targetNorm)){ notes.push('This chunk needs de. Treat it as part of the pattern, not decoration.'); category='Missing de'; }
+    if(c.tags?.includes('infinitive')){
+      const badSecond = ['hablo','hablas','habla','aprendo','aprendes','aprende','estudio','estudias','estudia','practico','practicas','practica','como','comes','come','ayudo','ayudas','ayuda'];
+      const bad = words.find(w=>badSecond.includes(w));
+      if(bad && !accepted.includes(norm)){ notes.push(`Watch the second verb. “${bad}” looks conjugated; this pattern usually needs the infinitive.`); category='Infinitive after starter'; }
+    }
+    if(c.tags?.includes('subjunctive') && !correct){
+      const indicatives = ['vas','va','sabe','sabes','puedes','puede','tienes','viene','llega','ayudas','es'];
+      const bad = words.find(w=>indicatives.includes(w));
+      if(bad){ notes.push(`This looks like an indicative form: “${bad}.” The trigger points toward subjunctive.`); category='Subjunctive trigger'; }
+    }
+    const sameBag = words.length===targetWords.length && words.every(w=>targetWords.includes(w)) && targetWords.every(w=>words.includes(w));
+    if(!correct && sameBag){ notes.push('You have the right words, but the order is off. Rebuild the sentence left to right.'); category='Word order'; }
+    const missing = targetWords.filter(w=>!words.includes(w)); const extra = words.filter(w=>!targetWords.includes(w));
+    if(!correct && !notes.length){ if(missing.length && missing.length<=3) notes.push(`Missing likely word${missing.length>1?'s':''}: ${missing.join(', ')}.`); if(extra.length && extra.length<=3) notes.push(`Extra or unexpected word${extra.length>1?'s':''}: ${extra.join(', ')}.`); }
+    const near = accentOnly || (norm && targetNorm.startsWith(norm) && norm.length > 4);
+    if(correct) return {correct:true, near:false, title:'Correct.', notes:['That answer matches the pattern.'], expected:target, why:c.why, category};
+    if(accentOnly) return {correct:false, near:true, title:'Accepted — accent or punctuation issue only.', notes:['The structure is right. Polish the spelling/accent when you can.'], expected:target, why:c.why, category:'Accent/spelling'};
+    if(near) notes.push('You are on the right track, but the answer is not complete yet.');
+    if(!notes.length) notes.push('Compare your answer to the pattern and look for the small connector or verb form.');
+    return {correct:false, near:false, title:'Not quite yet.', notes, expected:target, why:c.why, category};
   }
-
-  function nextCard(){
-    state.index++;
-    if(state.sessionSeen > 0 && state.sessionSeen % 10 === 0) toast('Nice 10-card set. Take one sentence and say it out loud without looking.');
-    renderCard();
+  function showFeedback(result){
+    const el=$('#feedback'); el.className='feedback show ' + (result.correct ? 'correct' : result.near ? 'partial' : 'wrong');
+    el.innerHTML = `<strong>${escapeHtml(result.title)}</strong><div><strong>Target:</strong> ${escapeHtml(result.expected)}</div><ul>${result.notes.map(n=>`<li>${escapeHtml(n)}</li>`).join('')}</ul><div style="margin-top:8px"><strong>Coach note:</strong> ${escapeHtml(result.why||'Use the pattern rather than translating word by word.')}</div>`;
   }
-
+  function addMiss(answer, result){
+    const miss = {time:Date.now(), category:result.category||state.current.category||'General pattern', en:state.current.en, expected:state.current.es[0], answer:String(answer||''), why:state.current.why, lessonId:state.current.lessonId};
+    state.stats.misses = [miss, ...(state.stats.misses||[])].slice(0,80);
+  }
   function updateStatsUI(){
-    $('#statSeen').textContent = state.stats.seen || 0;
-    $('#statCorrect').textContent = state.stats.correct || 0;
-    $('#statStreak').textContent = state.stats.streak || 0;
-    const mastery = state.stats.seen ? Math.round((state.stats.correct/state.stats.seen)*100) : 0;
-    $('#statMastery').textContent = mastery + '%';
-    ['starters','subj'].forEach(k => {
-      const key = k === 'subj' ? 'subjunctive' : k;
-      const el = $(`#moduleProgress-${k}`);
-      if(el){
-        const m = state.stats.module[key] || {seen:0,correct:0};
-        el.style.width = (m.seen ? Math.round((m.correct/m.seen)*100) : 0) + '%';
-      }
-    });
+    const s=state.stats; $('#statSeen').textContent=s.seen||0; $('#statCorrect').textContent=s.correct||0; $('#statStreak').textContent=s.streak||0; $('#statMastery').textContent=s.seen ? Math.round((s.correct/s.seen)*100)+'%' : '0%'; renderMap();
   }
-
-  function renderMisses(){
-    const list = $('#missList');
-    const misses = state.stats.misses || [];
-    if(!misses.length){ list.innerHTML = '<p class="muted">Missed cards will show here.</p>'; return; }
-    list.innerHTML = misses.slice(0,5).map(m => `<div class="list-item"><strong>${escapeHtml(m.prompt)}</strong><span class="muted">Best: ${escapeHtml(m.answer)}</span></div>`).join('');
+  function renderRecentMisses(){
+    const misses=(state.stats.misses||[]).slice(0,4);
+    $('#recentMisses').innerHTML = misses.length ? misses.map(m=>`<div class="list-item"><strong>${escapeHtml(m.category)}</strong><span class="muted">${escapeHtml(m.en)}</span><div class="pill-row"><span class="pill red">${escapeHtml(m.expected)}</span></div></div>`).join('') : '<p class="muted">Missed cards will show here.</p>';
   }
-
-  function speak(text){
-    if(!('speechSynthesis' in window)){ toast('Speech is not supported in this browser.'); return; }
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'es-MX';
-    utter.rate = .88;
-    const voices = speechSynthesis.getVoices();
-    const spanish = voices.find(v => /^es[-_]/i.test(v.lang) && /mx|mex|latin|google/i.test(v.name + v.lang)) || voices.find(v => /^es[-_]/i.test(v.lang));
-    if(spanish) utter.voice = spanish;
-    window.speechSynthesis.speak(utter);
+  function renderMistakes(){
+    const misses=state.stats.misses||[];
+    if(!misses.length){ $('#mistakeGroups').innerHTML='<div class="empty">No misses yet. Run a drill and anything missed will become review material.</div>'; return; }
+    const groups={}; misses.forEach(m=>{ groups[m.category]=groups[m.category]||[]; groups[m.category].push(m); });
+    $('#mistakeGroups').innerHTML = Object.entries(groups).map(([cat,items])=>`<div class="list-item"><div class="mistake-type"><strong>${escapeHtml(cat)}</strong><span class="badge warn">${items.length} miss${items.length===1?'':'es'}</span></div>${items.slice(0,4).map(m=>`<p class="muted"><strong>${escapeHtml(m.en)}</strong><br>Target: ${escapeHtml(m.expected)}<br>Your answer: ${escapeHtml(m.answer||'blank')}</p>`).join('')}<button class="btn small secondary" data-practice-category="${escapeAttr(cat)}">Practice this type</button></div>`).join('');
+    $$('[data-practice-category]').forEach(btn=>btn.onclick=()=>practiceMissCategory(btn.dataset.practiceCategory));
   }
+  function missToCard(m){ return {id:'miss-'+m.time, lessonId:m.lessonId||'custom', en:m.en, es:[m.expected], hint:'Review your previous miss.', why:m.why, category:m.category, tags:lessons[m.lessonId]?.cards[0]?.tags||[]}; }
+  function practiceMissCategory(cat){ const cards=(state.stats.misses||[]).filter(m=>m.category===cat).map(missToCard); startDeck(`Trouble Pattern: ${cat}`, shuffle(cards), cards[0]?.lessonId||'custom'); }
+  function practiceAllMisses(){ const cards=(state.stats.misses||[]).map(missToCard); if(!cards.length){ toast('No misses to practice yet.'); return; } startDeck('Trouble Pattern Review', shuffle(cards), cards[0]?.lessonId||'custom'); }
 
-  function initSelectors(){
-    const moduleSelect = $('#moduleSelect');
-    moduleSelect.innerHTML = `<option value="mixed">Mixed Practice</option>` + Object.entries(modules).map(([k,m])=>`<option value="${k}">${m.title}</option>`).join('') + `<option value="custom">Custom Cards</option>`;
-    moduleSelect.value = state.activeModule;
-    moduleSelect.onchange = () => startModule(moduleSelect.value);
-    $('#modeSelect').value = state.mode;
-    $('#modeSelect').onchange = () => { state.mode = $('#modeSelect').value; renderCard(); };
-
-    fillSelect('#labPattern', labPatterns.map(p=>[p.id,p.title]));
-    fillSelect('#labSubject', subjects.map((s,i)=>[i,s.label]));
-    fillSelect('#labVerb', verbs.map((v,i)=>[i,v.label]));
-    fillSelect('#labDetail', details.map((d,i)=>[i,d.label]));
-    ['#labPattern','#labSubject','#labVerb','#labDetail'].forEach(sel => $(sel).onchange = renderLab);
+  function makeWorkout(){
+    const focus=Number($('#focusLevel').value||1); const focusLessons=levels.find(l=>l.num===focus)?.lessons||levels[0].lessons;
+    const review=levels.filter(l=>l.num<focus).flatMap(l=>l.lessons.flatMap(id=>lessons[id].cards));
+    const focusCards=focusLessons.flatMap(id=>lessons[id].cards); const connectors=['porque','paraQue','chunks'].flatMap(id=>lessons[id].cards);
+    const tileReady=allCards().filter(c=>c.es[0].split(/\s+/).length<=7); const missCards=(state.stats.misses||[]).slice(0,10).map(missToCard);
+    let deck=[]; deck.push(...shuffle(review.length?review:allCards()).slice(0,3)); deck.push(...shuffle(focusCards).slice(0,3)); deck.push(...shuffle(connectors).slice(0,2)); deck.push(...shuffle(tileReady).slice(0,1)); if(missCards.length) deck.push(sample(missCards));
+    deck=uniqueByPrompt(deck); while(deck.length<10) deck.push(sample(focusCards)); return shuffle(deck).slice(0,10);
   }
-  function fillSelect(sel, pairs){ $(sel).innerHTML = pairs.map(([v,l])=>`<option value="${v}">${escapeHtml(l)}</option>`).join(''); }
+  function previewWorkout(){ const deck=makeWorkout(); $('#workoutPreview').innerHTML = deck.map((c,i)=>`<div class="list-item"><strong>${i+1}. ${escapeHtml(c.en)}</strong><span class="muted">${escapeHtml(lessons[c.lessonId]?.title||'Custom')}</span></div>`).join(''); }
+
+  function renderScenarios(){
+    $('#scenarioGrid').innerHTML = scenarios.map(s=>`<article class="panel span-6 scenario-card"><div><p class="eyebrow">Scenario</p><h2>${escapeHtml(s.title)}</h2><p class="muted">${escapeHtml(s.desc)}</p><div class="pill-row"><span class="pill blue">${s.cards.length} coached reps</span><span class="pill gold">real-world grouping</span></div></div><button class="btn secondary" data-start-scenario="${s.id}">Practice scenario</button></article>`).join('');
+    $$('[data-start-scenario]').forEach(btn=>btn.onclick=()=>{ const s=scenarios.find(x=>x.id===btn.dataset.startScenario); startDeck(`Scenario: ${s.title}`, shuffle(s.cards), s.cards[0].lessonId); });
+  }
 
   function renderLab(){
-    const p = labPatterns.find(x=>x.id === $('#labPattern').value) || labPatterns[0];
-    const s = subjects[Number($('#labSubject').value)] || subjects[0];
-    const v = verbs[Number($('#labVerb').value)] || verbs[0];
-    const d = details[Number($('#labDetail').value)] || details[0];
-    const data = {...s,...v,...d};
-    let spanish = template(p.formula, data).replace(/\s+\./g,'.').replace(/\s+,/g,',');
-    let english = template(p.english, data).replace(/\s+\./g,'.');
-    spanish = polishSpanishForSubject(spanish, s, v, p.id);
-    english = polishEnglish(english, s, v, p.id);
-    $('#labOutput').textContent = spanish;
-    $('#labEnglish').textContent = english;
+    $('#labPattern').innerHTML = labPatterns.map(p=>`<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('');
+    $('#labSubject').innerHTML = subjects.map(s=>`<option value="${escapeAttr(s.label)}">${escapeHtml(s.label)}</option>`).join('');
+    $('#labVerb').innerHTML = verbs.map(v=>`<option value="${escapeAttr(v.label)}">${escapeHtml(v.label)}</option>`).join('');
+    $('#labDetail').innerHTML = details.map(d=>`<option value="${escapeAttr(d.label)}">${escapeHtml(d.label)}</option>`).join('');
+    ['#labPattern','#labSubject','#labVerb','#labDetail'].forEach(sel=>$(sel).onchange=updateLab);
+    $('#logicCards').innerHTML = Object.values(lessons).slice(0,9).map(l=>`<div class="list-item"><strong>${escapeHtml(l.title)}</strong><span class="muted">${escapeHtml(l.logic)}</span><div class="pill-row"><span class="pill gold">${escapeHtml(l.formula)}</span></div></div>`).join('');
+    updateLab();
   }
-  function template(str, data){ return str.replace(/\{(\w+)\}/g, (_,k)=> data[k] ?? ''); }
-  function polishSpanishForSubject(sentence, s, v, id){
-    if(['realize'].includes(id)){
-      const map = {yo:v.presentVerb, tú:v.presentVerb.replace(/o$/,'as'), ella:v.presentVerb.replace(/o$/,'a'), nosotros:v.presentVerb.replace(/o$/,'amos'), 'mis estudiantes':v.presentVerb.replace(/o$/,'an')};
-      sentence = sentence.replace(v.presentVerb, map[s.subject] || v.presentVerb);
-    }
-    if(['needYou','purpose'].includes(id)){
-      const subjMap = {yo: v.subjVerb.replace(/s$/,''), tú:v.subjVerb, ella:v.subjVerb.replace(/s$/,''), nosotros:v.subjVerb.replace(/s$/,'mos'), 'mis estudiantes':v.subjVerb.replace(/s$/,'n')};
-      sentence = sentence.replace(v.subjVerb, subjMap[s.subject] || v.subjVerb);
-    }
-    return sentence.replace(/^./, c=>c.toUpperCase());
+  function updateLab(){
+    const pattern=labPatterns.find(p=>p.id===$('#labPattern').value)||labPatterns[0]; const subj=subjects.find(s=>s.label===$('#labSubject').value)||subjects[0]; const verb=verbs.find(v=>v.label===$('#labVerb').value)||verbs[0]; const detail=details.find(d=>d.label===$('#labDetail').value)||details[0];
+    const data={...subj,...verb,...detail};
+    $('#labOutput').textContent = fillTemplate(pattern.formula,data).replace(/\s+\./g,'.');
+    $('#labEnglish').textContent = fillTemplate(pattern.english,data).replace(/\s+\./g,'.');
   }
-  function polishEnglish(sentence){ return sentence.replace(/^./, c=>c.toUpperCase()); }
-
-  function renderPatternCards(){
-    $('#patternCards').innerHTML = labPatterns.map(p => `<div class="list-item"><strong>${escapeHtml(p.title)}</strong><span class="muted">${escapeHtml(p.formula)}</span></div>`).join('');
-  }
-  function renderCognates(){
-    $('#cognateRows').innerHTML = cognates.map(r => `<tr><td><strong>${escapeHtml(r[0])}</strong></td><td>${escapeHtml(r[1])}</td><td>${escapeHtml(r[2])}</td><td>${escapeHtml(r[3])}</td></tr>`).join('');
-  }
-
-  function renderSubjCoach(){
-    const c = subjCoach[state.subjIndex % subjCoach.length];
-    $('#subjPrompt').textContent = c.spanish;
-    $('#subjHint').textContent = c.english;
-    $('#subjFeedback').className = 'feedback';
-    $('#subjFeedback').innerHTML = '';
-    const choices = ['Indicative','Subjunctive'];
-    $('#subjChoices').innerHTML = choices.map(x=>`<button class="choice" data-subj-choice="${x}">${x}</button>`).join('');
-    $$('#subjChoices .choice').forEach(btn => btn.onclick = () => {
-      const correct = btn.dataset.subjChoice === c.answer;
-      $('#subjFeedback').className = `feedback show ${correct ? 'correct':'wrong'}`;
-      $('#subjFeedback').innerHTML = `<strong>${correct ? 'Correct.' : 'Not this time.'}</strong>${escapeHtml(c.why)}`;
-      if(correct){ state.stats.correct++; state.stats.streak++; } else { state.stats.streak = 0; }
-      state.stats.seen++; saveStats(); updateStatsUI();
-    });
-  }
-
-  function renderShadow(){
-    const all = [...Object.values(modules).flatMap(m=>m.cards), ...state.custom].filter(c=>c.answers && c.answers[0]);
-    const c = all[state.shadowIndex % all.length];
-    $('#shadowSpanish').textContent = c.answers[0];
-    $('#shadowEnglish').textContent = c.prompt.replace(/^Translate:\s*/i,'').replace(/^Choose the best phrase:\s*/i,'');
-    $('#shadowEnglish').classList.remove('show');
-    $('#shadowMeter').style.width = '0%';
-  }
-  function playShadow(){
-    const text = $('#shadowSpanish').textContent;
-    speak(text);
-    let start = performance.now();
-    const dur = Math.max(2200, text.length * 90);
-    function step(now){
-      const pct = Math.min(100, ((now-start)/dur)*100);
-      $('#shadowMeter').style.width = pct + '%';
-      if(pct < 100) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
+  function fillTemplate(str,data){ return str.replace(/\{(\w+)\}/g,(_,k)=>data[k]||''); }
 
   function renderCustom(){
-    const list = $('#customList');
-    if(!state.custom.length){ list.innerHTML = '<p class="muted">No custom cards yet.</p>'; return; }
-    list.innerHTML = state.custom.map((c,i)=>`<div class="list-item"><strong>${escapeHtml(c.prompt)}</strong><span class="muted">${escapeHtml(c.answers[0])}</span><div class="pill-row"><button class="btn small ghost" data-del-custom="${i}">Delete</button></div></div>`).join('');
-    $$('[data-del-custom]').forEach(btn => btn.onclick = () => {
-      state.custom.splice(Number(btn.dataset.delCustom),1); saveCustom(); renderCustom(); toast('Custom card deleted.');
-    });
+    const list=$('#customList');
+    if(!state.custom.length){ list.innerHTML='<p class="muted">No custom cards yet.</p>'; return; }
+    list.innerHTML = state.custom.slice(0,20).map((c,i)=>`<div class="list-item"><strong>${escapeHtml(c.en)}</strong><span class="muted">${escapeHtml(c.es[0])}</span><div class="pill-row"><span class="pill blue">${escapeHtml(c.category||'Custom')}</span><span class="pill gold">Level ${escapeHtml(c.level||'custom')}</span><button class="btn small ghost" data-del-custom="${i}">Delete</button></div></div>`).join('');
+    $$('[data-del-custom]').forEach(btn=>btn.onclick=()=>{ state.custom.splice(Number(btn.dataset.delCustom),1); saveCustom(); renderCustom(); toast('Custom card deleted.'); });
   }
-
   function saveCustomCard(){
-    const title = $('#customTitle').value.trim() || 'Custom Pattern';
-    const pattern = $('#customPattern').value.trim() || 'custom pattern';
-    const english = $('#customEnglish').value.trim();
-    const spanish = $('#customSpanish').value.trim();
-    const why = $('#customWhy').value.trim() || `Pattern: ${pattern}`;
-    if(!english || !spanish){ toast('Add both an English prompt and Spanish answer.'); return; }
-    state.custom.push({type:'type', prompt: english, answers:[spanish], hint: pattern, why: `${title}: ${why}`});
-    saveCustom(); renderCustom();
-    ['#customTitle','#customPattern','#customEnglish','#customSpanish','#customWhy'].forEach(sel => $(sel).value = '');
-    toast('Custom card saved.');
+    const category=$('#customCategory').value.trim()||'Custom Set'; const level=$('#customLevel').value; const pattern=$('#customPattern').value.trim()||'custom pattern'; const en=$('#customEnglish').value.trim(); const es=$('#customSpanish').value.trim(); const logic=$('#customLogic').value.trim()||`Use the pattern: ${pattern}.`;
+    if(!en||!es){ toast('Add both an English prompt and a Spanish answer.'); return; }
+    state.custom.push({id:'custom-'+Date.now(), lessonId:'custom', level, en, es:[es], hint:pattern, why:logic, category, tags:inferTags(pattern)}); saveCustom(); renderCustom(); ['#customEnglish','#customSpanish','#customLogic'].forEach(sel=>$(sel).value=''); toast('Custom card saved.');
   }
-
-  function exportCustom(){
-    $('#customJson').value = JSON.stringify(state.custom, null, 2);
-    toast('Custom cards exported to the box.');
-  }
-  function importCustom(){
-    try{
-      const incoming = JSON.parse($('#customJson').value);
-      if(!Array.isArray(incoming)) throw new Error('Expected an array.');
-      const cleaned = incoming.filter(c => c.prompt && c.answers && c.answers[0]).map(c => ({type:'type', prompt:String(c.prompt), answers:[String(c.answers[0])], hint:String(c.hint || 'custom'), why:String(c.why || '')}));
-      state.custom = cleaned;
-      saveCustom(); renderCustom(); toast(`Imported ${cleaned.length} custom cards.`);
-    } catch(e){ toast('Import failed. Check the JSON format.'); }
-  }
-
-  function resetAll(){
-    if(!confirm('Reset all local progress and custom cards?')) return;
-    localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(CUSTOM_KEY);
-    state.stats = loadStats(); state.custom = loadCustom();
-    updateStatsUI(); renderMisses(); renderCustom(); startModule('mixed'); toast('Reset complete.');
-  }
-
-  function escapeHtml(str){ return String(str).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
-  function escapeAttr(str){ return escapeHtml(str).replace(/'/g,'&#39;'); }
-
-  function bindEvents(){
-    $$('.tab').forEach(btn => btn.onclick = () => setScreen(btn.dataset.screen));
-    $$('[data-jump]').forEach(btn => btn.onclick = () => setScreen(btn.dataset.jump));
-    $$('[data-start-module]').forEach(btn => btn.onclick = () => startModule(btn.dataset.startModule));
-    $('#checkBtn').onclick = () => checkAnswer();
-    $('#answerInput').addEventListener('keydown', e => { if(e.key === 'Enter') checkAnswer(); });
-    $('#nextBtn').onclick = nextCard;
-    $('#hintBtn').onclick = () => { $('#promptHint').textContent = state.current.hint || 'Think about the pattern first, then fill the vocabulary.'; };
-    $('#speakAnswerBtn').onclick = () => speak(state.current.answers[0]);
-    $('#restartBtn').onclick = () => startModule(state.activeModule);
-    $('#undoTileBtn').onclick = () => {
-      const last = state.builtWords.pop();
-      if(last){ const btn = $(`#tiles .tile[data-i="${last.index}"]`); if(btn) btn.classList.remove('used'); }
-      $('#builtSentence').textContent = state.builtWords.map(x=>x.word).join(' ');
+  function inferTags(pattern){ const p=normalize(pattern); const tags=[]; if(/voy a/.test(p)) tags.push('a','infinitive'); if(/que/.test(p)) tags.push('que'); if(/de/.test(p)) tags.push('de'); if(/infinitive|infinitivo|quiero|puedo|necesito|gustaria|tengo que/.test(p)) tags.push('infinitive'); if(/subjunctive|subjuntivo/.test(p)) tags.push('subjunctive'); return tags; }
+  function generateSet(){
+    const frame=$('#generatePattern').value; const bank={
+      quiero:[['I want to learn Spanish.','Quiero aprender español.'],['I want to speak more.','Quiero hablar más.'],['I want to eat later.','Quiero comer más tarde.'],['I want to understand the lesson.','Quiero entender la lección.'],['I want to travel tomorrow.','Quiero viajar mañana.'],['I want to buy water.','Quiero comprar agua.'],['I want to listen again.','Quiero escuchar otra vez.'],['I want to help my family.','Quiero ayudar a mi familia.'],['I want to use the pattern.','Quiero usar el patrón.'],['I want to ask a question.','Quiero hacer una pregunta.']],
+      tengoQue:[['I have to study today.','Tengo que estudiar hoy.'],['I have to leave now.','Tengo que salir ahora.'],['I have to call my teacher.','Tengo que llamar a mi profesor.'],['I have to practice more.','Tengo que practicar más.'],['I have to listen slowly.','Tengo que escuchar despacio.'],['I have to finish the project.','Tengo que terminar el proyecto.'],['I have to buy a ticket.','Tengo que comprar un boleto.'],['I have to write in Spanish.','Tengo que escribir en español.'],['I have to wait here.','Tengo que esperar aquí.'],['I have to learn this pattern.','Tengo que aprender este patrón.']],
+      voyA:[['I am going to practice tomorrow.','Voy a practicar mañana.'],['I am going to eat later.','Voy a comer más tarde.'],['I am going to travel to Mexico.','Voy a viajar a México.'],['I am going to help you.','Voy a ayudarte.'],['I am going to study tonight.','Voy a estudiar esta noche.'],['I am going to listen again.','Voy a escuchar otra vez.'],['I am going to ask a question.','Voy a hacer una pregunta.'],['I am going to learn more.','Voy a aprender más.'],['I am going to write it.','Voy a escribirlo.'],['I am going to call my family.','Voy a llamar a mi familia.']],
+      meGustaria:[['I would like to order water.','Me gustaría pedir agua.'],['I would like to speak more.','Me gustaría hablar más.'],['I would like to visit Mexico.','Me gustaría visitar México.'],['I would like to try this.','Me gustaría probar esto.'],['I would like to ask a question.','Me gustaría hacer una pregunta.'],['I would like to learn more.','Me gustaría aprender más.'],['I would like to leave now.','Me gustaría salir ahora.'],['I would like to eat later.','Me gustaría comer más tarde.'],['I would like to understand.','Me gustaría entender.'],['I would like to practice today.','Me gustaría practicar hoy.']],
+      necesitoQue:[['I need you to help me.','Necesito que me ayudes.'],['I need her to call me.','Necesito que me llame.'],['I need them to arrive early.','Necesito que lleguen temprano.'],['I need you to listen.','Necesito que escuches.'],['I need him to explain it.','Necesito que lo explique.'],['I need us to practice.','Necesito que practiquemos.'],['I need you to understand.','Necesito que entiendas.'],['I need them to wait here.','Necesito que esperen aquí.'],['I need you to write it.','Necesito que lo escribas.'],['I need her to come tomorrow.','Necesito que venga mañana.']]
     };
-    $('#clearTilesBtn').onclick = () => { state.builtWords = []; $$('#tiles .tile').forEach(b=>b.classList.remove('used')); $('#builtSentence').textContent=''; };
-    $('#labSpeakBtn').onclick = () => speak($('#labOutput').textContent);
-    $('#labCopyBtn').onclick = async () => { try{ await navigator.clipboard.writeText($('#labOutput').textContent); toast('Sentence copied.'); } catch { toast('Copy failed in this browser.'); } };
-    $('#labRandomBtn').onclick = () => {
-      $('#labPattern').value = sample(labPatterns).id;
-      $('#labSubject').value = Math.floor(Math.random()*subjects.length);
-      $('#labVerb').value = Math.floor(Math.random()*verbs.length);
-      $('#labDetail').value = Math.floor(Math.random()*details.length);
-      renderLab();
-    };
-    $('#subjNextBtn').onclick = () => { state.subjIndex++; renderSubjCoach(); };
-    $('#subjSpeakBtn').onclick = () => speak(subjCoach[state.subjIndex % subjCoach.length].spanish);
-    $('#shadowPlayBtn').onclick = playShadow;
-    $('#shadowRevealBtn').onclick = () => $('#shadowEnglish').classList.toggle('show');
-    $('#shadowNextBtn').onclick = () => { state.shadowIndex++; renderShadow(); };
-    $('#saveCustomBtn').onclick = saveCustomCard;
-    $('#useCustomBtn').onclick = () => startModule('custom');
-    $('#exportCustomBtn').onclick = exportCustom;
-    $('#importCustomBtn').onclick = importCustom;
-    $('#resetBtn').onclick = resetAll;
-    $('#printBtn').onclick = () => window.print();
+    const category=$('#customCategory').value.trim()||'Generated Set'; const pattern=$('#generatePattern option:checked').textContent; const tags=inferTags(pattern + (frame==='necesitoQue'?' subjunctive':''));
+    const newCards=bank[frame].map(([en,es],i)=>({id:'custom-gen-'+Date.now()+'-'+i, lessonId:'custom', level: frame==='necesitoQue'?'4':'1', en, es:[es], hint:pattern, why:`Generated from ${pattern}. Notice the frame before translating details.`, category, tags}));
+    state.custom.push(...newCards); saveCustom(); renderCustom(); toast('Generated 10 custom cards.');
+  }
+  function makeWorksheet(){
+    if(!state.custom.length){ toast('Add custom cards first.'); return; }
+    $('#worksheetPanel').style.display='block';
+    $('#worksheetContent').innerHTML = `<table class="table"><thead><tr><th>#</th><th>Translate</th><th>Pattern hint</th></tr></thead><tbody>${state.custom.map((c,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(c.en)}</td><td>${escapeHtml(c.hint||c.category||'')}</td></tr>`).join('')}</tbody></table><h3 style="margin-top:18px">Answer key</h3><table class="table"><tbody>${state.custom.map((c,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(c.es[0])}</td></tr>`).join('')}</tbody></table>`;
+    toast('Worksheet created below. Use your browser print/save PDF.');
+  }
+
+  function wire(){
+    $$('.tab').forEach(btn=>btn.onclick=()=>setScreen(btn.dataset.screen));
+    $$('[data-jump]').forEach(btn=>btn.onclick=()=>setScreen(btn.dataset.jump));
+    $('#heroWorkoutBtn').onclick=()=>{ setScreen('workout'); previewWorkout(); };
+    $('#startWorkoutBtn').onclick=()=>startDeck('Daily 10-rep Workout', makeWorkout(), 'quiero');
+    $('#previewWorkoutBtn').onclick=previewWorkout;
+    $('#focusLevel').onchange=previewWorkout;
+    $('#lessonSelect').onchange=()=>startLesson($('#lessonSelect').value);
+    $('#modeSelect').onchange=()=>{ state.mode=$('#modeSelect').value; renderCard(); };
+    $('#restartBtn').onclick=()=>startLesson($('#lessonSelect').value);
+    $('#checkBtn').onclick=()=>checkAnswer();
+    $('#answerInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkAnswer(); });
+    $('#nextBtn').onclick=()=>{ state.index++; renderCard(); };
+    $('#hintBtn').onclick=()=>{ $('#promptHint').textContent=state.current.hint||'Look for the pattern first.'; };
+    $('#undoTileBtn').onclick=()=>{ if(state.answered) return; const last=state.builtWords.pop(); if(last){ const btn=$(`#tiles .tile[data-i="${last.index}"]`); if(btn) btn.classList.remove('used'); } updateBuiltSentence(); };
+    $('#clearTilesBtn').onclick=()=>{ if(state.answered) return; state.builtWords=[]; $$('#tiles .tile').forEach(b=>b.classList.remove('used')); updateBuiltSentence(); };
+    $('#checkTilesBtn').onclick=()=>checkAnswer();
+    $('#practiceMissesBtn').onclick=practiceAllMisses;
+    $('#clearMissesBtn').onclick=()=>{ state.stats.misses=[]; saveStats(); renderMistakes(); renderRecentMisses(); toast('Mistake notebook cleared.'); };
+    $('#labCopyBtn').onclick=async()=>{ try{ await navigator.clipboard.writeText($('#labOutput').textContent); toast('Sentence copied.'); } catch { toast('Copy failed in this browser.'); } };
+    $('#labRandomBtn').onclick=()=>{ $('#labPattern').selectedIndex=Math.floor(Math.random()*labPatterns.length); $('#labSubject').selectedIndex=Math.floor(Math.random()*subjects.length); $('#labVerb').selectedIndex=Math.floor(Math.random()*verbs.length); $('#labDetail').selectedIndex=Math.floor(Math.random()*details.length); updateLab(); };
+    $('#saveCustomBtn').onclick=saveCustomCard;
+    $('#generateSetBtn').onclick=generateSet;
+    $('#useCustomBtn').onclick=()=>startLesson('custom');
+    $('#exportCustomBtn').onclick=()=>{ $('#customJson').value=JSON.stringify(state.custom,null,2); toast('Custom JSON exported.'); };
+    $('#importCustomBtn').onclick=()=>{ try{ const incoming=JSON.parse($('#customJson').value); if(!Array.isArray(incoming)) throw new Error('JSON must be an array.'); state.custom=incoming.filter(c=>c.en&&c.es&&c.es[0]).map(c=>({...c, id:c.id||'custom-'+Math.random().toString(36).slice(2), lessonId:'custom', tags:c.tags||inferTags(c.hint||'')})); saveCustom(); renderCustom(); toast(`Imported ${state.custom.length} custom cards.`); } catch(err){ toast('Import failed: '+err.message); } };
+    $('#worksheetBtn').onclick=makeWorksheet;
+    $('#resetBtn').onclick=()=>{ if(!confirm('Reset all local progress, custom cards, and mistakes?')) return; localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(CUSTOM_KEY); state.stats=loadStats(); state.custom=[]; saveCustom(); renderCustom(); updateStatsUI(); renderMistakes(); toast('Local data reset.'); };
   }
 
   function init(){
-    initSelectors(); bindEvents(); renderPatternCards(); renderCognates(); renderCustom(); updateStatsUI(); renderMisses();
-    state.deck = buildDeck(state.activeModule);
-    renderCard(); renderLab(); renderSubjCoach(); renderShadow();
-    if('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+    state.deck=shuffle(lessons.quiero.cards); renderMap(); renderLessonSelect(); renderScenarios(); renderLab(); renderCustom(); previewWorkout(); wire(); renderCard(); updateStatsUI();
   }
-
   init();
 })();
 </script>
