@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bus Discipline Referral Automation Guide</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --ink: #18202f;
+      --muted: #5b6578;
+      --line: #dbe1ec;
+      --brand: #244c86;
+      --brand-2: #e7f0ff;
+      --accent: #f7b731;
+      --success: #1f7a4d;
+      --danger: #9b2c2c;
+      --code-bg: #111827;
+      --code-ink: #e5e7eb;
+      --shadow: 0 12px 30px rgba(16, 24, 40, .08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e9f1ff 0, #f6f7fb 38%, #f8fafc 100%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    a:hover { text-decoration: underline; }
+
+    .site-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header.hero {
+      background: linear-gradient(135deg, #173a6b, #24599c);
+      color: white;
+      border-radius: 28px;
+      padding: 42px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header.hero::after {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      right: -120px;
+      top: -120px;
+      background: rgba(255,255,255,.12);
+      border-radius: 50%;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .78rem;
+      font-weight: 800;
+      opacity: .9;
+      margin: 0 0 10px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      line-height: 1.02;
+      max-width: 900px;
+      margin: 0 0 16px;
+      letter-spacing: -.04em;
+    }
+
+    .hero p {
+      max-width: 810px;
+      font-size: 1.16rem;
+      margin: 0 0 24px;
+      color: rgba(255,255,255,.88);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn {
+      border: 0;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(36, 76, 134, .18);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,.14);
+      color: white;
+      border: 1px solid rgba(255,255,255,.28);
+      box-shadow: none;
+    }
+
+    .btn.light {
+      background: #fff;
+      color: var(--brand);
+      box-shadow: none;
+      border: 1px solid var(--line);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    nav.toc {
+      position: sticky;
+      top: 18px;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    nav.toc h2 {
+      margin: 0 0 8px;
+      font-size: .92rem;
+    }
+
+    nav.toc a {
+      display: block;
+      padding: 9px 10px;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: .95rem;
+      font-weight: 700;
+    }
+
+    nav.toc a:hover {
+      background: var(--brand-2);
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    section.card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      font-size: clamp(1.45rem, 3vw, 2.1rem);
+      line-height: 1.12;
+      margin: 0 0 14px;
+      letter-spacing: -.025em;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 1.18rem;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mini-card {
+      border: 1px solid var(--line);
+      background: #fbfcff;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .mini-card strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: .82rem;
+      font-weight: 800;
+      background: var(--brand-2);
+      color: var(--brand);
+      margin: 0 8px 8px 0;
+    }
+
+    .warning {
+      background: #fff7e6;
+      border-left: 5px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .success {
+      background: #e9f7ef;
+      border-left: 5px solid var(--success);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .danger {
+      background: #fff0f0;
+      border-left: 5px solid var(--danger);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    ol, ul {
+      padding-left: 1.35rem;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 14px;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .step:first-of-type {
+      border-top: 0;
+    }
+
+    .step-number {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+    }
+
+    .code-wrap {
+      margin: 14px 0 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #2f3a4d;
+      background: var(--code-bg);
+    }
+
+    .code-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      background: #0b1220;
+      color: #cbd5e1;
+      padding: 10px 12px;
+      font-size: .86rem;
+      font-weight: 800;
+    }
+
+    .copy-btn {
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.08);
+      color: white;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255,255,255,.16);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      max-height: 540px;
+      color: var(--code-ink);
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      tab-size: 2;
+    }
+
+    .template pre {
+      max-height: none;
+      white-space: pre-wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5fb;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 26px 0 10px;
+      font-size: .94rem;
+    }
+
+    .checklist li {
+      list-style: none;
+      margin-left: -1rem;
+    }
+
+    .checklist li::before {
+      content: "☐";
+      margin-right: 10px;
+      font-weight: 900;
+      color: var(--brand);
+    }
+
+    .print-note {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      nav.toc {
+        position: static;
+      }
+
+      .grid.two, .grid.three {
+        grid-template-columns: 1fr;
+      }
+
+      header.hero {
+        padding: 28px;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .site-shell {
+        padding: 0;
+        max-width: none;
+      }
+
+      header.hero, section.card {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      nav.toc, .hero-actions, .copy-btn, .code-toolbar {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      pre {
+        max-height: none;
+        white-space: pre-wrap;
+        color: #111;
+        background: #f5f5f5;
+      }
+
+      .code-wrap {
+        border-color: #ddd;
+        background: #f5f5f5;
+      }
+
+      .print-note {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="hero">
+      <p class="eyebrow">Google Forms • Google Sheets • Apps Script</p>
+      <h1>Bus Discipline Referral Automation Guide</h1>
+      <p>
+        A beginner-friendly setup guide for replacing triplicate paper bus write-ups with a simple Google Form that automatically creates a PDF referral and emails the right staff.
+      </p>
+      <div class="hero-actions">
+        <a class="btn light" href="#quick-start">Start setup</a>
+        <a class="btn secondary" href="#apps-script-code">Jump to code</a>
+        <button class="btn secondary" onclick="window.print()">Print guide</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc" aria-label="Guide sections">
+        <h2>Guide Sections</h2>
+        <a href="#overview">Overview</a>
+        <a href="#quick-start">Quick Start</a>
+        <a href="#form-fields">Form Fields</a>
+        <a href="#template">Google Doc Template</a>
+        <a href="#drive-folder">Drive Folder</a>
+        <a href="#apps-script-code">Apps Script Code</a>
+        <a href="#configuration">Configuration</a>
+        <a href="#testing">Testing</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#rollout">Recommended Rollout</a>
+      </nav>
+
+      <main>
+        <section id="overview" class="card">
+          <h2>What this system does</h2>
+          <p class="lead">
+            This setup is designed so the transportation director does not have to run a mail merge manually.
+            The workflow is: fill out the form, submit it, and the system does the rest.
+          </p>
+
+          <div class="grid three">
+            <div class="mini-card">
+              <strong>1. Submit Form</strong>
+              A driver or transportation staff member completes a Google Form.
+            </div>
+            <div class="mini-card">
+              <strong>2. Generate PDF</strong>
+              Apps Script copies a Google Doc template and fills in the referral details.
+            </div>
+            <div class="mini-card">
+              <strong>3. Notify Staff</strong>
+              The finished PDF is saved in Drive and emailed to selected staff.
+            </div>
+          </div>
+
+          <div class="warning">
+            <strong>Student privacy reminder:</strong> bus discipline referrals may include student information. Use a restricted Drive folder, limit access, and follow district policy before emailing or sharing records.
+          </div>
+
+          <p>
+            This guide assumes you are using Google Workspace, Google Forms, Google Sheets, Google Docs, Drive, and Apps Script.
+          </p>
+        </section>
+
+        <section id="quick-start" class="card">
+          <h2>Quick start checklist</h2>
+          <p class="lead">Do these steps in order. The first time through, go slow and use a fake test student.</p>
+
+          <div class="step">
+            <div class="step-number">1</div>
+            <div>
+              <h3>Create the Google Form</h3>
+              <p>Create a bus discipline referral form and link the responses to a Google Sheet.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <div>
+              <h3>Create the Google Doc template</h3>
+              <p>Use placeholders like <code>{{Student Name}}</code> and <code>{{Incident Description}}</code>.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <div>
+              <h3>Create the PDF storage folder</h3>
+              <p>Make a restricted Drive folder where the completed PDF referrals will be saved.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">4</div>
+            <div>
+              <h3>Paste the Apps Script code</h3>
+              <p>Open the response Sheet, go to <strong>Extensions → Apps Script</strong>, and paste the full code below.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">5</div>
+            <div>
+              <h3>Update the configuration</h3>
+              <p>Paste in your template ID, PDF folder ID, and staff email addresses.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">6</div>
+            <div>
+              <h3>Run setup and test</h3>
+              <p>Run <strong>setupSystem</strong> once, approve permissions, then submit a fake referral to test.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="form-fields" class="card">
+          <h2>Suggested Google Form fields</h2>
+          <p class="lead">
+            These question names matter. The script uses the exact question names from your Form/Sheet as template tags.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>Recommended Type</th>
+                <th>Template Tag</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Student Name</td><td>Short answer</td><td><code>{{Student Name}}</code></td></tr>
+              <tr><td>School</td><td>Dropdown</td><td><code>{{School}}</code></td></tr>
+              <tr><td>Grade</td><td>Short answer or dropdown</td><td><code>{{Grade}}</code></td></tr>
+              <tr><td>Bus Number</td><td>Short answer</td><td><code>{{Bus Number}}</code></td></tr>
+              <tr><td>Route</td><td>Short answer</td><td><code>{{Route}}</code></td></tr>
+              <tr><td>Driver Name</td><td>Short answer</td><td><code>{{Driver Name}}</code></td></tr>
+              <tr><td>Date of Incident</td><td>Date</td><td><code>{{Date of Incident}}</code></td></tr>
+              <tr><td>Time of Incident</td><td>Time</td><td><code>{{Time of Incident}}</code></td></tr>
+              <tr><td>Incident Category</td><td>Dropdown</td><td><code>{{Incident Category}}</code></td></tr>
+              <tr><td>Incident Description</td><td>Paragraph</td><td><code>{{Incident Description}}</code></td></tr>
+              <tr><td>Action Taken by Driver</td><td>Paragraph</td><td><code>{{Action Taken by Driver}}</code></td></tr>
+              <tr><td>Referral Level</td><td>Dropdown</td><td><code>{{Referral Level}}</code></td></tr>
+              <tr><td>Witnesses / Notes</td><td>Paragraph</td><td><code>{{Witnesses / Notes}}</code></td></tr>
+              <tr><td>Submitted By</td><td>Short answer</td><td><code>{{Submitted By}}</code></td></tr>
+            </tbody>
+          </table>
+
+          <h3>Suggested Incident Category choices</h3>
+          <p>
+            <span class="tag">Unsafe behavior</span>
+            <span class="tag">Disrespect / defiance</span>
+            <span class="tag">Fighting / physical aggression</span>
+            <span class="tag">Bullying / harassment</span>
+            <span class="tag">Vandalism</span>
+            <span class="tag">Inappropriate language</span>
+            <span class="tag">Refusal to follow directions</span>
+            <span class="tag">Other</span>
+          </p>
+
+          <h3>Suggested Referral Level choices</h3>
+          <p>
+            <span class="tag">Documentation only</span>
+            <span class="tag">Warning</span>
+            <span class="tag">Parent contact recommended</span>
+            <span class="tag">Administrator review</span>
+            <span class="tag">Transportation suspension review</span>
+          </p>
+        </section>
+
+        <section id="template" class="card">
+          <h2>Google Doc template</h2>
+          <p class="lead">
+            Create a new Google Doc named <strong>Bus Discipline Referral Template</strong>. Paste this text into it.
+            You can format the Doc however you want; just keep the placeholder tags.
+          </p>
+
+          <div class="code-wrap template">
+            <div class="code-toolbar">
+              <span>Copy this into the Google Doc template</span>
+              <button class="copy-btn" data-copy="templateText">Copy</button>
+            </div>
+            <pre id="templateText">BUS DISCIPLINE REFERRAL
+
+Referral ID: {{Referral ID}}
+Submitted On: {{Timestamp}}
+
+Student Information
+Student Name: {{Student Name}}
+School: {{School}}
+Grade: {{Grade}}
+
+Transportation Information
+Bus Number: {{Bus Number}}
+Route: {{Route}}
+Driver Name: {{Driver Name}}
+
+Incident Information
+Date of Incident: {{Date of Incident}}
+Time of Incident: {{Time of Incident}}
+Incident Category: {{Incident Category}}
+Referral Level: {{Referral Level}}
+
+Incident Description:
+{{Incident Description}}
+
+Action Taken by Driver:
+{{Action Taken by Driver}}
+
+Witnesses / Notes:
+{{Witnesses / Notes}}
+
+Submitted By:
+{{Submitted By}}
+
+Administrative Follow-Up
+
+Parent Contacted:
+☐ Yes   ☐ No
+
+Consequence / Action Assigned:
+____________________________________________________
+
+Administrator Signature:
+____________________________________________________
+
+Date:
+____________________________________________________</pre>
+          </div>
+
+          <div class="success">
+            <strong>Important:</strong> placeholders must match the Form question names exactly. For example, <code>{{Student Name}}</code> only works if the Sheet header is exactly <code>Student Name</code>.
+          </div>
+        </section>
+
+        <section id="drive-folder" class="card">
+          <h2>Create the secure Drive folder</h2>
+          <p>Create a Google Drive folder called something like <strong>Bus Discipline Referrals - PDFs</strong>.</p>
+          <ul>
+            <li>Share it only with staff who need access.</li>
+            <li>Do not make the folder public.</li>
+            <li>Copy the folder ID from the Drive URL.</li>
+          </ul>
+
+          <h3>How to find the folder ID</h3>
+          <p>If your folder URL looks like this:</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Example folder URL</span></div>
+            <pre>https://drive.google.com/drive/folders/1AbCDefGhijk123456789</pre>
+          </div>
+          <p>The folder ID is:</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Folder ID</span></div>
+            <pre>1AbCDefGhijk123456789</pre>
+          </div>
+
+          <h3>How to find the template Doc ID</h3>
+          <p>If your Google Doc template URL looks like this:</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Example template URL</span></div>
+            <pre>https://docs.google.com/document/d/1XyZabcDEF123456789/edit</pre>
+          </div>
+          <p>The template ID is:</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Template ID</span></div>
+            <pre>1XyZabcDEF123456789</pre>
+          </div>
+        </section>
+
+        <section id="apps-script-code" class="card">
+          <h2>Apps Script code</h2>
+          <p class="lead">
+            Open the Form response spreadsheet. Go to <strong>Extensions → Apps Script</strong>.
+            Delete any starter code and paste this entire script.
+          </p>
+
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span>Full Apps Script code</span>
+              <button class="copy-btn" data-copy="scriptCode">Copy</button>
+            </div>
+            <pre id="scriptCode">/*******************************************************
+ * Bus Discipline Referral PDF Generator
+ *
+ * What it does:
+ * - Runs when a Google Form response is submitted
+ * - Creates a completed Google Doc from a template
+ * - Exports the completed referral as a PDF
+ * - Saves the PDF in a Drive folder
+ * - Writes the PDF link back to the response Sheet
+ * - Optionally emails the PDF to staff
+ *******************************************************/
+
+const CONFIG = {
+  // Usually this is &quot;Form Responses 1&quot;
+  RESPONSE_SHEET_NAME: &#x27;Form Responses 1&#x27;,
+
+  // Paste your Google Docs template ID here
+  DOC_TEMPLATE_ID: &#x27;PASTE_TEMPLATE_DOC_ID_HERE&#x27;,
+
+  // Paste your Drive folder ID here
+  PDF_FOLDER_ID: &#x27;PASTE_PDF_FOLDER_ID_HERE&#x27;,
+
+  // Optional. Leave blank unless you want temporary Google Docs in a separate folder.
+  TEMP_DOC_FOLDER_ID: &#x27;&#x27;,
+
+  // Set to true to email the generated PDF
+  SEND_EMAIL: true,
+
+  // Default recipients. Separate multiple emails with commas.
+  DEFAULT_EMAIL_TO: &#x27;transportation@example.org&#x27;,
+
+  // Optional CC recipients
+  DEFAULT_EMAIL_CC: &#x27;&#x27;,
+
+  // Optional BCC recipients
+  DEFAULT_EMAIL_BCC: &#x27;&#x27;,
+
+  // If true, the temporary Google Doc copy is moved to trash after PDF is created.
+  // The final PDF is kept.
+  DELETE_TEMP_DOC_AFTER_PDF: true,
+
+  // Date/time zone. Usually this can stay as-is.
+  TIMEZONE: Session.getScriptTimeZone(),
+
+  // Optional school-based routing.
+  // The School value must exactly match the School dropdown/answer in the Form.
+  SCHOOL_EMAIL_ROUTING: {
+    // Example:
+    // &#x27;Middle School&#x27;: &#x27;middleschoolprincipal@example.org&#x27;,
+    // &#x27;High School&#x27;: &#x27;highschoolprincipal@example.org&#x27;
+  }
+};
+
+
+/**
+ * Adds a custom menu when the spreadsheet opens.
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu(&#x27;Bus Referrals&#x27;)
+    .addItem(&#x27;1. Run Setup&#x27;, &#x27;setupSystem&#x27;)
+    .addSeparator()
+    .addItem(&#x27;Process Selected Row&#x27;, &#x27;processSelectedRow&#x27;)
+    .addItem(&#x27;Process All Unprocessed Rows&#x27;, &#x27;processAllUnprocessedRows&#x27;)
+    .addToUi();
+}
+
+
+/**
+ * Run this one time after pasting the script.
+ * It adds tracking columns and creates the form submit trigger.
+ */
+function setupSystem() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getResponseSheet_();
+
+  ensureTrackingColumns_(sheet);
+
+  const triggers = ScriptApp.getProjectTriggers();
+  const alreadyExists = triggers.some(trigger =&gt;
+    trigger.getHandlerFunction() === &#x27;onFormSubmitBusReferral&#x27;
+  );
+
+  if (!alreadyExists) {
+    ScriptApp.newTrigger(&#x27;onFormSubmitBusReferral&#x27;)
+      .forSpreadsheet(ss)
+      .onFormSubmit()
+      .create();
+  }
+
+  SpreadsheetApp.getUi().alert(
+    &#x27;Setup complete.\n\nThe script will now process new bus referral form submissions automatically.&#x27;
+  );
+}
+
+
+/**
+ * This runs automatically when the Google Form is submitted.
+ */
+function onFormSubmitBusReferral(e) {
+  const lock = LockService.getScriptLock();
+
+  try {
+    lock.waitLock(30000);
+
+    if (!e || !e.range) {
+      throw new Error(&#x27;No form submit event data was found. Use Process Selected Row for manual testing.&#x27;);
+    }
+
+    const sheet = e.range.getSheet();
+
+    if (sheet.getName() !== CONFIG.RESPONSE_SHEET_NAME) {
+      return;
+    }
+
+    const row = e.range.getRow();
+    processReferralRow_(sheet, row, false);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+/**
+ * Manual test function.
+ * Select any response row, then run:
+ * Bus Referrals → Process Selected Row
+ */
+function processSelectedRow() {
+  const sheet = getResponseSheet_();
+  const row = sheet.getActiveRange().getRow();
+
+  if (row &lt;= 1) {
+    SpreadsheetApp.getUi().alert(&#x27;Please select a response row, not the header row.&#x27;);
+    return;
+  }
+
+  processReferralRow_(sheet, row, true);
+
+  SpreadsheetApp.getUi().alert(&#x27;Selected row processed.&#x27;);
+}
+
+
+/**
+ * Processes every row that does not already have a PDF link.
+ */
+function processAllUnprocessedRows() {
+  const sheet = getResponseSheet_();
+  ensureTrackingColumns_(sheet);
+
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow &lt;= 1) {
+    SpreadsheetApp.getUi().alert(&#x27;No response rows found.&#x27;);
+    return;
+  }
+
+  let processedCount = 0;
+
+  for (let row = 2; row &lt;= lastRow; row++) {
+    const data = getRowObject_(sheet, row);
+
+    if (!data[&#x27;PDF Link&#x27;]) {
+      processReferralRow_(sheet, row, false);
+      processedCount++;
+    }
+  }
+
+  SpreadsheetApp.getUi().alert(`Done. Processed ${processedCount} row(s).`);
+}
+
+
+/**
+ * Main worker function.
+ */
+function processReferralRow_(sheet, row, forceReprocess) {
+  ensureTrackingColumns_(sheet);
+
+  const headerMap = getHeaderMap_(sheet);
+  const data = getRowObject_(sheet, row);
+
+  try {
+    if (data[&#x27;PDF Link&#x27;] &amp;&amp; !forceReprocess) {
+      return;
+    }
+
+    const referralId = data[&#x27;Referral ID&#x27;] || createReferralId_(row, data);
+    data[&#x27;Referral ID&#x27;] = referralId;
+
+    writeCell_(sheet, row, headerMap, &#x27;Referral ID&#x27;, referralId);
+    writeCell_(sheet, row, headerMap, &#x27;Error&#x27;, &#x27;&#x27;);
+
+    const result = createReferralPdf_(data);
+
+    writeCell_(sheet, row, headerMap, &#x27;PDF Link&#x27;, result.pdfUrl);
+    writeCell_(sheet, row, headerMap, &#x27;PDF File ID&#x27;, result.pdfFileId);
+    writeCell_(sheet, row, headerMap, &#x27;Generated At&#x27;, new Date());
+
+    if (CONFIG.SEND_EMAIL) {
+      sendReferralEmail_(data, result.pdfBlob, result.pdfUrl);
+      writeCell_(sheet, row, headerMap, &#x27;Email Status&#x27;, `Sent ${new Date()}`);
+    } else {
+      writeCell_(sheet, row, headerMap, &#x27;Email Status&#x27;, &#x27;Email disabled&#x27;);
+    }
+
+  } catch (err) {
+    writeCell_(sheet, row, headerMap, &#x27;Error&#x27;, err.message);
+    console.error(err);
+    throw err;
+  }
+}
+
+
+/**
+ * Creates the Google Doc from template, fills it, exports as PDF,
+ * and saves the PDF to Drive.
+ */
+function createReferralPdf_(data) {
+  validateConfig_();
+
+  const templateFile = DriveApp.getFileById(CONFIG.DOC_TEMPLATE_ID);
+  const pdfFolder = DriveApp.getFolderById(CONFIG.PDF_FOLDER_ID);
+  const tempFolder = CONFIG.TEMP_DOC_FOLDER_ID
+    ? DriveApp.getFolderById(CONFIG.TEMP_DOC_FOLDER_ID)
+    : pdfFolder;
+
+  const safeStudentName = makeSafeFilename_(data[&#x27;Student Name&#x27;] || &#x27;Unknown Student&#x27;);
+  const safeDate = makeSafeFilename_(data[&#x27;Date of Incident&#x27;] || formatDate_(new Date()));
+  const referralId = data[&#x27;Referral ID&#x27;];
+
+  const baseFileName = `Bus Referral - ${safeStudentName} - ${safeDate} - ${referralId}`;
+
+  const docCopy = templateFile.makeCopy(baseFileName, tempFolder);
+  const doc = DocumentApp.openById(docCopy.getId());
+  const body = doc.getBody();
+
+  // Replace every {{Header Name}} placeholder using the Sheet/Form headers.
+  Object.keys(data).forEach(key =&gt; {
+    const tag = `{{${key}}}`;
+    replaceTag_(body, tag, valueToDisplayString_(data[key]));
+  });
+
+  // Helpful extra tags.
+  replaceTag_(body, &#x27;{{Today}}&#x27;, formatDate_(new Date()));
+  replaceTag_(body, &#x27;{{Generated At}}&#x27;, formatDateTime_(new Date()));
+
+  doc.saveAndClose();
+
+  const pdfBlob = DriveApp.getFileById(docCopy.getId())
+    .getAs(MimeType.PDF)
+    .setName(`${baseFileName}.pdf`);
+
+  const pdfFile = pdfFolder.createFile(pdfBlob);
+
+  if (CONFIG.DELETE_TEMP_DOC_AFTER_PDF) {
+    docCopy.setTrashed(true);
+  }
+
+  return {
+    pdfFileId: pdfFile.getId(),
+    pdfUrl: pdfFile.getUrl(),
+    pdfBlob: pdfBlob
+  };
+}
+
+
+/**
+ * Sends the referral email.
+ */
+function sendReferralEmail_(data, pdfBlob, pdfUrl) {
+  const to = getEmailRecipients_(data);
+
+  if (!to) {
+    throw new Error(&#x27;No email recipient was found. Check DEFAULT_EMAIL_TO or SCHOOL_EMAIL_ROUTING.&#x27;);
+  }
+
+  const studentName = data[&#x27;Student Name&#x27;] || &#x27;Unknown Student&#x27;;
+  const school = data[&#x27;School&#x27;] || &#x27;Unknown School&#x27;;
+  const incidentDate = valueToDisplayString_(data[&#x27;Date of Incident&#x27;]) || &#x27;Unknown Date&#x27;;
+  const referralId = data[&#x27;Referral ID&#x27;] || &#x27;&#x27;;
+
+  const subject = `Bus Discipline Referral: ${studentName} - ${incidentDate}`;
+
+  const body =
+`A new bus discipline referral has been submitted.
+
+Referral ID: ${referralId}
+Student: ${studentName}
+School: ${school}
+Date of Incident: ${incidentDate}
+Bus Number: ${data[&#x27;Bus Number&#x27;] || &#x27;&#x27;}
+Route: ${data[&#x27;Route&#x27;] || &#x27;&#x27;}
+Driver: ${data[&#x27;Driver Name&#x27;] || &#x27;&#x27;}
+
+PDF:
+${pdfUrl}
+
+This message was generated automatically from the bus discipline referral system.`;
+
+  MailApp.sendEmail({
+    to: to,
+    cc: CONFIG.DEFAULT_EMAIL_CC,
+    bcc: CONFIG.DEFAULT_EMAIL_BCC,
+    subject: subject,
+    body: body,
+    attachments: [pdfBlob]
+  });
+}
+
+
+/**
+ * Gets default recipients plus optional school-specific recipients.
+ */
+function getEmailRecipients_(data) {
+  const recipients = [];
+
+  if (CONFIG.DEFAULT_EMAIL_TO) {
+    recipients.push(CONFIG.DEFAULT_EMAIL_TO);
+  }
+
+  const school = data[&#x27;School&#x27;];
+
+  if (
+    school &amp;&amp;
+    CONFIG.SCHOOL_EMAIL_ROUTING &amp;&amp;
+    CONFIG.SCHOOL_EMAIL_ROUTING[school]
+  ) {
+    recipients.push(CONFIG.SCHOOL_EMAIL_ROUTING[school]);
+  }
+
+  return recipients
+    .filter(Boolean)
+    .join(&#x27;,&#x27;);
+}
+
+
+/**
+ * Adds tracking columns if they do not already exist.
+ */
+function ensureTrackingColumns_(sheet) {
+  const neededColumns = [
+    &#x27;Referral ID&#x27;,
+    &#x27;PDF Link&#x27;,
+    &#x27;PDF File ID&#x27;,
+    &#x27;Generated At&#x27;,
+    &#x27;Email Status&#x27;,
+    &#x27;Error&#x27;
+  ];
+
+  const headers = getHeaders_(sheet);
+
+  neededColumns.forEach(columnName =&gt; {
+    if (!headers.includes(columnName)) {
+      sheet.getRange(1, sheet.getLastColumn() + 1).setValue(columnName);
+    }
+  });
+}
+
+
+/**
+ * Reads the current row into an object using the header row.
+ */
+function getRowObject_(sheet, row) {
+  const headers = getHeaders_(sheet);
+  const values = sheet.getRange(row, 1, 1, headers.length).getValues()[0];
+
+  const data = {};
+
+  headers.forEach((header, index) =&gt; {
+    if (header) {
+      data[header] = values[index];
+    }
+  });
+
+  return data;
+}
+
+
+/**
+ * Gets the response sheet.
+ */
+function getResponseSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(CONFIG.RESPONSE_SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error(`Could not find sheet named &quot;${CONFIG.RESPONSE_SHEET_NAME}&quot;. Check CONFIG.RESPONSE_SHEET_NAME.`);
+  }
+
+  return sheet;
+}
+
+
+/**
+ * Gets headers from row 1.
+ */
+function getHeaders_(sheet) {
+  const lastColumn = sheet.getLastColumn();
+
+  if (lastColumn &lt; 1) {
+    return [];
+  }
+
+  return sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+}
+
+
+/**
+ * Creates a map of header names to column numbers.
+ */
+function getHeaderMap_(sheet) {
+  const headers = getHeaders_(sheet);
+  const map = {};
+
+  headers.forEach((header, index) =&gt; {
+    if (header) {
+      map[header] = index + 1;
+    }
+  });
+
+  return map;
+}
+
+
+/**
+ * Writes a value to a specific column by header name.
+ */
+function writeCell_(sheet, row, headerMap, headerName, value) {
+  if (!headerMap[headerName]) {
+    ensureTrackingColumns_(sheet);
+    headerMap = getHeaderMap_(sheet);
+  }
+
+  sheet.getRange(row, headerMap[headerName]).setValue(value);
+}
+
+
+/**
+ * Creates a readable unique referral ID.
+ */
+function createReferralId_(row, data) {
+  const dateValue = data[&#x27;Date of Incident&#x27;] || new Date();
+  const datePart = formatDateForId_(dateValue);
+  const rowPart = String(row).padStart(4, &#x27;0&#x27;);
+
+  return `BUS-${datePart}-${rowPart}`;
+}
+
+
+/**
+ * Replaces a template tag safely.
+ */
+function replaceTag_(body, tag, value) {
+  const escapedTag = escapeRegex_(tag);
+  const safeValue = sanitizeReplacement_(value);
+  body.replaceText(escapedTag, safeValue);
+}
+
+
+/**
+ * Escapes regex characters for replaceText.
+ */
+function escapeRegex_(text) {
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, &#x27;\\$&amp;&#x27;);
+}
+
+
+/**
+ * Makes replacement text safer for Apps Script replaceText.
+ */
+function sanitizeReplacement_(value) {
+  return String(value || &#x27;&#x27;)
+    .replace(/\\/g, &#x27;\\\\&#x27;)
+    .replace(/\$/g, &#x27;\\$&#x27;);
+}
+
+
+/**
+ * Converts dates and other values into clean display text.
+ */
+function valueToDisplayString_(value) {
+  if (value instanceof Date) {
+    return formatDateTime_(value);
+  }
+
+  if (value === null || value === undefined) {
+    return &#x27;&#x27;;
+  }
+
+  return String(value);
+}
+
+
+/**
+ * Formats a date.
+ */
+function formatDate_(value) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return String(value || &#x27;&#x27;);
+  }
+
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, &#x27;MM/dd/yyyy&#x27;);
+}
+
+
+/**
+ * Formats a date/time.
+ */
+function formatDateTime_(value) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return String(value || &#x27;&#x27;);
+  }
+
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, &#x27;MM/dd/yyyy h:mm a&#x27;);
+}
+
+
+/**
+ * Formats a date for referral IDs.
+ */
+function formatDateForId_(value) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return Utilities.formatDate(new Date(), CONFIG.TIMEZONE, &#x27;yyyyMMdd&#x27;);
+  }
+
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, &#x27;yyyyMMdd&#x27;);
+}
+
+
+/**
+ * Makes text safe for filenames.
+ */
+function makeSafeFilename_(value) {
+  return String(value || &#x27;&#x27;)
+    .replace(/[\\/:*?&quot;&lt;&gt;|#%{}~&amp;]/g, &#x27;-&#x27;)
+    .replace(/\s+/g, &#x27; &#x27;)
+    .trim()
+    .substring(0, 80);
+}
+
+
+/**
+ * Checks that required IDs are filled in.
+ */
+function validateConfig_() {
+  if (!CONFIG.DOC_TEMPLATE_ID || CONFIG.DOC_TEMPLATE_ID === &#x27;PASTE_TEMPLATE_DOC_ID_HERE&#x27;) {
+    throw new Error(&#x27;Missing DOC_TEMPLATE_ID in CONFIG.&#x27;);
+  }
+
+  if (!CONFIG.PDF_FOLDER_ID || CONFIG.PDF_FOLDER_ID === &#x27;PASTE_PDF_FOLDER_ID_HERE&#x27;) {
+    throw new Error(&#x27;Missing PDF_FOLDER_ID in CONFIG.&#x27;);
+  }
+}</pre>
+          </div>
+        </section>
+
+        <section id="configuration" class="card">
+          <h2>Update the configuration</h2>
+          <p class="lead">At the top of the code, update the settings inside <code>CONFIG</code>.</p>
+
+          <h3>Required edits</h3>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Replace these values</span></div>
+            <pre>DOC_TEMPLATE_ID: 'PASTE_TEMPLATE_DOC_ID_HERE',
+PDF_FOLDER_ID: 'PASTE_PDF_FOLDER_ID_HERE',
+DEFAULT_EMAIL_TO: 'transportation@example.org',</pre>
+          </div>
+
+          <h3>Example</h3>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Example configuration</span></div>
+            <pre>DOC_TEMPLATE_ID: '1XyZabcDEF123456789',
+PDF_FOLDER_ID: '1AbCDefGhijk123456789',
+DEFAULT_EMAIL_TO: 'transportation@district.org',</pre>
+          </div>
+
+          <h3>Optional school-based routing</h3>
+          <p>If each school should receive its own referrals, use the school routing section.</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>School routing example</span></div>
+            <pre>SCHOOL_EMAIL_ROUTING: {
+  'Middle School': 'middleschoolprincipal@example.org',
+  'High School': 'highschoolprincipal@example.org'
+}</pre>
+          </div>
+
+          <div class="warning">
+            <strong>Watch the spelling:</strong> school names here must exactly match the School choices in the Google Form.
+          </div>
+
+          <h3>Run setup</h3>
+          <ol>
+            <li>Click the save icon in Apps Script.</li>
+            <li>Choose the function <strong>setupSystem</strong> from the dropdown near the Run button.</li>
+            <li>Click <strong>Run</strong>.</li>
+            <li>Approve the requested permissions.</li>
+            <li>Go back to your response spreadsheet. You should see a new menu called <strong>Bus Referrals</strong>.</li>
+          </ol>
+        </section>
+
+        <section id="testing" class="card">
+          <h2>Test the system</h2>
+          <p class="lead">Do not test with a real student first. Use a fake student and make sure the whole loop works.</p>
+
+          <ul class="checklist">
+            <li>Submit a fake Google Form response.</li>
+            <li>Open the response Sheet.</li>
+            <li>Look for the generated <strong>Referral ID</strong>.</li>
+            <li>Check the <strong>PDF Link</strong> column.</li>
+            <li>Open the Drive folder and confirm the PDF exists.</li>
+            <li>Check whether the email arrived.</li>
+            <li>Open the PDF and make sure all fields filled correctly.</li>
+          </ul>
+
+          <div class="success">
+            <strong>Good sign:</strong> if the response Sheet has a PDF link, a generated timestamp, and no error message, the automation is working.
+          </div>
+
+          <h3>Manual testing from the Sheet</h3>
+          <p>
+            You can also select a response row and use:
+            <strong>Bus Referrals → Process Selected Row</strong>.
+          </p>
+        </section>
+
+        <section id="troubleshooting" class="card">
+          <h2>Troubleshooting</h2>
+
+          <h3>“Could not find sheet named Form Responses 1”</h3>
+          <p>Your response sheet tab may have a different name. Look at the bottom tab in the spreadsheet and update this line:</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Sheet name setting</span></div>
+            <pre>RESPONSE_SHEET_NAME: 'Form Responses 1',</pre>
+          </div>
+
+          <h3>The PDF is created, but some fields are blank</h3>
+          <p>The Google Doc template tag probably does not match the Form question exactly.</p>
+          <p>Example: if the Form question is <code>Incident Description</code>, the template tag must be <code>{{Incident Description}}</code>.</p>
+
+          <h3>The email does not send</h3>
+          <p>Check these two settings:</p>
+          <div class="code-wrap">
+            <div class="code-toolbar"><span>Email settings</span></div>
+            <pre>SEND_EMAIL: true,
+DEFAULT_EMAIL_TO: 'transportation@example.org',</pre>
+          </div>
+
+          <h3>The script asks for permissions</h3>
+          <p>That is expected. It needs permission to read the Sheet, create Docs, save PDFs, and send email.</p>
+
+          <h3>School routing does not work</h3>
+          <p>The school name in the routing section must exactly match the school name submitted in the Form.</p>
+
+          <h3>There is an error column message</h3>
+          <p>Read the message in the <strong>Error</strong> column. Most issues are missing IDs, a renamed Sheet tab, or mismatched template tags.</p>
+        </section>
+
+        <section id="rollout" class="card">
+          <h2>Recommended rollout</h2>
+          <p class="lead">
+            Keep version one simple. The goal is trust, not every feature imaginable.
+          </p>
+
+          <div class="grid two">
+            <div class="mini-card">
+              <strong>Start with this</strong>
+              <ul>
+                <li>One Form</li>
+                <li>One PDF template</li>
+                <li>One secure folder</li>
+                <li>Internal staff emails only</li>
+                <li>One week of fake testing</li>
+              </ul>
+            </div>
+            <div class="mini-card">
+              <strong>Add later</strong>
+              <ul>
+                <li>School-specific routing</li>
+                <li>Status dropdowns</li>
+                <li>Parent contact log</li>
+                <li>Repeat student dashboard</li>
+                <li>Monthly route trend report</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="danger">
+            <strong>Do not overbuild the first version.</strong> If the transportation director has to think about mail merge, folders, or scripts, the system is too complicated. Their workflow should be: open form, fill it out, submit.
+          </div>
+        </section>
+
+        <div class="footer">
+          Built as a single-file HTML guide. Save this file, upload it to a website, or share it internally.
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('[data-copy]').forEach(button => {
+      button.addEventListener('click', async () => {
+        const targetId = button.getAttribute('data-copy');
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        try {
+          await navigator.clipboard.writeText(target.innerText);
+          const oldText = button.textContent;
+          button.textContent = 'Copied!';
+          setTimeout(() => button.textContent = oldText, 1400);
+        } catch (err) {
+          const range = document.createRange();
+          range.selectNodeContents(target);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          button.textContent = 'Selected';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
