@@ -246,6 +246,12 @@
   .join-tip{font-size:12px;color:var(--faint);margin:14px 0 0;line-height:1.5;border-top:1px solid var(--line);padding-top:12px;}
   .join-tip b{color:var(--muted);}
 
+  /* ---------- Parent viewer mode (opened via a shared link) ---------- */
+  body.viewer-mode #addBtn, body.viewer-mode #playerBtn, body.viewer-mode #editBtn,
+  body.viewer-mode #shareBtn, body.viewer-mode #settingsBtn, body.viewer-mode #docsBtn{display:none;}
+  body.viewer-mode .wall-title{pointer-events:none;}
+  .frame-note{font-size:12px;color:var(--faint);margin:10px 0 0;text-align:center;line-height:1.5;}
+
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
 </style>
 </head>
@@ -260,7 +266,7 @@
     <div class="field"><label for="jTeam">Team name</label><input type="text" id="jTeam" placeholder="e.g. Watervliet Blue" /></div>
     <div class="field"><label for="jPlayer">Your name / gamertag (optional)</label><input type="text" id="jPlayer" placeholder="optional" /></div>
     <button class="btn primary" id="jGo" style="width:100%;justify-content:center;font-size:15px;padding:12px">Go live →</button>
-    <p class="join-tip"><b>For the smoothest 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> rather than a single window. Use Chrome or Edge.</p>
+    <p class="join-tip"><b>For smooth 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> — not a single window — in Chrome or Edge. <b>For sound,</b> tick "Share tab audio" (browser game) or "Share system audio" (full screen) in the picker. Heads‑up: full‑screen audio also shares voice chat, so mute comms if you don't want them heard.</p>
   </div>
 </div>
 
@@ -306,6 +312,7 @@
         <button class="btn ghost" id="viewerTab"><svg class="ico" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg><span>New tab</span></button>
       </div>
     </div>
+    <p class="frame-note">Black screen? This player may not have opted in / gone live yet — it'll appear once they start. Give it a few seconds to connect.</p>
   </div>
 </div>
 
@@ -403,6 +410,10 @@
       </select>
       <div class="hint">The cap on each player's upload. Twitch 1080p60 ≈ 6000. Relay/Meshcast tops out around 3000 in practice — plenty for gameplay and comfortably under Twitch.</div>
     </div>
+    <div class="field toggle-row">
+      <input type="checkbox" id="sAudio" checked />
+      <div><label for="sAudio">Include game audio</label><div class="sub">Plays a player's sound when you open their feed (only if they chose to share it). One feed opens at a time, so no overlapping audio.</div></div>
+    </div>
     <div class="field toggle-row" style="margin-bottom:4px">
       <input type="checkbox" id="sClean" checked />
       <div><label for="sClean">Clean player</label><div class="sub">Hide VDO.Ninja's own control bar inside the pop‑up viewer.</div></div>
@@ -495,8 +506,8 @@
         <p><b>Copy all</b> to paste into an email or sheet, or copy each link on its own. A player opens their link in Chrome/Edge, types their <b>team name</b>, picks their screen or game window, and they're publishing — nothing to generate, nothing to report back. (Rather enter feeds by hand? <b>Add feed</b> still works.)</p></div>
       <div class="step"><h5>Watch a feed</h5>
         <p>Click a slot to go live. Opening another closes the first, so only one stream pulls data. Use <b>Pop out</b> for a floating window if you need to watch two at once (each uses its own bandwidth).</p></div>
-      <div class="step"><h5>Share the wall</h5>
-        <p>Rename the wall up top, then <b>Share → Copy</b> and send the link. Everyone gets the same feeds and the same delay.</p></div>
+      <div class="step"><h5>Share the wall with parents</h5>
+        <p>Rename the wall up top, then <b>Share → Copy</b> and send the link out. Parents get a clean, watch‑only view — same feeds, same delay, no editing. Players opt in by opening their own link; their tile stays dark until they go live.</p></div>
     </div>
     <div class="callout">Runs Chrome/Edge best — the broadcast delay relies on Chromium's buffering. Have your officials watch on Chrome or Edge.</div>
   </div>
@@ -523,10 +534,16 @@
     <h4>Bandwidth — keeping it Twitch‑safe</h4>
     <p>Plain VDO.Ninja is peer‑to‑peer: every viewer pulls a separate copy straight from the player's PC, so five people watching one player means that player uploads five streams. <b>Relay (Meshcast)</b> mode fixes this — the player uploads one capped stream to a server that fans it out, so their upload stays flat like a Twitch broadcast no matter how many click in. That's the default.</p>
     <ul>
-      <li><b>Max bitrate per player</b> (Settings) is the upload cap. Relay tops out near 3000 kbps in practice — under Twitch's ~6000 and smooth for gameplay.</li>
+      <li><b>Max bitrate per player</b> (Settings) is the upload cap. Relay realistically delivers about 2–3 Mbps 1080p — clean and smooth on the phones and tablets most parents use, though not razor‑crisp esports quality. That's the honest ceiling for a big audience; truly broadcast‑crisp video to a crowd is a Twitch/YouTube job.</li>
       <li><b>Direct (P2P)</b> gives the lowest latency and an exact frame‑locked delay, but only stays Twitch‑safe if just one control room watches a given player at a time.</li>
       <li>Your own download stays light too: the wall keeps one feed open at a time, and dark slots use nothing.</li>
     </ul>
+
+    <h4>Sharing to parents</h4>
+    <p>Send parents the <b>Share</b> link. It opens a clean, watch‑only version — no editing buttons, just the wall. They click a player to watch, one at a time, all behind your delay. Players "opt in" simply by opening their own link and going live; until then their tile sits dark, and a parent who clicks it sees a short "not live yet" note.</p>
+
+    <h4>Sound</h4>
+    <p>Audio is on by default — the wall plays a player's sound when you open their feed, if they chose to share it. Because feeds open one at a time, there's never overlapping audio. Tell players: to include game sound they must tick <b>"Share tab audio"</b> (browser game) or <b>"Share system audio"</b> (whole screen) in the share picker — a single app window can't carry sound. Full‑screen audio also captures voice chat, so anyone in team comms should mute if they don't want it heard on the (roughly 3‑second‑delayed) stream.</p>
 
     <h4>Why this saves bandwidth</h4>
     <p>Each slot is a still image until clicked — zero connection, zero data. VDO.Ninja is peer‑to‑peer, so video only flows while a viewer is open. The wall keeps one feed live at a time and caps each feed's bitrate, so you never pull every match at once.</p>
@@ -564,7 +581,7 @@
     <ul>
       <li>The share link holds your feed names and stream IDs, packed into the URL — no server.</li>
       <li>Video travels device‑to‑device; it does not pass through your GitHub page.</li>
-      <li>Opening a shared link replaces the wall stored in that browser — Export JSON first to keep the old one.</li>
+      <li>Opening a shared link shows a watch‑only view and doesn't overwrite anything on that device — parents can't edit your wall.</li>
     </ul>
 
     <h4>Troubleshooting</h4>
@@ -588,7 +605,7 @@
   var VDO="https://vdo.ninja/?";
 
   var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:3000, clean:true,
-    bwMode:"meshcast", eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
+    bwMode:"meshcast", audioOn:true, eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
   var current=null;
 
   function $(id){ return document.getElementById(id); }
@@ -604,6 +621,7 @@
       defaultBitrate:(s.defaultBitrate!=null?+s.defaultBitrate:3000),
       clean:(s.clean!=null?!!s.clean:true),
       bwMode:(s.bwMode==="p2p"?"p2p":"meshcast"),
+      audioOn:(s.audioOn!=null?!!s.audioOn:true),
       eventCode:s.eventCode||"",
       linkRoom:s.linkRoom||"",
       linkPassword:s.linkPassword||"",
@@ -696,7 +714,7 @@
 
   /* ---------- share encode/decode ---------- */
   function encodeState(o){
-    var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:(o.bwMode==="p2p"?"p2p":"meshcast"),
+    var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:(o.bwMode==="p2p"?"p2p":"meshcast"), ao:o.audioOn?1:0,
       ec:o.eventCode, lr:o.linkRoom, lp:o.linkPassword, sf:o.senderFps60?1:0, sm:o.senderMotion?1:0,
       f:o.feeds.map(function(f){
         var s={ n:f.name, i:f.streamId };
@@ -711,7 +729,7 @@
     var b64=str.replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
     var o=JSON.parse(decodeURIComponent(escape(atob(b64))));
     return normalize({
-      title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true), bwMode:(o.bm==="p2p"?"p2p":"meshcast"),
+      title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true), bwMode:(o.bm==="p2p"?"p2p":"meshcast"), audioOn:(o.ao!=null?!!o.ao:true),
       eventCode:o.ec||"", linkRoom:o.lr||"", linkPassword:o.lp||"",
       senderFps60:(o.sf!=null?!!o.sf:true), senderMotion:(o.sm!=null?!!o.sm:true),
       feeds:(o.f||[]).map(function(s){
@@ -827,7 +845,7 @@
     $("fName").value=f?(f.name||""):"";
     $("fBitrate").value=f?String(f.bitrate==null?state.defaultBitrate:f.bitrate):String(state.defaultBitrate);
     $("fCodec").value=f?(f.codec||""):"";
-    $("fAudio").checked=f?!!f.audio:false;
+    $("fAudio").checked=f?!!f.audio:state.audioOn;
     $("fRoom").value=f?(f.room||""):"";
     $("fPass").value=f?(f.password||""):"";
     showModal("editor"); setTimeout(function(){ $("fPaste").focus(); },60);
@@ -865,6 +883,7 @@
     $("sDelay").value=String(state.delayMs);
     $("sChunked").checked=!!state.chunked;
     $("sDefBitrate").value=String(state.defaultBitrate);
+    $("sAudio").checked=!!state.audioOn;
     $("sClean").checked=!!state.clean;
     updateDelayNote();
     showModal("settings");
@@ -887,6 +906,7 @@
     state.delayMs=+$("sDelay").value;
     state.chunked=$("sChunked").checked;
     state.defaultBitrate=+$("sDefBitrate").value;
+    state.audioOn=$("sAudio").checked;
     state.clean=$("sClean").checked;
     persist(); hideModal("settings"); render();
     toast(state.bwMode==="meshcast"?"Saved · relay (Twitch‑safe)":"Saved · direct P2P");
@@ -945,7 +965,7 @@
     if(!lines.length){ toast("Add at least one player name", false); return; }
     lines.forEach(function(name,i){
       state.feeds.push({ id:uid(), name:name, streamId:makeStreamId(name, state.feeds.length+1),
-        room:state.linkRoom, password:state.linkPassword, bitrate:state.defaultBitrate, codec:"", audio:false });
+        room:state.linkRoom, password:state.linkPassword, bitrate:state.defaultBitrate, codec:"", audio:state.audioOn });
     });
     $("pRoster").value="";
     persist(); render(); renderRoster();
@@ -1059,7 +1079,15 @@
     }catch(e){ $("joinScreen").classList.remove("show"); }
   }
   var m=location.hash.match(/#w=(.+)$/);
-  if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){ state=shared; persist(); $("sharedBanner").classList.add("show"); history.replaceState(null,"",location.pathname+location.search); } }catch(e){} }
+  if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){
+    state=shared;
+    document.body.classList.add("viewer-mode");
+    $("wallTitle").readOnly=true;
+    $("wallSub").textContent = state.delayMs>0
+      ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
+      : "Click a player to watch.";
+    // parent view: keep it in memory, leave the link intact so a refresh still works
+  } }catch(e){} }
   render();
 })();
 </script>
