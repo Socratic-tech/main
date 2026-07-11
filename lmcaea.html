@@ -732,7 +732,6 @@
   "use strict";
   var LS_KEY="vdoFeedWall.v2";
   var VDO="https://vdo.ninja/?";
-  // The one current public wall. Parents visiting the plain URL load this automatically.
   var DEFAULT_WALL_CODE="eyJ0IjoiQ29tcGV0aXRpb24gRmVlZCBXYWxsIiwiZCI6MzAwMCwiayI6MCwiZGIiOjMwMDAsImNsIjoxLCJibSI6InAycCIsImFvIjoxLCJhYyI6MSwiYWgiOiJjYWUyYmZjMTA3ZjM0OWE5NTlkYTI5N2U2MGRjZmNjYmMzZDE1ZTJlZjQ1ZjkzZjYyMTFhY2RkMDhkMzA5NWFmIiwic3UiOiJsaXZlLmpzb24iLCJlYyI6ImxtY2FlYTI2IiwibHIiOiIiLCJscCI6IiIsInNmIjoxLCJzbSI6MSwiZiI6W3sibiI6IlN0YXRpb24gMSIsImkiOiJsbWNhZWEyNnN0YXRpb24xZnNzZDdqIiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxIiwiaSI6ImxtY2FlYTI2cm9ja2V0bGVhZ3VlMXpoZnRnNiIsImIiOjMwMDAsImEiOjF9LHsibiI6IlJvY2tldCBMZWFndWUgMiIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTI2YjZ3am0iLCJiIjozMDAwLCJhIjoxfSx7Im4iOiJSb2NrZXQgTGVhZ3VlIDMiLCJpIjoibG1jYWVhMjZyb2NrZXRsZWFndWUzb2RjbHM0IiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSA0IiwiaSI6ImxtY2FlYTI2cm9ja2V0bGVhZ3VlNDVhNnM4MyIsImIiOjMwMDAsImEiOjF9LHsibiI6IlJvY2tldCBMZWFndWUgNSIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTVwanpzOWIiLCJiIjozMDAwLCJhIjoxfSx7Im4iOiJSb2NrZXQgTGVhZ3VlIDYiLCJpIjoibG1jYWVhMjZyb2NrZXRsZWFndWU2MWlnZHY1IiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSA3IiwiaSI6ImxtY2FlYTI2cm9ja2V0bGVhZ3VlN3ViZW96NiIsImIiOjMwMDAsImEiOjF9LHsibiI6IlJvY2tldCBMZWFndWUgOCIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZThyMmdkZDkiLCJiIjozMDAwLCJhIjoxfSx7Im4iOiJSb2NrZXQgTGVhZ3VlIDkiLCJpIjoibG1jYWVhMjZyb2NrZXRsZWFndWU5Z2pveHRsIiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxMCIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTEwZjI1NDZ4IiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxMSIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTExNHR2MTdtIiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxMiIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTEydmp5enltIiwiYiI6MzAwMCwiYSI6MX1dfQ";
 
   var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:3000, clean:true,
@@ -1335,11 +1334,7 @@
   }
 
   /* ---------- boot ---------- */
-  var isAdminRequest=/#admin/i.test(location.hash);
-
-  // Admin uses the locally editable wall. Public/player routes do not inherit
-  // browser-local station data, which keeps the parent page consistent.
-  if(isAdminRequest) load();
+  load();
 
   var mp=location.hash.match(/#play=(.+)$/);
   if(mp){ try{ initPlayerArea(decodePlay(mp[1])); return; }catch(e){ $("playScreen").classList.remove("show"); } }
@@ -1365,31 +1360,33 @@
   }
 
   var m=location.hash.match(/#w=([^#]+)/);
-  if(m){
-    try{
-      var shared=decodeState(m[1]);
-      if(shared&&shared.feeds){ state=shared; isViewerLink=true; }
-    }catch(e){}
-  }else if(!isAdminRequest){
-    // Plain lmcaea.html is the parent wall. Load the one embedded current wall
-    // without changing the address or depending on the parent's localStorage.
-    try{
-      var defaultShared=decodeState(DEFAULT_WALL_CODE);
-      if(defaultShared&&defaultShared.feeds){ state=defaultShared; isViewerLink=true; }
-    }catch(e){}
-  }
-
-  if(isViewerLink){
+  if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){
+    state=shared;
+    isViewerLink=true;
     $("wallSub").textContent = state.delayMs>0
       ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
       : "Click a player to watch.";
+  } }catch(e){} }
+  else if(!/#admin/i.test(location.hash)){
+    // Plain parent URL: load the current embedded wall, while leaving the
+    // proven player and viewer connection code completely unchanged.
+    try{
+      var builtIn=decodeState(DEFAULT_WALL_CODE);
+      if(builtIn&&builtIn.feeds){
+        state=builtIn;
+        isViewerLink=true;
+        $("wallSub").textContent = state.delayMs>0
+          ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
+          : "Click a player to watch.";
+      }
+    }catch(e){}
   }
 
   // Default is the watch-only viewer. Admin is hidden behind the lock / #admin.
   adminUnlocked = false;
   applyAdmin();
   render();
-  if(isAdminRequest) requestAdmin();
+  if(/#admin/i.test(location.hash)) requestAdmin();
   if(state.statusUrl){ pollStatus(); setInterval(pollStatus, 15000); }
 })();
 </script>
