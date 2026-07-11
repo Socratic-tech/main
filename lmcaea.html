@@ -779,6 +779,10 @@
     // The publisher and viewer must use the same plain stream ID.
     var sid=String(f.streamId||"").replace(/[^a-zA-Z0-9]/g,"");
     var p=["view="+encodeURIComponent(sid)];
+    // The publisher sends the player's display label with &label.
+    // &showlabels tells VDO.Ninja to render that label over the video.
+    p.push("showlabels");
+    p.push("fontsize=24");
     if(!f.audio || !state.audioOn) p.push("noaudio");
     if(state.clean) p.push("cleanoutput");
     return VDO + p.join("&");
@@ -1322,7 +1326,7 @@
       var station=$("pcStation").value; if(!station){ toast("No station to publish to", false); return; }
       var name=$("pcName").value.trim(); if(!name){ toast("Enter your name", false); $("pcName").focus(); return; }
       var team=$("pcTeam").value.trim();
-      window.location.href=playStationUrl(ppl, station, team?(name+" — "+team):name);
+      window.location.href=playStationUrl(ppl, station, team?(name+" • "+team):name);
     };
     $("pcLive").onclick=live;
     $("pcName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); live(); } });
@@ -1344,7 +1348,7 @@
         var name=$("jName").value.trim();
         if(!name){ toast("Enter your name", false); $("jName").focus(); return; }
         var team=$("jTeam").value.trim();
-        window.location.href=joinPushUrl(pl, team?(name+" — "+team):name);
+        window.location.href=joinPushUrl(pl, team?(name+" • "+team):name);
       };
       $("jGo").onclick=goLive;
       $("jName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
