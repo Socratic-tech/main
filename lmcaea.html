@@ -487,8 +487,8 @@
       <div class="field">
         <label for="sStatusUrl">Live status file URL (optional)</label>
         <input type="text" id="sStatusUrl" placeholder="https://…/live.json" spellcheck="false" />
-        <div class="hint">If set, every open wall checks this file every ~15s and obeys it live, so on/off and take‑downs reach parents already watching. Host it in your repo or a gist.</div>
-        <div class="linkbox"><button class="btn ghost" id="sCopyStatus"><svg class="ico" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy live.json</span></button></div>
+        <div class="hint">Every parent wall loads its stations and live status from this file. Keep live.json beside lmcaea.html, then use Copy live.json after station changes and upload the replacement file.</div>
+        <div class="linkbox"><button class="btn ghost" id="sCopyStatus"><svg class="ico" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy complete live.json</span></button></div>
       </div>
       <div class="field" style="margin-bottom:0">
         <label>Director controls (needs a room)</label>
@@ -1202,14 +1202,37 @@
   function lockAdmin(){ adminUnlocked=false; applyAdmin(); render(); toast("Admin locked"); }
   function setActive(on){ state.active=!!on; persist(); render();
     toast(on?"Wall is LIVE":"Wall is OFF air", on); if(state.statusUrl) toast("Publish live.json to push this to parents"); }
-  function statusJson(){ return JSON.stringify({ active:!!state.active, down: state.feeds.filter(function(f){return f.down;}).map(function(f){return f.streamId;}) }); }
+  function statusJson(){
+    // live.json is now the single public source of truth for the parent wall.
+    // It carries the complete encoded wall plus fast-changing live controls.
+    return JSON.stringify({
+      version: 1,
+      active: !!state.active,
+      down: state.feeds.filter(function(f){return f.down;}).map(function(f){return f.streamId;}),
+      wall: encodeState(state)
+    }, null, 2);
+  }
   function pollStatus(){
     if(!state.statusUrl || adminUnlocked) return;
-    fetch(state.statusUrl,{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){
+    fetch(state.statusUrl,{cache:"no-store"}).then(function(r){
+      if(!r.ok) throw new Error("live.json returned "+r.status);
+      return r.json();
+    }).then(function(j){
+      // A plain lmcaea.html URL has no #w payload. Load the shared wall from live.json.
+      if(typeof j.wall==="string" && j.wall){
+        try{
+          var remote=decodeState(j.wall);
+          // Keep the local polling address so subsequent checks continue to work.
+          remote.statusUrl=state.statusUrl||remote.statusUrl||"live.json";
+          state=remote;
+          isViewerLink=true;
+          applyAdmin();
+        }catch(e){ console.warn("Could not decode wall configuration from live.json", e); }
+      }
       if(typeof j.active==="boolean") state.active=j.active;
       if(Array.isArray(j.down)) state.feeds.forEach(function(f){ f.down = j.down.indexOf(f.streamId)>=0; });
       render();
-    }).catch(function(){});
+    }).catch(function(e){ console.warn("Could not load live.json", e); });
   }
   function directorLink(){
     var r=(state.linkRoom||"").trim(); if(!r) return "";
@@ -1276,7 +1299,7 @@
   };
   $("uPass").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("uGo").click(); } });
   $("sCopyStatus").onclick=function(){ var t=statusJson();
-    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast("live.json copied — paste it into your live.json file");}).catch(function(){toast("Copy failed",false);}); };
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast("Complete live.json copied — upload it beside lmcaea.html");}).catch(function(){toast("Copy failed",false);}); };
   $("sDirector").onclick=function(){ var l=directorLink(); if(!l){ toast("Set a Room in Players & stations first", false); return; } window.open(l,"_blank"); };
   $("shareClose").onclick=function(){ hideModal("share"); };
   $("copyLink").onclick=function(){ var inp=$("shareLink"); inp.select();
