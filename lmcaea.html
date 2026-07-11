@@ -189,6 +189,12 @@
   .linkbox input{flex:1;font-family:var(--mono);font-size:12px;}
   .kv{font-size:12.5px;color:var(--muted);margin:4px 0 0;}
   .divider{height:1px;background:var(--line);margin:20px 0;}
+  .prow{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--panel-2);}
+  .prow .pname{font-size:13.5px;font-weight:600;color:var(--ink);flex:0 0 34%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .prow input{flex:1;min-width:0;font-family:var(--mono);font-size:11.5px;padding:7px 9px;border-radius:6px;border:1px solid var(--line-2);background:#0e141b;color:var(--muted);}
+  .prow .btn{padding:7px 11px;font-size:12.5px;}
+  .prow.empty-note{color:var(--faint);font-size:13px;justify-content:center;background:transparent;border-style:dashed;}
+  @media (max-width:560px){ .prow{flex-wrap:wrap;} .prow .pname{flex:1 1 100%;} }
 
   .drawer{position:fixed;z-index:41;top:0;right:0;height:100vh;width:min(560px,96vw);background:var(--panel);border-left:1px solid var(--line-2);
     transform:translateX(102%);transition:transform .22s ease;overflow:auto;box-shadow:-20px 0 60px rgba(0,0,0,.4);}
@@ -226,10 +232,37 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast .ok{color:var(--ready);}
 
+  /* ---------- Player join screen ---------- */
+  .join-screen{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto;
+    background:radial-gradient(130% 90% at 50% -10%, #16202c 0%, var(--bg) 60%) fixed, var(--bg);}
+  .join-screen.show{display:flex;}
+  .join-card{width:min(470px,94vw);background:var(--panel);border:1px solid var(--line-2);border-radius:16px;padding:26px 24px 24px;box-shadow:0 30px 80px rgba(0,0,0,.55);}
+  .join-card .onair{justify-content:center;margin-bottom:16px;}
+  .join-card .onair .dot{background:var(--tally);animation:pulse 1.4s ease-in-out infinite;}
+  .join-card .onair .txt{color:var(--tally);}
+  .join-card .eyebrow{text-align:center;margin-bottom:6px;}
+  .join-card h1{font-family:var(--mono);font-weight:700;font-size:20px;line-height:1.3;text-align:center;margin:0 0 8px;color:var(--ink);}
+  .join-p{font-size:13.5px;color:var(--muted);text-align:center;margin:0 0 20px;}
+  .join-tip{font-size:12px;color:var(--faint);margin:14px 0 0;line-height:1.5;border-top:1px solid var(--line);padding-top:12px;}
+  .join-tip b{color:var(--muted);}
+
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
 </style>
 </head>
 <body>
+
+<div class="join-screen" id="joinScreen">
+  <div class="join-card">
+    <div class="onair"><span class="dot"></span><span class="txt">GO LIVE</span></div>
+    <div class="eyebrow" id="joinEvent">Competition stream</div>
+    <h1>Share your gameplay</h1>
+    <p class="join-p">Type your team, then choose the game window or screen to share on the next step. Keep this tab open while you play — closing it stops your stream.</p>
+    <div class="field"><label for="jTeam">Team name</label><input type="text" id="jTeam" placeholder="e.g. Watervliet Blue" /></div>
+    <div class="field"><label for="jPlayer">Your name / gamertag (optional)</label><input type="text" id="jPlayer" placeholder="optional" /></div>
+    <button class="btn primary" id="jGo" style="width:100%;justify-content:center;font-size:15px;padding:12px">Go live →</button>
+    <p class="join-tip"><b>For the smoothest 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> rather than a single window. Use Chrome or Edge.</p>
+  </div>
+</div>
 
 <header class="topbar">
   <div class="onair" title="Wall status"><span class="dot"></span><span class="txt" id="airTxt">STANDBY</span></div>
@@ -237,6 +270,7 @@
   <span class="chip delay" id="delayChip" title="Broadcast delay — click for settings"><span class="led"></span><span id="delayTxt">⏱ 3s delay</span></span>
   <span class="chip live-chip" id="liveChip"><span class="led"></span><span id="liveCount">0 live</span></span>
   <button class="btn primary" id="addBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Add feed</span></button>
+  <button class="btn ghost" id="playerBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12a4 4 0 0 1 4-4h3M20 12a4 4 0 0 1-4 4h-3M8 12h8"/></svg><span class="lbl">Player links</span></button>
   <button class="btn ghost" id="editBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="lbl">Edit</span></button>
   <button class="btn ghost" id="shareBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg><span class="lbl">Share</span></button>
   <button class="icon-btn" id="settingsBtn" title="Wall settings" aria-label="Wall settings"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.2 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg></button>
@@ -291,7 +325,8 @@
         <label for="fBitrate">Video bitrate cap (kbps)</label>
         <select id="fBitrate">
           <option value="1500">1500 · 720p</option>
-          <option value="2500">2500 · 1080p (default)</option>
+          <option value="2500">2500 · 1080p</option>
+          <option value="3000">3000 · 1080p (relay cap)</option>
           <option value="4000">4000 · 1080p60</option>
           <option value="6000">6000 · high‑motion 1080p60</option>
           <option value="8000">8000 · crisp / 1440p‑ish</option>
@@ -330,6 +365,14 @@
     <button class="icon-btn" id="settingsClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
   <div class="modal-body">
     <div class="field">
+      <label for="sBwMode">Bandwidth mode</label>
+      <select id="sBwMode">
+        <option value="meshcast">Relay (Meshcast) · Twitch‑safe — recommended</option>
+        <option value="p2p">Direct (P2P) · lowest latency</option>
+      </select>
+      <div class="hint">Relay sends each player's stream through a server, so a player uploads <b>one</b> capped stream no matter how many people click in — like Twitch. Direct is peer‑to‑peer: lower latency and exact delay possible, but each simultaneous viewer costs the player another upload.</div>
+    </div>
+    <div class="field">
       <label for="sDelay">Broadcast delay · anti‑cheat</label>
       <select id="sDelay">
         <option value="0">Off · live (no protection)</option>
@@ -338,31 +381,73 @@
         <option value="4000">4 seconds</option>
         <option value="5000">5 seconds</option>
       </select>
-      <div class="hint">Every feed is held back by this much before anyone on the wall sees it, so a live view can't be used to relay information. Applies to everyone you share the wall with. Chrome or Edge only.</div>
+      <div class="hint">Every feed is held back this much before anyone on the wall sees it, so a live view can't relay information. Applies to everyone you share the wall with. Chrome or Edge only.</div>
     </div>
     <div class="field toggle-row">
       <input type="checkbox" id="sChunked" />
       <div>
-        <label for="sChunked">Sources are published in chunked mode</label>
-        <div class="sub">Turn on <b>only if</b> the players' push links include <code style="font-family:var(--mono)">&chunked</code>. This makes the delay exact and frame‑accurate. Left off, the delay is best‑effort — Chromium trims buffers above ~4s, so it's a deterrent, not a guarantee.</div>
+        <label for="sChunked">Exact delay (chunked mode)</label>
+        <div class="sub">Makes the delay frame‑accurate instead of best‑effort. <b>Direct mode only</b> — Meshcast can't use it. When on, player links publish in chunked mode automatically.</div>
       </div>
     </div>
     <div class="setnote" id="delayNote"></div>
     <div class="divider"></div>
     <div class="field">
-      <label for="sDefBitrate">Default bitrate for new feeds (kbps)</label>
+      <label for="sDefBitrate">Max bitrate per player (kbps)</label>
       <select id="sDefBitrate">
-        <option value="1500">1500 · 720p</option>
+        <option value="1500">1500 · 720p, light</option>
         <option value="2500">2500 · 1080p</option>
-        <option value="4000">4000 · 1080p60</option>
-        <option value="6000">6000 · high‑motion 1080p60</option>
+        <option value="3000">3000 · 1080p (relay cap)</option>
+        <option value="4000">4000 · 1080p60 (direct)</option>
+        <option value="6000">6000 · Twitch 1080p60 (direct)</option>
       </select>
+      <div class="hint">The cap on each player's upload. Twitch 1080p60 ≈ 6000. Relay/Meshcast tops out around 3000 in practice — plenty for gameplay and comfortably under Twitch.</div>
     </div>
     <div class="field toggle-row" style="margin-bottom:4px">
       <input type="checkbox" id="sClean" checked />
       <div><label for="sClean">Clean player</label><div class="sub">Hide VDO.Ninja's own control bar inside the pop‑up viewer.</div></div>
     </div>
     <div class="form-actions"><button class="btn primary" id="settingsSave">Save settings</button></div>
+  </div>
+</div>
+
+<!-- Player links -->
+<div class="modal" id="players" role="dialog" aria-modal="true" aria-label="Player links">
+  <div class="modal-head"><h3>Player links</h3>
+    <button class="icon-btn" id="playersClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body">
+    <p style="margin-top:0;color:var(--muted);font-size:14px">You host the stream IDs — the tool builds each player a ready link. They open it, type their <b>team name</b>, pick their screen, and they're live. Nothing to generate or report back.</p>
+
+    <div class="row-2">
+      <div class="field" style="margin-bottom:12px"><label for="pEvent">Event code</label><input type="text" id="pEvent" placeholder="e.g. spring-lan" spellcheck="false" /><div class="hint">Prefixes each stream ID so they're unique to your event.</div></div>
+      <div class="field" style="margin-bottom:12px"><label for="pRoom">Room (optional)</label><input type="text" id="pRoom" placeholder="optional grouping" spellcheck="false" /></div>
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label for="pPass">Stream password · recommended</label>
+      <div class="linkbox"><input type="text" id="pPass" placeholder="stops anyone who guesses an ID from watching live" spellcheck="false" /><button class="btn ghost" id="pGenPass">Generate</button></div>
+    </div>
+    <div class="row-2">
+      <div class="field toggle-row" style="margin-bottom:6px"><input type="checkbox" id="pFps" checked /><div><label for="pFps">Force 60fps</label></div></div>
+      <div class="field toggle-row" style="margin-bottom:6px"><input type="checkbox" id="pMotion" checked /><div><label for="pMotion">Prioritize motion</label><div class="sub">Smoother gameplay over sharpness.</div></div></div>
+    </div>
+    <div class="setnote" id="pDelayNote"></div>
+
+    <div class="divider"></div>
+    <div class="field">
+      <label for="pRoster">Add players — one name per line</label>
+      <textarea id="pRoster" placeholder="Match 1 — Player 1&#10;Match 1 — Player 2&#10;Caster"></textarea>
+    </div>
+    <div class="form-actions" style="justify-content:flex-start;margin-top:0">
+      <button class="btn primary" id="pCreate">Create links & slots</button>
+      <button class="btn ghost" id="pApply">Apply room + password to all</button>
+    </div>
+
+    <div class="divider"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <label style="font-size:12.5px;font-weight:600;color:var(--muted);margin:0">Send these to players</label>
+      <button class="btn ghost" id="pCopyAll"><svg class="ico" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy all</span></button>
+    </div>
+    <div id="pList"></div>
   </div>
 </div>
 
@@ -402,12 +487,12 @@
     <div class="steps">
       <div class="step"><h5>Put it online (GitHub Pages)</h5>
         <p>Create a repo, add this file as <code>index.html</code>, then Settings → Pages → Deploy from branch → <code>main</code> / root. In a minute it's live at <code>your‑name.github.io/repo</code>. One file, nothing to build.</p></div>
-      <div class="step"><h5>Set the anti‑cheat delay</h5>
-        <p>Open <b>Settings</b> (gear) and pick a delay — 3 seconds is typical. For a guaranteed exact delay, have the players push with <code>&chunked</code> and turn on "Sources are published in chunked mode." <b>Test it before the event:</b> point one feed at a phone stopwatch and confirm the lag is what you expect.</p></div>
-      <div class="step"><h5>Get a feed to add</h5>
-        <p>Each player's PC or capture publishes to VDO.Ninja and gives you a <b>view link</b> (<code>?view=…</code>) or a <b>stream ID</b>. For rooms, grab the <b>room name</b> and <b>password</b> too.</p></div>
-      <div class="step"><h5>Add it to the wall</h5>
-        <p>Click <b>Add feed</b>, paste the link or ID, name it (e.g. "Match 1 — Player 1"), pick a bitrate (2500–6000 for 1080p gameplay), Save. The slot sits dark — no bandwidth — until opened.</p></div>
+      <div class="step"><h5>Pick bandwidth + delay</h5>
+        <p>Open <b>Settings</b>. Leave <b>Relay (Meshcast)</b> on so each player uploads just one capped stream — the same load as going to Twitch — no matter how many people watch. Set a delay (3s is typical). <b>Test it before the event:</b> send yourself a link, share a phone stopwatch, and confirm the lag. Need a frame‑exact hold and only one control room is watching? Switch to Direct + Exact delay.</p></div>
+      <div class="step"><h5>Make the player links</h5>
+        <p>Open <b>Player links</b>. Set an event code and a stream password, type your players' names (one per line), and hit <b>Create links & slots</b>. The tool mints a private stream ID for each, builds a click‑and‑share link, and drops a matching slot on your wall — all in one go.</p></div>
+      <div class="step"><h5>Send them out</h5>
+        <p><b>Copy all</b> to paste into an email or sheet, or copy each link on its own. A player opens their link in Chrome/Edge, types their <b>team name</b>, picks their screen or game window, and they're publishing — nothing to generate, nothing to report back. (Rather enter feeds by hand? <b>Add feed</b> still works.)</p></div>
       <div class="step"><h5>Watch a feed</h5>
         <p>Click a slot to go live. Opening another closes the first, so only one stream pulls data. Use <b>Pop out</b> for a floating window if you need to watch two at once (each uses its own bandwidth).</p></div>
       <div class="step"><h5>Share the wall</h5>
@@ -425,6 +510,23 @@
     </ul>
     <div class="callout crit">The delay only protects <b>this wall</b>. Anyone who can open the raw <code>?view=…</code> link sees gameplay live. Keep the source/stream IDs private, password‑protect the streams, and only distribute the wall link.</div>
     <p><b>Always test the real delay</b> before matches start — point a feed at a running stopwatch and measure it. Network conditions and browser versions change the result.</p>
+
+    <h4>Player links — you host the IDs</h4>
+    <p>Open <b>Player links</b>, set an event code and a password, and add player names. For each, the tool mints a private stream ID and a link to send. That link opens <b>this page</b> for the player, asks their <b>team name</b>, then hands them to VDO.Ninja already set to screen‑share. A matching slot appears on your wall automatically, and the team name shows as a label on the feed when you watch.</p>
+    <ul>
+      <li><b>Event code + password</b> keep IDs unique and stop anyone who guesses an ID from watching live. "Apply room + password to all" retrofits feeds you added earlier.</li>
+      <li><b>Relay vs direct</b> — in relay mode the player link publishes via Meshcast (one capped upload); in direct mode with exact delay on, it publishes in chunked mode. Either way the player does nothing but type a team and pick a screen.</li>
+      <li><b>Best capture</b> — sharing an entire screen or a Chrome tab reaches ~60fps; a single "window" caps near 42fps. For heavy games, the Game Capture app or an OBS virtual camera beats browser capture.</li>
+      <li>The browser still shows its own "choose what to share" picker — a security step no link can skip.</li>
+    </ul>
+
+    <h4>Bandwidth — keeping it Twitch‑safe</h4>
+    <p>Plain VDO.Ninja is peer‑to‑peer: every viewer pulls a separate copy straight from the player's PC, so five people watching one player means that player uploads five streams. <b>Relay (Meshcast)</b> mode fixes this — the player uploads one capped stream to a server that fans it out, so their upload stays flat like a Twitch broadcast no matter how many click in. That's the default.</p>
+    <ul>
+      <li><b>Max bitrate per player</b> (Settings) is the upload cap. Relay tops out near 3000 kbps in practice — under Twitch's ~6000 and smooth for gameplay.</li>
+      <li><b>Direct (P2P)</b> gives the lowest latency and an exact frame‑locked delay, but only stays Twitch‑safe if just one control room watches a given player at a time.</li>
+      <li>Your own download stays light too: the wall keeps one feed open at a time, and dark slots use nothing.</li>
+    </ul>
 
     <h4>Why this saves bandwidth</h4>
     <p>Each slot is a still image until clicked — zero connection, zero data. VDO.Ninja is peer‑to‑peer, so video only flows while a viewer is open. The wall keeps one feed live at a time and caps each feed's bitrate, so you never pull every match at once.</p>
@@ -467,7 +569,7 @@
 
     <h4>Troubleshooting</h4>
     <ul>
-      <li><b>Delay seems short / inconsistent</b> — you're in best‑effort mode. Have players push <code>&chunked</code> and enable chunked mode; watch on Chrome/Edge.</li>
+      <li><b>Delay seems short / inconsistent</b> — best‑effort delay varies. For a hard frame‑locked hold, switch to Direct mode + Exact delay (Settings); note that trades away the Twitch‑safe bandwidth cap. Always watch on Chrome/Edge.</li>
       <li><b>Black screen</b> — the player is offline, the ID is wrong, or it needs a password.</li>
       <li><b>Nothing connects</b> — must be HTTPS (GitHub Pages is). School/venue firewalls sometimes block WebRTC.</li>
       <li><b>Pop‑out blocked</b> — allow pop‑ups, or use the in‑page viewer.</li>
@@ -485,7 +587,8 @@
   var LS_KEY="vdoFeedWall.v2";
   var VDO="https://vdo.ninja/?";
 
-  var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:2500, clean:true, feeds:[] };
+  var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:3000, clean:true,
+    bwMode:"meshcast", eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
   var current=null;
 
   function $(id){ return document.getElementById(id); }
@@ -498,8 +601,14 @@
       title:s.title||"Competition Feed Wall",
       delayMs:(s.delayMs!=null?+s.delayMs:3000),
       chunked:!!s.chunked,
-      defaultBitrate:(s.defaultBitrate!=null?+s.defaultBitrate:2500),
+      defaultBitrate:(s.defaultBitrate!=null?+s.defaultBitrate:3000),
       clean:(s.clean!=null?!!s.clean:true),
+      bwMode:(s.bwMode==="p2p"?"p2p":"meshcast"),
+      eventCode:s.eventCode||"",
+      linkRoom:s.linkRoom||"",
+      linkPassword:s.linkPassword||"",
+      senderFps60:(s.senderFps60!=null?!!s.senderFps60:true),
+      senderMotion:(s.senderMotion!=null?!!s.senderMotion:true),
       feeds:(s.feeds||[]).map(function(f){ if(!f.id)f.id=uid(); return f; })
     };
   }
@@ -521,8 +630,9 @@
     if(f.bitrate && +f.bitrate>0) p.push("videobitrate="+(+f.bitrate));
     if(!f.audio) p.push("noaudio");
     if(f.codec) p.push("codec="+encodeURIComponent(f.codec));
-    if(state.chunked) p.push("chunked");
+    if(state.bwMode==="p2p" && state.chunked) p.push("chunked");
     if(state.delayMs && +state.delayMs>0) p.push("buffer="+(+state.delayMs));
+    p.push("label");  // overlay the team name the player set on their end
     if(state.clean) p.push("cleanoutput");
     return VDO + p.join("&");
   }
@@ -537,13 +647,57 @@
     }catch(e){ return null; }
   }
 
+  // Shared sender params, from a settings-bearing object (state or a decoded join payload)
+  function pushParams(cfg, sid, room, password, bitrate, label){
+    var p=["push="+encodeURIComponent(sid)];
+    if(room) p.push("room="+encodeURIComponent(room));
+    if(password) p.push("password="+encodeURIComponent(password));
+    p.push("screenshare");   // publish a screen, not a camera
+    p.push("autostart");     // skip the join/preview screen
+    p.push("quality=0");     // target full 60fps
+    if(cfg.fps) p.push("fps=60");
+    if(cfg.motion) p.push("contenthint=motion");
+    var br=(bitrate&&+bitrate>0)?+bitrate:3000;
+    if(cfg.meshcast){ p.push("meshcast"); p.push("meshcastbitrate="+br); p.push("mcscreensharebitrate="+br); }
+    else if(cfg.chunked){ p.push("chunked="+br); }
+    else { p.push("videobitrate="+br); }
+    if(label) p.push("label="+encodeURIComponent(label));
+    return VDO + p.join("&");
+  }
+  function cfgFromState(){ return { meshcast:state.bwMode==="meshcast", chunked:(state.bwMode==="p2p"&&state.chunked), fps:state.senderFps60, motion:state.senderMotion }; }
+
+  // The link you actually hand to a player: opens THIS page, asks their team, then goes live.
+  function buildJoinLink(f){
+    if(!f.streamId) return "";
+    var pl={ i:f.streamId, r:f.room||"", p:f.password||"", b:(f.bitrate&&+f.bitrate>0?+f.bitrate:state.defaultBitrate),
+      mc:state.bwMode==="meshcast"?1:0, ck:(state.bwMode==="p2p"&&state.chunked)?1:0, f:state.senderFps60?1:0, m:state.senderMotion?1:0, t:state.title||"" };
+    var b64=btoa(unescape(encodeURIComponent(JSON.stringify(pl)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    return location.origin+location.pathname+"#join="+b64;
+  }
+  function decodeJoin(str){
+    var b64=str.replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
+    return JSON.parse(decodeURIComponent(escape(atob(b64))));
+  }
+  function joinPushUrl(pl,label){
+    return pushParams({ meshcast:!!pl.mc, chunked:!!pl.ck, fps:!!pl.f, motion:!!pl.m }, pl.i, pl.r||"", pl.p||"", pl.b||3000, label);
+  }
+
+  function slug(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,28); }
+  function makeStreamId(name,n){
+    var ev=slug(state.eventCode)||slug(state.title)||"evt";
+    var nm=slug(name)||("p"+(n||1));
+    var rand=Math.random().toString(36).slice(2,6);
+    return (ev+"-"+nm+"-"+rand).slice(0,64);
+  }
+
   /* ---------- persistence ---------- */
   function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
   function load(){ try{ var raw=localStorage.getItem(LS_KEY); if(raw){ state=normalize(JSON.parse(raw)); } }catch(e){} }
 
   /* ---------- share encode/decode ---------- */
   function encodeState(o){
-    var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0,
+    var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:(o.bwMode==="p2p"?"p2p":"meshcast"),
+      ec:o.eventCode, lr:o.linkRoom, lp:o.linkPassword, sf:o.senderFps60?1:0, sm:o.senderMotion?1:0,
       f:o.feeds.map(function(f){
         var s={ n:f.name, i:f.streamId };
         if(f.room) s.r=f.room; if(f.password) s.p=f.password;
@@ -557,7 +711,9 @@
     var b64=str.replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
     var o=JSON.parse(decodeURIComponent(escape(atob(b64))));
     return normalize({
-      title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true),
+      title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true), bwMode:(o.bm==="p2p"?"p2p":"meshcast"),
+      eventCode:o.ec||"", linkRoom:o.lr||"", linkPassword:o.lp||"",
+      senderFps60:(o.sf!=null?!!o.sf:true), senderMotion:(o.sm!=null?!!o.sm:true),
       feeds:(o.f||[]).map(function(s){
         return { id:uid(), name:s.n||"Feed", streamId:s.i||"", room:s.r||"", password:s.p||"",
                  bitrate:(s.b!=null?s.b:2500), codec:s.c||"", audio:!!s.a };
@@ -633,7 +789,7 @@
     $("airTxt").textContent=live?"ON AIR":"STANDBY";
     $("liveCount").textContent=live?("1 live · "+(kbps>0?"~"+kbps+"k":"default")):"0 live";
     var d=+state.delayMs||0, chip=$("delayChip");
-    if(d>0){ chip.classList.remove("off"); $("delayTxt").textContent="⏱ "+(d/1000)+"s delay"+(state.chunked?" · exact":""); }
+    if(d>0){ chip.classList.remove("off"); $("delayTxt").textContent="⏱ "+(d/1000)+"s delay"+((state.bwMode==="p2p"&&state.chunked)?" · exact":""); }
     else { chip.classList.add("off"); $("delayTxt").textContent="⏱ NO DELAY"; }
   }
 
@@ -654,7 +810,7 @@
     meta.push('<span class="sep">·</span>'+((f.bitrate&&+f.bitrate>0)?esc(f.bitrate)+"k":"default"));
     meta.push('<span class="sep">·</span>'+(f.audio?"audio":"muted"));
     if(f.codec) meta.push('<span class="sep">·</span>'+esc(f.codec));
-    meta.push('<span class="sep">·</span><span class="dly'+(d>0?'':' off')+'">'+(d>0?("⏱ "+(d/1000)+"s delay"+(state.chunked?" (exact)":"")):"⏱ NO DELAY")+'</span>');
+    meta.push('<span class="sep">·</span><span class="dly'+(d>0?'':' off')+'">'+(d>0?("⏱ "+(d/1000)+"s delay"+((state.bwMode==="p2p"&&state.chunked)?" (exact)":"")):"⏱ NO DELAY")+'</span>');
     $("viewerMeta").innerHTML=meta.join(" ");
     $("viewerTab").onclick=function(){ window.open(url,"_blank"); };
     $("viewerPop").onclick=function(){ window.open(url,"_blank","width=960,height=600,noopener"); closeViewer(); };
@@ -705,6 +861,7 @@
 
   /* ---------- settings ---------- */
   function openSettings(){
+    $("sBwMode").value=state.bwMode;
     $("sDelay").value=String(state.delayMs);
     $("sChunked").checked=!!state.chunked;
     $("sDefBitrate").value=String(state.defaultBitrate);
@@ -713,22 +870,26 @@
     showModal("settings");
   }
   function updateDelayNote(){
-    var d=+$("sDelay").value, ck=$("sChunked").checked, el=$("delayNote");
+    var d=+$("sDelay").value, ck=$("sChunked").checked, mesh=$("sBwMode").value==="meshcast", el=$("delayNote");
     if(d<=0){ el.style.borderColor="var(--tally)"; el.style.background="rgba(255,46,46,.08)";
       el.innerHTML="<b>No delay is active.</b> Live gameplay can be relayed to players. Only turn this off for non‑competitive feeds."; return; }
+    if(mesh){ el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
+      el.innerHTML="<b>Relay mode.</b> Bandwidth is capped no matter how many watch. Delay is best‑effort ~"+(d/1000)+"s (relay can't use exact/chunked). Test the real delay before matches."; return; }
     el.style.borderColor="var(--amber)"; el.style.background="rgba(245,166,35,.07)";
-    if(ck) el.innerHTML="<b>Exact delay.</b> As long as the players really are pushing <code style='font-family:var(--mono)'>&chunked</code>, feeds will be held back "+(d/1000)+"s frame‑accurately. Test it before matches.";
-    else el.innerHTML="<b>Best‑effort delay (~"+(d/1000)+"s).</b> Works with no changes from players, but Chromium may trim it. For a guaranteed hold, enable chunked mode. Test the real delay before matches.";
+    if(ck) el.innerHTML="<b>Direct · exact delay.</b> Feeds held back "+(d/1000)+"s frame‑accurately. Remember: each simultaneous viewer costs the player another upload. Test before matches.";
+    else el.innerHTML="<b>Direct · best‑effort ~"+(d/1000)+"s.</b> Chromium may trim it; enable exact delay for a hard hold. Each simultaneous viewer costs the player another upload.";
   }
+  $("sBwMode").addEventListener("change",updateDelayNote);
   $("sDelay").addEventListener("change",updateDelayNote);
   $("sChunked").addEventListener("change",updateDelayNote);
   function saveSettings(){
+    state.bwMode=$("sBwMode").value==="p2p"?"p2p":"meshcast";
     state.delayMs=+$("sDelay").value;
     state.chunked=$("sChunked").checked;
     state.defaultBitrate=+$("sDefBitrate").value;
     state.clean=$("sClean").checked;
     persist(); hideModal("settings"); render();
-    toast(state.delayMs>0?("Delay set to "+(state.delayMs/1000)+"s"):"Delay turned off", state.delayMs>0);
+    toast(state.bwMode==="meshcast"?"Saved · relay (Twitch‑safe)":"Saved · direct P2P");
   }
 
   /* ---------- share ---------- */
@@ -750,6 +911,74 @@
     persist(); render(); toast("Sample loaded — placeholders, they won't connect");
   }
 
+  /* ---------- player links ---------- */
+  function openPlayers(){
+    $("pEvent").value=state.eventCode||slug(state.title);
+    $("pRoom").value=state.linkRoom||"";
+    $("pPass").value=state.linkPassword||"";
+    $("pFps").checked=!!state.senderFps60;
+    $("pMotion").checked=!!state.senderMotion;
+    updatePDelayNote(); renderRoster();
+    showModal("players");
+  }
+  function updatePDelayNote(){
+    var el=$("pDelayNote");
+    if(state.bwMode==="meshcast"){ el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
+      el.innerHTML="<b>Relay mode (Twitch‑safe).</b> Each player uploads one capped stream no matter how many people watch. Delay is best‑effort "+(state.delayMs>0?(state.delayMs/1000)+"s":"off")+" (relay can't use exact chunked mode)."; return; }
+    if(state.delayMs>0 && state.chunked){ el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
+      el.innerHTML="<b>Direct P2P · exact delay.</b> Player links publish in chunked mode automatically. Note: upload grows with each simultaneous viewer."; return; }
+    if(state.delayMs>0){ el.style.borderColor="var(--amber)"; el.style.background="rgba(245,166,35,.07)";
+      el.innerHTML="<b>Direct P2P · best‑effort "+(state.delayMs/1000)+"s.</b> Upload grows with each simultaneous viewer. Turn on chunked mode in Settings for an exact hold."; return; }
+    el.style.borderColor="var(--tally)"; el.style.background="rgba(255,46,46,.08)";
+    el.innerHTML="<b>No delay set.</b> Turn one on in <b>Settings</b> for competition play.";
+  }
+  function pullPlayerSettings(){
+    state.eventCode=$("pEvent").value.trim();
+    state.linkRoom=$("pRoom").value.trim();
+    state.linkPassword=$("pPass").value.trim();
+    state.senderFps60=$("pFps").checked;
+    state.senderMotion=$("pMotion").checked;
+  }
+  function createPlayers(){
+    pullPlayerSettings();
+    var lines=$("pRoster").value.split("\n").map(function(x){return x.trim();}).filter(Boolean);
+    if(!lines.length){ toast("Add at least one player name", false); return; }
+    lines.forEach(function(name,i){
+      state.feeds.push({ id:uid(), name:name, streamId:makeStreamId(name, state.feeds.length+1),
+        room:state.linkRoom, password:state.linkPassword, bitrate:state.defaultBitrate, codec:"", audio:false });
+    });
+    $("pRoster").value="";
+    persist(); render(); renderRoster();
+    toast("Created "+lines.length+" player link"+(lines.length===1?"":"s"));
+  }
+  function applyRoomPwAll(){
+    pullPlayerSettings();
+    state.feeds.forEach(function(f){ f.room=state.linkRoom; f.password=state.linkPassword; });
+    persist(); render(); renderRoster();
+    toast("Applied room + password to all feeds");
+  }
+  function renderRoster(){
+    pullPlayerSettings();
+    var wrap=$("pList"); wrap.innerHTML="";
+    var rows=state.feeds.filter(function(f){ return f.streamId; });
+    if(!rows.length){ wrap.innerHTML='<div class="prow empty-note">No player links yet — add names above and hit Create.</div>'; return; }
+    rows.forEach(function(f){
+      var url=buildJoinLink(f);
+      var row=document.createElement("div"); row.className="prow";
+      row.innerHTML='<span class="pname" title="'+esc(f.name)+'">'+esc(f.name)+'</span><input type="text" readonly value="'+esc(url)+'" /><button class="btn primary">Copy</button>';
+      var inp=row.querySelector("input"), btn=row.querySelector("button");
+      btn.onclick=function(){ inp.select(); (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(function(){toast("Copied "+f.name+"'s link");}).catch(function(){document.execCommand("copy");toast("Copied");}); };
+      wrap.appendChild(row);
+    });
+  }
+  function copyAllPlayers(){
+    var rows=state.feeds.filter(function(f){ return f.streamId; });
+    if(!rows.length){ toast("Nothing to copy yet", false); return; }
+    var text=rows.map(function(f){ return f.name+": "+buildJoinLink(f); }).join("\n");
+    (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){toast("Copied all "+rows.length+" links");}).catch(function(){toast("Couldn't copy — select manually", false);});
+  }
+  function genPass(){ $("pPass").value=Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,4); }
+
   /* ---------- modal/drawer plumbing ---------- */
   var openModals=[];
   function showModal(id){ $("scrim").classList.add("show"); $(id).classList.add("show"); if(openModals.indexOf(id)<0) openModals.push(id); }
@@ -763,6 +992,7 @@
   $("editBtn").onclick=function(){ var on=document.body.classList.toggle("editing"); $("editBtn").classList.toggle("primary",on);
     $("wallSub").textContent=on?"Edit mode — reorder with ◀ ▶, or edit / delete a slot.":"Slots stay dark until opened. One feed at a time, held back by the broadcast delay."; };
   $("shareBtn").onclick=openShare;
+  $("playerBtn").onclick=openPlayers;
   $("settingsBtn").onclick=openSettings;
   $("delayChip").onclick=openSettings;
   $("docsBtn").onclick=function(){ openDocs(); };
@@ -775,6 +1005,11 @@
   $("editorSave").onclick=saveEditor;
   $("settingsClose").onclick=function(){ hideModal("settings"); };
   $("settingsSave").onclick=saveSettings;
+  $("playersClose").onclick=function(){ pullPlayerSettings(); persist(); hideModal("players"); };
+  $("pGenPass").onclick=genPass;
+  $("pCreate").onclick=createPlayers;
+  $("pApply").onclick=applyRoomPwAll;
+  $("pCopyAll").onclick=copyAllPlayers;
   $("shareClose").onclick=function(){ hideModal("share"); };
   $("copyLink").onclick=function(){ var inp=$("shareLink"); inp.select();
     (navigator.clipboard?navigator.clipboard.writeText(inp.value):Promise.reject()).then(function(){toast("Link copied");}).catch(function(){ document.execCommand("copy"); toast("Link copied"); }); };
@@ -803,6 +1038,26 @@
 
   /* ---------- boot ---------- */
   load();
+  var mj=location.hash.match(/#join=(.+)$/);
+  if(mj){
+    try{
+      var pl=decodeJoin(mj[1]);
+      $("joinEvent").textContent=(pl.t||"Competition")+" · screen share";
+      $("joinScreen").classList.add("show");
+      var goLive=function(){
+        var team=$("jTeam").value.trim();
+        if(!team){ toast("Enter your team name", false); $("jTeam").focus(); return; }
+        var player=$("jPlayer").value.trim();
+        var label=player?(team+" · "+player):team;
+        window.location.href=joinPushUrl(pl,label);
+      };
+      $("jGo").onclick=goLive;
+      $("jTeam").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
+      $("jPlayer").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
+      setTimeout(function(){ $("jTeam").focus(); },80);
+      return; // player view only — don't render the director wall
+    }catch(e){ $("joinScreen").classList.remove("show"); }
+  }
   var m=location.hash.match(/#w=(.+)$/);
   if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){ state=shared; persist(); $("sharedBanner").classList.add("show"); history.replaceState(null,"",location.pathname+location.search); } }catch(e){} }
   render();
