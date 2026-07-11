@@ -101,13 +101,16 @@
   .slate{position:relative;z-index:1;text-align:center;color:var(--faint);}
   .slate .standby{font-family:var(--mono);font-size:12px;letter-spacing:.28em;display:flex;align-items:center;gap:8px;justify-content:center;}
   .slate .standby .amberdot{width:7px;height:7px;border-radius:50%;background:var(--amber);opacity:.85;animation:blink 2.2s steps(2,end) infinite;}
-  .live-now{display:none;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.18em;color:#fff;
+  .live-stack{display:none;flex-direction:column;align-items:center;gap:9px;width:min(92%,320px);}
+  .live-now{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.18em;color:#fff;
     padding:8px 13px;border:1px solid rgba(255,46,46,.9);border-radius:999px;background:rgba(146,15,20,.88);
     box-shadow:0 0 0 1px rgba(255,46,46,.2),0 0 22px rgba(255,46,46,.28);animation:liveBlink 1.15s ease-in-out infinite;}
   .live-now .live-dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(255,255,255,.9);}
+  .live-label{max-width:100%;padding:6px 10px;border-radius:7px;border:1px solid rgba(232,236,242,.24);background:rgba(5,8,11,.82);
+    color:var(--ink);font-size:13px;font-weight:700;line-height:1.25;letter-spacing:.01em;overflow-wrap:anywhere;box-shadow:0 5px 16px rgba(0,0,0,.32);}
   .slot.feed-live{border-color:rgba(255,46,46,.78);box-shadow:0 0 0 1px rgba(255,46,46,.16),0 8px 26px rgba(255,46,46,.1);}
   .slot.feed-live .standby{display:none;}
-  .slot.feed-live .live-now{display:inline-flex;}
+  .slot.feed-live .live-stack{display:flex;}
   .slot.feed-live .play-hint .pill{border-color:var(--tally);}
   @keyframes liveBlink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.58;transform:scale(.98);}}
   .presence-monitor{position:fixed!important;left:-10000px!important;top:-10000px!important;width:2px!important;height:2px!important;
@@ -743,7 +746,7 @@
     bwMode:"meshcast", audioOn:true, active:true, adminHash:"", playerHash:"", statusUrl:"live.json",
     eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
   var current=null, isViewerLink=false, adminUnlocked=false;
-  var liveStations=Object.create(null), presenceFrame=null, presenceKey="", presencePollTimer=null;
+  var liveStations=Object.create(null), liveStationLabels=Object.create(null), presenceFrame=null, presenceKey="", presencePollTimer=null;
 
   function $(id){ return document.getElementById(id); }
   function uid(){ return Math.random().toString(36).slice(2,9); }
@@ -893,27 +896,58 @@
     sid=cleanStreamId(sid);
     return state.feeds.some(function(f){ return cleanStreamId(f.streamId)===sid; });
   }
-  function setStationLive(sid,on){
+  function cleanLiveLabel(label){
+    return String(label==null?"":label).replace(/[\u0000-\u001f\u007f]/g," ").replace(/\s+/g," ").trim().slice(0,120);
+  }
+  function presenceLabel(data){
+    if(!data||typeof data!=="object") return "";
+    var value=data.value;
+    var candidates=[
+      value&&typeof value==="object"?value.label:"",
+      data.label,
+      value&&typeof value==="object"?value.streamLabel:"",
+      value&&typeof value==="object"?value.name:""
+    ];
+    for(var i=0;i<candidates.length;i++){
+      var label=cleanLiveLabel(candidates[i]);
+      if(label) return label;
+    }
+    return "";
+  }
+  function setStationLive(sid,on,label){
     sid=cleanStreamId(sid);
     if(!sid||!isKnownStreamId(sid)) return;
     on=!!on;
-    if(!!liveStations[sid]===on) return;
-    if(on) liveStations[sid]=true; else delete liveStations[sid];
-    render();
+    label=cleanLiveLabel(label);
+    var wasLive=!!liveStations[sid];
+    var oldLabel=liveStationLabels[sid]||"";
+    if(on){
+      liveStations[sid]=true;
+      if(label) liveStationLabels[sid]=label;
+    }else{
+      delete liveStations[sid];
+      delete liveStationLabels[sid];
+    }
+    var labelChanged=on&&label&&label!==oldLabel;
+    if(wasLive!==on||labelChanged||(!on&&oldLabel)) render(); else updateLive();
   }
   function applyPresenceSnapshot(streamIDs){
     if(!streamIDs||typeof streamIDs!=="object") return;
-    var next=Object.create(null);
+    var next=Object.create(null), nextLabels=Object.create(null);
     var reported=Array.isArray(streamIDs)?streamIDs:Object.keys(streamIDs);
     reported.forEach(function(id){
       var sid=cleanStreamId(id);
-      if(sid&&isKnownStreamId(sid)) next[sid]=true;
+      if(sid&&isKnownStreamId(sid)){
+        next[sid]=true;
+        if(liveStationLabels[sid]) nextLabels[sid]=liveStationLabels[sid];
+      }
     });
     var changed=false;
     knownStreamIds().forEach(function(sid){
       if(!!liveStations[sid]!==!!next[sid]) changed=true;
     });
     liveStations=next;
+    liveStationLabels=nextLabels;
     if(changed) render(); else updateLive();
   }
   function requestPresenceSnapshot(){
@@ -926,9 +960,9 @@
     var data=e.data;
     if(!data||typeof data!=="object") return;
     if(data.streamIDs) applyPresenceSnapshot(data.streamIDs);
-    if(data.action==="guest-connected"&&data.streamID) setStationLive(data.streamID,true);
+    if(data.action==="guest-connected"&&data.streamID) setStationLive(data.streamID,true,presenceLabel(data));
     else if(data.action==="guest-disconnected"&&data.streamID) setStationLive(data.streamID,false);
-    else if(data.action==="push-connection"&&data.streamID) setStationLive(data.streamID,data.value!==false);
+    else if(data.action==="push-connection"&&data.streamID) setStationLive(data.streamID,data.value!==false,presenceLabel(data));
   }
   window.addEventListener("message",handlePresenceMessage,false);
 
@@ -937,14 +971,14 @@
     var key=ids.slice().sort().join(",");
     if(!key){
       if(presenceFrame&&presenceFrame.parentNode) presenceFrame.parentNode.removeChild(presenceFrame);
-      presenceFrame=null; presenceKey=""; liveStations=Object.create(null);
+      presenceFrame=null; presenceKey=""; liveStations=Object.create(null); liveStationLabels=Object.create(null);
       if(presencePollTimer){ clearInterval(presencePollTimer); presencePollTimer=null; }
       return;
     }
     if(presenceFrame&&presenceKey===key) return;
     if(presenceFrame&&presenceFrame.parentNode) presenceFrame.parentNode.removeChild(presenceFrame);
     if(presencePollTimer){ clearInterval(presencePollTimer); presencePollTimer=null; }
-    presenceKey=key; liveStations=Object.create(null);
+    presenceKey=key; liveStations=Object.create(null); liveStationLabels=Object.create(null);
     var fr=document.createElement("iframe");
     fr.className="presence-monitor";
     fr.title="Live feed presence monitor";
@@ -1014,6 +1048,7 @@
       var card=document.createElement("div");
       var streamKey=cleanStreamId(f.streamId);
       var isFeedLive=!!liveStations[streamKey];
+      var liveLabel=isFeedLive?(liveStationLabels[streamKey]||""):"";
       card.className="slot"+(current&&current.id===f.id?" open":"")+(f.down?" down":"")+(isFeedLive?" feed-live":"");
       card.dataset.id=f.id;
       card.dataset.streamId=streamKey;
@@ -1025,7 +1060,7 @@
           '<span class="slot-num">CAM '+num+'</span>'+
           '<span class="badge'+(d>0?'':' nodelay')+'">'+delayLabel+' '+(f.audio?'🔊':'🔇')+'</span>'+
           (f.down?'<span class="badge down-badge">TAKEN DOWN</span>':'')+
-          '<div class="slate"><div class="standby"><span class="amberdot"></span>STANDBY</div><div class="live-now"><span class="live-dot"></span>LIVE NOW</div></div>'+
+          '<div class="slate"><div class="standby"><span class="amberdot"></span>STANDBY</div><div class="live-stack"><div class="live-now"><span class="live-dot"></span>LIVE NOW</div>'+(liveLabel?'<div class="live-label">'+esc(liveLabel)+'</div>':'')+'</div></div>'+
           '<div class="play-hint"><span class="pill">▶ '+(isFeedLive?'WATCH LIVE':'OPEN FEED')+'</span></div>'+
         '</div>'+
         '<div class="slot-meta"><p class="slot-name">'+esc(f.name)+'</p>'+
@@ -1092,7 +1127,8 @@
     fr.setAttribute("allow","autoplay; fullscreen; picture-in-picture; camera; microphone");
     fr.setAttribute("allowfullscreen","true");
     wrap.appendChild(fr);
-    $("viewerName").textContent=f.name;
+    var liveLabel=liveStationLabels[cleanStreamId(f.streamId)]||"";
+    $("viewerName").textContent=f.name+(liveLabel?(" — "+liveLabel):"");
     var d=+state.delayMs||0;
     var meta=[];
     meta.push(esc(f.streamId||f.room||"—"));
