@@ -680,7 +680,7 @@
       <tr><td>4000–6000</td><td>fast 1080p60 — most esports</td></tr>
       <tr><td>8000+</td><td>crisp 1080p60 / 1440p, plenty of upload</td></tr>
     </table>
-    <p>Frame rate is set by the <b>sender</b>: add <code>&fps=60</code> (or <code>&maxframerate=60</code>) and <code>&contenthint=motion</code> to the players' push links for smoother motion. On Windows, Steve Seguin's <b>Game Capture</b> app publishes a game window straight into VDO.Ninja without OBS. There's also <b>Versus.cam</b> — a free esports‑tuned VDO.Ninja front‑end pre‑set for 1080p60 that's handy for the players' side.</p>
+    <p>Frame rate is requested by the <b>sender</b>: this wall adds <code>&screensharefps=60</code> to player links while keeping the rest of the proven direct VDO.Ninja URL clean. On Windows, Steve Seguin's <b>Game Capture</b> app publishes a game window straight into VDO.Ninja without OBS. There's also <b>Versus.cam</b> — a free esports‑tuned VDO.Ninja front‑end pre‑set for 1080p60 that's handy for the players' side.</p>
 
     <h4>Solo streams vs rooms</h4>
     <p>A solo stream is just an ID → <code>?view=ID</code>. A room feed adds room + scene → <code>?room=NAME&scene&view=ID</code>. Leave the Stream ID blank on a room feed to show the room's whole layout in one slot.</p>
@@ -776,17 +776,10 @@
 
   /* ---------- URL build / parse ---------- */
   function buildUrl(f){
-    // Reliable viewer path: mirror the proven manual demo exactly.
-    // The publisher and viewer must use the same plain stream ID.
+    // Proven direct viewer path. Do not add optional VDO.Ninja parameters here.
+    // The publisher and viewer must use the exact same alphanumeric stream ID.
     var sid=String(f.streamId||"").replace(/[^a-zA-Z0-9]/g,"");
-    var p=["view="+encodeURIComponent(sid)];
-    // The publisher sends the player's display label with &label.
-    // &showlabels tells VDO.Ninja to render that label over the video.
-    p.push("showlabels");
-    p.push("fontsize=24");
-    if(!f.audio || !state.audioOn) p.push("noaudio");
-    if(state.clean) p.push("cleanoutput");
-    return VDO + p.join("&");
+    return VDO+"view="+encodeURIComponent(sid)+"&showlabels&fontsize=24";
   }
   function parseVdo(str){
     try{
@@ -799,18 +792,13 @@
     }catch(e){ return null; }
   }
 
-  // Shared sender params, from a settings-bearing object (state or a decoded join payload)
+  // Shared direct sender URL. Extra settings arguments are intentionally ignored
+  // so every player uses the same proven push/view pairing.
   function pushParams(cfg, sid, room, password, bitrate, label){
-    // Reliable direct pairing documented by VDO.Ninja:
-    //   publisher: ?push=STATION_ID&screenshare2
-    //   viewer:    ?view=STATION_ID
-    // Both sides must use the exact same alphanumeric stream ID.
     var cleanId=String(sid||"").replace(/[^a-zA-Z0-9]/g,"");
-    var p=["push="+encodeURIComponent(cleanId), "screenshare2", "quality=0"];
-    if(cfg && cfg.fps) p.push("fps=60");
-    if(cfg && cfg.motion) p.push("contenthint=motion");
+    var p=["push="+encodeURIComponent(cleanId), "screenshare2", "screensharefps=60"];
     if(label) p.push("label="+encodeURIComponent(label));
-    return VDO + p.join("&");
+    return VDO+p.join("&");
   }
   function cfgFromState(){ return { meshcast:state.bwMode==="meshcast", chunked:(state.bwMode==="p2p"&&state.chunked), fps:state.senderFps60, motion:state.senderMotion }; }
 
@@ -844,6 +832,28 @@
   function buildPlayLink(){ return location.origin+location.pathname+"#play="+encodePlay(state); }
   function playStationUrl(pl, station, label){
     return pushParams({ meshcast:!!pl.mc, chunked:!!pl.ck, fps:!!pl.f, motion:!!pl.m }, station, pl.r||"", pl.p||"", pl.b||3000, label);
+  }
+
+  function auditStationOneUrls(){
+    var f=state.feeds.find(function(feed){ return feed.name==="Station 1"; }) || state.feeds[0];
+    if(!f) return;
+    var sid=String(f.streamId||"").replace(/[^a-zA-Z0-9]/g,"");
+    var sampleLabel="Alex R. • Watervliet Blue";
+    var viewerUrl=buildUrl(f);
+    var playerUrl=pushParams(null,sid,"","",0,sampleLabel);
+    var expectedViewer=VDO+"view="+encodeURIComponent(sid)+"&showlabels&fontsize=24";
+    var expectedPlayer=VDO+"push="+encodeURIComponent(sid)+"&screenshare2&screensharefps=60&label="+encodeURIComponent(sampleLabel);
+    var forbidden=/[?&](?:stream|room|meshcast|chunked|cleanoutput|noaudio|quality|fps|contenthint|videobitrate|bitrate|codec|buffer|delay)(?:=|&|$)/i;
+
+    console.groupCollapsed("[LMCAEA] Station 1 VDO.Ninja URL audit");
+    console.log("Station object:", JSON.parse(JSON.stringify(f)));
+    console.log("Viewer URL:", viewerUrl);
+    console.log("Player URL example:", playerUrl);
+    console.assert(viewerUrl===expectedViewer, "Viewer URL mismatch", viewerUrl);
+    console.assert(playerUrl===expectedPlayer, "Player URL mismatch", playerUrl);
+    console.assert(!forbidden.test(viewerUrl), "Forbidden viewer parameter found", viewerUrl);
+    console.assert(!forbidden.test(playerUrl), "Forbidden player parameter found", playerUrl);
+    console.groupEnd();
   }
 
   function slug(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,24); }
@@ -1334,12 +1344,14 @@
   }
 
   /* ---------- boot ---------- */
-  load();
+  var hash=location.hash||"";
 
-  var mp=location.hash.match(/#play=(.+)$/);
+  // Player entrance links are fully self-contained and never read admin storage.
+  var mp=hash.match(/^#play=(.+)$/);
   if(mp){ try{ initPlayerArea(decodePlay(mp[1])); return; }catch(e){ $("playScreen").classList.remove("show"); } }
 
-  var mj=location.hash.match(/#join=(.+)$/);
+  // Preserve the optional individual player link workflow.
+  var mj=hash.match(/^#join=(.+)$/);
   if(mj){
     try{
       var pl=decodeJoin(mj[1]);
@@ -1359,35 +1371,45 @@
     }catch(e){ $("joinScreen").classList.remove("show"); }
   }
 
-  var m=location.hash.match(/#w=([^#]+)/);
-  if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){
-    state=shared;
-    isViewerLink=true;
-    $("wallSub").textContent = state.delayMs>0
-      ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
-      : "Click a player to watch.";
-  } }catch(e){} }
-  else if(!/#admin/i.test(location.hash)){
-    // Plain parent URL: load the current embedded wall, while leaving the
-    // proven player and viewer connection code completely unchanged.
+  var isAdmin=/^#admin$/i.test(hash);
+  var wallMatch=hash.match(/^#w=([^#]+)$/);
+
+  if(isAdmin){
+    // Admin alone owns and edits the browser's saved working configuration.
+    load();
+  }else if(wallMatch){
+    // A long shared wall is self-contained and must not be replaced by localStorage.
+    try{
+      var shared=decodeState(wallMatch[1]);
+      if(shared&&shared.feeds){
+        state=shared;
+        isViewerLink=true;
+      }
+    }catch(e){}
+  }else{
+    // Plain parent URL (and any unrecognized hash): use the embedded active wall.
+    // Never read parent localStorage.
     try{
       var builtIn=decodeState(DEFAULT_WALL_CODE);
       if(builtIn&&builtIn.feeds){
         state=builtIn;
         isViewerLink=true;
-        $("wallSub").textContent = state.delayMs>0
-          ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
-          : "Click a player to watch.";
       }
     }catch(e){}
   }
 
-  // Default is the watch-only viewer. Admin is hidden behind the lock / #admin.
-  adminUnlocked = false;
+  if(isViewerLink){
+    $("wallSub").textContent=state.delayMs>0
+      ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
+      : "Click a player to watch.";
+  }
+
+  adminUnlocked=false;
   applyAdmin();
+  auditStationOneUrls();
   render();
-  if(/#admin/i.test(location.hash)) requestAdmin();
-  if(state.statusUrl){ pollStatus(); setInterval(pollStatus, 15000); }
+  if(isAdmin) requestAdmin();
+  if(state.statusUrl){ pollStatus(); setInterval(pollStatus,15000); }
 })();
 </script>
 </body>
