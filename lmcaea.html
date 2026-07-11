@@ -101,6 +101,17 @@
   .slate{position:relative;z-index:1;text-align:center;color:var(--faint);}
   .slate .standby{font-family:var(--mono);font-size:12px;letter-spacing:.28em;display:flex;align-items:center;gap:8px;justify-content:center;}
   .slate .standby .amberdot{width:7px;height:7px;border-radius:50%;background:var(--amber);opacity:.85;animation:blink 2.2s steps(2,end) infinite;}
+  .live-now{display:none;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.18em;color:#fff;
+    padding:8px 13px;border:1px solid rgba(255,46,46,.9);border-radius:999px;background:rgba(146,15,20,.88);
+    box-shadow:0 0 0 1px rgba(255,46,46,.2),0 0 22px rgba(255,46,46,.28);animation:liveBlink 1.15s ease-in-out infinite;}
+  .live-now .live-dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(255,255,255,.9);}
+  .slot.feed-live{border-color:rgba(255,46,46,.78);box-shadow:0 0 0 1px rgba(255,46,46,.16),0 8px 26px rgba(255,46,46,.1);}
+  .slot.feed-live .standby{display:none;}
+  .slot.feed-live .live-now{display:inline-flex;}
+  .slot.feed-live .play-hint .pill{border-color:var(--tally);}
+  @keyframes liveBlink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.58;transform:scale(.98);}}
+  .presence-monitor{position:fixed!important;left:-10000px!important;top:-10000px!important;width:2px!important;height:2px!important;
+    opacity:.001!important;pointer-events:none!important;border:0!important;}
   @keyframes blink{0%,60%{opacity:.85;}61%,100%{opacity:.15;}}
   .slot-num{position:absolute;top:8px;left:9px;z-index:2;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
     color:var(--faint);background:rgba(8,11,15,.55);border:1px solid var(--line);border-radius:5px;padding:2px 6px;}
@@ -732,6 +743,7 @@
     bwMode:"meshcast", audioOn:true, active:true, adminHash:"", playerHash:"", statusUrl:"live.json",
     eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
   var current=null, isViewerLink=false, adminUnlocked=false;
+  var liveStations=Object.create(null), presenceFrame=null, presenceKey="", presencePollTimer=null;
 
   function $(id){ return document.getElementById(id); }
   function uid(){ return Math.random().toString(36).slice(2,9); }
@@ -867,6 +879,85 @@
   function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
   function load(){ try{ var raw=localStorage.getItem(LS_KEY); if(raw){ state=normalize(JSON.parse(raw)); } }catch(e){} }
 
+  /* ---------- lightweight live-presence monitor ---------- */
+  function cleanStreamId(id){ return String(id||"").replace(/[^a-zA-Z0-9]/g,""); }
+  function knownStreamIds(){
+    var seen=Object.create(null), ids=[];
+    state.feeds.forEach(function(f){
+      var sid=cleanStreamId(f.streamId);
+      if(sid&&!seen[sid]){ seen[sid]=true; ids.push(sid); }
+    });
+    return ids;
+  }
+  function isKnownStreamId(sid){
+    sid=cleanStreamId(sid);
+    return state.feeds.some(function(f){ return cleanStreamId(f.streamId)===sid; });
+  }
+  function setStationLive(sid,on){
+    sid=cleanStreamId(sid);
+    if(!sid||!isKnownStreamId(sid)) return;
+    on=!!on;
+    if(!!liveStations[sid]===on) return;
+    if(on) liveStations[sid]=true; else delete liveStations[sid];
+    render();
+  }
+  function applyPresenceSnapshot(streamIDs){
+    if(!streamIDs||typeof streamIDs!=="object") return;
+    var next=Object.create(null);
+    var reported=Array.isArray(streamIDs)?streamIDs:Object.keys(streamIDs);
+    reported.forEach(function(id){
+      var sid=cleanStreamId(id);
+      if(sid&&isKnownStreamId(sid)) next[sid]=true;
+    });
+    var changed=false;
+    knownStreamIds().forEach(function(sid){
+      if(!!liveStations[sid]!==!!next[sid]) changed=true;
+    });
+    liveStations=next;
+    if(changed) render(); else updateLive();
+  }
+  function requestPresenceSnapshot(){
+    if(!presenceFrame||!presenceFrame.contentWindow) return;
+    try{ presenceFrame.contentWindow.postMessage({getStreamIDs:true,cib:"feed-wall-presence"},"https://vdo.ninja"); }catch(e){}
+  }
+  function handlePresenceMessage(e){
+    if(!presenceFrame||e.source!==presenceFrame.contentWindow) return;
+    if(e.origin&&e.origin!=="https://vdo.ninja") return;
+    var data=e.data;
+    if(!data||typeof data!=="object") return;
+    if(data.streamIDs) applyPresenceSnapshot(data.streamIDs);
+    if(data.action==="guest-connected"&&data.streamID) setStationLive(data.streamID,true);
+    else if(data.action==="guest-disconnected"&&data.streamID) setStationLive(data.streamID,false);
+    else if(data.action==="push-connection"&&data.streamID) setStationLive(data.streamID,data.value!==false);
+  }
+  window.addEventListener("message",handlePresenceMessage,false);
+
+  function ensurePresenceMonitor(){
+    var ids=knownStreamIds();
+    var key=ids.slice().sort().join(",");
+    if(!key){
+      if(presenceFrame&&presenceFrame.parentNode) presenceFrame.parentNode.removeChild(presenceFrame);
+      presenceFrame=null; presenceKey=""; liveStations=Object.create(null);
+      if(presencePollTimer){ clearInterval(presencePollTimer); presencePollTimer=null; }
+      return;
+    }
+    if(presenceFrame&&presenceKey===key) return;
+    if(presenceFrame&&presenceFrame.parentNode) presenceFrame.parentNode.removeChild(presenceFrame);
+    if(presencePollTimer){ clearInterval(presencePollTimer); presencePollTimer=null; }
+    presenceKey=key; liveStations=Object.create(null);
+    var fr=document.createElement("iframe");
+    fr.className="presence-monitor";
+    fr.title="Live feed presence monitor";
+    fr.tabIndex=-1;
+    fr.setAttribute("aria-hidden","true");
+    fr.setAttribute("allow","autoplay");
+    fr.src=VDO+"view="+ids.map(encodeURIComponent).join(",")+"&novideo&noaudio";
+    fr.onload=function(){ setTimeout(requestPresenceSnapshot,1200); };
+    presenceFrame=fr;
+    document.body.appendChild(fr);
+    presencePollTimer=setInterval(requestPresenceSnapshot,10000);
+  }
+
   /* ---------- share encode/decode ---------- */
   function encodeState(o){
     var slim={ t:o.title, d:o.delayMs, k:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:"meshcast", ao:o.audioOn?1:0,
@@ -910,7 +1001,7 @@
       $("emptyAdd").onclick=function(){ openEditor(); };
       $("emptyDocs").onclick=function(){ openDocs("start"); };
       $("emptySample").onclick=loadSample;
-      updateLive(); return;
+      ensurePresenceMonitor(); updateLive(); return;
     }
 
     var d=+state.delayMs||0;
@@ -921,8 +1012,11 @@
       if(f.down && !adminUnlocked) return; // taken down — parents don't see it
       shown++;
       var card=document.createElement("div");
-      card.className="slot"+(current&&current.id===f.id?" open":"")+(f.down?" down":"");
+      var streamKey=cleanStreamId(f.streamId);
+      var isFeedLive=!!liveStations[streamKey];
+      card.className="slot"+(current&&current.id===f.id?" open":"")+(f.down?" down":"")+(isFeedLive?" feed-live":"");
       card.dataset.id=f.id;
+      card.dataset.streamId=streamKey;
       var num=("0"+shown).slice(-2);
       var target=(f.streamId||f.room||"—");
       var brLabel=(f.bitrate&&+f.bitrate>0)?(f.bitrate+"k"):"default";
@@ -931,8 +1025,8 @@
           '<span class="slot-num">CAM '+num+'</span>'+
           '<span class="badge'+(d>0?'':' nodelay')+'">'+delayLabel+' '+(f.audio?'🔊':'🔇')+'</span>'+
           (f.down?'<span class="badge down-badge">TAKEN DOWN</span>':'')+
-          '<div class="slate"><div class="standby"><span class="amberdot"></span>STANDBY</div></div>'+
-          '<div class="play-hint"><span class="pill">▶ OPEN LIVE</span></div>'+
+          '<div class="slate"><div class="standby"><span class="amberdot"></span>STANDBY</div><div class="live-now"><span class="live-dot"></span>LIVE NOW</div></div>'+
+          '<div class="play-hint"><span class="pill">▶ '+(isFeedLive?'WATCH LIVE':'OPEN FEED')+'</span></div>'+
         '</div>'+
         '<div class="slot-meta"><p class="slot-name">'+esc(f.name)+'</p>'+
           '<div class="slot-sub"><span>'+esc(target)+'</span><span class="sep">·</span><span>'+esc(brLabel)+'</span>'+(f.codec?'<span class="sep">·</span><span>'+esc(f.codec)+'</span>':'')+'</div></div>'+
@@ -961,6 +1055,7 @@
       });
       g.appendChild(card);
     });
+    ensurePresenceMonitor();
     updateLive();
     applyOffAir();
   }
@@ -976,11 +1071,12 @@
   function move(idx,dir){ var j=idx+dir; if(j<0||j>=state.feeds.length) return; var a=state.feeds,t=a[idx]; a[idx]=a[j]; a[j]=t; persist(); render(); }
 
   function updateLive(){
-    var live=current?1:0;
-    var kbps=current&&current.bitrate?(+current.bitrate):0;
-    document.body.classList.toggle("live",!!live);
-    $("airTxt").textContent=live?"ON AIR":"STANDBY";
-    $("liveCount").textContent=live?("1 live · "+(kbps>0?"~"+kbps+"k":"default")):"0 live";
+    var detected=state.feeds.reduce(function(n,f){
+      return n+(!f.down&&liveStations[cleanStreamId(f.streamId)]?1:0);
+    },0);
+    document.body.classList.toggle("live",detected>0||!!current);
+    $("airTxt").textContent=detected>0?"ON AIR":(current?"VIEWING":"STANDBY");
+    $("liveCount").textContent=detected?(detected+" live now"):"0 live";
     var d=+state.delayMs||0, chip=$("delayChip");
     if(d>0){ chip.classList.remove("off"); $("delayTxt").textContent="⏱ "+(d/1000)+"s delay"; }
     else { chip.classList.add("off"); $("delayTxt").textContent="⏱ NO DELAY"; }
