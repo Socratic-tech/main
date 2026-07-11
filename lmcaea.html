@@ -248,9 +248,33 @@
 
   /* ---------- Parent viewer mode (opened via a shared link) ---------- */
   body.viewer-mode #addBtn, body.viewer-mode #playerBtn, body.viewer-mode #editBtn,
-  body.viewer-mode #shareBtn, body.viewer-mode #settingsBtn, body.viewer-mode #docsBtn{display:none;}
+  body.viewer-mode #shareBtn, body.viewer-mode #settingsBtn, body.viewer-mode #docsBtn,
+  body.viewer-mode #liveToggle{display:none;}
   body.viewer-mode .wall-title{pointer-events:none;}
   .frame-note{font-size:12px;color:var(--faint);margin:10px 0 0;text-align:center;line-height:1.5;}
+
+  /* LIVE / OFF toggle */
+  #liveToggle .dotmini{width:9px;height:9px;border-radius:50%;background:var(--ready);box-shadow:0 0 6px var(--ready);}
+  body:not(.wall-active) #liveToggle{border-color:var(--amber);color:var(--amber);}
+  body:not(.wall-active) #liveToggle .dotmini{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+  #lockBtn.on{color:var(--ready);border-color:var(--ready);}
+
+  /* taken-down tile (admin sees it dimmed; viewers don't see it at all) */
+  .slot.down{opacity:.5;}
+  .slot.down .screen{filter:grayscale(1);}
+  .badge.down-badge{color:var(--tally);border-color:rgba(255,46,46,.5);left:9px;right:auto;top:32px;}
+
+  /* Off-air overlay (shown to parents when the wall is OFF) */
+  .offair{position:fixed;inset:0;z-index:15;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;
+    background:radial-gradient(130% 90% at 50% 0%, #16202c 0%, var(--bg) 60%) fixed, var(--bg);}
+  .offair.show{display:flex;}
+  .offair .box{max-width:420px;}
+  .offair .pauseico{font-size:40px;margin-bottom:12px;}
+  .offair h2{font-family:var(--mono);font-weight:700;letter-spacing:.06em;font-size:18px;margin:0 0 10px;color:var(--ink);}
+  .offair p{color:var(--muted);font-size:14px;margin:0;}
+  .admin-offair{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:11px 14px;border-radius:10px;
+    background:rgba(245,166,35,.09);border:1px solid rgba(245,166,35,.4);font-size:13.5px;color:var(--ink);}
+  body.admin:not(.wall-active) .admin-offair{display:flex;}
 
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
 </style>
@@ -262,11 +286,19 @@
     <div class="onair"><span class="dot"></span><span class="txt">GO LIVE</span></div>
     <div class="eyebrow" id="joinEvent">Competition stream</div>
     <h1>Share your gameplay</h1>
-    <p class="join-p">Type your team, then choose the game window or screen to share on the next step. Keep this tab open while you play — closing it stops your stream.</p>
-    <div class="field"><label for="jTeam">Team name</label><input type="text" id="jTeam" placeholder="e.g. Watervliet Blue" /></div>
-    <div class="field"><label for="jPlayer">Your name / gamertag (optional)</label><input type="text" id="jPlayer" placeholder="optional" /></div>
+    <p class="join-p">Type your name, then choose the game window or screen to share on the next step. Keep this tab open while you play — closing it stops your stream.</p>
+    <div class="field"><label for="jName">Your name</label><input type="text" id="jName" placeholder="e.g. Alex R." /></div>
+    <div class="field"><label for="jTeam">Team (optional)</label><input type="text" id="jTeam" placeholder="e.g. Watervliet Blue" /></div>
     <button class="btn primary" id="jGo" style="width:100%;justify-content:center;font-size:15px;padding:12px">Go live →</button>
     <p class="join-tip"><b>For smooth 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> — not a single window — in Chrome or Edge. <b>For sound,</b> tick "Share tab audio" (browser game) or "Share system audio" (full screen) in the picker. Heads‑up: full‑screen audio also shares voice chat, so mute comms if you don't want them heard.</p>
+  </div>
+</div>
+
+<div class="offair" id="offAir">
+  <div class="box">
+    <div class="pauseico">⏸</div>
+    <h2>Off air</h2>
+    <p id="offAirMsg">The stream wall is paused right now. Check back at match time.</p>
   </div>
 </div>
 
@@ -278,12 +310,15 @@
   <button class="btn primary" id="addBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Add feed</span></button>
   <button class="btn ghost" id="playerBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12a4 4 0 0 1 4-4h3M20 12a4 4 0 0 1-4 4h-3M8 12h8"/></svg><span class="lbl">Player links</span></button>
   <button class="btn ghost" id="editBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="lbl">Edit</span></button>
+  <button class="btn ghost" id="liveToggle"><span class="dotmini"></span><span class="lbl" id="liveToggleTxt">LIVE</span></button>
   <button class="btn ghost" id="shareBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg><span class="lbl">Share</span></button>
   <button class="icon-btn" id="settingsBtn" title="Wall settings" aria-label="Wall settings"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.2 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg></button>
   <button class="icon-btn" id="docsBtn" title="Guides & help" aria-label="Guides and help"><svg class="ico" viewBox="0 0 24 24"><path d="M12 17h.01M12 13a2 2 0 1 0-2-2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/></svg></button>
+  <button class="icon-btn" id="lockBtn" title="Unlock admin controls" aria-label="Admin lock" style="display:none"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
 </header>
 
 <main>
+  <div class="admin-offair" id="adminOffair"><span>⏸ The wall is <b>OFF air</b> — parents see a paused screen. Press <b>LIVE</b> above to resume.</span></div>
   <div class="banner" id="sharedBanner"><span>You're viewing a <span class="mono">shared wall</span>. It's saved to this browser — the same broadcast delay applies to you.</span></div>
   <div class="section-head">
     <div>
@@ -418,7 +453,43 @@
       <input type="checkbox" id="sClean" checked />
       <div><label for="sClean">Clean player</label><div class="sub">Hide VDO.Ninja's own control bar inside the pop‑up viewer.</div></div>
     </div>
+
+    <details class="adv">
+      <summary>Admin & live control</summary>
+      <div class="field" style="margin-top:12px">
+        <label for="sAdminPass">Admin passcode</label>
+        <input type="password" id="sAdminPass" placeholder="leave blank to keep current" autocomplete="new-password" />
+        <div class="hint">Locks the controls behind this passcode on every device, including the shared link. Parents never see admin buttons.</div>
+      </div>
+      <div class="field toggle-row" style="margin-bottom:12px"><input type="checkbox" id="sClearPass" /><div><label for="sClearPass">Remove passcode</label></div></div>
+      <div class="field">
+        <label for="sStatusUrl">Live status file URL (optional)</label>
+        <input type="text" id="sStatusUrl" placeholder="https://…/status.json" spellcheck="false" />
+        <div class="hint">If set, every open wall checks this file every ~15s and obeys it live, so on/off and take‑downs reach parents already watching. Host it in your repo or a gist.</div>
+        <div class="linkbox"><button class="btn ghost" id="sCopyStatus"><svg class="ico" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy status JSON</span></button></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Director controls (needs a room)</label>
+        <div class="linkbox"><button class="btn ghost" id="sDirector"><svg class="ico" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg><span>Open director room</span></button></div>
+        <div class="hint">If players join through a room (set one in Player links), this opens VDO.Ninja's director room where you can mute, hang up, or remove any player's live stream instantly.</div>
+      </div>
+    </details>
+
     <div class="form-actions"><button class="btn primary" id="settingsSave">Save settings</button></div>
+  </div>
+</div>
+
+<!-- Admin unlock -->
+<div class="modal narrow" id="unlock" role="dialog" aria-modal="true" aria-label="Unlock admin">
+  <div class="modal-head"><h3>Admin access</h3>
+    <button class="icon-btn" id="unlockClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body">
+    <div class="field" style="margin-bottom:12px">
+      <label for="uPass">Enter admin passcode</label>
+      <input type="password" id="uPass" placeholder="passcode" />
+      <div class="hint">Unlocks the controls to add, take down, and turn the wall on or off on this device.</div>
+    </div>
+    <div class="form-actions" style="margin-top:0"><button class="btn primary" id="uGo">Unlock</button></div>
   </div>
 </div>
 
@@ -450,6 +521,7 @@
     </div>
     <div class="form-actions" style="justify-content:flex-start;margin-top:0">
       <button class="btn primary" id="pCreate">Create links & slots</button>
+      <button class="btn ghost" id="pOpen">+ Add open slots</button>
       <button class="btn ghost" id="pApply">Apply room + password to all</button>
     </div>
 
@@ -584,6 +656,20 @@
       <li>Opening a shared link shows a watch‑only view and doesn't overwrite anything on that device — parents can't edit your wall.</li>
     </ul>
 
+    <h4>Admin controls</h4>
+    <p>Set an <b>admin passcode</b> in Settings → Admin & live control. Once set, the wall opens locked everywhere — including the parent link — showing only the tiles. Tap the lock icon and enter the passcode to unlock Add, Edit, take‑downs, and the LIVE/OFF switch on that device. Parents never get in.</p>
+    <ul>
+      <li><b>LIVE / OFF</b> (top bar, admin only) pauses the whole wall. Parents see an "Off air" screen and can't open anything.</li>
+      <li><b>Take down</b> a single feed from its Edit controls — it vanishes for parents and its viewer closes. Restore it the same way.</li>
+      <li><b>Reaching parents already watching:</b> a plain shared link is a snapshot, so on/off and take‑downs only reach parents when they reload — unless you use one of the two live paths below.</li>
+    </ul>
+    <p><b>Live path 1 — Director (instant, best for takedowns).</b> If players join through a <b>Room</b> (set one in Player links, then "Apply room + password to all"), Settings → <b>Open director room</b> gives you VDO.Ninja's control room. From there you can mute, hang up, or kick any player — the stream itself dies, so it's gone for everyone at once. This is the real kill switch.</p>
+    <p><b>Live path 2 — Status file (instant on/off + blocks).</b> Host a small <code>status.json</code> (in your repo or a GitHub gist) and paste its URL into Settings. Every open wall reads it every ~15s and obeys it. Toggle something, hit <b>Copy status JSON</b>, paste it into that file, save — parents update within seconds. Format: <code>{"active":true,"down":["streamID"]}</code>.</p>
+    <div class="callout warn">A determined, technical viewer could read a stream ID out of the share link and watch it directly, bypassing a tile take‑down. The Director/Room path (which kills the actual stream) and stream passwords are what truly stop that — tile hiding is for the honest 99%.</div>
+
+    <h4>Self‑add (players add themselves)</h4>
+    <p>In Player links, hit <b>+ Add open slots</b> to drop in a batch of blank "Station" tiles, then send out their links. A player opens theirs, types their name, clicks Go live, and shares their screen — that's the whole flow. Their name rides along as the on‑screen label. Handing out numbered stations means you don't need every name in advance.</p>
+
     <h4>Troubleshooting</h4>
     <ul>
       <li><b>Delay seems short / inconsistent</b> — best‑effort delay varies. For a hard frame‑locked hold, switch to Direct mode + Exact delay (Settings); note that trades away the Twitch‑safe bandwidth cap. Always watch on Chrome/Edge.</li>
@@ -605,8 +691,9 @@
   var VDO="https://vdo.ninja/?";
 
   var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:3000, clean:true,
-    bwMode:"meshcast", audioOn:true, eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
-  var current=null;
+    bwMode:"meshcast", audioOn:true, active:true, adminHash:"", statusUrl:"",
+    eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
+  var current=null, isViewerLink=false, adminUnlocked=false;
 
   function $(id){ return document.getElementById(id); }
   function uid(){ return Math.random().toString(36).slice(2,9); }
@@ -622,6 +709,9 @@
       clean:(s.clean!=null?!!s.clean:true),
       bwMode:(s.bwMode==="p2p"?"p2p":"meshcast"),
       audioOn:(s.audioOn!=null?!!s.audioOn:true),
+      active:(s.active!=null?!!s.active:true),
+      adminHash:s.adminHash||"",
+      statusUrl:s.statusUrl||"",
       eventCode:s.eventCode||"",
       linkRoom:s.linkRoom||"",
       linkPassword:s.linkPassword||"",
@@ -715,11 +805,13 @@
   /* ---------- share encode/decode ---------- */
   function encodeState(o){
     var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:(o.bwMode==="p2p"?"p2p":"meshcast"), ao:o.audioOn?1:0,
+      ac:o.active?1:0, ah:o.adminHash||"", su:o.statusUrl||"",
       ec:o.eventCode, lr:o.linkRoom, lp:o.linkPassword, sf:o.senderFps60?1:0, sm:o.senderMotion?1:0,
       f:o.feeds.map(function(f){
         var s={ n:f.name, i:f.streamId };
         if(f.room) s.r=f.room; if(f.password) s.p=f.password;
         if(f.bitrate!=null) s.b=+f.bitrate; if(f.codec) s.c=f.codec; if(f.audio) s.a=1;
+        if(f.down) s.dn=1;
         return s;
       })};
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify(slim))));
@@ -730,11 +822,12 @@
     var o=JSON.parse(decodeURIComponent(escape(atob(b64))));
     return normalize({
       title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true), bwMode:(o.bm==="p2p"?"p2p":"meshcast"), audioOn:(o.ao!=null?!!o.ao:true),
+      active:(o.ac!=null?!!o.ac:true), adminHash:o.ah||"", statusUrl:o.su||"",
       eventCode:o.ec||"", linkRoom:o.lr||"", linkPassword:o.lp||"",
       senderFps60:(o.sf!=null?!!o.sf:true), senderMotion:(o.sm!=null?!!o.sm:true),
       feeds:(o.f||[]).map(function(s){
         return { id:uid(), name:s.n||"Feed", streamId:s.i||"", room:s.r||"", password:s.p||"",
-                 bitrate:(s.b!=null?s.b:2500), codec:s.c||"", audio:!!s.a };
+                 bitrate:(s.b!=null?s.b:2500), codec:s.c||"", audio:!!s.a, down:!!s.dn };
       })
     });
   }
@@ -757,18 +850,22 @@
 
     var d=+state.delayMs||0;
     var delayLabel = d>0 ? ("⏱"+(d/1000)+"s") : "⏱LIVE";
+    var shown=0;
 
     state.feeds.forEach(function(f,idx){
+      if(f.down && !adminUnlocked) return; // taken down — parents don't see it
+      shown++;
       var card=document.createElement("div");
-      card.className="slot"+(current&&current.id===f.id?" open":"");
+      card.className="slot"+(current&&current.id===f.id?" open":"")+(f.down?" down":"");
       card.dataset.id=f.id;
-      var num=("0"+(idx+1)).slice(-2);
+      var num=("0"+shown).slice(-2);
       var target=(f.streamId||f.room||"—");
       var brLabel=(f.bitrate&&+f.bitrate>0)?(f.bitrate+"k"):"default";
       card.innerHTML=
         '<div class="screen" role="button" tabindex="0" aria-label="Open '+esc(f.name)+'">'+
           '<span class="slot-num">CAM '+num+'</span>'+
           '<span class="badge'+(d>0?'':' nodelay')+'">'+delayLabel+' '+(f.audio?'🔊':'🔇')+'</span>'+
+          (f.down?'<span class="badge down-badge">TAKEN DOWN</span>':'')+
           '<div class="slate"><div class="standby"><span class="amberdot"></span>STANDBY</div></div>'+
           '<div class="play-hint"><span class="pill">▶ OPEN LIVE</span></div>'+
         '</div>'+
@@ -777,7 +874,8 @@
         '<div class="slot-edit">'+
           '<button class="mini arrow" data-act="left" title="Move left">◀</button>'+
           '<button class="mini" data-act="edit"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>'+
-          '<button class="mini danger" data-act="del"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Delete</button>'+
+          '<button class="mini'+(f.down?'':' danger')+'" data-act="down">'+(f.down?'Restore':'Take down')+'</button>'+
+          '<button class="mini danger" data-act="del"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>'+
           '<button class="mini arrow" data-act="right" title="Move right">▶</button>'+
         '</div>';
 
@@ -789,6 +887,9 @@
           var act=b.dataset.act;
           if(act==="edit") openEditor(f);
           else if(act==="del"){ if(confirm('Delete "'+f.name+'"?')){ state.feeds=state.feeds.filter(function(x){return x.id!==f.id;}); persist(); render(); } }
+          else if(act==="down"){ f.down=!f.down; if(f.down&&current&&current.id===f.id) closeViewer(); persist(); render();
+            toast(f.down?('"'+f.name+'" taken down'):('"'+f.name+'" restored'), !f.down);
+            if(state.statusUrl) toast("Publish status file to push this live"); }
           else if(act==="left") move(idx,-1);
           else if(act==="right") move(idx,1);
         });
@@ -796,6 +897,15 @@
       g.appendChild(card);
     });
     updateLive();
+    applyOffAir();
+  }
+
+  function applyOffAir(){
+    document.body.classList.toggle("wall-active", !!state.active);
+    $("liveToggleTxt").textContent = state.active ? "LIVE" : "OFF AIR";
+    var showOff = !state.active && !adminUnlocked;
+    $("offAir").classList.toggle("show", showOff);
+    if(showOff && current) closeViewer();
   }
 
   function move(idx,dir){ var j=idx+dir; if(j<0||j>=state.feeds.length) return; var a=state.feeds,t=a[idx]; a[idx]=a[j]; a[j]=t; persist(); render(); }
@@ -885,6 +995,9 @@
     $("sDefBitrate").value=String(state.defaultBitrate);
     $("sAudio").checked=!!state.audioOn;
     $("sClean").checked=!!state.clean;
+    $("sAdminPass").value="";
+    if($("sClearPass")) $("sClearPass").checked=false;
+    $("sStatusUrl").value=state.statusUrl||"";
     updateDelayNote();
     showModal("settings");
   }
@@ -908,8 +1021,13 @@
     state.defaultBitrate=+$("sDefBitrate").value;
     state.audioOn=$("sAudio").checked;
     state.clean=$("sClean").checked;
-    persist(); hideModal("settings"); render();
-    toast(state.bwMode==="meshcast"?"Saved · relay (Twitch‑safe)":"Saved · direct P2P");
+    state.statusUrl=$("sStatusUrl").value.trim();
+    var newPass=$("sAdminPass").value;
+    var finish=function(){ persist(); hideModal("settings"); applyAdmin(); render();
+      toast(state.bwMode==="meshcast"?"Saved · relay (Twitch‑safe)":"Saved · direct P2P"); };
+    if($("sClearPass").checked){ state.adminHash=""; adminUnlocked=true; finish(); return; }
+    if(newPass){ sha256hex(newPass).then(function(h){ state.adminHash=h; adminUnlocked=true; finish(); }); return; }
+    finish();
   }
 
   /* ---------- share ---------- */
@@ -999,6 +1117,50 @@
   }
   function genPass(){ $("pPass").value=Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,4); }
 
+  /* ---------- admin · on/off · takedown · live status ---------- */
+  function sha256hex(str){
+    if(!(window.crypto&&crypto.subtle&&location.protocol!=="file:")) return Promise.resolve("x"+str.length+":"+str);
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(h){
+      return Array.prototype.map.call(new Uint8Array(h),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+    });
+  }
+  function applyAdmin(){
+    document.body.classList.toggle("admin", adminUnlocked);
+    document.body.classList.toggle("viewer-mode", !adminUnlocked);
+    $("wallTitle").readOnly=!adminUnlocked;
+    var lb=$("lockBtn");
+    lb.style.display = state.adminHash ? "" : "none";
+    lb.classList.toggle("on", adminUnlocked);
+    lb.title = adminUnlocked ? "Admin unlocked — click to lock" : "Unlock admin controls";
+  }
+  function lockAdmin(){ adminUnlocked=false; applyAdmin(); render(); toast("Admin locked"); }
+  function setActive(on){ state.active=!!on; persist(); render();
+    toast(on?"Wall is LIVE":"Wall is OFF air", on); if(state.statusUrl) toast("Publish status file to push this to parents"); }
+  function statusJson(){ return JSON.stringify({ active:!!state.active, down: state.feeds.filter(function(f){return f.down;}).map(function(f){return f.streamId;}) }); }
+  function pollStatus(){
+    if(!state.statusUrl || adminUnlocked) return;
+    fetch(state.statusUrl,{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){
+      if(typeof j.active==="boolean") state.active=j.active;
+      if(Array.isArray(j.down)) state.feeds.forEach(function(f){ f.down = j.down.indexOf(f.streamId)>=0; });
+      render();
+    }).catch(function(){});
+  }
+  function directorLink(){
+    var r=(state.linkRoom||"").trim(); if(!r) return "";
+    var p=["director="+encodeURIComponent(r)];
+    if(state.linkPassword) p.push("password="+encodeURIComponent(state.linkPassword));
+    return VDO+p.join("&");
+  }
+  function addOpenSlots(n){
+    var start=state.feeds.length;
+    for(var i=0;i<n;i++){
+      var label="Station "+(start+i+1);
+      state.feeds.push({ id:uid(), name:label, streamId:makeStreamId(label, start+i+1),
+        room:state.linkRoom, password:state.linkPassword, bitrate:state.defaultBitrate, codec:"", audio:state.audioOn, down:false });
+    }
+    persist(); render(); renderRoster();
+  }
+
   /* ---------- modal/drawer plumbing ---------- */
   var openModals=[];
   function showModal(id){ $("scrim").classList.add("show"); $(id).classList.add("show"); if(openModals.indexOf(id)<0) openModals.push(id); }
@@ -1028,8 +1190,24 @@
   $("playersClose").onclick=function(){ pullPlayerSettings(); persist(); hideModal("players"); };
   $("pGenPass").onclick=genPass;
   $("pCreate").onclick=createPlayers;
+  $("pOpen").onclick=function(){ var n=parseInt(prompt("How many open (self-add) slots?","4"),10); if(n>0&&n<=64) addOpenSlots(n); };
   $("pApply").onclick=applyRoomPwAll;
   $("pCopyAll").onclick=copyAllPlayers;
+
+  $("liveToggle").onclick=function(){ setActive(!state.active); };
+  $("lockBtn").onclick=function(){ if(adminUnlocked){ lockAdmin(); } else { $("uPass").value=""; showModal("unlock"); setTimeout(function(){$("uPass").focus();},60); } };
+  $("unlockClose").onclick=function(){ hideModal("unlock"); };
+  $("uGo").onclick=function(){
+    var v=$("uPass").value;
+    sha256hex(v).then(function(h){
+      if(state.adminHash && h===state.adminHash){ adminUnlocked=true; applyAdmin(); render(); hideModal("unlock"); toast("Admin unlocked"); }
+      else toast("Wrong passcode", false);
+    });
+  };
+  $("uPass").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("uGo").click(); } });
+  $("sCopyStatus").onclick=function(){ var t=statusJson();
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast("Status JSON copied — paste into your status file");}).catch(function(){toast("Copy failed",false);}); };
+  $("sDirector").onclick=function(){ var l=directorLink(); if(!l){ toast("Set a Room in Player links first", false); return; } window.open(l,"_blank"); };
   $("shareClose").onclick=function(){ hideModal("share"); };
   $("copyLink").onclick=function(){ var inp=$("shareLink"); inp.select();
     (navigator.clipboard?navigator.clipboard.writeText(inp.value):Promise.reject()).then(function(){toast("Link copied");}).catch(function(){ document.execCommand("copy"); toast("Link copied"); }); };
@@ -1065,30 +1243,33 @@
       $("joinEvent").textContent=(pl.t||"Competition")+" · screen share";
       $("joinScreen").classList.add("show");
       var goLive=function(){
+        var name=$("jName").value.trim();
+        if(!name){ toast("Enter your name", false); $("jName").focus(); return; }
         var team=$("jTeam").value.trim();
-        if(!team){ toast("Enter your team name", false); $("jTeam").focus(); return; }
-        var player=$("jPlayer").value.trim();
-        var label=player?(team+" · "+player):team;
+        var label=team?(name+" — "+team):name;
         window.location.href=joinPushUrl(pl,label);
       };
       $("jGo").onclick=goLive;
+      $("jName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
       $("jTeam").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
-      $("jPlayer").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
-      setTimeout(function(){ $("jTeam").focus(); },80);
+      setTimeout(function(){ $("jName").focus(); },80);
       return; // player view only — don't render the director wall
     }catch(e){ $("joinScreen").classList.remove("show"); }
   }
   var m=location.hash.match(/#w=(.+)$/);
   if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){
     state=shared;
-    document.body.classList.add("viewer-mode");
-    $("wallTitle").readOnly=true;
+    isViewerLink=true;
     $("wallSub").textContent = state.delayMs>0
       ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
       : "Click a player to watch.";
     // parent view: keep it in memory, leave the link intact so a refresh still works
   } }catch(e){} }
+
+  adminUnlocked = state.adminHash ? false : !isViewerLink;
+  applyAdmin();
   render();
+  if(state.statusUrl){ pollStatus(); setInterval(pollStatus, 15000); }
 })();
 </script>
 </body>
