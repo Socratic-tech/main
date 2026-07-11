@@ -431,10 +431,9 @@
     <div class="field">
       <label for="sBwMode">Bandwidth mode</label>
       <select id="sBwMode">
-        <option value="p2p">Direct VDO.Ninja · reliable connection</option>
-        <option value="meshcast">Relay (Meshcast) · experimental / not used by reliable path</option>
+        <option value="meshcast">Meshcast relay · one media upload per player</option>
       </select>
-      <div class="hint">Relay sends each player's stream through a server, so a player uploads <b>one</b> capped stream no matter how many people click in — like Twitch. Direct is peer‑to‑peer: lower latency and exact delay possible, but each simultaneous viewer costs the player another upload.</div>
+      <div class="hint">Players publish audio and video once to Meshcast, which redistributes the feed to parents. The normal <code>?view=STATION_ID</code> links stay unchanged and automatically prefer the relayed feed. VDO.Ninja may still use lightweight peer signaling/data, but gameplay media is not uploaded separately to every viewer.</div>
     </div>
     <div class="field">
       <label for="sDelay">Broadcast delay · anti‑cheat</label>
@@ -447,11 +446,10 @@
       </select>
       <div class="hint">Every feed is held back this much before anyone on the wall sees it, so a live view can't relay information. Applies to everyone you share the wall with. Chrome or Edge only.</div>
     </div>
-    <div class="field toggle-row">
+    <div class="field toggle-row" style="display:none">
       <input type="checkbox" id="sChunked" />
       <div>
-        <label for="sChunked">Exact delay (chunked mode)</label>
-        <div class="sub">Makes the delay frame‑accurate instead of best‑effort. <b>Direct mode only</b> — Meshcast can't use it. When on, player links publish in chunked mode automatically.</div>
+        <label for="sChunked">Exact delay (unavailable with Meshcast)</label>
       </div>
     </div>
     <div class="setnote" id="delayNote"></div>
@@ -463,9 +461,9 @@
         <option value="2500">2500 · 1080p</option>
         <option value="3000">3000 · 1080p (relay cap)</option>
         <option value="4000">4000 · 1080p60 (direct)</option>
-        <option value="6000">6000 · Twitch 1080p60 (direct)</option>
+        <option value="6000">6000 · high-quality reference</option>
       </select>
-      <div class="hint">The cap on each player's upload. Twitch 1080p60 ≈ 6000. Relay/Meshcast tops out around 3000 in practice — plenty for gameplay and comfortably under Twitch.</div>
+      <div class="hint">Used as a planning/display value for stations. The current minimal Meshcast URL lets the relay choose its stable operating bitrate rather than forcing extra transport parameters.</div>
     </div>
     <div class="field toggle-row">
       <input type="checkbox" id="sAudio" checked />
@@ -622,12 +620,8 @@
 
   <div class="doc" id="doc-help">
     <h4>The anti‑cheat delay</h4>
-    <p>The wall holds every feed back by a fixed amount before showing it, so nobody watching can relay live information to a player. There are two levels:</p>
-    <ul>
-      <li><b>Best‑effort (default)</b> — just the delay setting, no changes from the players. Works in Chrome/Edge. But the browser treats large buffers as a hint and trims anything much past ~4 seconds, so it's a deterrent rather than a hard guarantee.</li>
-      <li><b>Exact (chunked mode)</b> — the players publish with <code>&chunked</code> and you flip on the chunked toggle in Settings. VDO.Ninja then buffers with its own system, giving a rock‑solid, frame‑accurate delay of whatever length you set. Chromium‑based browsers / OBS 27.2+ only.</li>
-    </ul>
-    <div class="callout crit">The delay only protects <b>this wall</b>. Anyone who can open the raw <code>?view=…</code> link sees gameplay live. Keep the source/stream IDs private, password‑protect the streams, and only distribute the wall link.</div>
+    <p>The wall displays the configured competition delay, but Meshcast transport is best‑effort and actual timing can vary with the relay, browser, and network. Treat it as a deterrent rather than a frame‑accurate guarantee, and verify it with a visible stopwatch before matches.</p>
+    <div class="callout crit">Only distribute the wall address to parents. The station IDs are still the direct VDO.Ninja lookup keys, even though the publisher sends its gameplay media through Meshcast.</div>
     <p><b>Always test the real delay</b> before matches start — point a feed at a running stopwatch and measure it. Network conditions and browser versions change the result.</p>
 
     <h4>The three doors</h4>
@@ -650,7 +644,7 @@
     <p>Plain VDO.Ninja is peer‑to‑peer: every viewer pulls a separate copy straight from the player's PC, so five people watching one player means that player uploads five streams. <b>Relay (Meshcast)</b> mode fixes this — the player uploads one capped stream to a server that fans it out, so their upload stays flat like a Twitch broadcast no matter how many click in. That's the default.</p>
     <ul>
       <li><b>Max bitrate per player</b> (Settings) is the upload cap. Relay realistically delivers about 2–3 Mbps 1080p — clean and smooth on the phones and tablets most parents use, though not razor‑crisp esports quality. That's the honest ceiling for a big audience; truly broadcast‑crisp video to a crowd is a Twitch/YouTube job.</li>
-      <li><b>Direct (P2P)</b> gives the lowest latency and an exact frame‑locked delay, but only stays Twitch‑safe if just one control room watches a given player at a time.</li>
+      <li>This build intentionally does not offer a direct-media mode. Player links always include the publisher-side Meshcast relay flag, including older entrance links opened after this file is deployed.</li>
       <li>Your own download stays light too: the wall keeps one feed open at a time, and dark slots use nothing.</li>
     </ul>
 
@@ -661,7 +655,7 @@
     <p>Audio is on by default — the wall plays a player's sound when you open their feed, if they chose to share it. Because feeds open one at a time, there's never overlapping audio. Tell players: to include game sound they must tick <b>"Share tab audio"</b> (browser game) or <b>"Share system audio"</b> (whole screen) in the share picker — a single app window can't carry sound. Full‑screen audio also captures voice chat, so anyone in team comms should mute if they don't want it heard on the (roughly 3‑second‑delayed) stream.</p>
 
     <h4>Why this saves bandwidth</h4>
-    <p>Each slot is a still image until clicked — zero connection, zero data. VDO.Ninja is peer‑to‑peer, so video only flows while a viewer is open. The wall keeps one feed live at a time and caps each feed's bitrate, so you never pull every match at once.</p>
+    <p>Each slot is a still image until clicked, so parents only receive gameplay media for the station they open. Players publish once to Meshcast; the relay distributes that media instead of asking the player computer to upload a separate video stream to every parent.</p>
 
     <h4>What each field does</h4>
     <ul>
@@ -680,7 +674,7 @@
       <tr><td>4000–6000</td><td>fast 1080p60 — most esports</td></tr>
       <tr><td>8000+</td><td>crisp 1080p60 / 1440p, plenty of upload</td></tr>
     </table>
-    <p>Frame rate is requested by the <b>sender</b>: this wall adds <code>&screensharefps=60</code> to player links while keeping the rest of the proven direct VDO.Ninja URL clean. On Windows, Steve Seguin's <b>Game Capture</b> app publishes a game window straight into VDO.Ninja without OBS. There's also <b>Versus.cam</b> — a free esports‑tuned VDO.Ninja front‑end pre‑set for 1080p60 that's handy for the players' side.</p>
+    <p>Frame rate is requested by the <b>sender</b>: this wall adds <code>&screensharefps=60</code> and the publisher-only <code>&meshcast</code> relay flag while keeping the same station ID for push and view. On Windows, Steve Seguin's <b>Game Capture</b> app publishes a game window straight into VDO.Ninja without OBS. There's also <b>Versus.cam</b> — a free esports‑tuned VDO.Ninja front‑end pre‑set for 1080p60 that's handy for the players' side.</p>
 
     <h4>Solo streams vs rooms</h4>
     <p>A solo stream is just an ID → <code>?view=ID</code>. A room feed adds room + scene → <code>?room=NAME&scene&view=ID</code>. Leave the Stream ID blank on a room feed to show the room's whole layout in one slot.</p>
@@ -715,7 +709,7 @@
 
     <h4>Troubleshooting</h4>
     <ul>
-      <li><b>Delay seems short / inconsistent</b> — best‑effort delay varies. For a hard frame‑locked hold, switch to Direct mode + Exact delay (Settings); note that trades away the Twitch‑safe bandwidth cap. Always watch on Chrome/Edge.</li>
+      <li><b>Delay seems short / inconsistent</b> — Meshcast delay is best‑effort and can vary. Always test the real delay before competition and watch on Chrome/Edge.</li>
       <li><b>Black screen</b> — the player is offline, the ID is wrong, or it needs a password.</li>
       <li><b>Nothing connects</b> — must be HTTPS (GitHub Pages is). School/venue firewalls sometimes block WebRTC.</li>
       <li><b>Pop‑out blocked</b> — allow pop‑ups, or use the in‑page viewer.</li>
@@ -735,7 +729,7 @@
   var DEFAULT_WALL_CODE="eyJ0IjoiQ29tcGV0aXRpb24gRmVlZCBXYWxsIiwiZCI6MzAwMCwiayI6MCwiZGIiOjMwMDAsImNsIjoxLCJibSI6InAycCIsImFvIjoxLCJhYyI6MSwiYWgiOiJjYWUyYmZjMTA3ZjM0OWE5NTlkYTI5N2U2MGRjZmNjYmMzZDE1ZTJlZjQ1ZjkzZjYyMTFhY2RkMDhkMzA5NWFmIiwic3UiOiJsaXZlLmpzb24iLCJlYyI6ImxtY2FlYTI2IiwibHIiOiIiLCJscCI6IiIsInNmIjoxLCJzbSI6MSwiZiI6W3sibiI6IlN0YXRpb24gMSIsImkiOiJsbWNhZWEyNnN0YXRpb24xZnNzZDdqIiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxIiwiaSI6ImxtY2FlYTI2cm9ja2V0bGVhZ3VlMXpoZnRnNiIsImIiOjMwMDAsImEiOjF9LHsibiI6IlJvY2tldCBMZWFndWUgMiIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTI2YjZ3am0iLCJiIjozMDAwLCJhIjoxfSx7Im4iOiJSb2NrZXQgTGVhZ3VlIDMiLCJpIjoibG1jYWVhMjZyb2NrZXRsZWFndWUzb2RjbHM0IiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSA0IiwiaSI6ImxtY2FlYTI2cm9ja2V0bGVhZ3VlNDVhNnM4MyIsImIiOjMwMDAsImEiOjF9LHsibiI6IlJvY2tldCBMZWFndWUgNSIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTVwanpzOWIiLCJiIjozMDAwLCJhIjoxfSx7Im4iOiJSb2NrZXQgTGVhZ3VlIDYiLCJpIjoibG1jYWVhMjZyb2NrZXRsZWFndWU2MWlnZHY1IiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSA3IiwiaSI6ImxtY2FlYTI2cm9ja2V0bGVhZ3VlN3ViZW96NiIsImIiOjMwMDAsImEiOjF9LHsibiI6IlJvY2tldCBMZWFndWUgOCIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZThyMmdkZDkiLCJiIjozMDAwLCJhIjoxfSx7Im4iOiJSb2NrZXQgTGVhZ3VlIDkiLCJpIjoibG1jYWVhMjZyb2NrZXRsZWFndWU5Z2pveHRsIiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxMCIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTEwZjI1NDZ4IiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxMSIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTExNHR2MTdtIiwiYiI6MzAwMCwiYSI6MX0seyJuIjoiUm9ja2V0IExlYWd1ZSAxMiIsImkiOiJsbWNhZWEyNnJvY2tldGxlYWd1ZTEydmp5enltIiwiYiI6MzAwMCwiYSI6MX1dfQ";
 
   var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:3000, clean:true,
-    bwMode:"p2p", audioOn:true, active:true, adminHash:"", playerHash:"", statusUrl:"live.json",
+    bwMode:"meshcast", audioOn:true, active:true, adminHash:"", playerHash:"", statusUrl:"live.json",
     eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
   var current=null, isViewerLink=false, adminUnlocked=false;
 
@@ -748,10 +742,10 @@
     return {
       title:s.title||"Competition Feed Wall",
       delayMs:(s.delayMs!=null?+s.delayMs:3000),
-      chunked:!!s.chunked,
+      chunked:false,
       defaultBitrate:(s.defaultBitrate!=null?+s.defaultBitrate:3000),
       clean:(s.clean!=null?!!s.clean:true),
-      bwMode:"p2p",
+      bwMode:"meshcast",
       audioOn:(s.audioOn!=null?!!s.audioOn:true),
       active:(s.active!=null?!!s.active:true),
       adminHash:s.adminHash||"",
@@ -776,7 +770,8 @@
 
   /* ---------- URL build / parse ---------- */
   function buildUrl(f){
-    // Proven direct viewer path. Do not add optional VDO.Ninja parameters here.
+    // Meshcast is enabled on the publisher only. Viewers keep the proven
+    // direct station lookup; VDO.Ninja automatically prefers the relayed feed.
     // The publisher and viewer must use the exact same alphanumeric stream ID.
     var sid=String(f.streamId||"").replace(/[^a-zA-Z0-9]/g,"");
     return VDO+"view="+encodeURIComponent(sid)+"&showlabels&fontsize=24";
@@ -792,21 +787,23 @@
     }catch(e){ return null; }
   }
 
-  // Shared direct sender URL. Extra settings arguments are intentionally ignored
-  // so every player uses the same proven push/view pairing.
+  // Shared Meshcast sender URL. The exact same station ID is still used for
+  // push and view; only the publisher receives the server-relay flag.
+  // This is intentionally minimal: no room, random stream ID, chunked mode,
+  // codec forcing, or direct-view bitrate parameters.
   function pushParams(cfg, sid, room, password, bitrate, label){
     var cleanId=String(sid||"").replace(/[^a-zA-Z0-9]/g,"");
-    var p=["push="+encodeURIComponent(cleanId), "screenshare2", "screensharefps=60"];
+    var p=["push="+encodeURIComponent(cleanId), "screenshare2", "screensharefps=60", "meshcast"];
     if(label) p.push("label="+encodeURIComponent(label));
     return VDO+p.join("&");
   }
-  function cfgFromState(){ return { meshcast:state.bwMode==="meshcast", chunked:(state.bwMode==="p2p"&&state.chunked), fps:state.senderFps60, motion:state.senderMotion }; }
+  function cfgFromState(){ return { meshcast:true, chunked:false, fps:true, motion:state.senderMotion }; }
 
   // The link you actually hand to a player: opens THIS page, asks their team, then goes live.
   function buildJoinLink(f){
     if(!f.streamId) return "";
     var pl={ i:f.streamId, r:f.room||"", p:f.password||"", b:(f.bitrate&&+f.bitrate>0?+f.bitrate:state.defaultBitrate),
-      mc:state.bwMode==="meshcast"?1:0, ck:(state.bwMode==="p2p"&&state.chunked)?1:0, f:state.senderFps60?1:0, m:state.senderMotion?1:0, t:state.title||"" };
+      mc:1, ck:0, f:1, m:state.senderMotion?1:0, t:state.title||"" };
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify(pl)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
     return location.origin+location.pathname+"#join="+b64;
   }
@@ -821,7 +818,7 @@
   // The single coded "create your stream" entrance for all players
   function encodePlay(o){
     var pl={ t:o.title, pc:o.playerHash||"", r:o.linkRoom||"", p:o.linkPassword||"", b:o.defaultBitrate,
-      mc:o.bwMode==="meshcast"?1:0, ck:(o.bwMode==="p2p"&&o.chunked)?1:0, f:o.senderFps60?1:0, m:o.senderMotion?1:0,
+      mc:1, ck:0, f:1, m:o.senderMotion?1:0,
       s:o.feeds.filter(function(f){return f.streamId;}).map(function(f){ return { i:f.streamId, n:f.name }; }) };
     return btoa(unescape(encodeURIComponent(JSON.stringify(pl)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   }
@@ -842,8 +839,8 @@
     var viewerUrl=buildUrl(f);
     var playerUrl=pushParams(null,sid,"","",0,sampleLabel);
     var expectedViewer=VDO+"view="+encodeURIComponent(sid)+"&showlabels&fontsize=24";
-    var expectedPlayer=VDO+"push="+encodeURIComponent(sid)+"&screenshare2&screensharefps=60&label="+encodeURIComponent(sampleLabel);
-    var forbidden=/[?&](?:stream|room|meshcast|chunked|cleanoutput|noaudio|quality|fps|contenthint|videobitrate|bitrate|codec|buffer|delay)(?:=|&|$)/i;
+    var expectedPlayer=VDO+"push="+encodeURIComponent(sid)+"&screenshare2&screensharefps=60&meshcast&label="+encodeURIComponent(sampleLabel);
+    var forbidden=/[?&](?:stream|room|chunked|cleanoutput|noaudio|quality|fps|contenthint|videobitrate|bitrate|codec|buffer|delay)(?:=|&|$)/i;
 
     console.groupCollapsed("[LMCAEA] Station 1 VDO.Ninja URL audit");
     console.log("Station object:", JSON.parse(JSON.stringify(f)));
@@ -872,7 +869,7 @@
 
   /* ---------- share encode/decode ---------- */
   function encodeState(o){
-    var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:(o.bwMode==="p2p"?"p2p":"meshcast"), ao:o.audioOn?1:0,
+    var slim={ t:o.title, d:o.delayMs, k:0, db:o.defaultBitrate, cl:o.clean?1:0, bm:"meshcast", ao:o.audioOn?1:0,
       ac:o.active?1:0, ah:o.adminHash||"", su:o.statusUrl||"",
       ec:o.eventCode, lr:o.linkRoom, lp:o.linkPassword, sf:o.senderFps60?1:0, sm:o.senderMotion?1:0,
       f:o.feeds.map(function(f){
@@ -889,7 +886,7 @@
     var b64=str.replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
     var o=JSON.parse(decodeURIComponent(escape(atob(b64))));
     return normalize({
-      title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true), bwMode:(o.bm==="p2p"?"p2p":"meshcast"), audioOn:(o.ao!=null?!!o.ao:true),
+      title:o.t, delayMs:o.d, chunked:false, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true), bwMode:"meshcast", audioOn:(o.ao!=null?!!o.ao:true),
       active:(o.ac!=null?!!o.ac:true), adminHash:o.ah||"", statusUrl:(o.su||"live.json").replace(/status\.json(?:$|\?)/i,function(m){return m.replace(/status\.json/i,"live.json");}),
       eventCode:o.ec||"", linkRoom:o.lr||"", linkPassword:o.lp||"",
       senderFps60:(o.sf!=null?!!o.sf:true), senderMotion:(o.sm!=null?!!o.sm:true),
@@ -985,7 +982,7 @@
     $("airTxt").textContent=live?"ON AIR":"STANDBY";
     $("liveCount").textContent=live?("1 live · "+(kbps>0?"~"+kbps+"k":"default")):"0 live";
     var d=+state.delayMs||0, chip=$("delayChip");
-    if(d>0){ chip.classList.remove("off"); $("delayTxt").textContent="⏱ "+(d/1000)+"s delay"+((state.bwMode==="p2p"&&state.chunked)?" · exact":""); }
+    if(d>0){ chip.classList.remove("off"); $("delayTxt").textContent="⏱ "+(d/1000)+"s delay"; }
     else { chip.classList.add("off"); $("delayTxt").textContent="⏱ NO DELAY"; }
   }
 
@@ -1006,7 +1003,7 @@
     meta.push('<span class="sep">·</span>'+((f.bitrate&&+f.bitrate>0)?esc(f.bitrate)+"k":"default"));
     meta.push('<span class="sep">·</span>'+(f.audio?"audio":"muted"));
     if(f.codec) meta.push('<span class="sep">·</span>'+esc(f.codec));
-    meta.push('<span class="sep">·</span><span class="dly'+(d>0?'':' off')+'">'+(d>0?("⏱ "+(d/1000)+"s delay"+((state.bwMode==="p2p"&&state.chunked)?" (exact)":"")):"⏱ NO DELAY")+'</span>');
+    meta.push('<span class="sep">·</span><span class="dly'+(d>0?'':' off')+'">'+(d>0?("⏱ "+(d/1000)+"s delay"):"⏱ NO DELAY")+'</span>');
     $("viewerMeta").innerHTML=meta.join(" ");
     $("viewerTab").onclick=function(){ window.open(url,"_blank"); };
     $("viewerPop").onclick=function(){ window.open(url,"_blank","width=960,height=600,noopener"); closeViewer(); };
@@ -1057,9 +1054,9 @@
 
   /* ---------- settings ---------- */
   function openSettings(){
-    $("sBwMode").value=state.bwMode;
+    $("sBwMode").value="meshcast";
     $("sDelay").value=String(state.delayMs);
-    $("sChunked").checked=!!state.chunked;
+    $("sChunked").checked=false;
     $("sDefBitrate").value=String(state.defaultBitrate);
     $("sAudio").checked=!!state.audioOn;
     $("sClean").checked=!!state.clean;
@@ -1070,29 +1067,26 @@
     showModal("settings");
   }
   function updateDelayNote(){
-    var d=+$("sDelay").value, ck=$("sChunked").checked, mesh=$("sBwMode").value==="meshcast", el=$("delayNote");
+    var d=+$("sDelay").value, el=$("delayNote");
     if(d<=0){ el.style.borderColor="var(--tally)"; el.style.background="rgba(255,46,46,.08)";
       el.innerHTML="<b>No delay is active.</b> Live gameplay can be relayed to players. Only turn this off for non‑competitive feeds."; return; }
-    if(mesh){ el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
-      el.innerHTML="<b>Relay mode.</b> Bandwidth is capped no matter how many watch. Delay is best‑effort ~"+(d/1000)+"s (relay can't use exact/chunked). Test the real delay before matches."; return; }
-    el.style.borderColor="var(--amber)"; el.style.background="rgba(245,166,35,.07)";
-    if(ck) el.innerHTML="<b>Direct · exact delay.</b> Feeds held back "+(d/1000)+"s frame‑accurately. Remember: each simultaneous viewer costs the player another upload. Test before matches.";
-    else el.innerHTML="<b>Direct · best‑effort ~"+(d/1000)+"s.</b> Chromium may trim it; enable exact delay for a hard hold. Each simultaneous viewer costs the player another upload.";
+    el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
+    el.innerHTML="<b>Meshcast relay.</b> Each player sends one audio/video stream to the relay instead of one media upload per parent. Delay remains best‑effort ~"+(d/1000)+"s; test it before matches.";
   }
   $("sBwMode").addEventListener("change",updateDelayNote);
   $("sDelay").addEventListener("change",updateDelayNote);
   $("sChunked").addEventListener("change",updateDelayNote);
   function saveSettings(){
-    state.bwMode=$("sBwMode").value==="p2p"?"p2p":"meshcast";
+    state.bwMode="meshcast";
     state.delayMs=+$("sDelay").value;
-    state.chunked=$("sChunked").checked;
+    state.chunked=false;
     state.defaultBitrate=+$("sDefBitrate").value;
     state.audioOn=$("sAudio").checked;
     state.clean=$("sClean").checked;
     state.statusUrl=$("sStatusUrl").value.trim();
     var newPass=$("sAdminPass").value;
     var finish=function(){ persist(); hideModal("settings"); applyAdmin(); render();
-      toast(state.bwMode==="meshcast"?"Saved · relay (Twitch‑safe)":"Saved · direct P2P"); };
+      toast("Saved · Meshcast relay active"); };
     if($("sClearPass").checked){ state.adminHash=""; adminUnlocked=true; finish(); return; }
     if(newPass){ sha256hex(newPass).then(function(h){ state.adminHash=h; adminUnlocked=true; finish(); }); return; }
     finish();
@@ -1137,14 +1131,8 @@
   }
   function updatePDelayNote(){
     var el=$("pDelayNote");
-    if(state.bwMode==="meshcast"){ el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
-      el.innerHTML="<b>Relay mode (Twitch‑safe).</b> Each player uploads one capped stream no matter how many people watch. Delay is best‑effort "+(state.delayMs>0?(state.delayMs/1000)+"s":"off")+" (relay can't use exact chunked mode)."; return; }
-    if(state.delayMs>0 && state.chunked){ el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
-      el.innerHTML="<b>Direct P2P · exact delay.</b> Player links publish in chunked mode automatically. Note: upload grows with each simultaneous viewer."; return; }
-    if(state.delayMs>0){ el.style.borderColor="var(--amber)"; el.style.background="rgba(245,166,35,.07)";
-      el.innerHTML="<b>Direct P2P · best‑effort "+(state.delayMs/1000)+"s.</b> Upload grows with each simultaneous viewer. Turn on chunked mode in Settings for an exact hold."; return; }
-    el.style.borderColor="var(--tally)"; el.style.background="rgba(255,46,46,.08)";
-    el.innerHTML="<b>No delay set.</b> Turn one on in <b>Settings</b> for competition play.";
+    el.style.borderColor="var(--ready)"; el.style.background="rgba(49,208,127,.08)";
+    el.innerHTML="<b>Meshcast relay active.</b> Each player publishes one audio/video stream to the relay, while every parent keeps using the normal station view link. Requested capture rate: 60fps. Delay: "+(state.delayMs>0?(state.delayMs/1000)+"s best‑effort":"off")+".";
   }
   function pullPlayerSettings(){
     state.eventCode=$("pEvent").value.trim();
