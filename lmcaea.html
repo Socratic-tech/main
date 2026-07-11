@@ -294,6 +294,28 @@
   </div>
 </div>
 
+<div class="join-screen" id="playScreen">
+  <div class="join-card">
+    <div class="onair"><span class="dot"></span><span class="txt">PLAYERS</span></div>
+    <div class="eyebrow" id="playEvent">Create your stream</div>
+    <div id="playGate">
+      <h1>Enter access code</h1>
+      <p class="join-p">Use the code your coach gave you.</p>
+      <div class="field"><label for="pcCode">Access code</label><input type="password" id="pcCode" placeholder="code" /></div>
+      <button class="btn primary" id="pcGo" style="width:100%;justify-content:center;font-size:15px;padding:12px">Continue →</button>
+    </div>
+    <div id="playForm" style="display:none">
+      <h1>Go live</h1>
+      <p class="join-p">Pick your station and name, then choose the game window or screen to share on the next step. Keep the tab open while you play.</p>
+      <div class="field"><label for="pcStation">Your station</label><select id="pcStation"></select></div>
+      <div class="field"><label for="pcName">Your name</label><input type="text" id="pcName" placeholder="e.g. Alex R." /></div>
+      <div class="field"><label for="pcTeam">Team (optional)</label><input type="text" id="pcTeam" placeholder="e.g. Watervliet Blue" /></div>
+      <button class="btn primary" id="pcLive" style="width:100%;justify-content:center;font-size:15px;padding:12px">Go live →</button>
+      <p class="join-tip"><b>For smooth 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> — not a single window — in Chrome or Edge. <b>For sound,</b> tick "Share tab audio" or "Share system audio" in the picker. Heads‑up: full‑screen audio also shares voice chat.</p>
+    </div>
+  </div>
+</div>
+
 <div class="offair" id="offAir">
   <div class="box">
     <div class="pauseico">⏸</div>
@@ -308,7 +330,7 @@
   <span class="chip delay" id="delayChip" title="Broadcast delay — click for settings"><span class="led"></span><span id="delayTxt">⏱ 3s delay</span></span>
   <span class="chip live-chip" id="liveChip"><span class="led"></span><span id="liveCount">0 live</span></span>
   <button class="btn primary" id="addBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Add feed</span></button>
-  <button class="btn ghost" id="playerBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12a4 4 0 0 1 4-4h3M20 12a4 4 0 0 1-4 4h-3M8 12h8"/></svg><span class="lbl">Player links</span></button>
+  <button class="btn ghost" id="playerBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12a4 4 0 0 1 4-4h3M20 12a4 4 0 0 1-4 4h-3M8 12h8"/></svg><span class="lbl">Players</span></button>
   <button class="btn ghost" id="editBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="lbl">Edit</span></button>
   <button class="btn ghost" id="liveToggle"><span class="dotmini"></span><span class="lbl" id="liveToggleTxt">LIVE</span></button>
   <button class="btn ghost" id="shareBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg><span class="lbl">Share</span></button>
@@ -471,7 +493,7 @@
       <div class="field" style="margin-bottom:0">
         <label>Director controls (needs a room)</label>
         <div class="linkbox"><button class="btn ghost" id="sDirector"><svg class="ico" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg><span>Open director room</span></button></div>
-        <div class="hint">If players join through a room (set one in Player links), this opens VDO.Ninja's director room where you can mute, hang up, or remove any player's live stream instantly.</div>
+        <div class="hint">If players join through a room (set one in Players &amp; stations), this opens VDO.Ninja's director room where you can mute, hang up, or remove any player's live stream instantly.</div>
       </div>
     </details>
 
@@ -494,13 +516,25 @@
 </div>
 
 <!-- Player links -->
-<div class="modal" id="players" role="dialog" aria-modal="true" aria-label="Player links">
-  <div class="modal-head"><h3>Player links</h3>
+<div class="modal" id="players" role="dialog" aria-modal="true" aria-label="Players">
+  <div class="modal-head"><h3>Players &amp; stations</h3>
     <button class="icon-btn" id="playersClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
   <div class="modal-body">
-    <p style="margin-top:0;color:var(--muted);font-size:14px">You host the stream IDs — the tool builds each player a ready link. They open it, type their <b>team name</b>, pick their screen, and they're live. Nothing to generate or report back.</p>
+    <p style="margin-top:0;color:var(--muted);font-size:14px">Create the stations players will use, then share <b>one entrance link + one access code</b>. Players open it, enter the code, pick their station, type their name, and share their screen. Nothing to send individually.</p>
 
-    <div class="row-2">
+    <div class="field">
+      <label for="pAccess">Player access code</label>
+      <div class="linkbox"><input type="text" id="pAccess" placeholder="the code you give players" spellcheck="false" /><button class="btn ghost" id="pGenAccess">Generate</button></div>
+      <div class="hint">Players must enter this to reach the create‑stream screen. Set it, then Save settings or create stations to store it.</div>
+    </div>
+    <div class="field">
+      <label for="playLink">Players entrance link</label>
+      <div class="linkbox"><input type="text" id="playLink" readonly /><button class="btn primary" id="pCopyEntrance">Copy</button></div>
+      <div class="hint">Post this once (team chat, a slide, a QR code). It carries all stations; the code gates it.</div>
+    </div>
+
+    <details class="adv"><summary>Stream quality & room (advanced)</summary>
+    <div class="row-2" style="margin-top:12px">
       <div class="field" style="margin-bottom:12px"><label for="pEvent">Event code</label><input type="text" id="pEvent" placeholder="e.g. spring-lan" spellcheck="false" /><div class="hint">Prefixes each stream ID so they're unique to your event.</div></div>
       <div class="field" style="margin-bottom:12px"><label for="pRoom">Room (optional)</label><input type="text" id="pRoom" placeholder="optional grouping" spellcheck="false" /></div>
     </div>
@@ -513,24 +547,26 @@
       <div class="field toggle-row" style="margin-bottom:6px"><input type="checkbox" id="pMotion" checked /><div><label for="pMotion">Prioritize motion</label><div class="sub">Smoother gameplay over sharpness.</div></div></div>
     </div>
     <div class="setnote" id="pDelayNote"></div>
+    </details>
 
     <div class="divider"></div>
     <div class="field">
-      <label for="pRoster">Add players — one name per line</label>
-      <textarea id="pRoster" placeholder="Match 1 — Player 1&#10;Match 1 — Player 2&#10;Caster"></textarea>
+      <label for="pRoster">Create stations — one name per line (or use open slots)</label>
+      <textarea id="pRoster" placeholder="Station 1&#10;Station 2&#10;Caster"></textarea>
     </div>
     <div class="form-actions" style="justify-content:flex-start;margin-top:0">
-      <button class="btn primary" id="pCreate">Create links & slots</button>
+      <button class="btn primary" id="pCreate">Create stations</button>
       <button class="btn ghost" id="pOpen">+ Add open slots</button>
       <button class="btn ghost" id="pApply">Apply room + password to all</button>
     </div>
 
-    <div class="divider"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <label style="font-size:12.5px;font-weight:600;color:var(--muted);margin:0">Send these to players</label>
+    <details class="adv" style="margin-top:16px"><summary>Individual direct links (optional)</summary>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 0 8px">
+      <label style="font-size:12.5px;font-weight:600;color:var(--muted);margin:0">One link per station (no code gate)</label>
       <button class="btn ghost" id="pCopyAll"><svg class="ico" viewBox="0 0 24 24"><path d="M9 9h10v10H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy all</span></button>
     </div>
     <div id="pList"></div>
+    </details>
   </div>
 </div>
 
@@ -569,19 +605,19 @@
   <div class="doc active" id="doc-start">
     <div class="steps">
       <div class="step"><h5>Put it online (GitHub Pages)</h5>
-        <p>Create a repo, add this file as <code>index.html</code>, then Settings → Pages → Deploy from branch → <code>main</code> / root. In a minute it's live at <code>your‑name.github.io/repo</code>. One file, nothing to build.</p></div>
+        <p>Create a repo, add this file as <code>index.html</code>, then Settings → Pages → Deploy from branch → <code>main</code> / root. In a minute it's live at <code>your‑name.github.io/repo</code>. The plain address always opens the watch‑only wall.</p></div>
+      <div class="step"><h5>Open the hidden admin</h5>
+        <p>Add <code>#admin</code> to the address (or tap the small lock, top‑right) to reveal the controls. In Settings → Admin &amp; live control, set an <b>admin passcode</b> so only you and other admins can get back in.</p></div>
       <div class="step"><h5>Pick bandwidth + delay</h5>
-        <p>Open <b>Settings</b>. Leave <b>Relay (Meshcast)</b> on so each player uploads just one capped stream — the same load as going to Twitch — no matter how many people watch. Set a delay (3s is typical). <b>Test it before the event:</b> send yourself a link, share a phone stopwatch, and confirm the lag. Need a frame‑exact hold and only one control room is watching? Switch to Direct + Exact delay.</p></div>
-      <div class="step"><h5>Make the player links</h5>
-        <p>Open <b>Player links</b>. Set an event code and a stream password, type your players' names (one per line), and hit <b>Create links & slots</b>. The tool mints a private stream ID for each, builds a click‑and‑share link, and drops a matching slot on your wall — all in one go.</p></div>
-      <div class="step"><h5>Send them out</h5>
-        <p><b>Copy all</b> to paste into an email or sheet, or copy each link on its own. A player opens their link in Chrome/Edge, types their <b>team name</b>, picks their screen or game window, and they're publishing — nothing to generate, nothing to report back. (Rather enter feeds by hand? <b>Add feed</b> still works.)</p></div>
-      <div class="step"><h5>Watch a feed</h5>
-        <p>Click a slot to go live. Opening another closes the first, so only one stream pulls data. Use <b>Pop out</b> for a floating window if you need to watch two at once (each uses its own bandwidth).</p></div>
+        <p>In Settings, leave <b>Relay (Meshcast)</b> on so each player uploads one capped stream like Twitch, and set a delay (3s typical). Test it before the event with a phone stopwatch.</p></div>
+      <div class="step"><h5>Set up stations + the players code</h5>
+        <p>In <b>Players &amp; stations</b>, create your stations (names or "+ Add open slots"), set a <b>player access code</b>, and <b>Copy</b> the one players‑entrance link. Post that link where players will see it and tell them the code.</p></div>
+      <div class="step"><h5>Players go live themselves</h5>
+        <p>A player opens the entrance link, enters the code, picks their station, types their name, clicks Go live, and shares their screen. Their name shows on the feed. Nothing to send back to you.</p></div>
       <div class="step"><h5>Share the wall with parents</h5>
-        <p>Rename the wall up top, then <b>Share → Copy</b> and send the link out. Parents get a clean, watch‑only view — same feeds, same delay, no editing. Players opt in by opening their own link; their tile stays dark until they go live.</p></div>
+        <p><b>Share → Copy</b> and send the link out. Parents get the watch‑only wall — same feeds, same delay, no controls. A station stays dark until its player goes live.</p></div>
     </div>
-    <div class="callout">Runs Chrome/Edge best — the broadcast delay relies on Chromium's buffering. Have your officials watch on Chrome or Edge.</div>
+    <div class="callout">Three doors, one file: the plain URL is the <b>wall</b>, <code>#admin</code> is <b>you</b>, and the entrance link is for <b>players</b>. Runs best in Chrome/Edge — the delay relies on Chromium buffering.</div>
   </div>
 
   <div class="doc" id="doc-help">
@@ -594,12 +630,19 @@
     <div class="callout crit">The delay only protects <b>this wall</b>. Anyone who can open the raw <code>?view=…</code> link sees gameplay live. Keep the source/stream IDs private, password‑protect the streams, and only distribute the wall link.</div>
     <p><b>Always test the real delay</b> before matches start — point a feed at a running stopwatch and measure it. Network conditions and browser versions change the result.</p>
 
-    <h4>Player links — you host the IDs</h4>
-    <p>Open <b>Player links</b>, set an event code and a password, and add player names. For each, the tool mints a private stream ID and a link to send. That link opens <b>this page</b> for the player, asks their <b>team name</b>, then hands them to VDO.Ninja already set to screen‑share. A matching slot appears on your wall automatically, and the team name shows as a label on the feed when you watch.</p>
+    <h4>The three doors</h4>
     <ul>
-      <li><b>Event code + password</b> keep IDs unique and stop anyone who guesses an ID from watching live. "Apply room + password to all" retrofits feeds you added earlier.</li>
-      <li><b>Relay vs direct</b> — in relay mode the player link publishes via Meshcast (one capped upload); in direct mode with exact delay on, it publishes in chunked mode. Either way the player does nothing but type a team and pick a screen.</li>
-      <li><b>Best capture</b> — sharing an entire screen or a Chrome tab reaches ~60fps; a single "window" caps near 42fps. For heavy games, the Game Capture app or an OBS virtual camera beats browser capture.</li>
+      <li><b>The wall (default)</b> — the plain URL, and the <b>Share</b> link you send parents. Watch‑only: tiles, a delay indicator, nothing to edit.</li>
+      <li><b>Admin (hidden)</b> — reach it with <code>#admin</code> or the small lock, top‑right, then your passcode. Everything to build and run the wall lives here.</li>
+      <li><b>Players (coded)</b> — one entrance link + one access code. Players create their own stream; they never see the wall's controls.</li>
+    </ul>
+
+    <h4>Players &amp; the access code</h4>
+    <p>In <b>Players &amp; stations</b> (admin), make your stations, set a <b>player access code</b>, and copy the <b>players entrance link</b>. Give players that one link and the code. They open it, enter the code, choose their station, type their name, and share their screen — <code>?push=ID&screenshare&autostart</code> does the rest, with Meshcast and your quality baked in. Their name rides along as the on‑screen label, and the wall's matching station shows them.</p>
+    <ul>
+      <li><b>Stations</b> are the wall's tiles. Create them ahead of time (names or "+ Add open slots"); a player claims one from the entrance.</li>
+      <li><b>The code</b> gates the create screen, so a link that leaks can't be used to publish without it. Regenerate it anytime.</li>
+      <li><b>Best capture</b> — sharing an entire screen or a Chrome tab hits ~60fps; a single "window" caps near 42fps. For heavy games, Game Capture or an OBS virtual camera beats browser capture.</li>
       <li>The browser still shows its own "choose what to share" picker — a security step no link can skip.</li>
     </ul>
 
@@ -663,12 +706,12 @@
       <li><b>Take down</b> a single feed from its Edit controls — it vanishes for parents and its viewer closes. Restore it the same way.</li>
       <li><b>Reaching parents already watching:</b> a plain shared link is a snapshot, so on/off and take‑downs only reach parents when they reload — unless you use one of the two live paths below.</li>
     </ul>
-    <p><b>Live path 1 — Director (instant, best for takedowns).</b> If players join through a <b>Room</b> (set one in Player links, then "Apply room + password to all"), Settings → <b>Open director room</b> gives you VDO.Ninja's control room. From there you can mute, hang up, or kick any player — the stream itself dies, so it's gone for everyone at once. This is the real kill switch.</p>
+    <p><b>Live path 1 — Director (instant, best for takedowns).</b> If players join through a <b>Room</b> (set one in Players &amp; stations, then "Apply room + password to all"), Settings → <b>Open director room</b> gives you VDO.Ninja's control room. From there you can mute, hang up, or kick any player — the stream itself dies, so it's gone for everyone at once. This is the real kill switch.</p>
     <p><b>Live path 2 — Status file (instant on/off + blocks).</b> Host a small <code>status.json</code> (in your repo or a GitHub gist) and paste its URL into Settings. Every open wall reads it every ~15s and obeys it. Toggle something, hit <b>Copy status JSON</b>, paste it into that file, save — parents update within seconds. Format: <code>{"active":true,"down":["streamID"]}</code>.</p>
     <div class="callout warn">A determined, technical viewer could read a stream ID out of the share link and watch it directly, bypassing a tile take‑down. The Director/Room path (which kills the actual stream) and stream passwords are what truly stop that — tile hiding is for the honest 99%.</div>
 
     <h4>Self‑add (players add themselves)</h4>
-    <p>In Player links, hit <b>+ Add open slots</b> to drop in a batch of blank "Station" tiles, then send out their links. A player opens theirs, types their name, clicks Go live, and shares their screen — that's the whole flow. Their name rides along as the on‑screen label. Handing out numbered stations means you don't need every name in advance.</p>
+    <p>You don't send individual links. Create stations in <b>Players &amp; stations</b> (use <b>+ Add open slots</b> for a quick batch of "Station" tiles), set the access code, and hand out the one entrance link. A player opens it, enters the code, picks a station, types their name, clicks Go live, and shares their screen — that's the whole flow. Numbered stations mean you don't need every name in advance.</p>
 
     <h4>Troubleshooting</h4>
     <ul>
@@ -691,7 +734,7 @@
   var VDO="https://vdo.ninja/?";
 
   var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:3000, clean:true,
-    bwMode:"meshcast", audioOn:true, active:true, adminHash:"", statusUrl:"",
+    bwMode:"meshcast", audioOn:true, active:true, adminHash:"", playerHash:"", statusUrl:"",
     eventCode:"", linkRoom:"", linkPassword:"", senderFps60:true, senderMotion:true, feeds:[] };
   var current=null, isViewerLink=false, adminUnlocked=false;
 
@@ -711,6 +754,8 @@
       audioOn:(s.audioOn!=null?!!s.audioOn:true),
       active:(s.active!=null?!!s.active:true),
       adminHash:s.adminHash||"",
+      playerHash:s.playerHash||"",
+      playerCodePlain:s.playerCodePlain||"",
       statusUrl:s.statusUrl||"",
       eventCode:s.eventCode||"",
       linkRoom:s.linkRoom||"",
@@ -788,6 +833,22 @@
   }
   function joinPushUrl(pl,label){
     return pushParams({ meshcast:!!pl.mc, chunked:!!pl.ck, fps:!!pl.f, motion:!!pl.m }, pl.i, pl.r||"", pl.p||"", pl.b||3000, label);
+  }
+
+  // The single coded "create your stream" entrance for all players
+  function encodePlay(o){
+    var pl={ t:o.title, pc:o.playerHash||"", r:o.linkRoom||"", p:o.linkPassword||"", b:o.defaultBitrate,
+      mc:o.bwMode==="meshcast"?1:0, ck:(o.bwMode==="p2p"&&o.chunked)?1:0, f:o.senderFps60?1:0, m:o.senderMotion?1:0,
+      s:o.feeds.filter(function(f){return f.streamId;}).map(function(f){ return { i:f.streamId, n:f.name }; }) };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(pl)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function decodePlay(str){
+    var b64=str.replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
+    return JSON.parse(decodeURIComponent(escape(atob(b64))));
+  }
+  function buildPlayLink(){ return location.origin+location.pathname+"#play="+encodePlay(state); }
+  function playStationUrl(pl, station, label){
+    return pushParams({ meshcast:!!pl.mc, chunked:!!pl.ck, fps:!!pl.f, motion:!!pl.m }, station, pl.r||"", pl.p||"", pl.b||3000, label);
   }
 
   function slug(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,28); }
@@ -1056,8 +1117,16 @@
     $("pPass").value=state.linkPassword||"";
     $("pFps").checked=!!state.senderFps60;
     $("pMotion").checked=!!state.senderMotion;
+    $("pAccess").value=state.playerCodePlain||"";
+    refreshPlayLink();
     updatePDelayNote(); renderRoster();
     showModal("players");
+  }
+  function refreshPlayLink(){ if($("playLink")) $("playLink").value=buildPlayLink(); }
+  function setPlayerCode(code){
+    code=(code||"").trim();
+    if(!code){ state.playerHash=""; state.playerCodePlain=""; return Promise.resolve(); }
+    return sha256hex(code).then(function(h){ state.playerHash=h; state.playerCodePlain=code; });
   }
   function updatePDelayNote(){
     var el=$("pDelayNote");
@@ -1097,6 +1166,7 @@
   }
   function renderRoster(){
     pullPlayerSettings();
+    refreshPlayLink();
     var wrap=$("pList"); wrap.innerHTML="";
     var rows=state.feeds.filter(function(f){ return f.streamId; });
     if(!rows.length){ wrap.innerHTML='<div class="prow empty-note">No player links yet — add names above and hit Create.</div>'; return; }
@@ -1129,7 +1199,7 @@
     document.body.classList.toggle("viewer-mode", !adminUnlocked);
     $("wallTitle").readOnly=!adminUnlocked;
     var lb=$("lockBtn");
-    lb.style.display = state.adminHash ? "" : "none";
+    lb.style.display = (state.adminHash || !isViewerLink) ? "" : "none";
     lb.classList.toggle("on", adminUnlocked);
     lb.title = adminUnlocked ? "Admin unlocked — click to lock" : "Unlock admin controls";
   }
@@ -1189,13 +1259,17 @@
   $("settingsSave").onclick=saveSettings;
   $("playersClose").onclick=function(){ pullPlayerSettings(); persist(); hideModal("players"); };
   $("pGenPass").onclick=genPass;
+  $("pGenAccess").onclick=function(){ var c=Math.random().toString(36).slice(2,7).toUpperCase(); $("pAccess").value=c; setPlayerCode(c).then(function(){ persist(); refreshPlayLink(); toast("Code set: "+c); }); };
+  $("pAccess").addEventListener("blur",function(){ setPlayerCode($("pAccess").value).then(function(){ persist(); refreshPlayLink(); }); });
+  $("pCopyEntrance").onclick=function(){ setPlayerCode($("pAccess").value).then(function(){ persist(); var l=buildPlayLink(); $("playLink").value=l;
+    (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(function(){toast("Players entrance link copied");}).catch(function(){$("playLink").select();document.execCommand("copy");toast("Copied");}); }); };
   $("pCreate").onclick=createPlayers;
   $("pOpen").onclick=function(){ var n=parseInt(prompt("How many open (self-add) slots?","4"),10); if(n>0&&n<=64) addOpenSlots(n); };
   $("pApply").onclick=applyRoomPwAll;
   $("pCopyAll").onclick=copyAllPlayers;
 
   $("liveToggle").onclick=function(){ setActive(!state.active); };
-  $("lockBtn").onclick=function(){ if(adminUnlocked){ lockAdmin(); } else { $("uPass").value=""; showModal("unlock"); setTimeout(function(){$("uPass").focus();},60); } };
+  $("lockBtn").onclick=function(){ if(adminUnlocked){ lockAdmin(); } else { requestAdmin(); } };
   $("unlockClose").onclick=function(){ hideModal("unlock"); };
   $("uGo").onclick=function(){
     var v=$("uPass").value;
@@ -1207,7 +1281,7 @@
   $("uPass").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("uGo").click(); } });
   $("sCopyStatus").onclick=function(){ var t=statusJson();
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast("Status JSON copied — paste into your status file");}).catch(function(){toast("Copy failed",false);}); };
-  $("sDirector").onclick=function(){ var l=directorLink(); if(!l){ toast("Set a Room in Player links first", false); return; } window.open(l,"_blank"); };
+  $("sDirector").onclick=function(){ var l=directorLink(); if(!l){ toast("Set a Room in Players & stations first", false); return; } window.open(l,"_blank"); };
   $("shareClose").onclick=function(){ hideModal("share"); };
   $("copyLink").onclick=function(){ var inp=$("shareLink"); inp.select();
     (navigator.clipboard?navigator.clipboard.writeText(inp.value):Promise.reject()).then(function(){toast("Link copied");}).catch(function(){ document.execCommand("copy"); toast("Link copied"); }); };
@@ -1234,8 +1308,40 @@
     }
   });
 
+  function requestAdmin(){
+    if(adminUnlocked){ return; }
+    if(state.adminHash){ $("uPass").value=""; showModal("unlock"); setTimeout(function(){$("uPass").focus();},60); }
+    else { adminUnlocked=true; applyAdmin(); render(); }
+  }
+  function initPlayerArea(ppl){
+    $("playEvent").textContent=(ppl.t||"Competition")+" · create your stream";
+    $("playScreen").classList.add("show");
+    var sel=$("pcStation"); sel.innerHTML="";
+    (ppl.s||[]).forEach(function(st){ var o=document.createElement("option"); o.value=st.i; o.textContent=st.n||st.i; sel.appendChild(o); });
+    if(!(ppl.s&&ppl.s.length)){ var o=document.createElement("option"); o.value=""; o.textContent="No stations yet — ask your coach"; sel.appendChild(o); }
+    var showForm=function(){ $("playGate").style.display="none"; $("playForm").style.display="block"; setTimeout(function(){$("pcName").focus();},60); };
+    if(!ppl.pc) showForm();
+    $("pcGo").onclick=function(){
+      if(!ppl.pc){ showForm(); return; }
+      sha256hex($("pcCode").value).then(function(h){ if(h===ppl.pc) showForm(); else toast("Wrong code", false); });
+    };
+    $("pcCode").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("pcGo").click(); } });
+    var live=function(){
+      var station=$("pcStation").value; if(!station){ toast("No station to publish to", false); return; }
+      var name=$("pcName").value.trim(); if(!name){ toast("Enter your name", false); $("pcName").focus(); return; }
+      var team=$("pcTeam").value.trim();
+      window.location.href=playStationUrl(ppl, station, team?(name+" — "+team):name);
+    };
+    $("pcLive").onclick=live;
+    $("pcName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); live(); } });
+  }
+
   /* ---------- boot ---------- */
   load();
+
+  var mp=location.hash.match(/#play=(.+)$/);
+  if(mp){ try{ initPlayerArea(decodePlay(mp[1])); return; }catch(e){ $("playScreen").classList.remove("show"); } }
+
   var mj=location.hash.match(/#join=(.+)$/);
   if(mj){
     try{
@@ -1246,29 +1352,30 @@
         var name=$("jName").value.trim();
         if(!name){ toast("Enter your name", false); $("jName").focus(); return; }
         var team=$("jTeam").value.trim();
-        var label=team?(name+" — "+team):name;
-        window.location.href=joinPushUrl(pl,label);
+        window.location.href=joinPushUrl(pl, team?(name+" — "+team):name);
       };
       $("jGo").onclick=goLive;
       $("jName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
       $("jTeam").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); goLive(); } });
       setTimeout(function(){ $("jName").focus(); },80);
-      return; // player view only — don't render the director wall
+      return;
     }catch(e){ $("joinScreen").classList.remove("show"); }
   }
-  var m=location.hash.match(/#w=(.+)$/);
+
+  var m=location.hash.match(/#w=([^#]+)/);
   if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){
     state=shared;
     isViewerLink=true;
     $("wallSub").textContent = state.delayMs>0
       ? ("Click a player to watch. Streams run about "+(state.delayMs/1000)+" seconds behind live.")
       : "Click a player to watch.";
-    // parent view: keep it in memory, leave the link intact so a refresh still works
   } }catch(e){} }
 
-  adminUnlocked = state.adminHash ? false : !isViewerLink;
+  // Default is the watch-only viewer. Admin is hidden behind the lock / #admin.
+  adminUnlocked = false;
   applyAdmin();
   render();
+  if(/#admin/i.test(location.hash)) requestAdmin();
   if(state.statusUrl){ pollStatus(); setInterval(pollStatus, 15000); }
 })();
 </script>
