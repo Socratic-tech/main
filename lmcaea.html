@@ -286,10 +286,10 @@
     <div class="onair"><span class="dot"></span><span class="txt">GO LIVE</span></div>
     <div class="eyebrow" id="joinEvent">Competition stream</div>
     <h1>Share your gameplay</h1>
-    <p class="join-p">Type your name, then choose the game window or screen to share on the next step. Keep this tab open while you play — closing it stops your stream.</p>
+    <p class="join-p">Type your name, then continue to VDO.Ninja and click Share Screen to choose the game window, tab, or display. Keep this tab open while you play — closing it stops your stream.</p>
     <div class="field"><label for="jName">Your name</label><input type="text" id="jName" placeholder="e.g. Alex R." /></div>
     <div class="field"><label for="jTeam">Team (optional)</label><input type="text" id="jTeam" placeholder="e.g. Watervliet Blue" /></div>
-    <button class="btn primary" id="jGo" style="width:100%;justify-content:center;font-size:15px;padding:12px">Go live →</button>
+    <button class="btn primary" id="jGo" style="width:100%;justify-content:center;font-size:15px;padding:12px">Continue to screen share →</button>
     <p class="join-tip"><b>For smooth 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> — not a single window — in Chrome or Edge. <b>For sound,</b> tick "Share tab audio" (browser game) or "Share system audio" (full screen) in the picker. Heads‑up: full‑screen audio also shares voice chat, so mute comms if you don't want them heard.</p>
   </div>
 </div>
@@ -306,11 +306,11 @@
     </div>
     <div id="playForm" style="display:none">
       <h1>Go live</h1>
-      <p class="join-p">Pick your station and name, then choose the game window or screen to share on the next step. Keep the tab open while you play.</p>
+      <p class="join-p">Pick your station and name, then continue to VDO.Ninja and click Share Screen to choose the game window, tab, or display. Keep the tab open while you play.</p>
       <div class="field"><label for="pcStation">Your station</label><select id="pcStation"></select></div>
       <div class="field"><label for="pcName">Your name</label><input type="text" id="pcName" placeholder="e.g. Alex R." /></div>
       <div class="field"><label for="pcTeam">Team (optional)</label><input type="text" id="pcTeam" placeholder="e.g. Watervliet Blue" /></div>
-      <button class="btn primary" id="pcLive" style="width:100%;justify-content:center;font-size:15px;padding:12px">Go live →</button>
+      <button class="btn primary" id="pcLive" style="width:100%;justify-content:center;font-size:15px;padding:12px">Continue to screen share →</button>
       <p class="join-tip"><b>For smooth 60fps,</b> share your <b>entire screen</b> or the game's <b>browser tab</b> — not a single window — in Chrome or Edge. <b>For sound,</b> tick "Share tab audio" or "Share system audio" in the picker. Heads‑up: full‑screen audio also shares voice chat.</p>
     </div>
   </div>
@@ -638,7 +638,7 @@
     </ul>
 
     <h4>Players &amp; the access code</h4>
-    <p>In <b>Players &amp; stations</b> (admin), make your stations, set a <b>player access code</b>, and copy the <b>players entrance link</b>. Give players that one link and the code. They open it, enter the code, choose their station, type their name, and share their screen — <code>?push=ID&screenshare&autostart</code> does the rest, with Meshcast and your quality baked in. Their name rides along as the on‑screen label, and the wall's matching station shows them.</p>
+    <p>In <b>Players &amp; stations</b> (admin), make your stations, set a <b>player access code</b>, and copy the <b>players entrance link</b>. Give players that one link and the code. They open it, enter the code, choose their station, type their name, and share their screen — <code>?push=ID&screenshare2</code> does the rest, with Meshcast and your quality baked in. Their name rides along as the on‑screen label, and the wall's matching station shows them.</p>
     <ul>
       <li><b>Stations</b> are the wall's tiles. Create them ahead of time (names or "+ Add open slots"); a player claims one from the entrance.</li>
       <li><b>The code</b> gates the create screen, so a link that leaks can't be used to publish without it. Regenerate it anytime.</li>
@@ -805,8 +805,10 @@
     var p=["push="+encodeURIComponent(sid)];
     if(room) p.push("room="+encodeURIComponent(room));
     if(password) p.push("password="+encodeURIComponent(password));
-    p.push("screenshare");   // publish a screen, not a camera
-    p.push("autostart");     // skip the join/preview screen
+    // Do not use autostart here. Browsers require a fresh click on the
+    // VDO.Ninja page before they will open the protected screen picker.
+    // screenshare2 gives the player a clear Share Screen button there.
+    p.push("screenshare2");
     p.push("quality=0");     // target full 60fps
     if(cfg.fps) p.push("fps=60");
     if(cfg.motion) p.push("contenthint=motion");
