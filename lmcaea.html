@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Feed Wall — VDO.Ninja Multiview</title>
+<meta name="description" content="A dark-at-rest multiview wall for VDO.Ninja gameplay feeds, with a built-in anti-cheat broadcast delay. Low bandwidth, one feed at a time." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---------- Tokens: broadcast control-room ---------- */
+  :root{
+    --bg:#0c0f14; --panel:#141a22; --panel-2:#1a222c;
+    --line:#28323f; --line-2:#374556;
+    --ink:#e8ecf2; --muted:#8b98a8; --faint:#5c6875;
+    --tally:#ff2e2e; --ready:#31d07f; --amber:#f5a623; --accent:#5b9dff; --accent-ink:#0c0f14;
+    --mono:'Space Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
+    --sans:system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(120% 90% at 50% -10%, #131a24 0%, var(--bg) 55%) fixed, var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
+  }
+  a{color:var(--accent);}
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+  .mono{font-family:var(--mono);}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);}
+
+  /* ---------- Top status strip ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:10px;
+    padding:12px clamp(14px,3vw,28px);
+    background:linear-gradient(180deg, rgba(12,15,20,.96), rgba(12,15,20,.82));
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  .onair{display:flex;align-items:center;gap:9px;flex:0 0 auto;}
+  .onair .dot{width:11px;height:11px;border-radius:50%;background:var(--faint);}
+  body.live .onair .dot{background:var(--tally);animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,46,46,.55);}50%{box-shadow:0 0 0 7px rgba(255,46,46,0);}}
+  .onair .txt{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--muted);}
+  body.live .onair .txt{color:var(--tally);}
+
+  .wall-title{
+    flex:1 1 160px;min-width:120px;font-family:var(--mono);font-weight:700;font-size:clamp(14px,2.2vw,18px);
+    letter-spacing:.02em;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;
+    padding:5px 9px;margin:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;
+  }
+  .wall-title:hover{border-color:var(--line);}
+  .wall-title:focus{border-color:var(--line-2);background:var(--panel);outline:none;}
+
+  .chip{
+    font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 10px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted);background:var(--panel);white-space:nowrap;flex:0 0 auto;
+    display:flex;align-items:center;gap:7px;
+  }
+  .chip .led{width:7px;height:7px;border-radius:50%;background:var(--faint);}
+  body.live .chip.live-chip .led{background:var(--tally);box-shadow:0 0 6px var(--tally);}
+  .chip.delay{cursor:pointer;}
+  .chip.delay .led{background:var(--ready);box-shadow:0 0 6px var(--ready);}
+  .chip.delay:hover{border-color:var(--ready);}
+  .chip.delay.off{border-color:var(--amber);color:var(--amber);}
+  .chip.delay.off .led{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+
+  .btn{
+    font-family:var(--sans);font-size:13.5px;font-weight:600;padding:8px 13px;border-radius:7px;
+    border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);
+    display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;transition:border-color .15s, background .15s, transform .05s;
+  }
+  .btn:hover{border-color:var(--accent);background:#1f2833;}
+  .btn:active{transform:translateY(1px);}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  .btn.primary:hover{background:#7fb2ff;}
+  .btn.ghost{background:transparent;border-color:var(--line);color:var(--muted);}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--line-2);background:var(--panel);}
+  .btn .ico{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
+  .icon-btn{width:36px;height:36px;padding:0;justify-content:center;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);display:inline-flex;align-items:center;transition:.15s;}
+  .icon-btn:hover{color:var(--ink);border-color:var(--line-2);}
+  .icon-btn .ico{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
+  @media (max-width:760px){ .btn .lbl{display:none;} .btn{padding:8px;} }
+
+  /* ---------- Layout ---------- */
+  main{padding:clamp(16px,3vw,30px) clamp(14px,3vw,28px) 90px;max-width:1500px;margin:0 auto;}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .section-head .sub{font-size:13px;color:var(--muted);margin-top:3px;}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));}
+
+  /* ---------- Feed slot (dark at rest = zero bandwidth) ---------- */
+  .slot{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    transition:border-color .15s, transform .08s, box-shadow .15s;display:flex;flex-direction:column;}
+  .slot:hover{border-color:var(--line-2);}
+  .slot.open{border-color:var(--tally);box-shadow:0 0 0 1px var(--tally), 0 8px 30px rgba(255,46,46,.12);}
+  .screen{position:relative;aspect-ratio:16/9;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(130% 120% at 50% 28%, #1c2734 0%, #10161d 62%, #0a0e13 100%);}
+  .screen::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);mix-blend-mode:overlay;}
+  .slate{position:relative;z-index:1;text-align:center;color:var(--faint);}
+  .slate .standby{font-family:var(--mono);font-size:12px;letter-spacing:.28em;display:flex;align-items:center;gap:8px;justify-content:center;}
+  .slate .standby .amberdot{width:7px;height:7px;border-radius:50%;background:var(--amber);opacity:.85;animation:blink 2.2s steps(2,end) infinite;}
+  @keyframes blink{0%,60%{opacity:.85;}61%,100%{opacity:.15;}}
+  .slot-num{position:absolute;top:8px;left:9px;z-index:2;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    color:var(--faint);background:rgba(8,11,15,.55);border:1px solid var(--line);border-radius:5px;padding:2px 6px;}
+  .badge{position:absolute;top:8px;right:9px;z-index:2;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+    color:var(--muted);background:rgba(8,11,15,.6);border:1px solid var(--line);border-radius:5px;padding:2px 6px;display:flex;align-items:center;gap:6px;}
+  .badge.nodelay{color:var(--amber);border-color:rgba(245,166,35,.5);}
+  .play-hint{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;opacity:0;
+    transition:opacity .15s;background:rgba(10,14,19,.35);}
+  .screen:hover .play-hint, .screen:focus-visible .play-hint{opacity:1;}
+  .play-hint .pill{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink);border:1px solid var(--ink);
+    border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:8px;background:rgba(12,15,20,.6);}
+  .slot.open .screen::before{content:'';position:absolute;top:8px;right:9px;z-index:4;width:10px;height:10px;border-radius:50%;
+    background:var(--tally);box-shadow:0 0 8px var(--tally);animation:pulse 1.4s ease-in-out infinite;}
+  .slot.open .badge{display:none;}
+  .slot-meta{padding:10px 12px 12px;}
+  .slot-name{font-size:14.5px;font-weight:600;color:var(--ink);margin:0 0 4px;word-break:break-word;}
+  .slot-sub{font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;}
+  .slot-sub .sep{color:var(--line-2);}
+  .slot-edit{display:none;gap:6px;padding:0 12px 12px;}
+  body.editing .slot-edit{display:flex;}
+  body.editing .screen{cursor:default;}
+  body.editing .play-hint{display:none;}
+  .mini{flex:1;font-size:12px;font-weight:600;padding:6px;border-radius:6px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:.15s;}
+  .mini:hover{color:var(--ink);border-color:var(--line-2);}
+  .mini.danger:hover{color:var(--tally);border-color:var(--tally);}
+  .mini .ico{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+  .mini.arrow{flex:0 0 auto;width:34px;}
+
+  .empty{grid-column:1/-1;text-align:center;padding:56px 20px;border:1px dashed var(--line-2);border-radius:14px;background:rgba(20,26,34,.4);}
+  .empty h2{font-family:var(--mono);font-weight:700;font-size:17px;letter-spacing:.04em;margin:0 0 8px;}
+  .empty p{color:var(--muted);max-width:460px;margin:0 auto 20px;font-size:14px;}
+  .empty .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+  .banner{display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:11px 14px;border-radius:10px;
+    background:rgba(91,157,255,.08);border:1px solid rgba(91,157,255,.3);font-size:13.5px;color:var(--ink);}
+  .banner.show{display:flex;}
+  .banner .mono{color:var(--accent);}
+
+  /* ---------- Modal / drawer scaffolding ---------- */
+  .scrim{position:fixed;inset:0;z-index:40;background:rgba(6,9,13,.72);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .18s;}
+  .scrim.show{opacity:1;pointer-events:auto;}
+  .modal{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-48%) scale(.98);width:min(960px,94vw);max-height:92vh;overflow:auto;
+    background:var(--panel);border:1px solid var(--line-2);border-radius:14px;opacity:0;pointer-events:none;
+    transition:opacity .18s, transform .18s;box-shadow:0 30px 80px rgba(0,0,0,.55);}
+  .modal.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+  .modal.narrow{width:min(560px,94vw);}
+  .modal-head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:2;}
+  .modal-head h3{margin:0;font-family:var(--mono);font-size:14px;letter-spacing:.06em;font-weight:700;flex:1;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+  .modal-head .live-tag{display:none;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--tally);}
+  .modal-head .live-tag .d{width:9px;height:9px;border-radius:50%;background:var(--tally);box-shadow:0 0 7px var(--tally);animation:pulse 1.4s infinite;}
+  .modal.viewer.show .modal-head .live-tag{display:flex;}
+  .modal-body{padding:18px;}
+
+  .viewer .frame-wrap{position:relative;aspect-ratio:16/9;background:#05080b;border-radius:10px;overflow:hidden;border:1px solid var(--line);}
+  .viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#05080b;}
+  .viewer .frame-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .viewer .frame-meta .left{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .viewer .frame-meta .right{display:flex;gap:8px;}
+  .viewer .frame-meta .sep{color:var(--line-2);}
+  .viewer .frame-meta .dly{color:var(--ready);}
+  .viewer .frame-meta .dly.off{color:var(--amber);}
+
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.02em;}
+  .field .hint{font-size:11.5px;color:var(--faint);margin-top:5px;line-height:1.45;}
+  .field input[type=text], .field input[type=number], .field select, .field textarea{
+    width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line-2);background:#0e141b;color:var(--ink);font-family:var(--sans);font-size:14px;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--accent);}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:560px){ .row-2{grid-template-columns:1fr;} }
+  .toggle-row{display:flex;align-items:flex-start;gap:10px;}
+  .toggle-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:0 0 auto;}
+  .toggle-row label{margin:0;color:var(--ink);font-weight:500;}
+  .toggle-row .sub{font-size:11.5px;color:var(--faint);margin-top:3px;line-height:1.45;}
+  .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+  details.adv{margin-top:6px;border-top:1px solid var(--line);padding-top:12px;}
+  details.adv summary{cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);list-style:none;}
+  details.adv summary::-webkit-details-marker{display:none;}
+  details.adv summary::before{content:'▸ ';color:var(--accent);}
+  details.adv[open] summary::before{content:'▾ ';}
+
+  .setnote{border-left:3px solid var(--amber);background:rgba(245,166,35,.07);padding:10px 13px;border-radius:0 8px 8px 0;margin:2px 0 16px;font-size:12.5px;color:#d3dbe4;line-height:1.5;}
+
+  .linkbox{display:flex;gap:8px;margin-top:6px;}
+  .linkbox input{flex:1;font-family:var(--mono);font-size:12px;}
+  .kv{font-size:12.5px;color:var(--muted);margin:4px 0 0;}
+  .divider{height:1px;background:var(--line);margin:20px 0;}
+
+  .drawer{position:fixed;z-index:41;top:0;right:0;height:100vh;width:min(560px,96vw);background:var(--panel);border-left:1px solid var(--line-2);
+    transform:translateX(102%);transition:transform .22s ease;overflow:auto;box-shadow:-20px 0 60px rgba(0,0,0,.4);}
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;gap:10px;z-index:2;}
+  .drawer-head h3{margin:0;flex:1;font-family:var(--mono);font-size:14px;letter-spacing:.08em;}
+  .tabs{display:flex;gap:6px;padding:12px 18px 0;position:sticky;top:57px;background:var(--panel);z-index:1;}
+  .tab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:8px 12px;border-radius:7px 7px 0 0;
+    border:1px solid transparent;border-bottom:none;background:transparent;color:var(--muted);}
+  .tab.active{color:var(--ink);background:var(--panel-2);border-color:var(--line);}
+  .doc{display:none;padding:20px 18px 60px;}
+  .doc.active{display:block;}
+  .doc h4{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--ink);margin:22px 0 8px;padding-top:4px;}
+  .doc h4:first-child{margin-top:4px;}
+  .doc p{font-size:14px;color:#c8d1db;margin:0 0 10px;}
+  .doc ol, .doc ul{padding-left:20px;margin:0 0 12px;}
+  .doc li{font-size:14px;color:#c8d1db;margin-bottom:8px;}
+  .doc code{font-family:var(--mono);font-size:12px;background:#0e141b;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--accent);word-break:break-word;}
+  .doc .step{counter-increment:s;position:relative;padding-left:38px;margin-bottom:16px;}
+  .doc .step::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:0;font-family:var(--mono);font-size:12px;color:var(--accent);
+    border:1px solid var(--accent);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
+  .doc .steps{counter-reset:s;}
+  .doc .step h5{margin:2px 0 5px;font-size:14.5px;color:var(--ink);}
+  .doc .step p{margin:0;font-size:13.5px;color:var(--muted);}
+  .doc table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:13px;}
+  .doc th, .doc td{border:1px solid var(--line);padding:7px 9px;text-align:left;}
+  .doc th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);background:var(--panel-2);}
+  .doc td{color:#c8d1db;}
+  .doc .callout{border-left:3px solid var(--accent);background:rgba(91,157,255,.07);padding:10px 13px;border-radius:0 8px 8px 0;margin:0 0 14px;font-size:13.5px;color:#d3dbe4;}
+  .doc .callout.warn{border-color:var(--amber);background:rgba(245,166,35,.07);}
+  .doc .callout.crit{border-color:var(--tally);background:rgba(255,46,46,.07);}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--line-2);color:var(--ink);
+    padding:11px 18px;border-radius:9px;font-size:13.5px;z-index:60;opacity:0;pointer-events:none;transition:.2s;box-shadow:0 12px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:9px;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast .ok{color:var(--ready);}
+
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="onair" title="Wall status"><span class="dot"></span><span class="txt" id="airTxt">STANDBY</span></div>
+  <input class="wall-title mono" id="wallTitle" value="Competition Feed Wall" aria-label="Wall title" spellcheck="false" />
+  <span class="chip delay" id="delayChip" title="Broadcast delay — click for settings"><span class="led"></span><span id="delayTxt">⏱ 3s delay</span></span>
+  <span class="chip live-chip" id="liveChip"><span class="led"></span><span id="liveCount">0 live</span></span>
+  <button class="btn primary" id="addBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Add feed</span></button>
+  <button class="btn ghost" id="editBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="lbl">Edit</span></button>
+  <button class="btn ghost" id="shareBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg><span class="lbl">Share</span></button>
+  <button class="icon-btn" id="settingsBtn" title="Wall settings" aria-label="Wall settings"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.2 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg></button>
+  <button class="icon-btn" id="docsBtn" title="Guides & help" aria-label="Guides and help"><svg class="ico" viewBox="0 0 24 24"><path d="M12 17h.01M12 13a2 2 0 1 0-2-2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/></svg></button>
+</header>
+
+<main>
+  <div class="banner" id="sharedBanner"><span>You're viewing a <span class="mono">shared wall</span>. It's saved to this browser — the same broadcast delay applies to you.</span></div>
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Multiview · click a slot to go live</div>
+      <div class="sub" id="wallSub">Slots stay dark until opened. One feed at a time, held back by the broadcast delay.</div>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Viewer -->
+<div class="modal viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Live feed viewer">
+  <div class="modal-head">
+    <span class="live-tag"><span class="d"></span>LIVE</span>
+    <h3 id="viewerName">Feed</h3>
+    <button class="icon-btn" id="viewerPop" title="Pop out to a floating window (uses its own bandwidth)" aria-label="Pop out"><svg class="ico" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></button>
+    <button class="icon-btn" id="viewerClose" title="Close & disconnect (Esc)" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="frame-wrap" id="frameWrap"></div>
+    <div class="frame-meta">
+      <div class="left" id="viewerMeta"></div>
+      <div class="right">
+        <button class="btn ghost" id="viewerTab"><svg class="ico" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg><span>New tab</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / edit feed -->
+<div class="modal" id="editor" role="dialog" aria-modal="true" aria-label="Add or edit feed">
+  <div class="modal-head"><h3 id="editorTitle">Add feed</h3>
+    <button class="icon-btn" id="editorClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body">
+    <div class="field">
+      <label for="fPaste">Stream ID or VDO.Ninja link</label>
+      <input type="text" id="fPaste" placeholder="e.g. team1p1   —or—   https://vdo.ninja/?view=team1p1" spellcheck="false" />
+      <div class="hint">Paste whatever the players' setup gives you. A full link auto‑fills the fields below.</div>
+    </div>
+    <div class="field"><label for="fName">Display name</label><input type="text" id="fName" placeholder="e.g. Match 1 — Player 1" /></div>
+    <div class="row-2">
+      <div class="field">
+        <label for="fBitrate">Video bitrate cap (kbps)</label>
+        <select id="fBitrate">
+          <option value="1500">1500 · 720p</option>
+          <option value="2500">2500 · 1080p (default)</option>
+          <option value="4000">4000 · 1080p60</option>
+          <option value="6000">6000 · high‑motion 1080p60</option>
+          <option value="8000">8000 · crisp / 1440p‑ish</option>
+          <option value="0">No cap · sender default</option>
+        </select>
+        <div class="hint">Gameplay needs more than talking heads. Higher = smoother motion, more bandwidth.</div>
+      </div>
+      <div class="field">
+        <label for="fCodec">Codec</label>
+        <select id="fCodec">
+          <option value="">Auto (recommended)</option>
+          <option value="vp9">VP9 · efficient</option>
+          <option value="av1">AV1 · smallest</option>
+          <option value="h264">H264 · widest support</option>
+          <option value="vp8">VP8 · compatible</option>
+        </select>
+        <div class="hint">Leave on Auto unless a feed looks bad — then try AV1 or VP9.</div>
+      </div>
+    </div>
+    <div class="field toggle-row"><input type="checkbox" id="fAudio" /><div><label for="fAudio">Pull audio for this feed</label><div class="sub">Off saves bandwidth. Turn on for the caster / commentary feed.</div></div></div>
+    <details class="adv">
+      <summary>Room settings (only if the feed lives in a VDO.Ninja room)</summary>
+      <div class="row-2" style="margin-top:12px">
+        <div class="field" style="margin-bottom:0"><label for="fRoom">Room name</label><input type="text" id="fRoom" placeholder="optional" spellcheck="false" /></div>
+        <div class="field" style="margin-bottom:0"><label for="fPass">Room / stream password</label><input type="text" id="fPass" placeholder="optional" spellcheck="false" /></div>
+      </div>
+      <div class="hint" style="margin-top:8px">In a room, the Stream ID above is the specific player's ID. Leave it blank to show the room's whole auto‑mixed scene in one slot.</div>
+    </details>
+    <div class="form-actions"><button class="btn ghost" id="editorCancel">Cancel</button><button class="btn primary" id="editorSave">Save feed</button></div>
+  </div>
+</div>
+
+<!-- Wall settings -->
+<div class="modal narrow" id="settings" role="dialog" aria-modal="true" aria-label="Wall settings">
+  <div class="modal-head"><h3>Wall settings</h3>
+    <button class="icon-btn" id="settingsClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body">
+    <div class="field">
+      <label for="sDelay">Broadcast delay · anti‑cheat</label>
+      <select id="sDelay">
+        <option value="0">Off · live (no protection)</option>
+        <option value="2000">2 seconds</option>
+        <option value="3000">3 seconds (recommended)</option>
+        <option value="4000">4 seconds</option>
+        <option value="5000">5 seconds</option>
+      </select>
+      <div class="hint">Every feed is held back by this much before anyone on the wall sees it, so a live view can't be used to relay information. Applies to everyone you share the wall with. Chrome or Edge only.</div>
+    </div>
+    <div class="field toggle-row">
+      <input type="checkbox" id="sChunked" />
+      <div>
+        <label for="sChunked">Sources are published in chunked mode</label>
+        <div class="sub">Turn on <b>only if</b> the players' push links include <code style="font-family:var(--mono)">&chunked</code>. This makes the delay exact and frame‑accurate. Left off, the delay is best‑effort — Chromium trims buffers above ~4s, so it's a deterrent, not a guarantee.</div>
+      </div>
+    </div>
+    <div class="setnote" id="delayNote"></div>
+    <div class="divider"></div>
+    <div class="field">
+      <label for="sDefBitrate">Default bitrate for new feeds (kbps)</label>
+      <select id="sDefBitrate">
+        <option value="1500">1500 · 720p</option>
+        <option value="2500">2500 · 1080p</option>
+        <option value="4000">4000 · 1080p60</option>
+        <option value="6000">6000 · high‑motion 1080p60</option>
+      </select>
+    </div>
+    <div class="field toggle-row" style="margin-bottom:4px">
+      <input type="checkbox" id="sClean" checked />
+      <div><label for="sClean">Clean player</label><div class="sub">Hide VDO.Ninja's own control bar inside the pop‑up viewer.</div></div>
+    </div>
+    <div class="form-actions"><button class="btn primary" id="settingsSave">Save settings</button></div>
+  </div>
+</div>
+
+<!-- Share -->
+<div class="modal narrow" id="share" role="dialog" aria-modal="true" aria-label="Share this wall">
+  <div class="modal-head"><h3>Share this wall</h3>
+    <button class="icon-btn" id="shareClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body">
+    <p style="margin-top:0;color:var(--muted);font-size:14px">Anyone who opens this link sees the same wall — same feeds, same delay — and can click to watch. No login, nothing to install. The whole wall is packed into the link.</p>
+    <div class="field"><label for="shareLink">Share link</label>
+      <div class="linkbox"><input type="text" id="shareLink" readonly /><button class="btn primary" id="copyLink">Copy</button></div>
+      <p class="kv" id="linkStat"></p>
+    </div>
+    <div class="setnote">Only ever hand out this delayed wall. If someone can open the raw stream links directly, they'd see gameplay live with no delay — so keep source links private and password‑protect the streams.</div>
+    <div class="divider"></div>
+    <div class="field" style="margin-bottom:8px"><label>Backup / move between devices</label>
+      <div class="linkbox">
+        <button class="btn ghost" id="exportJson"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Export JSON</span></button>
+        <button class="btn ghost" id="importJson"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21V9m0 0 4 4m-4-4-4 4M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/></svg><span>Import JSON</span></button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" />
+      </div>
+      <div class="hint" style="margin-top:8px">Export a JSON file as a hard backup of the whole wall and its settings.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Docs -->
+<aside class="drawer" id="docs" aria-label="Guides and help">
+  <div class="drawer-head"><h3>Guides</h3>
+    <button class="icon-btn" id="docsClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="tabs">
+    <button class="tab active" data-doc="start">Getting started</button>
+    <button class="tab" data-doc="help">Help</button>
+  </div>
+
+  <div class="doc active" id="doc-start">
+    <div class="steps">
+      <div class="step"><h5>Put it online (GitHub Pages)</h5>
+        <p>Create a repo, add this file as <code>index.html</code>, then Settings → Pages → Deploy from branch → <code>main</code> / root. In a minute it's live at <code>your‑name.github.io/repo</code>. One file, nothing to build.</p></div>
+      <div class="step"><h5>Set the anti‑cheat delay</h5>
+        <p>Open <b>Settings</b> (gear) and pick a delay — 3 seconds is typical. For a guaranteed exact delay, have the players push with <code>&chunked</code> and turn on "Sources are published in chunked mode." <b>Test it before the event:</b> point one feed at a phone stopwatch and confirm the lag is what you expect.</p></div>
+      <div class="step"><h5>Get a feed to add</h5>
+        <p>Each player's PC or capture publishes to VDO.Ninja and gives you a <b>view link</b> (<code>?view=…</code>) or a <b>stream ID</b>. For rooms, grab the <b>room name</b> and <b>password</b> too.</p></div>
+      <div class="step"><h5>Add it to the wall</h5>
+        <p>Click <b>Add feed</b>, paste the link or ID, name it (e.g. "Match 1 — Player 1"), pick a bitrate (2500–6000 for 1080p gameplay), Save. The slot sits dark — no bandwidth — until opened.</p></div>
+      <div class="step"><h5>Watch a feed</h5>
+        <p>Click a slot to go live. Opening another closes the first, so only one stream pulls data. Use <b>Pop out</b> for a floating window if you need to watch two at once (each uses its own bandwidth).</p></div>
+      <div class="step"><h5>Share the wall</h5>
+        <p>Rename the wall up top, then <b>Share → Copy</b> and send the link. Everyone gets the same feeds and the same delay.</p></div>
+    </div>
+    <div class="callout">Runs Chrome/Edge best — the broadcast delay relies on Chromium's buffering. Have your officials watch on Chrome or Edge.</div>
+  </div>
+
+  <div class="doc" id="doc-help">
+    <h4>The anti‑cheat delay</h4>
+    <p>The wall holds every feed back by a fixed amount before showing it, so nobody watching can relay live information to a player. There are two levels:</p>
+    <ul>
+      <li><b>Best‑effort (default)</b> — just the delay setting, no changes from the players. Works in Chrome/Edge. But the browser treats large buffers as a hint and trims anything much past ~4 seconds, so it's a deterrent rather than a hard guarantee.</li>
+      <li><b>Exact (chunked mode)</b> — the players publish with <code>&chunked</code> and you flip on the chunked toggle in Settings. VDO.Ninja then buffers with its own system, giving a rock‑solid, frame‑accurate delay of whatever length you set. Chromium‑based browsers / OBS 27.2+ only.</li>
+    </ul>
+    <div class="callout crit">The delay only protects <b>this wall</b>. Anyone who can open the raw <code>?view=…</code> link sees gameplay live. Keep the source/stream IDs private, password‑protect the streams, and only distribute the wall link.</div>
+    <p><b>Always test the real delay</b> before matches start — point a feed at a running stopwatch and measure it. Network conditions and browser versions change the result.</p>
+
+    <h4>Why this saves bandwidth</h4>
+    <p>Each slot is a still image until clicked — zero connection, zero data. VDO.Ninja is peer‑to‑peer, so video only flows while a viewer is open. The wall keeps one feed live at a time and caps each feed's bitrate, so you never pull every match at once.</p>
+
+    <h4>What each field does</h4>
+    <ul>
+      <li><b>Stream ID / link</b> — the stream to watch; a pasted <code>vdo.ninja</code> link is parsed for you.</li>
+      <li><b>Video bitrate cap</b> — the most data a feed may pull, in kbps.</li>
+      <li><b>Codec</b> — leave Auto. VP9/AV1 compress better; H264 is most compatible.</li>
+      <li><b>Audio</b> — off by default; on for the caster feed.</li>
+      <li><b>Room + password</b> — only for feeds inside a VDO.Ninja room.</li>
+    </ul>
+
+    <h4>Gameplay quality</h4>
+    <table>
+      <tr><th>Bitrate</th><th>Good for</th></tr>
+      <tr><td>1500</td><td>720p, tight bandwidth</td></tr>
+      <tr><td>2500</td><td>1080p30 (default)</td></tr>
+      <tr><td>4000–6000</td><td>fast 1080p60 — most esports</td></tr>
+      <tr><td>8000+</td><td>crisp 1080p60 / 1440p, plenty of upload</td></tr>
+    </table>
+    <p>Frame rate is set by the <b>sender</b>: add <code>&fps=60</code> (or <code>&maxframerate=60</code>) and <code>&contenthint=motion</code> to the players' push links for smoother motion. On Windows, Steve Seguin's <b>Game Capture</b> app publishes a game window straight into VDO.Ninja without OBS. There's also <b>Versus.cam</b> — a free esports‑tuned VDO.Ninja front‑end pre‑set for 1080p60 that's handy for the players' side.</p>
+
+    <h4>Solo streams vs rooms</h4>
+    <p>A solo stream is just an ID → <code>?view=ID</code>. A room feed adds room + scene → <code>?room=NAME&scene&view=ID</code>. Leave the Stream ID blank on a room feed to show the room's whole layout in one slot.</p>
+
+    <h4>Ways to view</h4>
+    <ul>
+      <li><b>In‑page viewer</b> — the default click. One at a time, cleanest bandwidth.</li>
+      <li><b>Pop out</b> — a separate floating window; open several for a true multiview, each using its own bandwidth.</li>
+      <li><b>New tab</b> — full‑tab view.</li>
+    </ul>
+
+    <h4>Sharing & privacy</h4>
+    <ul>
+      <li>The share link holds your feed names and stream IDs, packed into the URL — no server.</li>
+      <li>Video travels device‑to‑device; it does not pass through your GitHub page.</li>
+      <li>Opening a shared link replaces the wall stored in that browser — Export JSON first to keep the old one.</li>
+    </ul>
+
+    <h4>Troubleshooting</h4>
+    <ul>
+      <li><b>Delay seems short / inconsistent</b> — you're in best‑effort mode. Have players push <code>&chunked</code> and enable chunked mode; watch on Chrome/Edge.</li>
+      <li><b>Black screen</b> — the player is offline, the ID is wrong, or it needs a password.</li>
+      <li><b>Nothing connects</b> — must be HTTPS (GitHub Pages is). School/venue firewalls sometimes block WebRTC.</li>
+      <li><b>Pop‑out blocked</b> — allow pop‑ups, or use the in‑page viewer.</li>
+      <li><b>No sound</b> — audio is off per feed by default; edit the feed to enable it.</li>
+    </ul>
+    <div class="callout warn">Needs a modern Chromium browser (Chrome or Edge) served over HTTPS. That's the requirement for the delay to behave.</div>
+  </div>
+</aside>
+
+<div class="toast" id="toast"><span class="ok" id="toastIco">✓</span><span id="toastMsg">Done</span></div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_KEY="vdoFeedWall.v2";
+  var VDO="https://vdo.ninja/?";
+
+  var state={ title:"Competition Feed Wall", delayMs:3000, chunked:false, defaultBitrate:2500, clean:true, feeds:[] };
+  var current=null;
+
+  function $(id){ return document.getElementById(id); }
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+  function normalize(s){
+    s=s||{};
+    return {
+      title:s.title||"Competition Feed Wall",
+      delayMs:(s.delayMs!=null?+s.delayMs:3000),
+      chunked:!!s.chunked,
+      defaultBitrate:(s.defaultBitrate!=null?+s.defaultBitrate:2500),
+      clean:(s.clean!=null?!!s.clean:true),
+      feeds:(s.feeds||[]).map(function(f){ if(!f.id)f.id=uid(); return f; })
+    };
+  }
+
+  function toast(msg,ok){
+    var t=$("toast"); $("toastMsg").textContent=msg;
+    $("toastIco").textContent=ok===false?"!":"✓";
+    $("toastIco").style.color=ok===false?"var(--amber)":"var(--ready)";
+    t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("show");},2400);
+  }
+
+  /* ---------- URL build / parse ---------- */
+  function buildUrl(f){
+    var p=[];
+    var room=(f.room||"").trim(), sid=(f.streamId||"").trim();
+    if(room){ p.push("room="+encodeURIComponent(room)); p.push("scene"); if(sid) p.push("view="+encodeURIComponent(sid)); }
+    else { p.push("view="+encodeURIComponent(sid)); }
+    if(f.password && f.password.trim()) p.push("password="+encodeURIComponent(f.password.trim()));
+    if(f.bitrate && +f.bitrate>0) p.push("videobitrate="+(+f.bitrate));
+    if(!f.audio) p.push("noaudio");
+    if(f.codec) p.push("codec="+encodeURIComponent(f.codec));
+    if(state.chunked) p.push("chunked");
+    if(state.delayMs && +state.delayMs>0) p.push("buffer="+(+state.delayMs));
+    if(state.clean) p.push("cleanoutput");
+    return VDO + p.join("&");
+  }
+  function parseVdo(str){
+    try{
+      var u=new URL(str);
+      if(!/vdo\.ninja/i.test(u.hostname)) return null;
+      var q=u.searchParams;
+      return { streamId:q.get("view")||q.get("push")||q.get("solo")||"", room:q.get("room")||"",
+        password:q.get("password")||"", bitrate:q.get("videobitrate")||q.get("bitrate")||"",
+        codec:q.get("codec")||"", audio:!q.has("noaudio") };
+    }catch(e){ return null; }
+  }
+
+  /* ---------- persistence ---------- */
+  function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+  function load(){ try{ var raw=localStorage.getItem(LS_KEY); if(raw){ state=normalize(JSON.parse(raw)); } }catch(e){} }
+
+  /* ---------- share encode/decode ---------- */
+  function encodeState(o){
+    var slim={ t:o.title, d:o.delayMs, k:o.chunked?1:0, db:o.defaultBitrate, cl:o.clean?1:0,
+      f:o.feeds.map(function(f){
+        var s={ n:f.name, i:f.streamId };
+        if(f.room) s.r=f.room; if(f.password) s.p=f.password;
+        if(f.bitrate!=null) s.b=+f.bitrate; if(f.codec) s.c=f.codec; if(f.audio) s.a=1;
+        return s;
+      })};
+    var b64=btoa(unescape(encodeURIComponent(JSON.stringify(slim))));
+    return b64.replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function decodeState(str){
+    var b64=str.replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
+    var o=JSON.parse(decodeURIComponent(escape(atob(b64))));
+    return normalize({
+      title:o.t, delayMs:o.d, chunked:!!o.k, defaultBitrate:o.db, clean:(o.cl!=null?!!o.cl:true),
+      feeds:(o.f||[]).map(function(s){
+        return { id:uid(), name:s.n||"Feed", streamId:s.i||"", room:s.r||"", password:s.p||"",
+                 bitrate:(s.b!=null?s.b:2500), codec:s.c||"", audio:!!s.a };
+      })
+    });
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    $("wallTitle").value=state.title||"Competition Feed Wall";
+    document.title=(state.title||"Feed Wall")+" — VDO.Ninja Multiview";
+    var g=$("grid"); g.innerHTML="";
+
+    if(!state.feeds.length){
+      var e=document.createElement("div"); e.className="empty";
+      e.innerHTML='<h2>No feeds yet</h2><p>Add the players\' gameplay streams. Each becomes a dark slot that only goes live — and only uses bandwidth — when clicked, and always behind your broadcast delay.</p><div class="row"><button class="btn primary" id="emptyAdd">Add your first feed</button><button class="btn ghost" id="emptyDocs">Getting started</button><button class="btn ghost" id="emptySample">Load a sample wall</button></div>';
+      g.appendChild(e);
+      $("emptyAdd").onclick=function(){ openEditor(); };
+      $("emptyDocs").onclick=function(){ openDocs("start"); };
+      $("emptySample").onclick=loadSample;
+      updateLive(); return;
+    }
+
+    var d=+state.delayMs||0;
+    var delayLabel = d>0 ? ("⏱"+(d/1000)+"s") : "⏱LIVE";
+
+    state.feeds.forEach(function(f,idx){
+      var card=document.createElement("div");
+      card.className="slot"+(current&&current.id===f.id?" open":"");
+      card.dataset.id=f.id;
+      var num=("0"+(idx+1)).slice(-2);
+      var target=(f.streamId||f.room||"—");
+      var brLabel=(f.bitrate&&+f.bitrate>0)?(f.bitrate+"k"):"default";
+      card.innerHTML=
+        '<div class="screen" role="button" tabindex="0" aria-label="Open '+esc(f.name)+'">'+
+          '<span class="slot-num">CAM '+num+'</span>'+
+          '<span class="badge'+(d>0?'':' nodelay')+'">'+delayLabel+' '+(f.audio?'🔊':'🔇')+'</span>'+
+          '<div class="slate"><div class="standby"><span class="amberdot"></span>STANDBY</div></div>'+
+          '<div class="play-hint"><span class="pill">▶ OPEN LIVE</span></div>'+
+        '</div>'+
+        '<div class="slot-meta"><p class="slot-name">'+esc(f.name)+'</p>'+
+          '<div class="slot-sub"><span>'+esc(target)+'</span><span class="sep">·</span><span>'+esc(brLabel)+'</span>'+(f.codec?'<span class="sep">·</span><span>'+esc(f.codec)+'</span>':'')+'</div></div>'+
+        '<div class="slot-edit">'+
+          '<button class="mini arrow" data-act="left" title="Move left">◀</button>'+
+          '<button class="mini" data-act="edit"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>'+
+          '<button class="mini danger" data-act="del"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Delete</button>'+
+          '<button class="mini arrow" data-act="right" title="Move right">▶</button>'+
+        '</div>';
+
+      var screen=card.querySelector(".screen");
+      screen.addEventListener("click",function(){ if(!document.body.classList.contains("editing")) openViewer(f); });
+      screen.addEventListener("keydown",function(ev){ if((ev.key==="Enter"||ev.key===" ")&&!document.body.classList.contains("editing")){ ev.preventDefault(); openViewer(f);} });
+      card.querySelectorAll(".slot-edit .mini").forEach(function(b){
+        b.addEventListener("click",function(){
+          var act=b.dataset.act;
+          if(act==="edit") openEditor(f);
+          else if(act==="del"){ if(confirm('Delete "'+f.name+'"?')){ state.feeds=state.feeds.filter(function(x){return x.id!==f.id;}); persist(); render(); } }
+          else if(act==="left") move(idx,-1);
+          else if(act==="right") move(idx,1);
+        });
+      });
+      g.appendChild(card);
+    });
+    updateLive();
+  }
+
+  function move(idx,dir){ var j=idx+dir; if(j<0||j>=state.feeds.length) return; var a=state.feeds,t=a[idx]; a[idx]=a[j]; a[j]=t; persist(); render(); }
+
+  function updateLive(){
+    var live=current?1:0;
+    var kbps=current&&current.bitrate?(+current.bitrate):0;
+    document.body.classList.toggle("live",!!live);
+    $("airTxt").textContent=live?"ON AIR":"STANDBY";
+    $("liveCount").textContent=live?("1 live · "+(kbps>0?"~"+kbps+"k":"default")):"0 live";
+    var d=+state.delayMs||0, chip=$("delayChip");
+    if(d>0){ chip.classList.remove("off"); $("delayTxt").textContent="⏱ "+(d/1000)+"s delay"+(state.chunked?" · exact":""); }
+    else { chip.classList.add("off"); $("delayTxt").textContent="⏱ NO DELAY"; }
+  }
+
+  /* ---------- viewer ---------- */
+  function openViewer(f){
+    current=f;
+    var url=buildUrl(f);
+    var wrap=$("frameWrap"); wrap.innerHTML="";
+    var fr=document.createElement("iframe");
+    fr.src=url;
+    fr.setAttribute("allow","autoplay; fullscreen; picture-in-picture; camera; microphone");
+    fr.setAttribute("allowfullscreen","true");
+    wrap.appendChild(fr);
+    $("viewerName").textContent=f.name;
+    var d=+state.delayMs||0;
+    var meta=[];
+    meta.push(esc(f.streamId||f.room||"—"));
+    meta.push('<span class="sep">·</span>'+((f.bitrate&&+f.bitrate>0)?esc(f.bitrate)+"k":"default"));
+    meta.push('<span class="sep">·</span>'+(f.audio?"audio":"muted"));
+    if(f.codec) meta.push('<span class="sep">·</span>'+esc(f.codec));
+    meta.push('<span class="sep">·</span><span class="dly'+(d>0?'':' off')+'">'+(d>0?("⏱ "+(d/1000)+"s delay"+(state.chunked?" (exact)":"")):"⏱ NO DELAY")+'</span>');
+    $("viewerMeta").innerHTML=meta.join(" ");
+    $("viewerTab").onclick=function(){ window.open(url,"_blank"); };
+    $("viewerPop").onclick=function(){ window.open(url,"_blank","width=960,height=600,noopener"); closeViewer(); };
+    showModal("viewer"); render(); updateLive();
+  }
+  function closeViewer(){ $("frameWrap").innerHTML=""; current=null; hideModal("viewer"); render(); updateLive(); }
+
+  /* ---------- editor ---------- */
+  var editing=null;
+  function openEditor(f){
+    editing=f||null;
+    $("editorTitle").textContent=f?"Edit feed":"Add feed";
+    $("fPaste").value=f?(f.streamId||""):"";
+    $("fName").value=f?(f.name||""):"";
+    $("fBitrate").value=f?String(f.bitrate==null?state.defaultBitrate:f.bitrate):String(state.defaultBitrate);
+    $("fCodec").value=f?(f.codec||""):"";
+    $("fAudio").checked=f?!!f.audio:false;
+    $("fRoom").value=f?(f.room||""):"";
+    $("fPass").value=f?(f.password||""):"";
+    showModal("editor"); setTimeout(function(){ $("fPaste").focus(); },60);
+  }
+  $("fPaste").addEventListener("blur",function(){
+    var v=$("fPaste").value.trim();
+    if(/^https?:\/\//i.test(v)){
+      var p=parseVdo(v);
+      if(p){
+        $("fPaste").value=p.streamId;
+        if(p.room) $("fRoom").value=p.room;
+        if(p.password) $("fPass").value=p.password;
+        if(p.bitrate) $("fBitrate").value=snapBitrate(p.bitrate);
+        if(p.codec) $("fCodec").value=p.codec;
+        $("fAudio").checked=!!p.audio;
+        if(!$("fName").value) $("fName").value=p.streamId||p.room||"Feed";
+        toast("Link read — fields filled in");
+      }
+    }
+  });
+  function snapBitrate(b){ var n=+b; if(n<=0) return "0"; var opts=[1500,2500,4000,6000,8000],best=opts[0],d=1e9; opts.forEach(function(o){var dd=Math.abs(o-n); if(dd<d){d=dd;best=o;}}); return String(best); }
+
+  function saveEditor(){
+    var sid=$("fPaste").value.trim(), room=$("fRoom").value.trim();
+    if(!sid && !room){ toast("Add a stream ID, link, or room", false); $("fPaste").focus(); return; }
+    var data={ name:$("fName").value.trim()||sid||room||"Feed", streamId:sid, room:room, password:$("fPass").value.trim(),
+      bitrate:+$("fBitrate").value, codec:$("fCodec").value, audio:$("fAudio").checked };
+    if(editing) Object.assign(editing,data); else { data.id=uid(); state.feeds.push(data); }
+    persist(); hideModal("editor"); render(); toast(editing?"Feed updated":"Feed added");
+  }
+
+  /* ---------- settings ---------- */
+  function openSettings(){
+    $("sDelay").value=String(state.delayMs);
+    $("sChunked").checked=!!state.chunked;
+    $("sDefBitrate").value=String(state.defaultBitrate);
+    $("sClean").checked=!!state.clean;
+    updateDelayNote();
+    showModal("settings");
+  }
+  function updateDelayNote(){
+    var d=+$("sDelay").value, ck=$("sChunked").checked, el=$("delayNote");
+    if(d<=0){ el.style.borderColor="var(--tally)"; el.style.background="rgba(255,46,46,.08)";
+      el.innerHTML="<b>No delay is active.</b> Live gameplay can be relayed to players. Only turn this off for non‑competitive feeds."; return; }
+    el.style.borderColor="var(--amber)"; el.style.background="rgba(245,166,35,.07)";
+    if(ck) el.innerHTML="<b>Exact delay.</b> As long as the players really are pushing <code style='font-family:var(--mono)'>&chunked</code>, feeds will be held back "+(d/1000)+"s frame‑accurately. Test it before matches.";
+    else el.innerHTML="<b>Best‑effort delay (~"+(d/1000)+"s).</b> Works with no changes from players, but Chromium may trim it. For a guaranteed hold, enable chunked mode. Test the real delay before matches.";
+  }
+  $("sDelay").addEventListener("change",updateDelayNote);
+  $("sChunked").addEventListener("change",updateDelayNote);
+  function saveSettings(){
+    state.delayMs=+$("sDelay").value;
+    state.chunked=$("sChunked").checked;
+    state.defaultBitrate=+$("sDefBitrate").value;
+    state.clean=$("sClean").checked;
+    persist(); hideModal("settings"); render();
+    toast(state.delayMs>0?("Delay set to "+(state.delayMs/1000)+"s"):"Delay turned off", state.delayMs>0);
+  }
+
+  /* ---------- share ---------- */
+  function openShare(){
+    var code=encodeState(state);
+    var link=location.origin+location.pathname+"#w="+code;
+    $("shareLink").value=link;
+    var n=state.feeds.length;
+    $("linkStat").textContent=n+" feed"+(n===1?"":"s")+" · "+(state.delayMs>0?(state.delayMs/1000)+"s delay":"no delay")+" · "+link.length+" chars"+(link.length>1800?" · long — Export JSON for big walls":"");
+    showModal("share"); setTimeout(function(){ $("shareLink").select(); },60);
+  }
+
+  function loadSample(){
+    state.feeds=[
+      {id:uid(),name:"Match 1 — Player 1 (EXAMPLE)",streamId:"exM1P1",room:"",password:"",bitrate:4000,codec:"",audio:false},
+      {id:uid(),name:"Match 1 — Player 2 (EXAMPLE)",streamId:"exM1P2",room:"",password:"",bitrate:4000,codec:"",audio:false},
+      {id:uid(),name:"Caster Cam (EXAMPLE)",streamId:"exCaster",room:"",password:"",bitrate:2500,codec:"",audio:true}
+    ];
+    persist(); render(); toast("Sample loaded — placeholders, they won't connect");
+  }
+
+  /* ---------- modal/drawer plumbing ---------- */
+  var openModals=[];
+  function showModal(id){ $("scrim").classList.add("show"); $(id).classList.add("show"); if(openModals.indexOf(id)<0) openModals.push(id); }
+  function hideModal(id){ $(id).classList.remove("show"); openModals=openModals.filter(function(x){return x!==id;}); if(!openModals.length && !$("docs").classList.contains("show")) $("scrim").classList.remove("show"); }
+  function openDocs(which){ $("docs").classList.add("show"); $("scrim").classList.add("show"); if(which) switchDoc(which); }
+  function closeDocs(){ $("docs").classList.remove("show"); if(!openModals.length) $("scrim").classList.remove("show"); }
+  function switchDoc(which){ document.querySelectorAll(".tab").forEach(function(t){ t.classList.toggle("active",t.dataset.doc===which); }); document.querySelectorAll(".doc").forEach(function(dd){ dd.classList.toggle("active",dd.id==="doc-"+which); }); }
+
+  /* ---------- wire up ---------- */
+  $("addBtn").onclick=function(){ openEditor(); };
+  $("editBtn").onclick=function(){ var on=document.body.classList.toggle("editing"); $("editBtn").classList.toggle("primary",on);
+    $("wallSub").textContent=on?"Edit mode — reorder with ◀ ▶, or edit / delete a slot.":"Slots stay dark until opened. One feed at a time, held back by the broadcast delay."; };
+  $("shareBtn").onclick=openShare;
+  $("settingsBtn").onclick=openSettings;
+  $("delayChip").onclick=openSettings;
+  $("docsBtn").onclick=function(){ openDocs(); };
+  $("docsClose").onclick=closeDocs;
+  document.querySelectorAll(".tab").forEach(function(t){ t.onclick=function(){ switchDoc(t.dataset.doc); }; });
+
+  $("viewerClose").onclick=closeViewer;
+  $("editorClose").onclick=function(){ hideModal("editor"); };
+  $("editorCancel").onclick=function(){ hideModal("editor"); };
+  $("editorSave").onclick=saveEditor;
+  $("settingsClose").onclick=function(){ hideModal("settings"); };
+  $("settingsSave").onclick=saveSettings;
+  $("shareClose").onclick=function(){ hideModal("share"); };
+  $("copyLink").onclick=function(){ var inp=$("shareLink"); inp.select();
+    (navigator.clipboard?navigator.clipboard.writeText(inp.value):Promise.reject()).then(function(){toast("Link copied");}).catch(function(){ document.execCommand("copy"); toast("Link copied"); }); };
+  $("exportJson").onclick=function(){ var blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}); var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=(state.title||"feed-wall").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000); toast("Exported JSON"); };
+  $("importJson").onclick=function(){ $("importFile").click(); };
+  $("importFile").onchange=function(e){ var file=e.target.files[0]; if(!file) return; var r=new FileReader();
+    r.onload=function(){ try{ var o=JSON.parse(r.result); if(!o.feeds) throw 0; state=normalize(o); persist(); render(); hideModal("share"); toast("Imported "+state.feeds.length+" feed"+(state.feeds.length===1?"":"s")); }catch(err){ toast("That file didn't look right", false); } };
+    r.readAsText(file); e.target.value=""; };
+
+  $("wallTitle").addEventListener("change",function(){ state.title=$("wallTitle").value.trim()||"Competition Feed Wall"; persist(); render(); });
+  $("wallTitle").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("wallTitle").blur(); } });
+
+  $("scrim").addEventListener("click",function(){
+    if(openModals.indexOf("viewer")>=0) closeViewer();
+    else if(openModals.length) hideModal(openModals[openModals.length-1]);
+    else if($("docs").classList.contains("show")) closeDocs();
+  });
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){
+      if(openModals.indexOf("viewer")>=0) closeViewer();
+      else if(openModals.length) hideModal(openModals[openModals.length-1]);
+      else if($("docs").classList.contains("show")) closeDocs();
+    }
+  });
+
+  /* ---------- boot ---------- */
+  load();
+  var m=location.hash.match(/#w=(.+)$/);
+  if(m){ try{ var shared=decodeState(m[1]); if(shared&&shared.feeds){ state=shared; persist(); $("sharedBanner").classList.add("show"); history.replaceState(null,"",location.pathname+location.search); } }catch(e){} }
+  render();
+})();
+</script>
+</body>
+</html>
