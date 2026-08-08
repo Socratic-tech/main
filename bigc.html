@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Wall Calendar Builder</title>
+<style>
+  :root{
+    --paper:#FDFDFB;
+    --ink:#1C1C1A;
+    --line:#C7C4BA;
+    --line-soft:#E4E2DA;
+    --spine:#1C1C1A;
+    --spine-text:#FDFDFB;
+    --accent:#2C4A7C;
+    --muted:#8A877D;
+    --font-display: 'Arial Black', Arial, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --font-mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    --page-w-in: 36;
+    --page-h-in: 24;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    background:#EBE9E2;
+    color:var(--ink);
+  }
+
+  /* ===================== APP SHELL (screen only) ===================== */
+  .app{
+    display:grid;
+    grid-template-columns: 340px 1fr;
+    min-height:100vh;
+  }
+  .panel{
+    background:#F4F3EE;
+    border-right:1px solid var(--line);
+    padding:20px 18px 40px;
+    overflow-y:auto;
+    height:100vh;
+    position:sticky;
+    top:0;
+  }
+  .panel h1{
+    font-family:var(--font-display);
+    font-size:20px;
+    letter-spacing:0.3px;
+    margin:0 0 4px;
+  }
+  .panel .tag{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    margin-bottom:20px;
+    display:block;
+  }
+  fieldset{
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin:0 0 16px;
+    padding:12px 12px 14px;
+  }
+  legend{
+    font-family:var(--font-display);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:0 6px;
+    color:var(--ink);
+  }
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    margin:8px 0 3px;
+    color:#3a3a36;
+  }
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=date], input[type=number], select{
+    width:100%;
+    padding:7px 8px;
+    font-size:13px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    font-family:var(--font-body);
+    color:var(--ink);
+  }
+  input[type=color]{
+    width:100%;
+    height:32px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:2px;
+    background:#fff;
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .checkbox-row{display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .checkbox-row input{width:auto;}
+  .checkbox-row label{margin:0;font-weight:500;}
+  button{
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:13px;
+    border:none;
+    border-radius:3px;
+    padding:9px 12px;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--ink);
+    color:#fff;
+    width:100%;
+    margin-top:10px;
+  }
+  .btn-primary:hover{background:#000;}
+  .btn-print{
+    background:var(--accent);
+    color:#fff;
+    width:100%;
+    font-size:14px;
+    padding:12px;
+  }
+  .btn-secondary{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+    font-size:11px;
+    padding:6px 9px;
+  }
+  .btn-row{display:flex;gap:8px;margin-top:8px;}
+  .btn-row button{flex:1;}
+  .date-list{
+    list-style:none;
+    margin:10px 0 0;
+    padding:0;
+    max-height:260px;
+    overflow-y:auto;
+  }
+  .date-list li{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12.5px;
+    padding:6px 4px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .date-list .swatch{
+    width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  }
+  .date-list .info{flex:1;min-width:0;}
+  .date-list .info .d{color:var(--muted);font-size:11px;}
+  .date-list .info .l{
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    display:block;
+  }
+  .date-list .del{
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    font-size:15px;padding:2px 4px;
+  }
+  .date-list .del:hover{color:#B23A3A;}
+  .empty-note{
+    font-size:12px;color:var(--muted);font-style:italic;padding:8px 2px;
+  }
+  .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;}
+
+  /* ===================== PREVIEW STAGE ===================== */
+  .stage{
+    padding:30px;
+    overflow:auto;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .stage-inner{
+    background:#00000010;
+    padding:20px;
+    border-radius:6px;
+  }
+
+  #calendarPage{
+    background:var(--paper);
+    box-shadow:0 6px 24px rgba(0,0,0,0.25);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .cal-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:2.2% 2.5% 1%;
+    border-bottom:3px solid var(--ink);
+  }
+  .cal-header .title-block h2{
+    font-family:var(--font-display);
+    margin:0;
+    font-size:2.6vw;
+    line-height:1;
+    letter-spacing:0.5px;
+  }
+  .cal-header .title-block .sub{
+    font-size:1vw;
+    color:var(--muted);
+    margin-top:4px;
+    letter-spacing:0.5px;
+  }
+  .cal-header .legend{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:55%;
+  }
+  .cal-header .legend .item{
+    display:flex;align-items:center;gap:5px;font-size:0.8vw;color:var(--ink);
+  }
+  .cal-header .legend .dot{
+    width:0.7vw;height:0.7vw;border-radius:50%;flex-shrink:0;
+  }
+
+  .grid-wrap{flex:1;display:flex;}
+  table.weekgrid{
+    border-collapse:collapse;
+    width:100%;
+    table-layout:fixed;
+  }
+  table.weekgrid th{
+    font-family:var(--font-mono);
+    font-size:0.85vw;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--muted);
+    font-weight:600;
+    padding:6px 4px;
+    border-bottom:2px solid var(--ink);
+  }
+  col.spine-col{width:6.5%;}
+  td, th{border:1px solid var(--line);}
+  td.spine{
+    background:var(--spine);
+    color:var(--spine-text);
+    font-family:var(--font-display);
+    font-size:0.95vw;
+    text-align:center;
+    vertical-align:middle;
+    letter-spacing:0.5px;
+    border:1px solid var(--spine);
+  }
+  tr.month-start td{border-top:3px solid var(--ink);}
+  td.day{
+    vertical-align:top;
+    padding:4px 5px;
+    position:relative;
+    background:var(--paper);
+  }
+  td.day.out-of-year{background:#F0EFEA;}
+  td.day .num{
+    font-family:var(--font-mono);
+    font-size:0.85vw;
+    color:var(--ink);
+    font-weight:700;
+  }
+  td.day.out-of-year .num{color:#C8C6BC;}
+  td.day .moy{
+    font-size:0.6vw;
+    color:var(--muted);
+    font-family:var(--font-mono);
+    margin-left:4px;
+  }
+  td.day .events{
+    margin-top:3px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  td.day .ev{
+    font-size:0.68vw;
+    line-height:1.2;
+    padding:1px 4px;
+    border-radius:2px;
+    color:#fff;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  td.day.today{outline:3px solid var(--accent); outline-offset:-3px;}
+
+  .titleblock-footer{
+    display:flex;
+    justify-content:space-between;
+    border-top:3px solid var(--ink);
+    padding:0.7% 2.5%;
+    font-family:var(--font-mono);
+    font-size:0.75vw;
+    color:var(--muted);
+    letter-spacing:0.5px;
+    background:var(--spine);
+    color:var(--spine-text);
+  }
+  .titleblock-footer b{color:#fff;}
+
+  /* ===================== PRINT ===================== */
+  @media print{
+    body{background:#fff;}
+    .app{display:block;}
+    .panel, .stage{display:none !important;}
+    .print-root{display:block !important;}
+    #calendarPage{
+      box-shadow:none;
+      margin:0;
+    }
+  }
+  .print-root{display:none;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============== CONTROL PANEL ============== -->
+  <div class="panel">
+    <h1>Big Wall Calendar</h1>
+    <span class="tag">Build it. Fill it. Print it huge.</span>
+
+    <fieldset>
+      <legend>Poster</legend>
+      <label for="fYear">Year</label>
+      <input type="number" id="fYear" value="2027">
+
+      <label for="fTitle">Title</label>
+      <input type="text" id="fTitle" placeholder="e.g. The Phillips Family" value="Our Year">
+
+      <label for="fSubtitle">Subtitle</label>
+      <input type="text" id="fSubtitle" placeholder="e.g. Farm, Family & Field Trips" value="">
+
+      <label for="fWeekStart">Week starts on</label>
+      <select id="fWeekStart">
+        <option value="0">Sunday</option>
+        <option value="1">Monday</option>
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend>Print size</legend>
+      <label for="fPreset">Poster size preset</label>
+      <select id="fPreset">
+        <option value="18x24">18" x 24"</option>
+        <option value="24x36" selected>24" x 36"</option>
+        <option value="36x48">36" x 48"</option>
+        <option value="27x39">27" x 39" (standard big-calendar)</option>
+        <option value="custom">Custom&hellip;</option>
+      </select>
+      <div class="row2" id="customSizeRow" style="display:none;margin-top:8px;">
+        <div>
+          <label for="fCustomW">Width (in)</label>
+          <input type="number" id="fCustomW" value="36">
+        </div>
+        <div>
+          <label for="fCustomH">Height (in)</label>
+          <input type="number" id="fCustomH" value="24">
+        </div>
+      </div>
+      <label for="fAccent">Accent color</label>
+      <input type="color" id="fAccent" value="#2C4A7C">
+      <p class="hint">This sets the physical page size for printing. Use "Save as PDF" at your print size, then send the PDF to a copy shop (Staples, FedEx Office, local print shop) for large-format printing, or tile it on a home printer.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Add an important date</legend>
+      <label for="fDate">Date</label>
+      <input type="date" id="fDate">
+      <label for="fLabel">Label</label>
+      <input type="text" id="fLabel" placeholder="e.g. Sarah's birthday" maxlength="40">
+      <label for="fCategory">Category</label>
+      <select id="fCategory">
+        <option value="birthday">Birthday</option>
+        <option value="travel">Travel</option>
+        <option value="deadline">Deadline / Due</option>
+        <option value="holiday">Holiday</option>
+        <option value="other" selected>Other</option>
+      </select>
+      <div class="checkbox-row">
+        <input type="checkbox" id="fRepeat">
+        <label for="fRepeat">Repeats every year</label>
+      </div>
+      <button class="btn-primary" id="btnAdd">Add date</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Your dates (<span id="dateCount">0</span>)</legend>
+      <ul class="date-list" id="dateList"></ul>
+      <div id="emptyNote" class="empty-note">No dates yet — add your first one above.</div>
+      <div class="btn-row">
+        <button class="btn-secondary" id="btnExport">Export backup</button>
+        <button class="btn-secondary" id="btnImport">Import backup</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+    </fieldset>
+
+    <button class="btn-print" id="btnPrint">Print / Save as PDF</button>
+  </div>
+
+  <!-- ============== LIVE PREVIEW ============== -->
+  <div class="stage">
+    <div class="stage-inner">
+      <div id="calendarPage"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- print-only mount point that mirrors #calendarPage at true size -->
+<div class="print-root" id="printRoot"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORE_KEY = "bigWallCalendar.v1";
+  const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const CATEGORY_COLORS = {
+    birthday: "#C2447B",
+    travel:   "#1F8A70",
+    deadline: "#C9622A",
+    holiday:  "#3A4CA6",
+    other:    "#6B6B63"
+  };
+  const CATEGORY_LABELS = {
+    birthday: "Birthday",
+    travel: "Travel",
+    deadline: "Deadline",
+    holiday: "Holiday",
+    other: "Other"
+  };
+
+  const PRESETS = {
+    "18x24": [18,24],
+    "24x36": [24,36],
+    "36x48": [36,48],
+    "27x39": [27,39]
+  };
+
+  let state = loadState();
+
+  // ---------- element refs ----------
+  const el = {
+    year: document.getElementById("fYear"),
+    title: document.getElementById("fTitle"),
+    subtitle: document.getElementById("fSubtitle"),
+    weekStart: document.getElementById("fWeekStart"),
+    preset: document.getElementById("fPreset"),
+    customRow: document.getElementById("customSizeRow"),
+    customW: document.getElementById("fCustomW"),
+    customH: document.getElementById("fCustomH"),
+    accent: document.getElementById("fAccent"),
+    date: document.getElementById("fDate"),
+    label: document.getElementById("fLabel"),
+    category: document.getElementById("fCategory"),
+    repeat: document.getElementById("fRepeat"),
+    btnAdd: document.getElementById("btnAdd"),
+    dateList: document.getElementById("dateList"),
+    dateCount: document.getElementById("dateCount"),
+    emptyNote: document.getElementById("emptyNote"),
+    btnExport: document.getElementById("btnExport"),
+    btnImport: document.getElementById("btnImport"),
+    importFile: document.getElementById("importFile"),
+    btnPrint: document.getElementById("btnPrint"),
+    calendarPage: document.getElementById("calendarPage"),
+    printRoot: document.getElementById("printRoot")
+  };
+
+  function defaultState(){
+    return {
+      year: new Date().getFullYear() + 1,
+      title: "Our Year",
+      subtitle: "",
+      weekStart: 0,
+      preset: "24x36",
+      customW: 36,
+      customH: 24,
+      accent: "#2C4A7C",
+      dates: []
+    };
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      return Object.assign(defaultState(), parsed);
+    }catch(e){
+      return defaultState();
+    }
+  }
+
+  function saveState(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+    catch(e){ /* storage unavailable - continue without persistence */ }
+  }
+
+  // ---------- populate controls from state ----------
+  function syncControlsFromState(){
+    el.year.value = state.year;
+    el.title.value = state.title;
+    el.subtitle.value = state.subtitle;
+    el.weekStart.value = String(state.weekStart);
+    el.preset.value = state.preset;
+    el.customW.value = state.customW;
+    el.customH.value = state.customH;
+    el.accent.value = state.accent;
+    el.customRow.style.display = state.preset === "custom" ? "grid" : "none";
+    document.documentElement.style.setProperty("--accent", state.accent);
+  }
+
+  // ---------- date helpers ----------
+  function pad2(n){ return n<10 ? "0"+n : ""+n; }
+  function isoDate(y,m,d){ return y+"-"+pad2(m+1)+"-"+pad2(d); }
+
+  function getYearWeeks(year, weekStartDay){
+    const start = new Date(Date.UTC(year,0,1));
+    const end = new Date(Date.UTC(year,11,31));
+    let dow = start.getUTCDay();
+    let back = (dow - weekStartDay + 7) % 7;
+    let cursor = new Date(start);
+    cursor.setUTCDate(cursor.getUTCDate() - back);
+
+    const weeks = [];
+    while(true){
+      const week = [];
+      for(let i=0;i<7;i++){
+        week.push(new Date(cursor));
+        cursor.setUTCDate(cursor.getUTCDate()+1);
+      }
+      weeks.push(week);
+      if(week[6].getTime() >= end.getTime()) break;
+    }
+    return weeks;
+  }
+
+  function buildEventIndex(){
+    const exact = {};   // "Y-M-D" -> [entries]
+    const repeat = {};  // "M-D" -> [entries]
+    state.dates.forEach(entry=>{
+      const d = new Date(entry.date + "T00:00:00Z");
+      const mdKey = d.getUTCMonth()+"-"+d.getUTCDate();
+      if(entry.repeat){
+        (repeat[mdKey] = repeat[mdKey] || []).push(entry);
+      }else{
+        const key = d.getUTCFullYear()+"-"+mdKey;
+        (exact[key] = exact[key] || []).push(entry);
+      }
+    });
+    return {exact, repeat};
+  }
+
+  // ---------- rendering ----------
+  function renderCalendar(){
+    const year = parseInt(state.year,10) || new Date().getFullYear();
+    const weeks = getYearWeeks(year, state.weekStart);
+    const idx = buildEventIndex();
+    const todayIso = new Date().toISOString().slice(0,10);
+
+    const dayHeaderOrder = [];
+    for(let i=0;i<7;i++) dayHeaderOrder.push(DAY_NAMES[(state.weekStart+i)%7]);
+
+    let html = "";
+    html += `<div class="cal-header">
+      <div class="title-block">
+        <h2>${escapeHtml(state.title || "Our Year")} ${year}</h2>
+        ${state.subtitle ? `<div class="sub">${escapeHtml(state.subtitle)}</div>` : ""}
+      </div>
+      <div class="legend">
+        ${Object.keys(CATEGORY_LABELS).map(k=>`<div class="item"><span class="dot" style="background:${CATEGORY_COLORS[k]}"></span>${CATEGORY_LABELS[k]}</div>`).join("")}
+      </div>
+    </div>`;
+
+    html += `<div class="grid-wrap"><table class="weekgrid"><colgroup><col class="spine-col">${dayHeaderOrder.map(()=>"<col>").join("")}</colgroup>`;
+    html += `<thead><tr><th></th>${dayHeaderOrder.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>`;
+
+    weeks.forEach(week=>{
+      const monthStartDay = week.find(d => d.getUTCFullYear()===year && d.getUTCDate()===1);
+      const rowClass = monthStartDay ? "month-start" : "";
+      html += `<tr class="${rowClass}">`;
+      html += `<td class="spine">${monthStartDay ? MONTH_NAMES[monthStartDay.getUTCMonth()] : ""}</td>`;
+
+      week.forEach(day=>{
+        const inYear = day.getUTCFullYear() === year;
+        const isFirst = day.getUTCDate() === 1;
+        const iso = isoDate(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate());
+        const mdKey = day.getUTCMonth()+"-"+day.getUTCDate();
+        const yKey = day.getUTCFullYear()+"-"+mdKey;
+        const evs = [].concat(idx.exact[yKey]||[], idx.repeat[mdKey]||[]);
+        const isToday = iso === todayIso;
+
+        html += `<td class="day ${inYear?"":"out-of-year"} ${isToday?"today":""}">`;
+        html += `<span class="num">${day.getUTCDate()}</span>`;
+        if(isFirst) html += `<span class="moy">${MONTH_NAMES[day.getUTCMonth()]}</span>`;
+        if(evs.length){
+          html += `<div class="events">`;
+          evs.slice(0,4).forEach(ev=>{
+            html += `<div class="ev" style="background:${CATEGORY_COLORS[ev.category]||CATEGORY_COLORS.other}" title="${escapeHtml(ev.label)}">${escapeHtml(ev.label)}</div>`;
+          });
+          html += `</div>`;
+        }
+        html += `</td>`;
+      });
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+
+    const [w,h] = getPageDimensions();
+    html += `<div class="titleblock-footer">
+      <span>YEAR: <b>${year}</b></span>
+      <span>SIZE: <b>${w}" &times; ${h}"</b></span>
+      <span>ENTRIES: <b>${state.dates.length}</b></span>
+      <span>MADE WITH BIG WALL CALENDAR BUILDER</span>
+    </div>`;
+
+    el.calendarPage.innerHTML = html;
+    el.printRoot.innerHTML = html;
+    sizePages();
+  }
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function getPageDimensions(){
+    let w,h;
+    if(state.preset === "custom"){
+      w = parseFloat(state.customW)||36;
+      h = parseFloat(state.customH)||24;
+    }else{
+      [w,h] = PRESETS[state.preset] || PRESETS["24x36"];
+    }
+    return [w,h];
+  }
+
+  function sizePages(){
+    const [w,h] = getPageDimensions();
+    document.documentElement.style.setProperty("--page-w-in", w);
+    document.documentElement.style.setProperty("--page-h-in", h);
+
+    const pxPerIn = 96; // CSS reference inch
+    const trueW = w*pxPerIn, trueH = h*pxPerIn;
+
+    // preview: scale to fit viewport nicely
+    const maxW = window.innerWidth - 400;
+    const maxH = window.innerHeight - 80;
+    const scale = Math.min(maxW/trueW, maxH/trueH, 1);
+
+    [el.calendarPage].forEach(node=>{
+      node.style.width = trueW+"px";
+      node.style.height = trueH+"px";
+    });
+    el.calendarPage.style.transform = `scale(${scale})`;
+    el.calendarPage.style.transformOrigin = "top left";
+    document.querySelector(".stage-inner").style.width = (trueW*scale)+"px";
+    document.querySelector(".stage-inner").style.height = (trueH*scale)+"px";
+
+    el.printRoot.style.width = trueW+"px";
+    el.printRoot.style.height = trueH+"px";
+
+    updatePrintPageRule(w,h);
+  }
+
+  function updatePrintPageRule(w,h){
+    let styleTag = document.getElementById("dynamicPageSize");
+    if(!styleTag){
+      styleTag = document.createElement("style");
+      styleTag.id = "dynamicPageSize";
+      document.head.appendChild(styleTag);
+    }
+    styleTag.textContent = `@page { size: ${w}in ${h}in; margin: 0; }
+      @media print {
+        #printRoot #calendarPage, .print-root #calendarPage { width:${w}in !important; height:${h}in !important; }
+      }`;
+  }
+
+  // ---------- date list panel ----------
+  function renderDateList(){
+    el.dateList.innerHTML = "";
+    el.dateCount.textContent = state.dates.length;
+    el.emptyNote.style.display = state.dates.length ? "none" : "block";
+
+    const sorted = [...state.dates].sort((a,b)=> a.date.localeCompare(b.date));
+    sorted.forEach(entry=>{
+      const li = document.createElement("li");
+      const d = new Date(entry.date+"T00:00:00Z");
+      const dLabel = MONTH_NAMES[d.getUTCMonth()]+" "+d.getUTCDate() + (entry.repeat ? " (yearly)" : " '"+String(d.getUTCFullYear()).slice(2));
+      li.innerHTML = `
+        <span class="swatch" style="background:${CATEGORY_COLORS[entry.category]||CATEGORY_COLORS.other}"></span>
+        <span class="info"><span class="d">${dLabel}</span><span class="l">${escapeHtml(entry.label)}</span></span>
+        <button class="del" data-id="${entry.id}" title="Delete">&times;</button>
+      `;
+      el.dateList.appendChild(li);
+    });
+
+    el.dateList.querySelectorAll(".del").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        state.dates = state.dates.filter(e=>e.id !== btn.dataset.id);
+        saveState();
+        renderDateList();
+        renderCalendar();
+      });
+    });
+  }
+
+  // ---------- event wiring ----------
+  function bindControl(elem, key, transform){
+    elem.addEventListener("input", ()=>{
+      state[key] = transform ? transform(elem.value) : elem.value;
+      if(key==="preset"){ el.customRow.style.display = elem.value==="custom" ? "grid" : "none"; }
+      if(key==="accent"){ document.documentElement.style.setProperty("--accent", elem.value); }
+      saveState();
+      renderCalendar();
+    });
+  }
+
+  bindControl(el.year, "year", v=>parseInt(v,10)||new Date().getFullYear());
+  bindControl(el.title, "title");
+  bindControl(el.subtitle, "subtitle");
+  bindControl(el.weekStart, "weekStart", v=>parseInt(v,10));
+  bindControl(el.preset, "preset");
+  bindControl(el.customW, "customW", v=>parseFloat(v)||36);
+  bindControl(el.customH, "customH", v=>parseFloat(v)||24);
+  bindControl(el.accent, "accent");
+
+  el.btnAdd.addEventListener("click", ()=>{
+    if(!el.date.value){ el.date.focus(); return; }
+    if(!el.label.value.trim()){ el.label.focus(); return; }
+    state.dates.push({
+      id: "d"+Date.now()+Math.random().toString(36).slice(2,7),
+      date: el.date.value,
+      label: el.label.value.trim(),
+      category: el.category.value,
+      repeat: el.repeat.checked
+    });
+    saveState();
+    el.label.value = "";
+    el.repeat.checked = false;
+    renderDateList();
+    renderCalendar();
+  });
+
+  el.btnExport.addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "big-wall-calendar-"+state.year+"-backup.json";
+    a.click();
+  });
+
+  el.btnImport.addEventListener("click", ()=> el.importFile.click());
+  el.importFile.addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const imported = JSON.parse(reader.result);
+        state = Object.assign(defaultState(), imported);
+        saveState();
+        syncControlsFromState();
+        renderDateList();
+        renderCalendar();
+      }catch(err){
+        alert("That file couldn't be read as a valid backup.");
+      }
+    };
+    reader.readAsText(file);
+    el.importFile.value = "";
+  });
+
+  el.btnPrint.addEventListener("click", ()=> window.print());
+  window.addEventListener("resize", sizePages);
+
+  // ---------- init ----------
+  syncControlsFromState();
+  renderDateList();
+  renderCalendar();
+
+})();
+</script>
+</body>
+</html>
