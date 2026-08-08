@@ -653,38 +653,70 @@
     return {exact, repeat};
   }
 
+  // ---------- layout math (guarantees everything fits on one physical page) ----------
+  function computeLayout(weeksCount, pageW, pageH){
+    const pxPerIn = 96;
+    const trueW = Math.round(pageW*pxPerIn);
+    const trueH = Math.round(pageH*pxPerIn);
+    const headerH = Math.max(56, Math.round(trueH*0.095));
+    const footerH = Math.max(20, Math.round(trueH*0.028));
+    const theadH  = Math.max(16, Math.round(trueH*0.016));
+    const spineW  = Math.max(34, Math.round(trueW*0.055));
+    const rowH    = Math.floor((trueH - headerH - footerH - theadH) / weeksCount);
+    const dayColW = Math.floor((trueW - spineW) / 7);
+    return {trueW, trueH, headerH, footerH, theadH, spineW, rowH, dayColW};
+  }
+
   // ---------- rendering ----------
   function renderCalendar(){
     const year = parseInt(state.year,10) || new Date().getFullYear();
     const weeks = getYearWeeks(year, state.weekStart);
     const idx = buildEventIndex();
     const todayIso = new Date().toISOString().slice(0,10);
+    const [pageW, pageH] = getPageDimensions();
+    const L = computeLayout(weeks.length, pageW, pageH);
 
     const dayHeaderOrder = [];
     for(let i=0;i<7;i++) dayHeaderOrder.push(DAY_NAMES[(state.weekStart+i)%7]);
 
+    const titleFont = Math.round(L.headerH*0.30);
+    const subFont = Math.round(L.headerH*0.11);
+    const legendFont = Math.round(L.headerH*0.105);
+    const dotSize = Math.max(6, Math.round(L.headerH*0.08));
+    const imgMax = Math.round(L.headerH*0.7);
+    const theadFont = Math.max(8, Math.round(L.theadH*0.55));
+    const spineFont = Math.max(8, Math.round(L.rowH*0.26));
+    const numFont = Math.max(8, Math.round(L.rowH*0.22));
+    const moyFont = Math.max(7, Math.round(L.rowH*0.14));
+    const evFont = Math.max(7, Math.round(L.rowH*0.145));
+    const evImg = Math.max(8, Math.round(L.rowH*0.22));
+    const maxEvents = L.rowH < 45 ? 2 : (L.rowH < 65 ? 3 : 4);
+    const cellPad = Math.max(2, Math.round(L.rowH*0.06));
+
     let html = "";
-    html += `<div class="cal-header">
+    html += `<div class="cal-header" style="height:${L.headerH}px;box-sizing:border-box;">
       <div class="title-wrap">
-        ${state.headerImage ? `<img class="header-img" src="${state.headerImage}">` : ""}
+        ${state.headerImage ? `<img class="header-img" style="height:${imgMax}px;max-width:${Math.round(L.trueW*0.16)}px;" src="${state.headerImage}">` : ""}
         <div class="title-block">
-          <h2>${escapeHtml(state.title || "Our Year")} ${year}</h2>
-          ${state.subtitle ? `<div class="sub">${escapeHtml(state.subtitle)}</div>` : ""}
+          <h2 style="font-size:${titleFont}px;">${escapeHtml(state.title || "Our Year")} ${year}</h2>
+          ${state.subtitle ? `<div class="sub" style="font-size:${subFont}px;">${escapeHtml(state.subtitle)}</div>` : ""}
         </div>
       </div>
       <div class="legend">
-        ${Object.keys(CATEGORY_LABELS).map(k=>`<div class="item"><span class="dot" style="background:${CATEGORY_COLORS[k]}"></span>${CATEGORY_LABELS[k]}</div>`).join("")}
+        ${Object.keys(CATEGORY_LABELS).map(k=>`<div class="item" style="font-size:${legendFont}px;"><span class="dot" style="width:${dotSize}px;height:${dotSize}px;background:${CATEGORY_COLORS[k]}"></span>${CATEGORY_LABELS[k]}</div>`).join("")}
       </div>
     </div>`;
 
-    html += `<div class="grid-wrap"><table class="weekgrid"><colgroup><col class="spine-col">${dayHeaderOrder.map(()=>"<col>").join("")}</colgroup>`;
-    html += `<thead><tr><th></th>${dayHeaderOrder.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>`;
+    html += `<div class="grid-wrap" style="height:${L.trueH - L.headerH - L.footerH}px;overflow:hidden;">`;
+    html += `<table class="weekgrid" style="table-layout:fixed;width:${L.trueW}px;">`;
+    html += `<colgroup><col style="width:${L.spineW}px">${dayHeaderOrder.map(()=>`<col style="width:${L.dayColW}px">`).join("")}</colgroup>`;
+    html += `<thead><tr style="height:${L.theadH}px;"><th style="font-size:${theadFont}px;"></th>${dayHeaderOrder.map(d=>`<th style="font-size:${theadFont}px;">${d}</th>`).join("")}</tr></thead><tbody>`;
 
     weeks.forEach(week=>{
       const monthStartDay = week.find(d => d.getUTCFullYear()===year && d.getUTCDate()===1);
       const rowClass = monthStartDay ? "month-start" : "";
-      html += `<tr class="${rowClass}">`;
-      html += `<td class="spine">${monthStartDay ? MONTH_NAMES[monthStartDay.getUTCMonth()] : ""}</td>`;
+      html += `<tr class="${rowClass}" style="height:${L.rowH}px;">`;
+      html += `<td class="spine" style="font-size:${spineFont}px;">${monthStartDay ? MONTH_NAMES[monthStartDay.getUTCMonth()] : ""}</td>`;
 
       week.forEach(day=>{
         const inYear = day.getUTCFullYear() === year;
@@ -695,13 +727,13 @@
         const evs = [].concat(idx.exact[yKey]||[], idx.repeat[mdKey]||[]);
         const isToday = iso === todayIso;
 
-        html += `<td class="day ${inYear?"":"out-of-year"} ${isToday?"today":""}">`;
-        html += `<span class="num">${day.getUTCDate()}</span>`;
-        if(isFirst) html += `<span class="moy">${MONTH_NAMES[day.getUTCMonth()]}</span>`;
+        html += `<td class="day ${inYear?"":"out-of-year"} ${isToday?"today":""}" style="height:${L.rowH}px;padding:${cellPad}px;overflow:hidden;box-sizing:border-box;">`;
+        html += `<span class="num" style="font-size:${numFont}px;">${day.getUTCDate()}</span>`;
+        if(isFirst) html += `<span class="moy" style="font-size:${moyFont}px;">${MONTH_NAMES[day.getUTCMonth()]}</span>`;
         if(evs.length){
           html += `<div class="events">`;
-          evs.slice(0,4).forEach(ev=>{
-            html += `<div class="ev" style="background:${CATEGORY_COLORS[ev.category]||CATEGORY_COLORS.other}" title="${escapeHtml(ev.label)}">${ev.image?`<img src="${ev.image}">`:""}<span>${escapeHtml(ev.label)}</span></div>`;
+          evs.slice(0,maxEvents).forEach(ev=>{
+            html += `<div class="ev" style="background:${CATEGORY_COLORS[ev.category]||CATEGORY_COLORS.other};font-size:${evFont}px;" title="${escapeHtml(ev.label)}">${ev.image?`<img style="width:${evImg}px;height:${evImg}px;" src="${ev.image}">`:""}<span>${escapeHtml(ev.label)}</span></div>`;
           });
           html += `</div>`;
         }
@@ -712,10 +744,9 @@
 
     html += `</tbody></table></div>`;
 
-    const [w,h] = getPageDimensions();
-    html += `<div class="titleblock-footer">
+    html += `<div class="titleblock-footer" style="height:${L.footerH}px;box-sizing:border-box;font-size:${Math.max(8,Math.round(L.footerH*0.4))}px;">
       <span>YEAR: <b>${year}</b></span>
-      <span>SIZE: <b>${w}" &times; ${h}"</b></span>
+      <span>SIZE: <b>${pageW}" &times; ${pageH}"</b></span>
       <span>ENTRIES: <b>${state.dates.length}</b></span>
       <span>MADE WITH BIG WALL CALENDAR BUILDER</span>
     </div>`;
@@ -777,7 +808,8 @@
     }
     styleTag.textContent = `@page { size: ${w}in ${h}in; margin: 0; }
       @media print {
-        #printRoot #calendarPage, .print-root #calendarPage { width:${w}in !important; height:${h}in !important; }
+        html, body { width:${w}in; height:${h}in; }
+        #printRoot { width:${w}in !important; height:${h}in !important; overflow:hidden; }
       }`;
   }
 
