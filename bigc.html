@@ -274,14 +274,14 @@
     position:relative;
     background:var(--paper);
   }
-  td.day.out-of-year{background:#F0EFEA;}
+  td.day.out-of-range{background:#F0EFEA;}
   td.day .num{
     font-family:var(--font-mono);
     font-size:0.85vw;
     color:var(--ink);
     font-weight:700;
   }
-  td.day.out-of-year .num{color:#C8C6BC;}
+  td.day.out-of-range .num{color:#C8C6BC;}
   td.day .moy{
     font-size:0.6vw;
     color:var(--muted);
@@ -360,14 +360,23 @@
 
     <fieldset>
       <legend>Poster</legend>
-      <label for="fYear">Year</label>
-      <input type="number" id="fYear" value="2027">
-
       <label for="fTitle">Title</label>
       <input type="text" id="fTitle" placeholder="e.g. The Phillips Family" value="Our Year">
 
       <label for="fSubtitle">Subtitle</label>
       <input type="text" id="fSubtitle" placeholder="e.g. Farm, Family & Field Trips" value="">
+
+      <div class="row2">
+        <div>
+          <label for="fStartDate">Start date</label>
+          <input type="date" id="fStartDate">
+        </div>
+        <div>
+          <label for="fEndDate">End date</label>
+          <input type="date" id="fEndDate">
+        </div>
+      </div>
+      <p class="hint">Covers any range — a full calendar year, a school year, or just a few months.</p>
 
       <label for="fWeekStart">Week starts on</label>
       <select id="fWeekStart">
@@ -378,6 +387,12 @@
 
     <fieldset>
       <legend>Print size</legend>
+      <label for="fOrientation">Orientation</label>
+      <select id="fOrientation">
+        <option value="portrait">Portrait (tall)</option>
+        <option value="landscape">Landscape (wide)</option>
+      </select>
+
       <label for="fPreset">Poster size preset</label>
       <select id="fPreset">
         <option value="18x24">18" x 24"</option>
@@ -498,10 +513,12 @@
 
   // ---------- element refs ----------
   const el = {
-    year: document.getElementById("fYear"),
     title: document.getElementById("fTitle"),
     subtitle: document.getElementById("fSubtitle"),
+    startDate: document.getElementById("fStartDate"),
+    endDate: document.getElementById("fEndDate"),
     weekStart: document.getElementById("fWeekStart"),
+    orientation: document.getElementById("fOrientation"),
     preset: document.getElementById("fPreset"),
     customRow: document.getElementById("customSizeRow"),
     customW: document.getElementById("fCustomW"),
@@ -534,11 +551,14 @@
   let pendingEventImage = null;
 
   function defaultState(){
+    const y = new Date().getFullYear() + 1;
     return {
-      year: new Date().getFullYear() + 1,
       title: "Our Year",
       subtitle: "",
+      startDate: y+"-01-01",
+      endDate: y+"-12-31",
       weekStart: 0,
+      orientation: "portrait",
       preset: "24x36",
       customW: 36,
       customH: 24,
@@ -566,10 +586,12 @@
 
   // ---------- populate controls from state ----------
   function syncControlsFromState(){
-    el.year.value = state.year;
     el.title.value = state.title;
     el.subtitle.value = state.subtitle;
+    el.startDate.value = state.startDate;
+    el.endDate.value = state.endDate;
     el.weekStart.value = String(state.weekStart);
+    el.orientation.value = state.orientation;
     el.preset.value = state.preset;
     el.customW.value = state.customW;
     el.customH.value = state.customH;
@@ -616,9 +638,12 @@
   function pad2(n){ return n<10 ? "0"+n : ""+n; }
   function isoDate(y,m,d){ return y+"-"+pad2(m+1)+"-"+pad2(d); }
 
-  function getYearWeeks(year, weekStartDay){
-    const start = new Date(Date.UTC(year,0,1));
-    const end = new Date(Date.UTC(year,11,31));
+  function getRangeWeeks(startIso, endIso, weekStartDay){
+    let start = new Date(startIso + "T00:00:00Z");
+    let end = new Date(endIso + "T00:00:00Z");
+    if(isNaN(start.getTime())) start = new Date();
+    if(isNaN(end.getTime()) || end.getTime() < start.getTime()) end = new Date(start);
+
     let dow = start.getUTCDay();
     let back = (dow - weekStartDay + 7) % 7;
     let cursor = new Date(start);
@@ -635,6 +660,19 @@
       if(week[6].getTime() >= end.getTime()) break;
     }
     return weeks;
+  }
+
+  function formatRangeLabel(startIso, endIso){
+    const s = new Date(startIso+"T00:00:00Z");
+    const e = new Date(endIso+"T00:00:00Z");
+    if(isNaN(s.getTime()) || isNaN(e.getTime())) return "";
+    const sY = s.getUTCFullYear(), eY = e.getUTCFullYear();
+    const isFullYear = startIso.slice(5)==="01-01" && endIso.slice(5)==="12-31" && sY===eY;
+    if(isFullYear) return String(sY);
+    if(sY === eY){
+      return `${MONTH_NAMES[s.getUTCMonth()]} ${s.getUTCDate()} \u2013 ${MONTH_NAMES[e.getUTCMonth()]} ${e.getUTCDate()}, ${sY}`;
+    }
+    return `${MONTH_NAMES[s.getUTCMonth()]} ${sY} \u2013 ${MONTH_NAMES[e.getUTCMonth()]} ${eY}`;
   }
 
   function buildEventIndex(){
@@ -669,10 +707,11 @@
 
   // ---------- rendering ----------
   function renderCalendar(){
-    const year = parseInt(state.year,10) || new Date().getFullYear();
-    const weeks = getYearWeeks(year, state.weekStart);
+    const startIso = state.startDate, endIso = state.endDate;
+    const weeks = getRangeWeeks(startIso, endIso, state.weekStart);
     const idx = buildEventIndex();
     const todayIso = new Date().toISOString().slice(0,10);
+    const inRange = (iso) => iso >= startIso && iso <= endIso;
     const [pageW, pageH] = getPageDimensions();
     const L = computeLayout(weeks.length, pageW, pageH);
 
@@ -692,13 +731,14 @@
     const evImg = Math.max(8, Math.round(L.rowH*0.22));
     const maxEvents = L.rowH < 45 ? 2 : (L.rowH < 65 ? 3 : 4);
     const cellPad = Math.max(2, Math.round(L.rowH*0.06));
+    const rangeLabel = formatRangeLabel(startIso, endIso);
 
     let html = "";
     html += `<div class="cal-header" style="height:${L.headerH}px;box-sizing:border-box;">
       <div class="title-wrap">
         ${state.headerImage ? `<img class="header-img" style="height:${imgMax}px;max-width:${Math.round(L.trueW*0.16)}px;" src="${state.headerImage}">` : ""}
         <div class="title-block">
-          <h2 style="font-size:${titleFont}px;">${escapeHtml(state.title || "Our Year")} ${year}</h2>
+          <h2 style="font-size:${titleFont}px;">${escapeHtml(state.title || "Our Year")} ${escapeHtml(rangeLabel)}</h2>
           ${state.subtitle ? `<div class="sub" style="font-size:${subFont}px;">${escapeHtml(state.subtitle)}</div>` : ""}
         </div>
       </div>
@@ -712,25 +752,28 @@
     html += `<colgroup><col style="width:${L.spineW}px">${dayHeaderOrder.map(()=>`<col style="width:${L.dayColW}px">`).join("")}</colgroup>`;
     html += `<thead><tr style="height:${L.theadH}px;"><th style="font-size:${theadFont}px;"></th>${dayHeaderOrder.map(d=>`<th style="font-size:${theadFont}px;">${d}</th>`).join("")}</tr></thead><tbody>`;
 
-    weeks.forEach(week=>{
-      const monthStartDay = week.find(d => d.getUTCFullYear()===year && d.getUTCDate()===1);
+    weeks.forEach((week, weekIdx)=>{
+      let monthStartDay = week.find(d => inRange(isoDate(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())) && d.getUTCDate()===1);
+      if(!monthStartDay && weekIdx===0){
+        monthStartDay = week.find(d => inRange(isoDate(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())));
+      }
       const rowClass = monthStartDay ? "month-start" : "";
       html += `<tr class="${rowClass}" style="height:${L.rowH}px;">`;
       html += `<td class="spine" style="font-size:${spineFont}px;">${monthStartDay ? MONTH_NAMES[monthStartDay.getUTCMonth()] : ""}</td>`;
 
       week.forEach(day=>{
-        const inYear = day.getUTCFullYear() === year;
-        const isFirst = day.getUTCDate() === 1;
         const iso = isoDate(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate());
+        const dayInRange = inRange(iso);
+        const isFirst = day.getUTCDate() === 1;
         const mdKey = day.getUTCMonth()+"-"+day.getUTCDate();
         const yKey = day.getUTCFullYear()+"-"+mdKey;
         const evs = [].concat(idx.exact[yKey]||[], idx.repeat[mdKey]||[]);
         const isToday = iso === todayIso;
 
-        html += `<td class="day ${inYear?"":"out-of-year"} ${isToday?"today":""}" style="height:${L.rowH}px;padding:${cellPad}px;overflow:hidden;box-sizing:border-box;">`;
+        html += `<td class="day ${dayInRange?"":"out-of-range"} ${isToday?"today":""}" style="height:${L.rowH}px;padding:${cellPad}px;overflow:hidden;box-sizing:border-box;">`;
         html += `<span class="num" style="font-size:${numFont}px;">${day.getUTCDate()}</span>`;
         if(isFirst) html += `<span class="moy" style="font-size:${moyFont}px;">${MONTH_NAMES[day.getUTCMonth()]}</span>`;
-        if(evs.length){
+        if(evs.length && dayInRange){
           html += `<div class="events">`;
           evs.slice(0,maxEvents).forEach(ev=>{
             html += `<div class="ev" style="background:${CATEGORY_COLORS[ev.category]||CATEGORY_COLORS.other};font-size:${evFont}px;" title="${escapeHtml(ev.label)}">${ev.image?`<img style="width:${evImg}px;height:${evImg}px;" src="${ev.image}">`:""}<span>${escapeHtml(ev.label)}</span></div>`;
@@ -745,7 +788,7 @@
     html += `</tbody></table></div>`;
 
     html += `<div class="titleblock-footer" style="height:${L.footerH}px;box-sizing:border-box;font-size:${Math.max(8,Math.round(L.footerH*0.4))}px;">
-      <span>YEAR: <b>${year}</b></span>
+      <span>RANGE: <b>${escapeHtml(rangeLabel)}</b></span>
       <span>SIZE: <b>${pageW}" &times; ${pageH}"</b></span>
       <span>ENTRIES: <b>${state.dates.length}</b></span>
       <span>MADE WITH BIG WALL CALENDAR BUILDER</span>
@@ -768,6 +811,8 @@
     }else{
       [w,h] = PRESETS[state.preset] || PRESETS["24x36"];
     }
+    if(state.orientation === "landscape" && w < h){ [w,h] = [h,w]; }
+    if(state.orientation === "portrait" && h < w){ [w,h] = [h,w]; }
     return [w,h];
   }
 
@@ -854,10 +899,12 @@
     });
   }
 
-  bindControl(el.year, "year", v=>parseInt(v,10)||new Date().getFullYear());
   bindControl(el.title, "title");
   bindControl(el.subtitle, "subtitle");
+  bindControl(el.startDate, "startDate");
+  bindControl(el.endDate, "endDate");
   bindControl(el.weekStart, "weekStart", v=>parseInt(v,10));
+  bindControl(el.orientation, "orientation");
   bindControl(el.preset, "preset");
   bindControl(el.customW, "customW", v=>parseFloat(v)||36);
   bindControl(el.customH, "customH", v=>parseFloat(v)||24);
@@ -927,7 +974,7 @@
     const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "big-wall-calendar-"+state.year+"-backup.json";
+    a.download = "big-wall-calendar-"+(state.startDate||"backup").slice(0,4)+"-backup.json";
     a.click();
   });
 
