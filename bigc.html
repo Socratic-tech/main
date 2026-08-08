@@ -190,11 +190,28 @@
 
   .cal-header{
     display:flex;
-    align-items:baseline;
+    align-items:center;
     justify-content:space-between;
     padding:2.2% 2.5% 1%;
     border-bottom:3px solid var(--ink);
+    gap:1.5%;
   }
+  .cal-header .title-wrap{
+    display:flex;
+    align-items:center;
+    gap:1.2%;
+    min-width:0;
+  }
+  .cal-header .header-img{
+    height:5.5vw;
+    max-height:90px;
+    width:auto;
+    max-width:14vw;
+    object-fit:cover;
+    border:2px solid var(--ink);
+    flex-shrink:0;
+  }
+  .cal-header .title-block{min-width:0;}
   .cal-header .title-block h2{
     font-family:var(--font-display);
     margin:0;
@@ -286,6 +303,21 @@
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
+    display:flex;
+    align-items:center;
+    gap:3px;
+  }
+  td.day .ev img{
+    width:1.1vw;
+    height:1.1vw;
+    min-width:10px;
+    min-height:10px;
+    object-fit:cover;
+    border-radius:1px;
+    flex-shrink:0;
+  }
+  .date-list .thumb{
+    width:22px;height:22px;border-radius:3px;object-fit:cover;flex-shrink:0;
   }
   td.day.today{outline:3px solid var(--accent); outline-offset:-3px;}
 
@@ -370,6 +402,16 @@
     </fieldset>
 
     <fieldset>
+      <legend>Header photo / logo</legend>
+      <label for="fHeaderImage">Optional image next to the title</label>
+      <input type="file" id="fHeaderImage" accept="image/*">
+      <div id="headerImagePreviewWrap" style="display:none;margin-top:8px;">
+        <img id="headerImagePreview" style="max-width:100%;max-height:80px;border-radius:3px;display:block;">
+        <button class="btn-secondary" id="btnRemoveHeaderImage" style="margin-top:6px;">Remove image</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
       <legend>Add an important date</legend>
       <label for="fDate">Date</label>
       <input type="date" id="fDate">
@@ -387,6 +429,13 @@
         <input type="checkbox" id="fRepeat">
         <label for="fRepeat">Repeats every year</label>
       </div>
+      <label for="fEventImage">Photo (optional)</label>
+      <input type="file" id="fEventImage" accept="image/*">
+      <div id="eventImagePreviewWrap" style="display:none;margin-top:6px;">
+        <img id="eventImagePreview" style="max-width:100%;max-height:70px;border-radius:3px;display:block;">
+        <button class="btn-secondary" id="btnRemoveEventImage" style="margin-top:6px;">Remove photo</button>
+      </div>
+      <p class="hint">Photos are resized and stored in your browser. Keep it to the ones that matter most — a lot of photos will make the file slower to save.</p>
       <button class="btn-primary" id="btnAdd">Add date</button>
     </fieldset>
 
@@ -471,8 +520,18 @@
     importFile: document.getElementById("importFile"),
     btnPrint: document.getElementById("btnPrint"),
     calendarPage: document.getElementById("calendarPage"),
-    printRoot: document.getElementById("printRoot")
+    printRoot: document.getElementById("printRoot"),
+    headerImage: document.getElementById("fHeaderImage"),
+    headerImagePreviewWrap: document.getElementById("headerImagePreviewWrap"),
+    headerImagePreview: document.getElementById("headerImagePreview"),
+    btnRemoveHeaderImage: document.getElementById("btnRemoveHeaderImage"),
+    eventImage: document.getElementById("fEventImage"),
+    eventImagePreviewWrap: document.getElementById("eventImagePreviewWrap"),
+    eventImagePreview: document.getElementById("eventImagePreview"),
+    btnRemoveEventImage: document.getElementById("btnRemoveEventImage")
   };
+
+  let pendingEventImage = null;
 
   function defaultState(){
     return {
@@ -484,6 +543,7 @@
       customW: 36,
       customH: 24,
       accent: "#2C4A7C",
+      headerImage: null,
       dates: []
     };
   }
@@ -516,6 +576,40 @@
     el.accent.value = state.accent;
     el.customRow.style.display = state.preset === "custom" ? "grid" : "none";
     document.documentElement.style.setProperty("--accent", state.accent);
+    if(state.headerImage){
+      el.headerImagePreview.src = state.headerImage;
+      el.headerImagePreviewWrap.style.display = "block";
+    }else{
+      el.headerImagePreviewWrap.style.display = "none";
+    }
+  }
+
+  // ---------- image helpers ----------
+  function resizeImageFile(file, maxDim, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onerror = ()=> reject(new Error("Could not read file"));
+      reader.onload = ()=>{
+        const img = new Image();
+        img.onerror = ()=> reject(new Error("Could not decode image"));
+        img.onload = ()=>{
+          let {width, height} = img;
+          if(width > height && width > maxDim){
+            height = Math.round(height * (maxDim/width));
+            width = maxDim;
+          }else if(height > maxDim){
+            width = Math.round(width * (maxDim/height));
+            height = maxDim;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   // ---------- date helpers ----------
@@ -571,9 +665,12 @@
 
     let html = "";
     html += `<div class="cal-header">
-      <div class="title-block">
-        <h2>${escapeHtml(state.title || "Our Year")} ${year}</h2>
-        ${state.subtitle ? `<div class="sub">${escapeHtml(state.subtitle)}</div>` : ""}
+      <div class="title-wrap">
+        ${state.headerImage ? `<img class="header-img" src="${state.headerImage}">` : ""}
+        <div class="title-block">
+          <h2>${escapeHtml(state.title || "Our Year")} ${year}</h2>
+          ${state.subtitle ? `<div class="sub">${escapeHtml(state.subtitle)}</div>` : ""}
+        </div>
       </div>
       <div class="legend">
         ${Object.keys(CATEGORY_LABELS).map(k=>`<div class="item"><span class="dot" style="background:${CATEGORY_COLORS[k]}"></span>${CATEGORY_LABELS[k]}</div>`).join("")}
@@ -604,7 +701,7 @@
         if(evs.length){
           html += `<div class="events">`;
           evs.slice(0,4).forEach(ev=>{
-            html += `<div class="ev" style="background:${CATEGORY_COLORS[ev.category]||CATEGORY_COLORS.other}" title="${escapeHtml(ev.label)}">${escapeHtml(ev.label)}</div>`;
+            html += `<div class="ev" style="background:${CATEGORY_COLORS[ev.category]||CATEGORY_COLORS.other}" title="${escapeHtml(ev.label)}">${ev.image?`<img src="${ev.image}">`:""}<span>${escapeHtml(ev.label)}</span></div>`;
           });
           html += `</div>`;
         }
@@ -697,6 +794,7 @@
       const dLabel = MONTH_NAMES[d.getUTCMonth()]+" "+d.getUTCDate() + (entry.repeat ? " (yearly)" : " '"+String(d.getUTCFullYear()).slice(2));
       li.innerHTML = `
         <span class="swatch" style="background:${CATEGORY_COLORS[entry.category]||CATEGORY_COLORS.other}"></span>
+        ${entry.image ? `<img class="thumb" src="${entry.image}">` : ""}
         <span class="info"><span class="d">${dLabel}</span><span class="l">${escapeHtml(entry.label)}</span></span>
         <button class="del" data-id="${entry.id}" title="Delete">&times;</button>
       `;
@@ -733,6 +831,46 @@
   bindControl(el.customH, "customH", v=>parseFloat(v)||24);
   bindControl(el.accent, "accent");
 
+  el.headerImage.addEventListener("change", async ()=>{
+    const file = el.headerImage.files[0];
+    if(!file) return;
+    try{
+      state.headerImage = await resizeImageFile(file, 400, 0.85);
+      saveState();
+      el.headerImagePreview.src = state.headerImage;
+      el.headerImagePreviewWrap.style.display = "block";
+      renderCalendar();
+    }catch(e){
+      alert("That image couldn't be used. Try a different file.");
+    }
+    el.headerImage.value = "";
+  });
+
+  el.btnRemoveHeaderImage.addEventListener("click", ()=>{
+    state.headerImage = null;
+    saveState();
+    el.headerImagePreviewWrap.style.display = "none";
+    renderCalendar();
+  });
+
+  el.eventImage.addEventListener("change", async ()=>{
+    const file = el.eventImage.files[0];
+    if(!file) return;
+    try{
+      pendingEventImage = await resizeImageFile(file, 160, 0.8);
+      el.eventImagePreview.src = pendingEventImage;
+      el.eventImagePreviewWrap.style.display = "block";
+    }catch(e){
+      alert("That image couldn't be used. Try a different file.");
+    }
+    el.eventImage.value = "";
+  });
+
+  el.btnRemoveEventImage.addEventListener("click", ()=>{
+    pendingEventImage = null;
+    el.eventImagePreviewWrap.style.display = "none";
+  });
+
   el.btnAdd.addEventListener("click", ()=>{
     if(!el.date.value){ el.date.focus(); return; }
     if(!el.label.value.trim()){ el.label.focus(); return; }
@@ -741,11 +879,14 @@
       date: el.date.value,
       label: el.label.value.trim(),
       category: el.category.value,
-      repeat: el.repeat.checked
+      repeat: el.repeat.checked,
+      image: pendingEventImage
     });
     saveState();
     el.label.value = "";
     el.repeat.checked = false;
+    pendingEventImage = null;
+    el.eventImagePreviewWrap.style.display = "none";
     renderDateList();
     renderCalendar();
   });
